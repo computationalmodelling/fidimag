@@ -19,7 +19,7 @@ class Anisotropy(object):
         self.nz=mesh.nz
         self.spin=spin
         n=self.nx*self.ny*self.nz
-        self.field=np.zeros((3,n))
+        self.field=np.zeros(3*n)
 
     def compute_field(self):
         clib.compute_anisotropy(self.spin,

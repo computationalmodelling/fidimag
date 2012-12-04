@@ -6,24 +6,24 @@ cdef extern from "clib.h":
 	void llg_rhs(double *dm_dt,double *spin,double *h,double gamma,double alpha, double mu_s, int nxyz)
 
 def compute_uniform_exchange(
-							np.ndarray[double, ndim=2, mode="c"] spin,
-							np.ndarray[double, ndim=2, mode="c"] field,
+							np.ndarray[double, ndim=1, mode="c"] spin,
+							np.ndarray[double, ndim=1, mode="c"] field,
 							J,
                 			dx,dy,dz,
                    			nx,ny,nz):
-	compute_uniform_exch(&spin[0,0],&field[0,0],J,dx,dy,dz,nx,ny,nz)    
+	compute_uniform_exch(&spin[0],&field[0],J,dx,dy,dz,nx,ny,nz)    
 
 def compute_anisotropy(
-					np.ndarray[double, ndim=2, mode="c"] spin,
-                	np.ndarray[double, ndim=2, mode="c"] field,
+					np.ndarray[double, ndim=1, mode="c"] spin,
+                	np.ndarray[double, ndim=1, mode="c"] field,
                  	Kx,Ky,Kz,
                   	nx,ny,nz):
-	compute_anis(&spin[0,0],&field[0,0],Kx,Ky,Kz,nx,ny,nz)    
+	compute_anis(&spin[0],&field[0],Kx,Ky,Kz,nx,ny,nz)    
 
 
 def compute_llg_rhs(
-				np.ndarray[double, ndim=2, mode="c"] dm_dt,
-				np.ndarray[double, ndim=2, mode="c"] spin,
-                np.ndarray[double, ndim=2, mode="c"] field,
+				np.ndarray[double, ndim=1, mode="c"] dm_dt,
+				np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] field,
                 gamma,alpha,mu_s,nxyz):
-	llg_rhs(&dm_dt[0,0],&spin[0,0],&field[0,0],gamma,alpha,mu_s,nxyz)
+	llg_rhs(&dm_dt[0],&spin[0],&field[0],gamma,alpha,mu_s,nxyz)
