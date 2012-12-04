@@ -5,13 +5,14 @@ from fd_mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
+from show_vector import VisualSpin
 
 
 class Sim(object):
     def __init__(self,mesh):
         self.mesh=mesh
         self.nxyz=mesh.nxyz
-        self.spin=np.zeros(3*self.nxyz)
+        self.spin=np.ones(3*self.nxyz)
         self.field=np.zeros(3*self.nxyz)
         self.dm_dt=np.zeros(3*self.nxyz)
         self.interactions=[]
@@ -80,11 +81,14 @@ if __name__=='__main__':
     sim.add(zeeman)
     
     sim.set_m((1,0,0))
+    vs=VisualSpin(sim)
+    vs.init()
     
     print exch.compute_field()
     print anis.compute_field()
     
     for t in range(10):
         sim.run_until(t)
+        vs.update()
     
     
