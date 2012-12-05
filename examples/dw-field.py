@@ -32,18 +32,18 @@ def relax_system(mesh):
     
     return sim.spin
 
-def dw_motion(mesh,m0,H0=10):
+def dw_motion(mesh,m0,H0=1):
     sim=Sim(mesh)
-    sim.alpha=0.001
+    sim.alpha=0.1
     sim.gamma=5
     
-    exch=UniformExchange(-1)
+    exch=UniformExchange(1)
     sim.add(exch)
 
-    anis=Anisotropy(-1)
+    anis=Anisotropy(1)
     sim.add(anis)
     
-    zeeman=Zeeman(H0,(-1,0,0))
+    zeeman=Zeeman(H0,(1,0,0))
     sim.add(zeeman)
     
     sim.set_m(m0)

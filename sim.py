@@ -12,6 +12,7 @@ import time
 class Sim(object):
     def __init__(self,mesh):
         self.t=0
+        self.c=0.1
         self.mesh=mesh
         self.nxyz=mesh.nxyz
         self.spin=np.ones(3*self.nxyz)
@@ -20,6 +21,7 @@ class Sim(object):
         self.interactions=[]
         self.vode=ode(self.ode_rhs)
         self.pin_fun=None
+        self.ode_times=0
         self.set_options()
         
     def set_options(self,rtol=1e-8,atol=1e-12):
@@ -30,6 +32,7 @@ class Sim(object):
         self.alpha=0.01
         self.gamma=1
         self.mu_s=1
+        
     
     def set_m(self,m0=(1,0,0)):
         if isinstance(m0,list) or isinstance(m0,tuple):
@@ -60,6 +63,7 @@ class Sim(object):
             #print ode.t,ode.y
 
     def ode_rhs(self,t,y):
+        self.ode_times+=1
         self.t=t
         self.field=0
         self.spin[:]=y[:]
@@ -76,35 +80,50 @@ class Sim(object):
                            self.gamma,
                            self.alpha,
                            self.mu_s,
-                           self.nxyz)
+                           self.nxyz,
+                           self.c)
         
         return self.dm_dt
 
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=20)
+    mesh=FDMesh(nx=1)
     sim=Sim(mesh)
+    sim.alpha=0.00
     exch=UniformExchange(1)
     sim.add(exch)
 
     anis=Anisotropy(1)
-    sim.add(anis)
+    #sim.add(anis)
     
     zeeman=Zeeman(10,(0,0,1))
     sim.add(zeeman)
     
     sim.set_m((1,0,0))
-    vs=VisualSpin(sim)
-    vs.init()
+    #vs=VisualSpin(sim)
+    #vs.init()
     
     print exch.compute_field()
-    print anis.compute_field()
+    #print anis.compute_field()
     
-    ts=np.linspace(0, 2, 51)
+    ts=np.linspace(0, 50, 5001)
+    run_times=[]
+    mzs=[]
+    sim.c=10
     for t in ts:
         sim.run_until(t)
-        vs.update()
-        time.sleep(0.1)
+        spin=sim.spin
+        dm=np.linalg.norm(spin)-1.0
+        print sim.c,'times',sim.ode_times,dm,spin[2]
+        mzs.append(spin[2])
+        run_times.append(dm)
+        #vs.update()
+        #time.sleep(0.01)
+    import pylab
+    pylab.plot(ts,run_times)
+    pylab.show()
+    pylab.plot(ts,mzs)
+    pylab.show()
     
     

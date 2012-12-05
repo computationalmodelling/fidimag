@@ -1,23 +1,19 @@
-
 #include "clib.h"
 
-void compute_anis(double *spin,double *field,double Kx,double Ky,double Kz,int nx,int ny, int nz){
-  int nxy=nx*ny;
-  int nxyz=nxy*nz;
-  int i,j,k;
-  int id;
+void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
+		int nxyz) {
 
-  for (i=0;i<nx;i++){
-    for(j=0;j<ny;j++){
-      for(k=0;k<nz;k++){
-	id=nxy*k+ny*j+i;	
-	field[id]=Kx*spin[id];
-	id+=nxyz;
-	field[id]=Ky*spin[id];
-	id+=nxyz;
-	field[id]=Kz*spin[id];
-      }
-    }
-  }
-  
+	int i, j, k;
+
+	for (i = 0; i < nxyz; i++) {
+
+		j = i + nxyz;
+		k = j + nxyz;
+
+		field[i] = 2 * Dx * spin[i];
+		field[j] = 2 * Dy * spin[j];
+		field[k] = 2 * Dz * spin[k];
+
+	}
+
 }

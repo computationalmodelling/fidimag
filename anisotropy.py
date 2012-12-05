@@ -3,32 +3,27 @@ import numpy as np
 
 
 class Anisotropy(object):
-    def __init__(self,K,direction=(1,0,0)):
-        self.Kx=K*direction[0]
-        self.Ky=K*direction[1]
-        self.Kz=K*direction[2]
+    """
+    Hamiltonian=-D*S_x^2 ==>H=2D*S_x
+    """
+    def __init__(self,D,direction=(1,0,0)):
+        self.Dx=D*direction[0]
+        self.Dy=D*direction[1]
+        self.Dz=D*direction[2]
         
         
     def setup(self,mesh,spin):
         self.mesh=mesh
-        self.dx=mesh.dx
-        self.dy=mesh.dy
-        self.dz=mesh.dz
-        self.nx=mesh.nx
-        self.ny=mesh.ny
-        self.nz=mesh.nz
         self.spin=spin
-        n=self.nx*self.ny*self.nz
-        self.field=np.zeros(3*n)
+        self.nxyz=mesh.nxyz
+        self.field=np.zeros(3*self.nxyz)
 
     def compute_field(self):
         clib.compute_anisotropy(self.spin,
                                 self.field,
-                                self.Kx,
-                                self.Ky,
-                                self.Kz,
-                                self.nx,
-                                self.ny,
-                                self.nz)
+                                self.Dx,
+                                self.Dy,
+                                self.Dz,
+                                self.nxyz)
                                       
         return self.field
