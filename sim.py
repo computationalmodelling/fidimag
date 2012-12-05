@@ -19,7 +19,7 @@ class Sim(object):
         self.dm_dt=np.zeros(3*self.nxyz)
         self.interactions=[]
         self.vode=ode(self.ode_rhs)
-        
+        self.pin_fun=None
         self.set_options()
         
     def set_options(self,rtol=1e-8,atol=1e-12):
@@ -47,7 +47,6 @@ class Sim(object):
             if m0.shape==self.spin.shape:
                 self.spin[:]=m0[:]
             
-            
         self.vode.set_initial_value(self.spin, self.t)
             
     def add(self,interaction):
@@ -61,8 +60,13 @@ class Sim(object):
             #print ode.t,ode.y
 
     def ode_rhs(self,t,y):
+        self.t=t
         self.field=0
         self.spin[:]=y[:]
+        
+        if self.pin_fun:
+            self.pin_fun(self.t,self.mesh,self.spin)
+        
         for obj in self.interactions:
             self.field+=obj.compute_field()
         

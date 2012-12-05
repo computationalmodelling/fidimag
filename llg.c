@@ -7,7 +7,7 @@ void llg_rhs(double *dm_dt,double *m,double *h,double gamma,double alpha, double
   int i,j,k;
   
   double mth0,mth1,mth2;
-  double coeff=gamma/(1+alpha*alpha)/mu_s;
+  double coeff=-gamma/(1+alpha*alpha)/mu_s;
 
   for (i=0;i<nxyz;i++){
     j=i+nxyz;
