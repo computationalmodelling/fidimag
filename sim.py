@@ -6,10 +6,12 @@ from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
 from show_vector import VisualSpin
+import time
 
 
 class Sim(object):
     def __init__(self,mesh):
+        self.t=0
         self.mesh=mesh
         self.nxyz=mesh.nxyz
         self.spin=np.ones(3*self.nxyz)
@@ -25,7 +27,7 @@ class Sim(object):
                                  rtol=rtol,
                                  atol=atol,
                                  nsteps=100000)
-        self.alpha=0.1
+        self.alpha=0.01
         self.gamma=1
         self.mu_s=1
     
@@ -36,9 +38,17 @@ class Sim(object):
             tmp=np.reshape(tmp, 3*self.nxyz, order='F')
             self.spin[:]=tmp[:]
         elif hasattr(m0, '__call__'):
-            m0(self.spin)
+            tmp=np.zeros((self.nxyz,3))
+            for i in range(self.mesh.nxyz):
+                tmp[i]=m0(self.mesh.pos[i])
+            tmp=np.reshape(tmp, 3*self.nxyz, order='F')
+            self.spin[:]=tmp[:]
+        elif isinstance(m0,np.ndarray):
+            if m0.shape==self.spin.shape:
+                self.spin[:]=m0[:]
             
-        self.vode.set_initial_value(self.spin, 0)
+            
+        self.vode.set_initial_value(self.spin, self.t)
             
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin)
@@ -48,7 +58,7 @@ class Sim(object):
         ode=self.vode
         while ode.successful() and ode.t<t:
             ode.integrate(t)
-            print ode.t,ode.y
+            #print ode.t,ode.y
 
     def ode_rhs(self,t,y):
         self.field=0
@@ -69,7 +79,7 @@ class Sim(object):
                         
 if __name__=='__main__':
     
-    mesh=FDMesh()
+    mesh=FDMesh(nx=20)
     sim=Sim(mesh)
     exch=UniformExchange(1)
     sim.add(exch)
@@ -87,8 +97,10 @@ if __name__=='__main__':
     print exch.compute_field()
     print anis.compute_field()
     
-    for t in range(10):
+    ts=np.linspace(0, 2, 51)
+    for t in ts:
         sim.run_until(t)
         vs.update()
+        time.sleep(0.1)
     
     
