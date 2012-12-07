@@ -8,7 +8,7 @@ class FDMesh():
         self.nx=nx
         self.ny=ny
         self.nz=nz
-        self.nxy=nx*ny
+        self.nyz=ny*nz
         self.nxyz=nx*ny*nz
         self.unit_length=unit_length
         self.compute_pos()
@@ -21,8 +21,7 @@ class FDMesh():
                     tp=((i-self.nx/2)*self.dx,
                          (j-self.ny/2)*self.dy,
                          (k-self.nz/2)*self.dz)
-                    index=k*self.nxy+j*self.ny+i
+                    index=i*self.nyz+j*self.nz+k
                     self.pos[index]=tp
-        
 
 
