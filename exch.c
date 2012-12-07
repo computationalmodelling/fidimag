@@ -3,11 +3,13 @@
 void compute_uniform_exch(double *spin, double *field, double J, double dx,
 		double dy, double dz, int nx, int ny, int nz) {
 
-	int nyz = ny * nz;
-	int nxyz = nxy * nz;
 	int i, j, k;
 	int index, id;
 	double tmp[3];
+
+	int nyz = ny * nz;
+	int nxyz = nx * nyz;
+
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
 			for (k = 0; k < nz; k++) {

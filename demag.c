@@ -1,3 +1,4 @@
+#include <math.h>
 #include "clib.h"
 
 enum Type_Nij {
@@ -52,27 +53,20 @@ void compute_tensors(double *Nxx, double *Nyy, double *Nzz, double *Nxy,
 	for (i = 0; i < lenx; i++) {
 		for (j = 0; j < leny; j++) {
 			for (k = 0; k < lenz; k++) {
-				id = i* lenyz + j * lenz + k;
-				x=(i - nx + 1)*dx;
-				y=(j - ny + 1)*dy;
-				z=(k - nz + 1)*dz;
+				id = i * lenyz + j * lenz + k;
+				x = (i - nx + 1) * dx;
+				y = (j - ny + 1) * dy;
+				z = (k - nz + 1) * dz;
 
-				Nxx[id]=NXXdipole(xx,x,y,z);
-				Nyy[id]=NXXdipole(yy,x,y,z);
-				Nzz[id]=NXXdipole(zz,x,y,z);
-				Nxy[id]=NXXdipole(xy,x,y,z);
-				Nxx[id]=NXXdipole(xz,x,y,z);
-				Nyz[id]=NXXdipole(yz,x,y,z);
+				Nxx[id] = NXXdipole(xx, x, y, z);
+				Nyy[id] = NXXdipole(yy, x, y, z);
+				Nzz[id] = NXXdipole(zz, x, y, z);
+				Nxy[id] = NXXdipole(xy, x, y, z);
+				Nxx[id] = NXXdipole(xz, x, y, z);
+				Nyz[id] = NXXdipole(yz, x, y, z);
 			}
 		}
 	}
 }
 
-void compute_uniform_exch() {
-	int nxy = nx * ny;
-	int nxyz = nxy * nz;
-	int i, j, k;
-	int index, id;
-	double tmp[3];
 
-}

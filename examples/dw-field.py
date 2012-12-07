@@ -20,7 +20,7 @@ def relax_system(mesh):
     exch=UniformExchange(1)
     sim.add(exch)
 
-    anis=Anisotropy(1)
+    anis=Anisotropy(0.4)
     sim.add(anis)
     
     sim.set_m(init_m)
@@ -40,7 +40,7 @@ def dw_motion(mesh,m0,H0=1):
     exch=UniformExchange(1)
     sim.add(exch)
 
-    anis=Anisotropy(1)
+    anis=Anisotropy(0.4)
     sim.add(anis)
     
     zeeman=Zeeman(H0,(1,0,0))
@@ -60,7 +60,7 @@ def dw_motion(mesh,m0,H0=1):
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=30)
+    mesh=FDMesh(nx=30,ny=2)
     
     m0=relax_system(mesh)
     print 'relax system done'
