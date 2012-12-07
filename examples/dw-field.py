@@ -60,7 +60,7 @@ def dw_motion(mesh,m0,H0=1):
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=30,ny=2)
+    mesh=FDMesh(nx=30,ny=5,nz=2)
     
     m0=relax_system(mesh)
     print 'relax system done'

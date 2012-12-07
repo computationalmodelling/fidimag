@@ -3,9 +3,6 @@ import numpy as np
 
 
 class Demag(object):
-    def __init__(self):
-        pass
-        
         
     def setup(self, mesh, spin):
         self.mesh = mesh
@@ -19,37 +16,27 @@ class Demag(object):
         n = self.nx * self.ny * self.nz
         self.field = np.zeros(3 * n)
         
-        lenx = 2 * self.nx - 1
-        leny = n * self.ny - 1
-        lenz = 2 * self.nz - 1
-        length = lenx * leny * lenz
+        self.demag=clib.FFTDemag(self.dx,self.dy,self.dz,
+                              self.nx,self.ny,self.nz)
         
-        self.Nxx = np.zeros(length)
-        self.Nyy = np.zeros(length)
-        self.Nzz = np.zeros(length)
-        self.Nxy = np.zeros(length)
-        self.Nxz = np.zeros(length)
-        self.Nyz = np.zeros(length)
-        
-    def compute_tensor(self):
-        clib.compute_all_tensors(self.Nxx,
-                                 self.Nyy,
-                                 self.Nzz,
-                                 self.Nxy,
-                                 self.Nxz,
-                                 self.Nyz,
-                                 self.dx,self.dy,self.dz,
-                                 self.nx,self.ny,self.nz)
-
     def compute_field(self):
-        clib.compute_uniform_exchange(self.spin,
-                                      self.field,
-                                      self.J,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
-                                      self.nx,
-                                      self.ny,
-                                      self.nz)
-                                      
+        self.demag.compute_field(self.spin,self.field)
         return self.field
+    
+    def compute_exact(self):
+        self.demag.compute_exact(self.spin,self.field)
+        return self.field
+    
+
+if __name__=='__main__':
+    import pccp
+    mesh=pccp.FDMesh(nx=6,ny=1,nz=1)
+    sim=pccp.Sim(mesh)
+    
+    demag=Demag()
+    sim.add(demag)
+    
+    sim.set_m((1,0,0))
+    print demag.compute_field()
+    print demag.compute_exact()
+    demag.demag.print_field()
