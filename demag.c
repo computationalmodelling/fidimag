@@ -107,9 +107,10 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->mx = (double *) fftw_malloc(size1);
 	plan->my = (double *) fftw_malloc(size1);
 	plan->mz = (double *) fftw_malloc(size1);
-	plan->hx = (double *) fftw_malloc(size1);
-	plan->hy = (double *) fftw_malloc(size1);
-	plan->hz = (double *) fftw_malloc(size1);
+        
+	plan->hx = (fftw_complex *) fftw_malloc(size2);
+	plan->hy = (fftw_complex *) fftw_malloc(size2);
+	plan->hz = (fftw_complex *) fftw_malloc(size2);
 
 	plan->Nxx = (fftw_complex *) fftw_malloc(size2);
 	plan->Nyy = (fftw_complex *) fftw_malloc(size2);
@@ -131,17 +132,40 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->m_plan = fftw_plan_dft_r2c_3d(plan->lenx, plan->leny, plan->lenz,
 			plan->mx, plan->Mx, FFTW_MEASURE);
 
-	plan->h_plan = fftw_plan_dft_c2r_3d(plan->lenx, plan->leny, plan->lenz,
-			plan->Hx, plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
+	plan->h_plan = fftw_plan_dft_3d(plan->lenx, plan->leny, plan->lenz,
+			plan->Hx, plan->hx, FFTW_BACKWARD, FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
 	printf("hello\n");
 	pre_compute(plan);
 
 }
 
+void print_r(char *str, double *x,int n){
+    int i;
+    printf("%s:\n",str);
+    for(i=0;i<n;i++){
+        printf("%f ",x[i]);
+    }
+    printf("\n");
+
+}
+
+void print_c(char *str, fftw_complex *x,int n){
+    int i;
+    printf("%s\n",str);
+    for(i=0;i<n;i++){
+        printf("%f+%fI  ",x[i]);
+    }
+    printf("\n");
+
+}
+
+
 void pre_compute(fft_demag_plan *plan) {
 	compute_tensors(plan, Tensor_xx, plan->tensor_xx);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nyy);
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
+        print_r("tensor_xx",plan->tensor_xx,plan->total_length);
+        print_c("Nxx",plan->Nxx,plan->total_length);
 
 	compute_tensors(plan, Tensor_yy, plan->tensor_yy);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, plan->Nyy);
@@ -175,6 +199,13 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 	int leny = plan->leny;
 	int lenz = plan->lenz;
 	int lenyz = leny * lenz;
+        
+        for(i=0;i<plan->total_length;i++){
+            plan->mx[i]=0;
+            plan->my[i]=0;
+            plan->mz[i]=0;
+        
+        }
 
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
@@ -188,9 +219,13 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 		}
 	}
 
+        print_r("plan->mx",plan->mx,plan->total_length);
+        
 	fftw_execute_dft_r2c(plan->m_plan, plan->mx, plan->Mx);
 	fftw_execute_dft_r2c(plan->m_plan, plan->my, plan->My);
 	fftw_execute_dft_r2c(plan->m_plan, plan->mz, plan->Mz);
+        
+        print_c("plan->Mx",plan->Mx,plan->total_length);
 
 	fftw_complex *Nxx = plan->Nxx;
 	fftw_complex *Nyy = plan->Nyy;
@@ -205,6 +240,8 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 	fftw_complex *Hx = plan->Hx;
 	fftw_complex *Hy = plan->Hy;
 	fftw_complex *Hz = plan->Hz;
+        
+        print_c("Mx",Mx,plan->total_length);
 
 	for (i = 0; i < plan->total_length; i++) {
 		Hx[i] = Nxx[i] * Mx[i] + Nxy[i] * My[i] + Nxz[i] * Mz[i];
@@ -212,51 +249,26 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 		Hz[i] = Nxz[i] * Mx[i] + Nyz[i] * My[i] + Nzz[i] * Mz[i];
 	}
 
-	fftw_execute_dft_c2r(plan->m_plan, plan->Hx, plan->hx);
-	fftw_execute_dft_c2r(plan->m_plan, plan->Hy, plan->hy);
-	fftw_execute_dft_c2r(plan->m_plan, plan->Hz, plan->hz);
+        print_c("Hx",Hx,plan->total_length);
+        
+	fftw_execute_dft(plan->h_plan, plan->Hx, plan->hx);
+	fftw_execute_dft(plan->h_plan, plan->Hy, plan->hy);
+	fftw_execute_dft(plan->h_plan, plan->Hz, plan->hz);
+        print_c("hx",plan->hx,plan->total_length);
 
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
 			for (k = 0; k < nz; k++) {
 				id1 = i * nyz + j * nz + k;
 				id2 = i * lenyz + j * lenz + k;
-				field[id1] = plan->hx[id2];
-				field[id1 + nxyz] = plan->hy[id2];
-				field[id1 + 2 * nxyz] = plan->hz[id2];
+				field[id1] = creal(plan->hx[id2]);
+				field[id1 + nxyz] = creal(plan->hy[id2]);
+				field[id1 + 2 * nxyz] = creal(plan->hz[id2]);
 			}
 		}
 	}
 
 }
-
-void print_h(fft_demag_plan *plan){
-	int i, j, k, id;
-
-	int nx = plan->nx;
-	int ny = plan->ny;
-	int nz = plan->nz;
-	int lenx = plan->lenx;
-	int leny = plan->leny;
-	int lenz = plan->lenz;
-	int lenyz = leny * lenz;
-
-	for (i = 0; i < lenx; i++) {
-		for (j = 0; j < leny; j++) {
-			for (k = 0; k < lenz; k++) {
-				id = i * lenyz + j * lenz + k;
-				printf("index=%d  hx=%g   hy=%g   hz=%g\n",
-						id,
-						plan->hx[id],
-						plan->hy[id],
-						plan->hz[id]);
-
-
-			}
-		}
-	}
-}
-
 
 void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 	int i, j, k, i1, i2, i3, index;
@@ -285,6 +297,10 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 				id1 = ii * nyz + jj * nz + kk;
 				id2 = id1 + nxyz;
 				id3 = id2 + nxyz;
+                                
+                                field[id1]=0;
+                                field[id2]=0;
+                                field[id3]=0;
 
 				for (i = 0; i < nx; i++) {
 					for (j = 0; j < ny; j++) {

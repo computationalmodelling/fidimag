@@ -49,9 +49,9 @@ typedef struct {
 	double *mx;
 	double *my;
 	double *mz;
-	double *hx;
-	double *hy;
-	double *hz;
+	fftw_complex *hx;
+	fftw_complex *hy;
+	fftw_complex *hz;
 
 	//we need three plans
 	fftw_plan tensor_plan;

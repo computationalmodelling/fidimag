@@ -17,20 +17,17 @@ cdef extern from "clib.h":
 		int ny, int nz)
 	void compute_fields(fft_demag_plan *plan, double *spin, double *field)
 	void exact_compute(fft_demag_plan *plan, double *spin, double *field)
-	void print_h(fft_demag_plan *plan)
 
 
-def compute_uniform_exchange(
-							np.ndarray[double, ndim=1, mode="c"] spin,
-							np.ndarray[double, ndim=1, mode="c"] field,
-							J,
-                			dx, dy, dz,
-                   			nx, ny, nz):
+def compute_uniform_exchange(np.ndarray[double, ndim=1, mode="c"] spin,
+                            np.ndarray[double, ndim=1, mode="c"] field,
+                            J,
+                            dx, dy, dz,
+                            nx, ny, nz):
 	compute_uniform_exch(& spin[0], & field[0], J, dx, dy, dz, nx, ny, nz)    
 
-def compute_anisotropy(
-					np.ndarray[double, ndim=1, mode="c"] spin,
-                	np.ndarray[double, ndim=1, mode="c"] field,
+def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
+                        np.ndarray[double, ndim=1, mode="c"] field,
                  	Kx, Ky, Kz,nxyz):
 	compute_anis(& spin[0], & field[0], Kx, Ky, Kz, nxyz)    
 
@@ -73,5 +70,3 @@ cdef class FFTDemag:
                 	np.ndarray[double, ndim=1, mode="c"] field):
 		exact_compute(self._c_plan,&spin[0],&field[0])
 		
-	def print_field(self):
-		print_h(self._c_plan)

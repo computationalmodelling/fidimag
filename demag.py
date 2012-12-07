@@ -39,4 +39,3 @@ if __name__=='__main__':
     sim.set_m((1,0,0))
     print demag.compute_field()
     print demag.compute_exact()
-    demag.demag.print_field()
