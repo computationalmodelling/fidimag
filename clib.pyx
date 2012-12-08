@@ -32,9 +32,8 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
 	compute_anis(& spin[0], & field[0], Kx, Ky, Kz, nxyz)    
 
 
-def compute_llg_rhs(
-				np.ndarray[double, ndim=1, mode="c"] dm_dt,
-				np.ndarray[double, ndim=1, mode="c"] spin,
+def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
+                np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 gamma, alpha, mu_s, nxyz, c):
 	llg_rhs(& dm_dt[0], & spin[0], & field[0], gamma, alpha, mu_s, nxyz, c)

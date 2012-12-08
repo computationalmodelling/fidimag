@@ -30,7 +30,7 @@ class Demag(object):
 
 if __name__=='__main__':
     import pccp
-    mesh=pccp.FDMesh(nx=6,ny=1,nz=1)
+    mesh=pccp.FDMesh(nx=4,ny=3,nz=2)
     sim=pccp.Sim(mesh)
     
     demag=Demag()

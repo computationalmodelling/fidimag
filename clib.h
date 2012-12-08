@@ -25,6 +25,7 @@ typedef struct {
 	int lenz;
 
 	int total_length;
+        
 	double *tensor;
 	double *tensor_xx;
 	double *tensor_yy;
@@ -49,9 +50,10 @@ typedef struct {
 	double *mx;
 	double *my;
 	double *mz;
-	fftw_complex *hx;
-	fftw_complex *hy;
-	fftw_complex *hz;
+	double *hx;
+	double *hy;
+	double *hz;
+        
 
 	//we need three plans
 	fftw_plan tensor_plan;

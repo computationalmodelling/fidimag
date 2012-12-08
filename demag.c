@@ -108,9 +108,9 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->my = (double *) fftw_malloc(size1);
 	plan->mz = (double *) fftw_malloc(size1);
         
-	plan->hx = (fftw_complex *) fftw_malloc(size2);
-	plan->hy = (fftw_complex *) fftw_malloc(size2);
-	plan->hz = (fftw_complex *) fftw_malloc(size2);
+	plan->hx = (double *) fftw_malloc(size1);
+	plan->hy = (double *) fftw_malloc(size1);
+	plan->hz = (double *) fftw_malloc(size1);
 
 	plan->Nxx = (fftw_complex *) fftw_malloc(size2);
 	plan->Nyy = (fftw_complex *) fftw_malloc(size2);
@@ -127,13 +127,13 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->Hz = (fftw_complex *) fftw_malloc(size2);
 
 	plan->tensor_plan = fftw_plan_dft_r2c_3d(plan->lenx, plan->leny,
-			plan->lenz, plan->tensor_xx, plan->Nxx, FFTW_ESTIMATE);
+			plan->lenz, plan->tensor_xx, plan->Nxx, FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
 
 	plan->m_plan = fftw_plan_dft_r2c_3d(plan->lenx, plan->leny, plan->lenz,
 			plan->mx, plan->Mx, FFTW_MEASURE);
 
-	plan->h_plan = fftw_plan_dft_3d(plan->lenx, plan->leny, plan->lenz,
-			plan->Hx, plan->hx, FFTW_BACKWARD, FFTW_MEASURE | FFTW_DESTROY_INPUT);
+	plan->h_plan = fftw_plan_dft_c2r_3d(plan->lenx, plan->leny, plan->lenz,
+			plan->Hx, plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
 	printf("hello\n");
 	pre_compute(plan);
@@ -154,7 +154,7 @@ void print_c(char *str, fftw_complex *x,int n){
     int i;
     printf("%s\n",str);
     for(i=0;i<n;i++){
-        printf("%f+%fI  ",x[i]);
+        printf("%g+%gI  ",x[i]);
     }
     printf("\n");
 
@@ -162,6 +162,18 @@ void print_c(char *str, fftw_complex *x,int n){
 
 
 void pre_compute(fft_demag_plan *plan) {
+    int i;
+    for(i=0;i<plan->total_length;i++){
+        plan->Nxx[i]=0;
+        plan->Nyy[i]=0;
+        plan->Nzz[i]=0;
+        plan->Nxy[i]=0;
+        plan->Nxz[i]=0;
+        plan->Nyz[i]=0;
+    }
+    
+        print_c("Before_Nxx",plan->Nxx,plan->total_length);
+    
 	compute_tensors(plan, Tensor_xx, plan->tensor_xx);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
         print_r("tensor_xx",plan->tensor_xx,plan->total_length);
@@ -251,19 +263,22 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 
         print_c("Hx",Hx,plan->total_length);
         
-	fftw_execute_dft(plan->h_plan, plan->Hx, plan->hx);
-	fftw_execute_dft(plan->h_plan, plan->Hy, plan->hy);
-	fftw_execute_dft(plan->h_plan, plan->Hz, plan->hz);
-        print_c("hx",plan->hx,plan->total_length);
+	fftw_execute_dft_c2r(plan->h_plan, plan->Hx, plan->hx);
+	fftw_execute_dft_c2r(plan->h_plan, plan->Hy, plan->hy);
+	fftw_execute_dft_c2r(plan->h_plan, plan->Hz, plan->hz);
+        print_r("hx",plan->hx,plan->total_length);
+        print_r("hy",plan->hy,plan->total_length);
+        print_r("hz",plan->hz,plan->total_length);
 
+        double scale=1.0/plan->total_length;
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
 			for (k = 0; k < nz; k++) {
 				id1 = i * nyz + j * nz + k;
-				id2 = i * lenyz + j * lenz + k;
-				field[id1] = creal(plan->hx[id2]);
-				field[id1 + nxyz] = creal(plan->hy[id2]);
-				field[id1 + 2 * nxyz] = creal(plan->hz[id2]);
+				id2 = (i+nx) * lenyz + (j) * lenz + (k) ;
+				field[id1] = plan->hx[id2]*scale;
+				field[id1 + nxyz] = plan->hy[id2]*scale;
+				field[id1 + 2 * nxyz] = plan->hz[id2]*scale;
 			}
 		}
 	}
