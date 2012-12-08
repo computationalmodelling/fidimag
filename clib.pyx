@@ -13,31 +13,27 @@ cdef extern from "clib.h":
 	
 	fft_demag_plan *create_plan()
 	void finalize_plan(fft_demag_plan *plan)
-	void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
+	void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy, double dz, int nx,
 		int ny, int nz)
 	void compute_fields(fft_demag_plan *plan, double *spin, double *field)
 	void exact_compute(fft_demag_plan *plan, double *spin, double *field)
-	void print_h(fft_demag_plan *plan)
 
 
-def compute_uniform_exchange(
-							np.ndarray[double, ndim=1, mode="c"] spin,
-							np.ndarray[double, ndim=1, mode="c"] field,
-							J,
-                			dx, dy, dz,
-                   			nx, ny, nz):
+def compute_uniform_exchange(np.ndarray[double, ndim=1, mode="c"] spin,
+                            np.ndarray[double, ndim=1, mode="c"] field,
+                            J,
+                            dx, dy, dz,
+                            nx, ny, nz):
 	compute_uniform_exch(& spin[0], & field[0], J, dx, dy, dz, nx, ny, nz)    
 
-def compute_anisotropy(
-					np.ndarray[double, ndim=1, mode="c"] spin,
-                	np.ndarray[double, ndim=1, mode="c"] field,
+def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
+                        np.ndarray[double, ndim=1, mode="c"] field,
                  	Kx, Ky, Kz,nxyz):
 	compute_anis(& spin[0], & field[0], Kx, Ky, Kz, nxyz)    
 
 
-def compute_llg_rhs(
-				np.ndarray[double, ndim=1, mode="c"] dm_dt,
-				np.ndarray[double, ndim=1, mode="c"] spin,
+def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
+                np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 gamma, alpha, mu_s, nxyz, c):
 	llg_rhs(& dm_dt[0], & spin[0], & field[0], gamma, alpha, mu_s, nxyz, c)
@@ -47,12 +43,11 @@ def compute_llg_rhs(
 cdef class FFTDemag:
 	cdef fft_demag_plan * _c_plan
 
-	def __cinit__(self,dx,dy,dz,nx,ny,nz):
+	def __cinit__(self,mu_s,dx,dy,dz,nx,ny,nz):
 		self._c_plan = create_plan()
-		print 'from cython p='
 		if self._c_plan is NULL:
 			raise MemoryError()
-		init_plan(self._c_plan,dx,dy,dz,nx,ny,nz)
+		init_plan(self._c_plan,mu_s,dx,dy,dz,nx,ny,nz)
 		
 	def free(self):
 		self.__dealloc__()
@@ -73,5 +68,3 @@ cdef class FFTDemag:
                 	np.ndarray[double, ndim=1, mode="c"] field):
 		exact_compute(self._c_plan,&spin[0],&field[0])
 		
-	def print_field(self):
-		print_h(self._c_plan)

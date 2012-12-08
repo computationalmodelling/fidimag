@@ -25,7 +25,7 @@ typedef struct {
 	int lenz;
 
 	int total_length;
-	double *tensor;
+        
 	double *tensor_xx;
 	double *tensor_yy;
 	double *tensor_zz;
@@ -46,6 +46,7 @@ typedef struct {
 	fftw_complex *Hx;
 	fftw_complex *Hy;
 	fftw_complex *Hz;
+
 	double *mx;
 	double *my;
 	double *mz;
@@ -53,6 +54,8 @@ typedef struct {
 	double *hy;
 	double *hz;
 
+	double mu_s;
+        
 	//we need three plans
 	fftw_plan tensor_plan;
 	fftw_plan m_plan;
@@ -62,9 +65,8 @@ typedef struct {
 
 fft_demag_plan *create_plan();
 void finalize_plan(fft_demag_plan *plan);
-void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
+void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy, double dz, int nx,
 		int ny, int nz);
 void compute_fields(fft_demag_plan *plan, double *spin, double *field);
 void exact_compute(fft_demag_plan *plan, double *spin, double *field);
-void print_h(fft_demag_plan *plan);
 

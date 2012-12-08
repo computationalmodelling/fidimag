@@ -1,7 +1,7 @@
 import numpy as np
 
 class FDMesh():
-    def __init__(self,dx=1,dy=1,dz=1,nx=10,ny=1,nz=1,unit_length=1):
+    def __init__(self,dx=1.0,dy=1.0,dz=1.0,nx=10,ny=1,nz=1,unit_length=1.0):
         self.dx=dx
         self.dy=dy
         self.dz=dz

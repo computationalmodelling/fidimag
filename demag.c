@@ -43,7 +43,8 @@ double NXXdipole(enum Type_Nij type, double x, double y, double z) {
 	return 0;
 }
 
-void compute_tensors(fft_demag_plan *plan, enum Type_Nij type, double *tensor) {
+//compute the demag tensors, i.e, H=-N.M
+void compute_all_tensors(fft_demag_plan *plan) {
 
 	int i, j, k, id;
 	double x, y, z;
@@ -64,10 +65,37 @@ void compute_tensors(fft_demag_plan *plan, enum Type_Nij type, double *tensor) {
 				y = (j - ny + 1) * plan->dy;
 				z = (k - nz + 1) * plan->dz;
 
-				tensor[id] = NXXdipole(type, x, y, z);
+				plan->tensor_xx[id] = NXXdipole(Tensor_xx, x, y, z);
+				plan->tensor_yy[id] = NXXdipole(Tensor_yy, x, y, z);
+				plan->tensor_zz[id] = NXXdipole(Tensor_zz, x, y, z);
+				plan->tensor_xy[id] = NXXdipole(Tensor_xy, x, y, z);
+				plan->tensor_xz[id] = NXXdipole(Tensor_xz, x, y, z);
+				plan->tensor_yz[id] = NXXdipole(Tensor_yz, x, y, z);
+
 			}
 		}
 	}
+}
+
+//used for debug
+void print_r(char *str, double *x, int n) {
+	int i;
+	printf("%s:\n", str);
+	for (i = 0; i < n; i++) {
+		printf("%f ", x[i]);
+	}
+	printf("\n");
+
+}
+
+void print_c(char *str, fftw_complex *x, int n) {
+	int i;
+	printf("%s\n", str);
+	for (i = 0; i < n; i++) {
+		printf("%f+%fI  ", x[i]);
+	}
+	printf("\n");
+
 }
 
 fft_demag_plan *create_plan() {
@@ -77,8 +105,10 @@ fft_demag_plan *create_plan() {
 	return plan;
 }
 
-void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
-		int ny, int nz) {
+void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy,
+		double dz, int nx, int ny, int nz) {
+
+	plan->mu_s = mu_s;
 
 	plan->dx = dx;
 	plan->dy = dy;
@@ -107,6 +137,7 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->mx = (double *) fftw_malloc(size1);
 	plan->my = (double *) fftw_malloc(size1);
 	plan->mz = (double *) fftw_malloc(size1);
+
 	plan->hx = (double *) fftw_malloc(size1);
 	plan->hy = (double *) fftw_malloc(size1);
 	plan->hz = (double *) fftw_malloc(size1);
@@ -126,7 +157,8 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->Hz = (fftw_complex *) fftw_malloc(size2);
 
 	plan->tensor_plan = fftw_plan_dft_r2c_3d(plan->lenx, plan->leny,
-			plan->lenz, plan->tensor_xx, plan->Nxx, FFTW_ESTIMATE);
+			plan->lenz, plan->tensor_xx, plan->Nxx,
+			FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
 
 	plan->m_plan = fftw_plan_dft_r2c_3d(plan->lenx, plan->leny, plan->lenz,
 			plan->mx, plan->Mx, FFTW_MEASURE);
@@ -134,30 +166,31 @@ void init_plan(fft_demag_plan *plan, double dx, double dy, double dz, int nx,
 	plan->h_plan = fftw_plan_dft_c2r_3d(plan->lenx, plan->leny, plan->lenz,
 			plan->Hx, plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-	printf("hello\n");
-	pre_compute(plan);
+	int i;
+	for (i = 0; i < plan->total_length; i++) {
+		plan->Nxx[i] = 0;
+		plan->Nyy[i] = 0;
+		plan->Nzz[i] = 0;
+		plan->Nxy[i] = 0;
+		plan->Nxz[i] = 0;
+		plan->Nyz[i] = 0;
 
-}
+		plan->mx[i] = 0;
+		plan->my[i] = 0;
+		plan->mz[i] = 0;
 
-void pre_compute(fft_demag_plan *plan) {
-	compute_tensors(plan, Tensor_xx, plan->tensor_xx);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nyy);
+		plan->hx[i] = 0;
+		plan->hy[i] = 0;
+		plan->hz[i] = 0;
+	}
 
-	compute_tensors(plan, Tensor_yy, plan->tensor_yy);
+	compute_all_tensors(plan);
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, plan->Nyy);
-
-	compute_tensors(plan, Tensor_zz, plan->tensor_zz);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_zz, plan->Nzz);
-
-	compute_tensors(plan, Tensor_xy, plan->tensor_xy);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xy, plan->Nxy);
-
-	compute_tensors(plan, Tensor_xz, plan->tensor_xz);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xz, plan->Nxz);
-
-	compute_tensors(plan, Tensor_yz, plan->tensor_yz);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yz, plan->Nyz);
-
 	fftw_destroy_plan(plan->tensor_plan);
 
 }
@@ -176,21 +209,34 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 	int lenz = plan->lenz;
 	int lenyz = leny * lenz;
 
+	for (i = 0; i < plan->total_length; i++) {
+		plan->mx[i] = 0;
+		plan->my[i] = 0;
+		plan->mz[i] = 0;
+	}
+
+	double *spin_x = &spin[0];
+	double *spin_y = &spin[nxyz];
+	double *spin_z = &spin[2 * nxyz];
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
 			for (k = 0; k < nz; k++) {
 				id1 = i * nyz + j * nz + k;
 				id2 = i * lenyz + j * lenz + k;
-				plan->mx[id2] = spin[id1];
-				plan->my[id2] = spin[id1 + nxyz];
-				plan->mz[id2] = spin[id1 + 2 * nxyz];
+				plan->mx[id2] = spin_x[id1];
+				plan->my[id2] = spin_y[id1];
+				plan->mz[id2] = spin_z[id1];
 			}
 		}
 	}
 
+	//print_r("plan->mx", plan->mx, plan->total_length);
+
 	fftw_execute_dft_r2c(plan->m_plan, plan->mx, plan->Mx);
 	fftw_execute_dft_r2c(plan->m_plan, plan->my, plan->My);
 	fftw_execute_dft_r2c(plan->m_plan, plan->mz, plan->Mz);
+
+	//print_c("plan->Mx", plan->Mx, plan->total_length);
 
 	fftw_complex *Nxx = plan->Nxx;
 	fftw_complex *Nyy = plan->Nyy;
@@ -206,61 +252,45 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 	fftw_complex *Hy = plan->Hy;
 	fftw_complex *Hz = plan->Hz;
 
+	//print_c("Mx", Mx, plan->total_length);
+
 	for (i = 0; i < plan->total_length; i++) {
 		Hx[i] = Nxx[i] * Mx[i] + Nxy[i] * My[i] + Nxz[i] * Mz[i];
 		Hy[i] = Nxy[i] * Mx[i] + Nyy[i] * My[i] + Nyz[i] * Mz[i];
 		Hz[i] = Nxz[i] * Mx[i] + Nyz[i] * My[i] + Nzz[i] * Mz[i];
 	}
 
-	fftw_execute_dft_c2r(plan->m_plan, plan->Hx, plan->hx);
-	fftw_execute_dft_c2r(plan->m_plan, plan->Hy, plan->hy);
-	fftw_execute_dft_c2r(plan->m_plan, plan->Hz, plan->hz);
+	//print_c("Hx", Hx, plan->total_length);
 
+	fftw_execute_dft_c2r(plan->h_plan, plan->Hx, plan->hx);
+	fftw_execute_dft_c2r(plan->h_plan, plan->Hy, plan->hy);
+	fftw_execute_dft_c2r(plan->h_plan, plan->Hz, plan->hz);
+	//print_r("hx", plan->hx, plan->total_length);
+	//print_r("hy", plan->hy, plan->total_length);
+	//print_r("hz", plan->hz, plan->total_length);
+
+	double scale = 1e-7 / plan->total_length * plan->mu_s;
+	double *field_x = &field[0];
+	double *field_y = &field[nxyz];
+	double *field_z = &field[2 * nxyz];
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
 			for (k = 0; k < nz; k++) {
 				id1 = i * nyz + j * nz + k;
-				id2 = i * lenyz + j * lenz + k;
-				field[id1] = plan->hx[id2];
-				field[id1 + nxyz] = plan->hy[id2];
-				field[id1 + 2 * nxyz] = plan->hz[id2];
+				id2 = (i + nx - 1) * lenyz + (j + ny - 1) * lenz + (k + nz - 1);
+				field_x[id1] = plan->hx[id2] * scale;
+				field_y[id1] = plan->hy[id2] * scale;
+				field_z[id1] = plan->hz[id2] * scale;
 			}
 		}
 	}
 
 }
 
-void print_h(fft_demag_plan *plan){
-	int i, j, k, id;
-
-	int nx = plan->nx;
-	int ny = plan->ny;
-	int nz = plan->nz;
-	int lenx = plan->lenx;
-	int leny = plan->leny;
-	int lenz = plan->lenz;
-	int lenyz = leny * lenz;
-
-	for (i = 0; i < lenx; i++) {
-		for (j = 0; j < leny; j++) {
-			for (k = 0; k < lenz; k++) {
-				id = i * lenyz + j * lenz + k;
-				printf("index=%d  hx=%g   hy=%g   hz=%g\n",
-						id,
-						plan->hx[id],
-						plan->hy[id],
-						plan->hz[id]);
-
-
-			}
-		}
-	}
-}
-
-
+//only used for debug
 void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
-	int i, j, k, i1, i2, i3, index;
-	int ii, jj, kk, id1, id2,id3;
+	int i, j, k, index;
+	int ip, jp, kp, idf, ids;
 	int nx = plan->nx;
 	int ny = plan->ny;
 	int nz = plan->nz;
@@ -279,27 +309,35 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 	double *Nxz = plan->tensor_xz;
 	double *Nyz = plan->tensor_yz;
 
-	for (ii = 0; ii < nx; ii++) {
-		for (jj = 0; jj < ny; jj++) {
-			for (kk = 0; kk < nz; kk++) {
-				id1 = ii * nyz + jj * nz + kk;
-				id2 = id1 + nxyz;
-				id3 = id2 + nxyz;
+	double *f_x = &field[0];
+	double *f_y = &field[nxyz];
+	double *f_z = &field[2 * nxyz];
 
-				for (i = 0; i < nx; i++) {
-					for (j = 0; j < ny; j++) {
-						for (k = 0; k < nz; k++) {
-							i1 = i * nyz + j * nz + k;
-							i2 = i1 + nxyz;
-							i3 = i2 + nxyz;
-							index = (i - ii + nx - 1) * lenyz + (j - jj + ny
-									- 1) * lenz + (k - kk + nz - 1);
-							field[id1] += Nxx[index] * spin[i1] + Nxy[index]
-									* spin[i2] + Nxz[index] * spin[i3];
-							field[id2] += Nxy[index] * spin[i1] + Nyy[index]
-									* spin[i2] + Nyz[index] * spin[i3];
-							field[id3] += Nxz[index] * spin[i1] + Nyz[index]
-									* spin[i2] + Nzz[index] * spin[i3];
+	double *s_x = &spin[0];
+	double *s_y = &spin[nxyz];
+	double *s_z = &spin[2 * nxyz];
+
+	for (i = 0; i < nx; i++) {
+		for (j = 0; j < ny; j++) {
+			for (k = 0; k < nz; k++) {
+				idf = i * nyz + j * nz + k;
+
+				f_x[idf] = 0;
+				f_y[idf] = 0;
+				f_z[idf] = 0;
+
+				for (ip = 0; ip < nx; ip++) {
+					for (jp = 0; jp < ny; jp++) {
+						for (kp = 0; kp < nz; kp++) {
+							ids = i * nyz + j * nz + k;
+							index = (i - ip + nx - 1) * lenyz + (j - jp + ny
+									- 1) * lenz + (k - kp + nz - 1);
+							f_x[idf] += Nxx[index] * s_x[ids] + Nxy[index]
+									* s_y[ids] + Nxz[index] * s_z[ids];
+							f_y[idf] += Nxy[index] * s_x[ids] + Nyy[index]
+									* s_y[ids] + Nyz[index] * s_z[ids];
+							f_z[idf] += Nxz[index] * s_x[ids] + Nyz[index]
+									* s_y[ids] + Nzz[index] * s_z[ids];
 						}
 					}
 				}
@@ -314,6 +352,13 @@ void finalize_plan(fft_demag_plan *plan) {
 
 	fftw_destroy_plan(plan->m_plan);
 	fftw_destroy_plan(plan->h_plan);
+
+	fftw_free(plan->tensor_xx);
+	fftw_free(plan->tensor_yy);
+	fftw_free(plan->tensor_zz);
+	fftw_free(plan->tensor_xy);
+	fftw_free(plan->tensor_xz);
+	fftw_free(plan->tensor_yz);
 
 	fftw_free(plan->Nxx);
 	fftw_free(plan->Nyy);
@@ -337,6 +382,5 @@ void finalize_plan(fft_demag_plan *plan) {
 	fftw_free(plan->hz);
 
 	free(plan);
-	printf("at the end\n");
 }
 
