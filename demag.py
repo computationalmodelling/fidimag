@@ -15,8 +15,8 @@ class Demag(object):
         self.ny = mesh.ny
         self.nz = mesh.nz
         self.spin = spin
-        n = self.nx * self.ny * self.nz
-        self.field = np.zeros(3 * n)
+        self.n = self.nx * self.ny * self.nz
+        self.field = np.zeros(3 * self.n)
         self.mu_s_modifid=self.mu_s/(unit_length**3)
         
         self.demag=clib.FFTDemag(self.mu_s_modifid,
@@ -28,8 +28,9 @@ class Demag(object):
         return self.field
     
     def compute_exact(self):
-        self.demag.compute_exact(self.spin,self.field)
-        return self.field
+        field = np.zeros(3 * self.n)
+        self.demag.compute_exact(self.spin,field)
+        return field
     
 
 if __name__=='__main__':
@@ -52,5 +53,5 @@ if __name__=='__main__':
     sim.set_m(init_m)
     fft=demag.compute_field()
     exact=demag.compute_exact()
-    print exact
-    print fft-exact
+    print fft
+    print np.max(fft-exact)

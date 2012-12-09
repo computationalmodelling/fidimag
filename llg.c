@@ -1,4 +1,5 @@
 #include "clib.h"
+#include "llg_random.h"
 
 void llg_rhs(double *dm_dt, double *m, double *h, double gamma, double alpha,
 		double mu_s, int nxyz, double c) {
@@ -26,8 +27,113 @@ void llg_rhs(double *dm_dt, double *m, double *h, double gamma, double alpha,
 		dm_dt[i] += relax * m[i];
 		dm_dt[j] += relax * m[j];
 		dm_dt[k] += relax * m[k];
-
 	}
 
 }
 
+ode_solver *create_ode_plan() {
+
+	ode_solver *plan = (ode_solver*) malloc(sizeof(ode_solver));
+
+	return plan;
+}
+
+void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
+
+	int i, j, k;
+
+	double mth0, mth1, mth2;
+	//double coeff = -gamma / (1 + alpha * alpha) / mu_s;
+	double mm, relax;
+	double sqrt_dt = sqrt(s->dt);
+
+	int nxyz = s->nxyz;
+	double *eta = s->eta;
+	double dt = s->dt;
+	double Q = s->Q;
+	double coeff=s->coeff;
+	double alpha=s->alpha;
+
+	gauss_random_vec(eta, s->nxyz, sqrt_dt);
+
+	for (i = 0; i < nxyz; i++) {
+		j = i + nxyz;
+		k = j + nxyz;
+
+		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]) * dt;
+		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]) * dt;
+		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]) * dt;
+
+		mth0 += coeff * Q * eta[i];
+		mth1 += coeff * Q * eta[j];
+		mth2 += coeff * Q * eta[k];
+
+		dm[i] = mth0 + alpha * (m[j] * mth2 - m[k] * mth1);
+		dm[j] = mth1 + alpha * (m[k] * mth0 - m[i] * mth2);
+		dm[k] = mth2 + alpha * (m[i] * mth1 - m[j] * mth0);
+
+		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
+		relax = s->c * (1 - mm);
+		dm[i] += relax * m[i] * dt;
+		dm[j] += relax * m[j] * dt;
+		dm[k] += relax * m[k] * dt;
+
+	}
+}
+
+void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
+		double alpha, double T, double c) {
+
+	s->theta = 2.0 / 3.0;
+	s->theta1 = 1.0 - 0.5 / s->theta;
+	s->theta2 = 0.5 / s->theta;
+
+	s->nxyz = nxyz;
+	s->dt = dt;
+	s->coeff = -gamma / (1.0 + alpha * alpha) / mu_s;
+
+	double k_B = 1.3806505e-23;
+	s->Q = sqrt(2 * k_B * alpha * T / (gamma * mu_s));
+
+	s->dm1 = (double*) malloc(nxyz * sizeof(double));
+	s->dm2 = (double*) malloc(nxyz * sizeof(double));
+	s->eta = (double*) malloc(nxyz * sizeof(double));
+	s->pred_spin = (double*) malloc(nxyz * sizeof(double));
+
+}
+
+void run_step1(ode_solver *s, double *m, double *h, double *m_pred) {
+	int i;
+	double *dm1 = s->dm1;
+	double theta = s->theta;
+
+	llg_rhs_dw(s, m, h, dm1);
+
+	for (i = 0; i < s->nxyz; i++) {
+		m_pred[i] = m[i] + theta * dm1[i];
+	}
+
+}
+
+void run_step2(ode_solver *s, double *m_pred, double *h, double *m) {
+	int i;
+	double *dm1 = s->dm1;
+	double *dm2 = s->dm2;
+	double theta1 = s->theta1;
+	double theta2 = s->theta2;
+
+	llg_rhs_dw(s, m_pred, h, dm2);
+
+	for (i = 0; i < s->nxyz; i++) {
+		m[i] = theta1 * dm1[i] + theta2 * dm2[i];
+	}
+
+}
+
+void finalize_ode_plan(ode_solver *plan) {
+	free(plan->dm1);
+	free(plan->dm2);
+	free(plan->eta);
+	free(plan->pred_spin);
+	free(plan);
+}

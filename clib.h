@@ -1,3 +1,4 @@
+#include<math.h>
 #include <complex.h>
 #include <fftw3.h>
 
@@ -69,4 +70,42 @@ void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy, double d
 		int ny, int nz);
 void compute_fields(fft_demag_plan *plan, double *spin, double *field);
 void exact_compute(fft_demag_plan *plan, double *spin, double *field);
+
+
+//=========================================================
+//=========================================================
+//used for sode
+typedef struct {
+	int nxyz;
+
+	double dt;
+	double alpha;
+	double T;
+	double c;
+	double mu_s;
+	double coeff;
+	double Q;
+
+
+	double theta;
+	double theta1;
+	double theta2;
+
+
+	double *dm1;
+	double *dm2;
+	double *eta;
+
+	double *pred_spin;
+
+
+} ode_solver;
+
+void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
+		double alpha, double T, double c);
+ode_solver *create_ode_plan();
+void finalize_ode_plan(ode_solver *plan);
+void run_step1(ode_solver *s, double *m, double *h, double *m_pred);
+void run_step2(ode_solver *s, double *m_pred, double *h, double *m);
+
 
