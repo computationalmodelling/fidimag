@@ -39,7 +39,7 @@ class Sim(object):
                                 mat.gamma,
                                 mat.alpha,
                                 self.T,
-                                self.c,
+                                self.c*10,
                                 self.spin,
                                 self.field,
                                 self.stochastic_update_field)
@@ -86,7 +86,7 @@ class Sim(object):
     def ode_rhs(self,t,y):
         self.ode_times+=1
         self.t=t
-        self.field=0
+        self.field[:]=0
         self.spin[:]=y[:]
         
         if self.pin_fun:
@@ -107,7 +107,7 @@ class Sim(object):
         return self.dm_dt
     
     def stochastic_update_field(self,y):
-        self.field=0
+        self.field[:]=0
         self.spin[:]=y[:]
         
         if self.pin_fun:
@@ -115,12 +115,14 @@ class Sim(object):
         
         for obj in self.interactions:
             self.field+=obj.compute_field()
+            
+        #print "from python",self.spin,self.field
         
                         
 if __name__=='__main__':
     
     mesh=FDMesh(nx=1)
-    sim=Sim(mesh,T=10)
+    sim=Sim(mesh,T=0.1)
     
     ni=Nickel()
     ni.alpha=0.1
@@ -138,7 +140,6 @@ if __name__=='__main__':
     
     sim.set_m((1,0,0))
     print sim.vode.successful()
-    sim.spin[0]=100
     print sim.vode.successful()
     #vs=VisualSpin(sim)
     #vs.init()
@@ -147,24 +148,27 @@ if __name__=='__main__':
     #print exch.compute_field()
     #print anis.compute_field()
     
-    ts=np.linspace(0, 1e-12, 100)
+    ts=np.linspace(0, 1e-10, 100)
     run_times=[]
     mzs=[]
     for t in ts:
         sim.run_until(t)
         spin=sim.spin
+        print 'from sim',sim.field,sim.spin
         dm=np.linalg.norm(spin)-1.0
-        print sim.c,'times',sim.ode_times,dm,spin[2]
+        #print sim.c,'times',sim.ode_times,dm,spin[2]
         mzs.append(spin[2])
         run_times.append(dm)
         #vs.update()
         #time.sleep(0.01)
+    
     print mzs
     import pylab
     pylab.plot(ts,run_times)
     pylab.show()
     pylab.plot(ts,mzs)
     pylab.show()
+    
     
     
     

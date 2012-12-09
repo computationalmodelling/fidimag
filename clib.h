@@ -97,8 +97,6 @@ typedef struct {
 	double *dm2;
 	double *eta;
 
-	double *pred_spin;
-
 
 } ode_solver;
 
