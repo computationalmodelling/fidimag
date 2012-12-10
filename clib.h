@@ -83,6 +83,7 @@ typedef struct {
 	double alpha;
 	double T;
 	double c;
+        double gamma;
 	double mu_s;
 	double coeff;
 	double Q;

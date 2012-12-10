@@ -22,6 +22,7 @@ class Zeeman(object):
         self.field=np.zeros((3,n))
         self.field[:,:]=[[self.Hx],[self.Hy],[self.Hz]]
         self.field.shape=(3*n)
+        self.field[:]*=(4*np.pi*1e-7)
         
 
     def compute_field(self):            

@@ -6,6 +6,7 @@ from fd_mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
+from demag import Demag
 from materials import Nickel
 #from show_vector import VisualSpin
 
@@ -27,7 +28,7 @@ class Sim(object):
         self.ode_times=0
         self.set_options()
         
-    def set_options(self,rtol=1e-8,atol=1e-20,mat=Nickel(),dt=1e-14):
+    def set_options(self,rtol=1e-8,atol=1e-20,mat=Nickel(),dt=1e-16):
         self.mat=mat
         self.mu_s=1 #since we already consider mu_s in fields
         self.c=1e11 
@@ -108,7 +109,7 @@ class Sim(object):
     
     def stochastic_update_field(self,y):
         self.field[:]=0
-        self.spin[:]=y[:]
+        #self.spin[:]=y[:]
         
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
@@ -116,13 +117,20 @@ class Sim(object):
         for obj in self.interactions:
             self.field+=obj.compute_field()
             
+    def compute_average(self):
+        self.spin.shape=(3,-1)
+        average=np.sum(self.spin,axis=1)/self.nxyz
+        self.spin.shape=(3*self.nxyz)
+        return average
+            
         #print "from python",self.spin,self.field
         
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=1)
-    sim=Sim(mesh,T=0.1)
+    T=100
+    mesh=FDMesh(nx=5,ny=3,nz=2)
+    sim=Sim(mesh,T=T)
     
     ni=Nickel()
     ni.alpha=0.1
@@ -138,6 +146,9 @@ if __name__=='__main__':
     zeeman=Zeeman(1e5,(0,0,1))
     sim.add(zeeman)
     
+    demag=Demag(mu_s=ni.mu_s)
+    sim.add(demag)
+    
     sim.set_m((1,0,0))
     print sim.vode.successful()
     print sim.vode.successful()
@@ -148,26 +159,36 @@ if __name__=='__main__':
     #print exch.compute_field()
     #print anis.compute_field()
     
-    ts=np.linspace(0, 1e-10, 100)
-    run_times=[]
+    ts=np.linspace(0, 1e-11, 100)
+    mxs=[]
+    mys=[]
     mzs=[]
     for t in ts:
         sim.run_until(t)
         spin=sim.spin
-        print 'from sim',sim.field,sim.spin
-        dm=np.linalg.norm(spin)-1.0
+        #print 'from sim',sim.field,sim.spin
+        #dm=np.linalg.norm(spin)-1.0
         #print sim.c,'times',sim.ode_times,dm,spin[2]
-        mzs.append(spin[2])
-        run_times.append(dm)
+        
+        av=sim.compute_average()
+        mxs.append(av[0])
+        mys.append(av[1])
+        mzs.append(av[2])
+        print av
+        
+  
         #vs.update()
         #time.sleep(0.01)
     
-    print mzs
-    import pylab
-    pylab.plot(ts,run_times)
-    pylab.show()
-    pylab.plot(ts,mzs)
-    pylab.show()
+    import matplotlib as mpl
+    mpl.use("Agg")
+    import matplotlib.pyplot as plt
+    fig=plt.figure()
+    plt.plot(ts,mxs,'^-',label='mx')
+    plt.plot(ts,mys,'.-',label='my')
+    plt.plot(ts,mzs,'o-',label='mz')
+    plt.legend()
+    fig.savefig("mxyz_T%g.png"%T)
     
     
     

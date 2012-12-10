@@ -269,7 +269,7 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 	//print_r("hy", plan->hy, plan->total_length);
 	//print_r("hz", plan->hz, plan->total_length);
 
-	double scale = plan->mu_s / (4 * M_PI * plan->total_length);
+	double scale = plan->mu_s / plan->total_length * 1e-7;
 	double *field_x = &field[0];
 	double *field_y = &field[nxyz];
 	double *field_z = &field[2 * nxyz];
@@ -316,7 +316,7 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 	double *s_x = &spin[0];
 	double *s_y = &spin[nxyz];
 	double *s_z = &spin[2 * nxyz];
-	double scale = plan->mu_s / (4 * M_PI);
+	double scale = plan->mu_s * 1e-7;
 
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
