@@ -24,13 +24,11 @@ def relax_system(mesh,mat):
     
     sim.set_m(init_m)
     
-    vs=VisualSpin(sim)
-    vs.init()
-    ts=np.linspace(0, 10, 2001)
+    ts=np.linspace(0, 100, 2001)
     for t in ts:
         sim.run_until(t)
-        vs.update()
-        time.sleep(0.01)
+        #vs.update()
+        
         
     
     return sim.spin
@@ -53,7 +51,7 @@ def dw_motion(mesh,m0,mat,H0=1):
     vs.init()
 
     
-    ts=np.linspace(0, 20, 2001)
+    ts=np.linspace(0, 200, 2001)
     for t in ts:
         sim.run_until(t)
         vs.update()
@@ -70,16 +68,17 @@ if __name__=='__main__':
     ni.unit_length=1
     ni.mu_s=1
     ni.D=1
-    ni.J=0.2
-    ni.gamma=10
+    ni.J=2
+    ni.gamma=1
     
-    mesh=FDMesh(nx=30,ny=1,nz=1)
+    mesh=FDMesh(nx=20,ny=5,nz=2)
     mesh.set_material(ni)
     
     
     m0=relax_system(mesh,ni)
     print 'relax system done'
-    #dw_motion(mesh,m0,ni)
+    ni.alpha=0.05
+    dw_motion(mesh,m0,ni)
     
     
     

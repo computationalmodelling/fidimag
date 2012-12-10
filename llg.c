@@ -61,7 +61,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 	int nxyz = s->nxyz;
 	double *eta = s->eta;
 	double dt = s->dt;
-	double Q = 100*s->Q;
+	double Q = s->Q;
 	double coeff = s->coeff;
 	double alpha = s->alpha;
 
@@ -97,7 +97,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 		double alpha, double T, double c) {
 
-	s->theta = 1;//2.0 / 3.0;
+	s->theta = 2.0 / 3.0;
 	s->theta1 = 1.0 - 0.5 / s->theta;
 	s->theta2 = 0.5 / s->theta;
 
@@ -109,11 +109,14 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 	s->coeff = -gamma / (1.0 + alpha * alpha) / 1.0;
 
 	double k_B = 1.3806505e-23;
+	//double mu_0 = 4*M_PI*1e-7;
 	s->Q = sqrt(2 * k_B * alpha * T / (gamma * mu_s));
 	s->c = c;
 
+	/*
 	printf("nxyz=%d dt=%g coeff=%g  Q=%g  Q*sqrt(dt)=%g\n", nxyz, dt, s->coeff,
 			s->Q, s->Q * sqrt(dt));
+	*/
 
 	s->dm1 = (double*) malloc(3 * nxyz * sizeof(double));
 	s->dm2 = (double*) malloc(3 * nxyz * sizeof(double));

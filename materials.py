@@ -15,12 +15,13 @@ class Nickel(object):
         self.D=self.K*self.a**3
         self.Tc=630
         self.J=self.k_B*self.Tc/3.0
-        self.gamma=2.210173e5
-        self.alpha=0.1
+        self.gamma=2.210173e5/self.mu_0
         
 if __name__=='__main__':
     ni=Nickel()
     print ni.K
+    print 'gamma',ni.gamma
     print 'mu_s',ni.mu_s
     print 'J',ni.J
+    print 'D',ni.D
     print 'D/J:',ni.D/ni.J
