@@ -23,3 +23,4 @@ if __name__=='__main__':
     print ni.K
     print 'mu_s',ni.mu_s
     print 'J',ni.J
+    print 'D/J:',ni.D/ni.J

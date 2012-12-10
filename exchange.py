@@ -4,8 +4,7 @@ import numpy as np
 
 class UniformExchange(object):
     def __init__(self,J,mu_s=1.0):
-        mu_0=4*np.pi*1e-7
-        self.J=J/mu_s/mu_0
+        self.J=J/mu_s
         
         
     def setup(self,mesh,spin,unit_length=1.0):

@@ -40,7 +40,7 @@ class Sim(object):
                                 self.mat.gamma,
                                 self.mat.alpha,
                                 self.T,
-                                self.c*10,
+                                self.c,
                                 self.spin,
                                 self.field,
                                 self.stochastic_update_field)
@@ -50,6 +50,8 @@ class Sim(object):
                                  rtol=rtol,
                                  atol=atol,
                                  nsteps=100000)
+        self.gamma=self.mat.gamma
+        self.alpha=self.mat.alpha
         
         
         
@@ -99,8 +101,8 @@ class Sim(object):
         clib.compute_llg_rhs(self.dm_dt,
                            self.spin,
                            self.field,
-                           self.mat.gamma,
-                           self.mat.alpha,
+                           self.gamma,
+                           self.alpha,
                            self.mu_s,
                            self.nxyz,
                            self.c)

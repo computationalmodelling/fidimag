@@ -107,7 +107,7 @@ cdef class RK2S(object):
 		self.field=field
 		self.pred_m=np.zeros(3*nxyz,dtype=np.float)
 		
-		print 'nnnnnnnnnnnnnnnnnnnnnnnyz=',nxyz
+		#print 'nnnnnnnnnnnnnnnnnnnnnnnyz=',nxyz
 		
 		self._c_plan = create_ode_plan()
 		if self._c_plan is NULL:

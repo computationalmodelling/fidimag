@@ -35,6 +35,7 @@ def relax_system(mesh):
     sim=Sim(mesh)
     sim.alpha=0.5
     sim.gamma=5
+    sim.c=2
     
     exch=UniformExchange(1)
     sim.add(exch)
@@ -54,6 +55,7 @@ def spin_wave(mesh,m0,H0=10):
     sim=Sim(mesh)
     sim.alpha=0.01
     sim.gamma=5
+    sim.c=2
     sim.pin_fun=pin_fun
     
     exch=UniformExchange(1)
