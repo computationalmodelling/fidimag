@@ -13,7 +13,7 @@ from materials import Nickel
 
 
 class Sim(object):
-    def __init__(self,mesh,T=0):
+    def __init__(self,mesh,T=0,mat=Nickel()):
         self.t=0
         self.T=T
         self.mesh=mesh
@@ -23,24 +23,24 @@ class Sim(object):
         self.field=np.zeros(3*self.nxyz)
         self.dm_dt=np.zeros(3*self.nxyz)
         self.interactions=[]
-        
+        self.mat=mat
         self.pin_fun=None
         self.ode_times=0
         self.set_options()
         
-    def set_options(self,rtol=1e-8,atol=1e-20,mat=Nickel(),dt=1e-16):
-        self.mat=mat
+    def set_options(self,rtol=1e-8,atol=1e-20,dt=1e-15):
+        
         self.mu_s=1 #since we already consider mu_s in fields
         self.c=1e11 
         
         if self.T>0:
-            self.vode=clib.RK2S(mat.mu_s,
+            self.vode=clib.RK2S(self.mat.mu_s,
                                 dt,
                                 self.nxyz,
-                                mat.gamma,
-                                mat.alpha,
+                                self.mat.gamma,
+                                self.mat.alpha,
                                 self.T,
-                                self.c*10,
+                                self.c,
                                 self.spin,
                                 self.field,
                                 self.stochastic_update_field)
@@ -128,14 +128,14 @@ class Sim(object):
                         
 if __name__=='__main__':
     
-    T=100
-    mesh=FDMesh(nx=5,ny=3,nz=2)
-    sim=Sim(mesh,T=T)
-    
+    T=10
     ni=Nickel()
     ni.alpha=0.1
-    sim.set_options(mat=ni)
     
+    mesh=FDMesh(nx=1,ny=1,nz=1)
+    mesh.set_material(ni)
+    
+    sim=Sim(mesh,T=T,mat=ni) 
     
     exch=UniformExchange(ni.J,mu_s=ni.mu_s)
     sim.add(exch)
@@ -146,8 +146,8 @@ if __name__=='__main__':
     zeeman=Zeeman(1e5,(0,0,1))
     sim.add(zeeman)
     
-    demag=Demag(mu_s=ni.mu_s)
-    sim.add(demag)
+    #demag=Demag(mu_s=ni.mu_s)
+    #sim.add(demag)
     
     sim.set_m((1,0,0))
     print sim.vode.successful()
@@ -159,15 +159,17 @@ if __name__=='__main__':
     #print exch.compute_field()
     #print anis.compute_field()
     
-    ts=np.linspace(0, 1e-11, 100)
+    ts=np.linspace(0, 1e-10, 100)
     mxs=[]
     mys=[]
     mzs=[]
+    dms=[]
     for t in ts:
         sim.run_until(t)
         spin=sim.spin
         #print 'from sim',sim.field,sim.spin
-        #dm=np.linalg.norm(spin)-1.0
+        dm=np.linalg.norm(spin)-1.0
+        dms.append(dm)
         #print sim.c,'times',sim.ode_times,dm,spin[2]
         
         av=sim.compute_average()
@@ -189,6 +191,9 @@ if __name__=='__main__':
     plt.plot(ts,mzs,'o-',label='mz')
     plt.legend()
     fig.savefig("mxyz_T%g.png"%T)
+    fig=plt.figure()
+    plt.plot(ts,dms,'^-')
+    plt.savefig('dm_%g.png'%T)
     
     
     

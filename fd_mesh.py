@@ -13,6 +13,13 @@ class FDMesh():
         self.unit_length=unit_length
         self.compute_pos()
         
+    def set_material(self,mat):
+        self.unit_length=mat.unit_length
+        self.dx=mat.a/self.unit_length
+        self.dy=mat.b/self.unit_length
+        self.dz=mat.c/self.unit_length
+        self.compute_pos()
+        
     def compute_pos(self):
         self.pos=np.zeros((self.nxyz,3))
         for i in range(self.nx):
