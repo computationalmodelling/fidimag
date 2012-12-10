@@ -83,11 +83,13 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 		dm[j] = mth1 + alpha * (m[k] * mth0 - m[i] * mth2);
 		dm[k] = mth2 + alpha * (m[i] * mth1 - m[j] * mth0);
 
+		/*
 		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
 		relax = s->c * (1 - mm);
 		dm[i] += relax * m[i] * dt;
 		dm[j] += relax * m[j] * dt;
 		dm[k] += relax * m[k] * dt;
+		*/
 
 	}
 }
@@ -107,7 +109,6 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 	s->coeff = -gamma / (1.0 + alpha * alpha) / 1.0;
 
 	double k_B = 1.3806505e-23;
-	double mu_0 = 4*M_PI*1e-7;
 	s->Q = sqrt(2 * k_B * alpha * T / (gamma * mu_s));
 	s->c = c;
 
@@ -155,7 +156,7 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m) {
 		m[i] += (theta1 * dm1[i] + theta2 * dm2[i]);
 	}
 
-	/*
+
 	 double mm;
 	 for (i = 0; i < s->nxyz; i++) {
 	 j = i + nxyz;
@@ -164,7 +165,7 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m) {
 	 m[i] *= mm;
 	 m[j] *= mm;
 	 m[k] *= mm;
-	 }*/
+	 }
 
 }
 

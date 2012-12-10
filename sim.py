@@ -40,7 +40,7 @@ class Sim(object):
                                 self.mat.gamma,
                                 self.mat.alpha,
                                 self.T,
-                                self.c,
+                                self.c*10,
                                 self.spin,
                                 self.field,
                                 self.stochastic_update_field)
@@ -128,7 +128,7 @@ class Sim(object):
                         
 if __name__=='__main__':
     
-    T=10
+    T=1000
     ni=Nickel()
     ni.alpha=0.1
     
