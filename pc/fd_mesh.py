@@ -25,9 +25,9 @@ class FDMesh():
         for i in range(self.nx):
             for j in range(self.ny):
                 for k in range(self.nz):
-                    tp=((i-self.nx/2)*self.dx,
-                         (j-self.ny/2)*self.dy,
-                         (k-self.nz/2)*self.dz)
+                    tp=((i-self.nx/2.0)*self.dx,
+                         (j-self.ny/2.0)*self.dy,
+                         (k-self.nz/2.0)*self.dz)
                     index=i*self.nyz+j*self.nz+k
                     self.pos[index]=tp
 

@@ -10,7 +10,10 @@ import os
 
 print __file__
 print os.getcwd()
-cp_path=os.path.join(os.getcwd(),'cp')
+realpath=os.path.realpath(__file__)
+pccp_path=os.path.split(realpath)[0]
+cp_path=os.path.join(pccp_path,'cp')
+print cp_path
 
 sources = []
 sources.append(os.path.join(cp_path,'clib.pyx'))

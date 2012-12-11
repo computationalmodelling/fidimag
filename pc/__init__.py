@@ -1,8 +1,13 @@
 import sys
 import subprocess
 
+import os
+realpath=os.path.realpath(__file__)
+pccp_path=os.path.split(os.path.split(realpath)[0])[0]
+
+
 cmd=('python',
-     'setup.py',
+     os.path.join(pccp_path,'setup.py'),
      'build_ext',
      '--inplace')
 
