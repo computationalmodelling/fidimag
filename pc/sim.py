@@ -8,12 +8,13 @@ from anisotropy import Anisotropy
 from zeeman import Zeeman
 from demag import Demag
 from materials import Nickel
+from materials import UnitMaterial
 #from show_vector import VisualSpin
 
 
 
 class Sim(object):
-    def __init__(self,mesh,T=0,mat=Nickel()):
+    def __init__(self,mesh,T=0,mat=UnitMaterial()):
         self.t=0
         self.T=T
         self.mesh=mesh
@@ -66,8 +67,20 @@ class Sim(object):
             tmp=np.zeros((self.nxyz,3))
             for i in range(self.mesh.nxyz):
                 tmp[i]=m0(self.mesh.pos[i])
+            print 'before',tmp
             tmp=np.reshape(tmp, 3*self.nxyz, order='F')
             self.spin[:]=tmp[:]
+            print 'after',tmp
+            
+            for i in range(self.nxyz):
+                j=i+self.nxyz
+                k=i+self.nxyz
+                tmp=m0(self.mesh.pos[i])
+                self.spin[i]=tmp[0]
+                self.spin[j]=tmp[1]
+                self.spin[k]=tmp[2]
+                
+            print 'after2',self.spin
         elif isinstance(m0,np.ndarray):
             if m0.shape==self.spin.shape:
                 self.spin[:]=m0[:]
@@ -101,8 +114,8 @@ class Sim(object):
         clib.compute_llg_rhs(self.dm_dt,
                            self.spin,
                            self.field,
-                           self.gamma,
-                           self.alpha,
+                           self.mat.gamma,
+                           self.mat.alpha,
                            self.mu_s,
                            self.nxyz,
                            self.c)
@@ -126,6 +139,18 @@ class Sim(object):
         return average
             
         #print "from python",self.spin,self.field
+    
+    #only used for tests
+    def spin_at(self,i,j,k):
+        nxyz=self.mesh.nxyz
+        nyz=self.mesh.nyz
+        nz=self.mesh.nz
+        i1=i*nyz+j*nz+k
+        i2=i1+nxyz
+        i3=i2+nxyz
+        return (self.spin[i1],
+                self.spin[i2],
+                self.spin[i3])
         
                         
 if __name__=='__main__':

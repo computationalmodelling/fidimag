@@ -3,11 +3,11 @@ import numpy as np
 
 
 class UniformExchange(object):
-    def __init__(self,J,mu_s=1.0):
-        self.J=J/mu_s
+    def __init__(self,J):
+        self.J=J
         
-        
-    def setup(self,mesh,spin,unit_length=1.0):
+    def setup(self,mesh,spin,unit_length=1.0,mu_s=1.0):
+        self.J/=mu_s
         self.mesh=mesh
         self.dx=mesh.dx
         self.dy=mesh.dy

@@ -22,11 +22,17 @@ void llg_rhs(double *dm_dt, double *m, double *h, double gamma, double alpha,
 		dm_dt[j] = mth1 + alpha * (m[k] * mth0 - m[i] * mth2);
 		dm_dt[k] = mth2 + alpha * (m[i] * mth1 - m[j] * mth0);
 
-		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		relax = c * (1 - mm);
-		dm_dt[i] += relax * m[i];
-		dm_dt[j] += relax * m[j];
-		dm_dt[k] += relax * m[k];
+		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
+		m[i] *= mm;
+		m[j] *= mm;
+		m[k] *= mm;
+
+		/*
+		 relax = c * (1 - mm);
+		 dm_dt[i] += relax * m[i];
+		 dm_dt[j] += relax * m[j];
+		 dm_dt[k] += relax * m[k];
+		*/
 	}
 
 }
@@ -84,12 +90,12 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 		dm[k] = mth2 + alpha * (m[i] * mth1 - m[j] * mth0);
 
 		/*
-		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		relax = s->c * (1 - mm);
-		dm[i] += relax * m[i] * dt;
-		dm[j] += relax * m[j] * dt;
-		dm[k] += relax * m[k] * dt;
-		*/
+		 mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
+		 relax = s->c * (1 - mm);
+		 dm[i] += relax * m[i] * dt;
+		 dm[j] += relax * m[j] * dt;
+		 dm[k] += relax * m[k] * dt;
+		 */
 
 	}
 }
@@ -114,9 +120,9 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 	s->c = c;
 
 	/*
-	printf("nxyz=%d dt=%g coeff=%g  Q=%g  Q*sqrt(dt)=%g\n", nxyz, dt, s->coeff,
-			s->Q, s->Q * sqrt(dt));
-	*/
+	 printf("nxyz=%d dt=%g coeff=%g  Q=%g  Q*sqrt(dt)=%g\n", nxyz, dt, s->coeff,
+	 s->Q, s->Q * sqrt(dt));
+	 */
 
 	s->dm1 = (double*) malloc(3 * nxyz * sizeof(double));
 	s->dm2 = (double*) malloc(3 * nxyz * sizeof(double));
@@ -159,16 +165,15 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m) {
 		m[i] += (theta1 * dm1[i] + theta2 * dm2[i]);
 	}
 
-
-	 double mm;
-	 for (i = 0; i < s->nxyz; i++) {
-	 j = i + nxyz;
-	 k = j + nxyz;
-	 mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
-	 m[i] *= mm;
-	 m[j] *= mm;
-	 m[k] *= mm;
-	 }
+	double mm;
+	for (i = 0; i < s->nxyz; i++) {
+		j = i + nxyz;
+		k = j + nxyz;
+		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
+		m[i] *= mm;
+		m[j] *= mm;
+		m[k] *= mm;
+	}
 
 }
 

@@ -1,5 +1,3 @@
-import numpy as np
-
 class FDMesh():
     def __init__(self,dx=1.0,dy=1.0,dz=1.0,nx=10,ny=1,nz=1,unit_length=1.0):
         self.dx=dx
@@ -21,14 +19,17 @@ class FDMesh():
         self.compute_pos()
         
     def compute_pos(self):
-        self.pos=np.zeros((self.nxyz,3))
+        self.pos=[]
         for i in range(self.nx):
             for j in range(self.ny):
                 for k in range(self.nz):
-                    tp=((i-self.nx/2.0)*self.dx,
-                         (j-self.ny/2.0)*self.dy,
-                         (k-self.nz/2.0)*self.dz)
-                    index=i*self.nyz+j*self.nz+k
-                    self.pos[index]=tp
+                    tp=(i*self.dx,
+                        j*self.dy,
+                        k*self.dz)
+                    #index=i*self.nyz+j*self.nz+k
+                    self.pos.append(tp)
 
-
+    #only used for tests
+    def pos_at(self,i,j,k):
+        index=i*self.nyz+j*self.nz+k       
+        return self.pos[index]

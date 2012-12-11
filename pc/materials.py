@@ -1,4 +1,19 @@
 import numpy as np
+
+
+class UnitMaterial(object):
+    def __init__(self):
+        self.a=1
+        self.b=1
+        self.c=1
+        self.J=1
+        self.D=0.5
+        self.mu_s=1
+        self.gamma=1
+        self.alpha=0.01
+        self.unit_length=1
+
+
         
 class Nickel(object):
     def __init__(self):
