@@ -24,4 +24,4 @@ from anisotropy import Anisotropy
 from zeeman import Zeeman
 from demag import Demag
 from materials import Nickel
-from show_vector import VisualSpin
+#from show_vector import VisualSpin

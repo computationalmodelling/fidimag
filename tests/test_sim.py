@@ -3,22 +3,29 @@ from pc import FDMesh
 from pc import Sim
 from pc import Nickel
 
-def test_mesh1():
-    mesh=FDMesh(nx=5,ny=3,nz=2,dx=0.23,dy=0.41)
-    assert len(mesh.pos)==5*3*2
-    assert mesh.nyz==6
-    assert mesh.pos_at(0,0,0)==(0,0,0)
-    assert mesh.pos_at(3,2,1)==(3*0.23,2*0.41,1)
+def init_m(pos):
+    x,y,z=pos
+    if (x,y,z)==(1,2,3):
+        return (1,2,3)
+    elif z<1:
+        return (0,0,-1)
+    else:
+        return (0,0,1)
 
-def test_mesh2():
-    mesh=FDMesh(nx=10,ny=10,nz=10)
-    ni=Nickel()
-    mesh.set_material(ni)
-    t=ni.a/mesh.unit_length
-    assert t>1
-    assert mesh.pos_at(6,7,8)==(6*t,7*t,8*t)
-    
-    
+
+
+
+def test_sim_mesh():
+    mesh=FDMesh(nx=3,ny=4,nz=5)
+    sim=Sim(mesh)
+    sim.set_m(init_m)
+    sim.spin.shape=(3,-1)
+    spin_z=sim.spin[2]
+    spin_z.shape=(3,4,5)
+    assert spin_z[1,2,3]==3
+
+
+
+
 if __name__=='__main__':
-    test_mesh1()
-    test_mesh2()
+    test_sim_mesh()

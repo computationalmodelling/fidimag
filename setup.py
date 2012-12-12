@@ -8,19 +8,20 @@ import numpy
 import fnmatch
 import os
 
-print __file__
-print os.getcwd()
+#print __file__
+#print os.getcwd()
 realpath=os.path.realpath(__file__)
 pccp_path=os.path.split(realpath)[0]
+
 cp_path=os.path.join(pccp_path,'cp')
-print cp_path
+os.chdir(pccp_path)
 
 sources = []
-sources.append(os.path.join(cp_path,'clib.pyx'))
+sources.append(os.path.join('cp','clib.pyx'))
 for root, dirnames, filenames in os.walk(cp_path):
     for filename in fnmatch.filter(filenames, '*.c'):
         if filename!='clib.c':
-            sources.append(os.path.join(root, filename))
+            sources.append(os.path.join('cp',filename))
 
 print sources
 ext_modules = [
@@ -37,4 +38,3 @@ setup(
     cmdclass = {'build_ext': build_ext},
     ext_modules = ext_modules
 )
-

@@ -28,12 +28,12 @@ class Sim(object):
         self.pin_fun=None
         self.ode_times=0
         self.set_options()
-        
+
     def set_options(self,rtol=1e-8,atol=1e-20,dt=1e-15):
-        
+
         self.mu_s=1 #since we already consider mu_s in fields
-        self.c=1e11 
-        
+        self.c=1e11
+
         if self.T>0:
             self.vode=clib.RK2S(self.mat.mu_s,
                                 dt,
@@ -53,11 +53,11 @@ class Sim(object):
                                  nsteps=100000)
         self.gamma=self.mat.gamma
         self.alpha=self.mat.alpha
-        
-        
-        
-        
-    def set_m(self,m0=(1,0,0)):
+
+
+
+
+    def set_m(self,m0=(1,0,0),normalise=True):
         if isinstance(m0,list) or isinstance(m0,tuple):
             tmp=np.zeros((self.nxyz,3))
             tmp[:,:]=m0
@@ -67,27 +67,19 @@ class Sim(object):
             tmp=np.zeros((self.nxyz,3))
             for i in range(self.mesh.nxyz):
                 tmp[i]=m0(self.mesh.pos[i])
-            print 'before',tmp
             tmp=np.reshape(tmp, 3*self.nxyz, order='F')
             self.spin[:]=tmp[:]
-            print 'after',tmp
-            
-            for i in range(self.nxyz):
-                j=i+self.nxyz
-                k=i+self.nxyz
-                tmp=m0(self.mesh.pos[i])
-                self.spin[i]=tmp[0]
-                self.spin[j]=tmp[1]
-                self.spin[k]=tmp[2]
-                
-            print 'after2',self.spin
         elif isinstance(m0,np.ndarray):
             if m0.shape==self.spin.shape:
                 self.spin[:]=m0[:]
-            
+
+        if normalise:
+            self.normalise()
+
+
         self.vode.set_initial_value(self.spin, self.t)
         #self.integrator.init(self.sundials_rhs, 0, self.spin)
-            
+
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin,unit_length=self.unit_length)
         self.interactions.append(interaction)
@@ -98,19 +90,19 @@ class Sim(object):
             #print t,real_t
             ode.integrate(t)
             self.spin[:]=ode.y[:]
-            
+
     def ode_rhs(self,t,y):
         self.ode_times+=1
         self.t=t
         self.field[:]=0
         self.spin[:]=y[:]
-        
+
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
-        
+
         for obj in self.interactions:
             self.field+=obj.compute_field()
-        
+
         clib.compute_llg_rhs(self.dm_dt,
                            self.spin,
                            self.field,
@@ -119,27 +111,33 @@ class Sim(object):
                            self.mu_s,
                            self.nxyz,
                            self.c)
-        
+
         return self.dm_dt
-    
+
     def stochastic_update_field(self,y):
         self.field[:]=0
         #self.spin[:]=y[:]
-        
+
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
-        
+
         for obj in self.interactions:
             self.field+=obj.compute_field()
-            
+
     def compute_average(self):
         self.spin.shape=(3,-1)
         average=np.sum(self.spin,axis=1)/self.nxyz
         self.spin.shape=(3*self.nxyz)
         return average
-            
+
         #print "from python",self.spin,self.field
-    
+
+    def normalise(self):
+        a=self.spin
+        a.shape=(3,-1)
+        a=1.0*a/np.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+        a.shape=(3*self.nxyz)
+
     #only used for tests
     def spin_at(self,i,j,k):
         nxyz=self.mesh.nxyz
@@ -151,41 +149,41 @@ class Sim(object):
         return (self.spin[i1],
                 self.spin[i2],
                 self.spin[i3])
-        
-                        
+
+
 if __name__=='__main__':
-    
+
     T=1000
     ni=Nickel()
     ni.alpha=0.1
-    
+
     mesh=FDMesh(nx=1,ny=1,nz=1)
     mesh.set_material(ni)
-    
-    sim=Sim(mesh,T=T,mat=ni) 
-    
+
+    sim=Sim(mesh,T=T,mat=ni)
+
     exch=UniformExchange(ni.J,mu_s=ni.mu_s)
     sim.add(exch)
 
     anis=Anisotropy(ni.D,mu_s=ni.mu_s)
     sim.add(anis)
-    
+
     zeeman=Zeeman(1e5,(0,0,1))
     sim.add(zeeman)
-    
+
     #demag=Demag(mu_s=ni.mu_s)
     #sim.add(demag)
-    
+
     sim.set_m((1,0,0))
     print sim.vode.successful()
     print sim.vode.successful()
     #vs=VisualSpin(sim)
     #vs.init()
-    
-    
+
+
     #print exch.compute_field()
     #print anis.compute_field()
-    
+
     ts=np.linspace(0, 1e-10, 100)
     mxs=[]
     mys=[]
@@ -198,17 +196,17 @@ if __name__=='__main__':
         dm=np.linalg.norm(spin)-1.0
         dms.append(dm)
         #print sim.c,'times',sim.ode_times,dm,spin[2]
-        
+
         av=sim.compute_average()
         mxs.append(av[0])
         mys.append(av[1])
         mzs.append(av[2])
         print av
-        
-  
+
+
         #vs.update()
         #time.sleep(0.01)
-    
+
     import matplotlib as mpl
     mpl.use("Agg")
     import matplotlib.pyplot as plt
@@ -221,7 +219,3 @@ if __name__=='__main__':
     fig=plt.figure()
     plt.plot(ts,dms,'^-')
     plt.savefig('dm_%g.png'%T)
-    
-    
-    
-    
