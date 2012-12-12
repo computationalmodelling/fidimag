@@ -1,3 +1,4 @@
+from __future__ import division
 import clib
 import time
 import numpy as np
@@ -9,6 +10,8 @@ from zeeman import Zeeman
 from demag import Demag
 from materials import Nickel
 from materials import UnitMaterial
+
+
 #from show_vector import VisualSpin
 
 
@@ -29,7 +32,7 @@ class Sim(object):
         self.ode_times=0
         self.set_options()
 
-    def set_options(self,rtol=1e-8,atol=1e-20,dt=1e-15):
+    def set_options(self,rtol=1e-8,atol=1e-20,dt=0.2e-15):
 
         self.mu_s=1 #since we already consider mu_s in fields
         self.c=1e11
@@ -76,12 +79,12 @@ class Sim(object):
         if normalise:
             self.normalise()
 
-
         self.vode.set_initial_value(self.spin, self.t)
-        #self.integrator.init(self.sundials_rhs, 0, self.spin)
 
     def add(self,interaction):
-        interaction.setup(self.mesh,self.spin,unit_length=self.unit_length)
+        interaction.setup(self.mesh,self.spin,
+                          unit_length=self.unit_length,
+                          mu_s=self.mat.mu_s)
         self.interactions.append(interaction)
 
     def run_until(self,t):
@@ -135,8 +138,9 @@ class Sim(object):
     def normalise(self):
         a=self.spin
         a.shape=(3,-1)
-        a=1.0*a/np.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+        a/=np.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
         a.shape=(3*self.nxyz)
+        #print a
 
     #only used for tests
     def spin_at(self,i,j,k):

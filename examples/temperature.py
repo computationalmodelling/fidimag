@@ -21,29 +21,30 @@ def temperature_test(T):
     ni=Nickel()
     ni.alpha=0.1
     ni.D*=0
+    ni.mu_s*=1
     ni.J*=1
-    (nx,ny,nz)=(10,1,2)
-    
+    (nx,ny,nz)=(10,10,10)
+
     mesh=FDMesh(nx=nx,ny=ny,nz=nz)
     mesh.set_material(ni)
-    
-    sim=Sim(mesh,T=T,mat=ni) 
-    
-    exch=UniformExchange(ni.J,mu_s=ni.mu_s)
+
+    sim=Sim(mesh,T=T,mat=ni)
+
+    exch=UniformExchange(ni.J)
     sim.add(exch)
 
     #anis=Anisotropy(ni.D,mu_s=ni.mu_s)
     #sim.add(anis)
-    
-    #zeeman=Zeeman(1e5,(0,0,1))
+
+    #zeeman=Zeeman(1e2,(0,0,1))
     #sim.add(zeeman)
-    
+
     #demag=Demag(mu_s=ni.mu_s)
     #sim.add(demag)
-    
-    sim.set_m((0,0.6,0.8))
-    
-    
+
+    sim.set_m((0,0.6,0.99))
+
+
     #vs=VisualSpin(sim)
     #vs.init()
 
@@ -68,9 +69,7 @@ def temperature_test(T):
 
 
 
-    
-                        
+
+
 if __name__=='__main__':
-    temperature_test(500)
-    
-    
+    temperature_test(300)

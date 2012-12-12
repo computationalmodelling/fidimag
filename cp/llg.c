@@ -65,13 +65,24 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 	double sqrt_dt = sqrt(s->dt);
 
 	int nxyz = s->nxyz;
-	double *eta = s->eta;
+	double *eta = &s->eta[0];
 	double dt = s->dt;
-	double Q = s->Q;
+	double Q = s->Q*sqrt_dt;
 	double coeff = s->coeff;
 	double alpha = s->alpha;
 
-	gauss_random_vec(eta, 3 * s->nxyz, sqrt_dt);
+	gauss_random_vec(eta, 3 * s->nxyz, 1.0);
+
+	/*
+	double max_eta=0;
+	for(i=0;i<3*nxyz;i++){
+	  if (fabs(eta[i])>max_eta){
+	    max_eta=fabs(eta[i]);
+	  }
+	  //eta[i]=0;
+	}
+	printf("max_eta=%g   ",max_eta);
+	*/
 
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
@@ -119,10 +130,10 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 	s->Q = sqrt(2 * k_B * alpha * T / (gamma * mu_s));
 	s->c = c;
 
-	/*
+	
 	 printf("nxyz=%d dt=%g coeff=%g  Q=%g  Q*sqrt(dt)=%g\n", nxyz, dt, s->coeff,
 	 s->Q, s->Q * sqrt(dt));
-	 */
+	 
 
 	s->dm1 = (double*) malloc(3 * nxyz * sizeof(double));
 	s->dm2 = (double*) malloc(3 * nxyz * sizeof(double));

@@ -9,7 +9,7 @@ class Zeeman(object):
         self.Hz=H0*direction[2]
         
         
-    def setup(self,mesh,spin,unit_length=1.0):
+    def setup(self,mesh,spin,unit_length=1.0,mu_s=1.0):
         self.mesh=mesh
         self.dx=mesh.dx
         self.dy=mesh.dy
