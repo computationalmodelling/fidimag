@@ -7,7 +7,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double gamma, double alpha,
 	int i, j, k;
 
 	double mth0, mth1, mth2;
-	double coeff = -gamma / (1 + alpha * alpha) / mu_s;
+	double coeff = - gamma / (1 + alpha * alpha) / mu_s;
 	double mm, relax;
 
 	for (i = 0; i < nxyz; i++) {
@@ -55,7 +55,7 @@ void print_g(char *str, double *x, int n) {
 
 }
 
-void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
+void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T) {
 
 	int i, j, k;
 
@@ -73,17 +73,6 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 
 	gauss_random_vec(eta, 3 * s->nxyz, 1.0);
 
-	/*
-	double max_eta=0;
-	for(i=0;i<3*nxyz;i++){
-	  if (fabs(eta[i])>max_eta){
-	    max_eta=fabs(eta[i]);
-	  }
-	  //eta[i]=0;
-	}
-	printf("max_eta=%g   ",max_eta);
-	*/
-
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
@@ -92,9 +81,9 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]) * dt;
 		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]) * dt;
 
-		mth0 += coeff * (m[j] * eta[k] - m[k] * eta[j]) * Q;
-		mth1 += coeff * (m[k] * eta[i] - m[i] * eta[k]) * Q;
-		mth2 += coeff * (m[i] * eta[j] - m[j] * eta[i]) * Q;
+		mth0 += coeff * (m[j] * eta[k] - m[k] * eta[j]) * Q * T[i];
+		mth1 += coeff * (m[k] * eta[i] - m[i] * eta[k]) * Q * T[i];
+		mth2 += coeff * (m[i] * eta[j] - m[j] * eta[i]) * Q * T[i];
 
 		dm[i] = mth0 + alpha * (m[j] * mth2 - m[k] * mth1);
 		dm[j] = mth1 + alpha * (m[k] * mth0 - m[i] * mth2);
@@ -112,13 +101,12 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm) {
 }
 
 void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
-		double alpha, double T, double c) {
+		double alpha) {
 
 	s->theta = 2.0 / 3.0;
 	s->theta1 = 1.0 - 0.5 / s->theta;
 	s->theta2 = 0.5 / s->theta;
 
-	s->T = T;
 	s->dt = dt;
 	s->nxyz = nxyz;
 	s->alpha = alpha;
@@ -127,8 +115,7 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 
 	double k_B = 1.3806505e-23;
 	//double mu_0 = 4*M_PI*1e-7;
-	s->Q = sqrt(2 * k_B * alpha * T / (gamma * mu_s));
-	s->c = c;
+	s->Q = sqrt(2 * k_B * alpha / (gamma * mu_s));
 
 	
 	 printf("nxyz=%d dt=%g coeff=%g  Q=%g  Q*sqrt(dt)=%g\n", nxyz, dt, s->coeff,
@@ -149,12 +136,12 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
 	initial_random();
 }
 
-void run_step1(ode_solver *s, double *m, double *h, double *m_pred) {
+void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T) {
 	int i;
 	double *dm1 = s->dm1;
 	double theta = s->theta;
 
-	llg_rhs_dw(s, m, h, dm1);
+	llg_rhs_dw(s, m, h, dm1, T);
 
 	for (i = 0; i < 3 * s->nxyz; i++) {
 		m_pred[i] = m[i] + theta * dm1[i];
@@ -162,7 +149,7 @@ void run_step1(ode_solver *s, double *m, double *h, double *m_pred) {
 
 }
 
-void run_step2(ode_solver *s, double *m_pred, double *h, double *m) {
+void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T) {
 	int i, j, k;
 	int nxyz = s->nxyz;
 	double *dm1 = s->dm1;
@@ -170,7 +157,7 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m) {
 	double theta1 = s->theta1;
 	double theta2 = s->theta2;
 
-	llg_rhs_dw(s, m_pred, h, dm2);
+	llg_rhs_dw(s, m_pred, h, dm2, T);
 
 	for (i = 0; i < 3 * nxyz; i++) {
 		m[i] += (theta1 * dm1[i] + theta2 * dm2[i]);

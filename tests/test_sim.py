@@ -2,6 +2,7 @@ from pc import Anisotropy
 from pc import FDMesh
 from pc import Sim
 from pc import Nickel
+import numpy as np
 
 def init_m(pos):
     x,y,z=pos
@@ -11,6 +12,9 @@ def init_m(pos):
         return (0,0,-1)
     else:
         return (0,0,1)
+    
+def init_T(pos):
+    return np.sum(pos)
 
 
 def test_sim_init_m():
@@ -29,9 +33,16 @@ def test_sim_init_m_fun():
     sim.set_m(init_m,normalise=False)
     assert(sim.spin_at(1,2,3)==(1,2,3))
 
-    
+
+def test_sim_T_fun():
+    mesh=FDMesh(nx=3,ny=4,nz=5)
+    sim=Sim(mesh)
+    sim.set_T(init_T)
+    assert(sim.T[0]==0)
+    assert(sim.T[-1]==9)
 
 
 if __name__=='__main__':
-    test_sim_init_m()
-    test_sim_init_m_fun()
+    #test_sim_init_m()
+    #test_sim_init_m_fun()
+    test_sim_T_fun()

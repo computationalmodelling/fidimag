@@ -24,6 +24,7 @@ class Sim(object):
         self.mesh=mesh
         self.nxyz=mesh.nxyz
         self.unit_length=mesh.unit_length
+        self.T=np.zeros(self.nxyz)
         self.spin=np.ones(3*self.nxyz)
         self.field=np.zeros(3*self.nxyz)
         self.dm_dt=np.zeros(3*self.nxyz)
@@ -40,16 +41,15 @@ class Sim(object):
         self.mu_s=1 #since we already consider mu_s in fields
         self.c=1e11
 
-        if self.T>0:
+        if self.T.any()>0:
             self.vode=clib.RK2S(self.mat.mu_s,
                                 dt,
                                 self.nxyz,
                                 self.mat.gamma,
                                 self.mat.alpha,
-                                self.T,
-                                self.c,
                                 self.spin,
                                 self.field,
+                                self.T,
                                 self.stochastic_update_field)
         else:
             self.vode=ode(self.ode_rhs)
@@ -83,6 +83,16 @@ class Sim(object):
             self.normalise()
 
         self.vode.set_initial_value(self.spin, self.t)
+        
+    def set_T(self,T0):
+        if  hasattr(T0, '__call__'):
+            T = np.array([T0(p) for p in self.mesh.pos])
+            self.T[:]=T[:]
+        else:
+            self.T[:]=T0
+            
+        self.set_options()
+            
 
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin,

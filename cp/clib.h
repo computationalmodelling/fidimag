@@ -102,10 +102,10 @@ typedef struct {
 } ode_solver;
 
 void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
-		double alpha, double T, double c);
+		double alpha);
 ode_solver *create_ode_plan();
 void finalize_ode_plan(ode_solver *plan);
-void run_step1(ode_solver *s, double *m, double *h, double *m_pred);
-void run_step2(ode_solver *s, double *m_pred, double *h, double *m);
+void run_step1(ode_solver *s, double *m, double *h, double *m_pred,double *T);
+void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T);
 
 
