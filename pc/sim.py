@@ -8,6 +8,7 @@ from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
 from demag import Demag
+from save_vtk import SaveVTK
 from materials import Nickel
 from materials import UnitMaterial
 
@@ -17,7 +18,7 @@ from materials import UnitMaterial
 
 
 class Sim(object):
-    def __init__(self,mesh,T=0,mat=UnitMaterial()):
+    def __init__(self,mesh,T=0,mat=UnitMaterial(),name='unnamed'):
         self.t=0
         self.T=T
         self.mesh=mesh
@@ -31,6 +32,8 @@ class Sim(object):
         self.pin_fun=None
         self.ode_times=0
         self.set_options()
+        
+        self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
     def set_options(self,rtol=1e-8,atol=1e-20,dt=0.2e-15):
 
@@ -119,7 +122,7 @@ class Sim(object):
 
     def stochastic_update_field(self,y):
         self.field[:]=0
-        #self.spin[:]=y[:]
+        self.spin[:]=y[:]
 
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
@@ -145,14 +148,23 @@ class Sim(object):
     #only used for tests
     def spin_at(self,i,j,k):
         nxyz=self.mesh.nxyz
-        nyz=self.mesh.nyz
-        nz=self.mesh.nz
-        i1=i*nyz+j*nz+k
+        nxy=self.mesh.nxy
+        nx=self.mesh.nx
+
+        i1=k*nxy+j*nx+i
+        
         i2=i1+nxyz
         i3=i2+nxyz
+        
+        #print self.spin.shape,nxy,nx,i1,i2,i3
         return (self.spin[i1],
                 self.spin[i2],
                 self.spin[i3])
+        
+        
+    def save_vtk(self):
+        self.vtk.save_vtk(self.spin)
+        
 
 
 if __name__=='__main__':

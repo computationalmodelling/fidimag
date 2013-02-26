@@ -30,6 +30,7 @@ cdef extern from "clib.h":
 	void finalize_ode_plan(ode_solver *plan)
 	void run_step1(ode_solver *s, double *m, double *h, double *m_pred)
 	void run_step2(ode_solver *s, double *m_pred, double *h, double *m)
+	void run_step(ode_solver *s, double *m_pred, double *h, double *m)
 	
 	
 
@@ -38,6 +39,7 @@ def compute_uniform_exchange(np.ndarray[double, ndim=1, mode="c"] spin,
                             J,
                             dx, dy, dz,
                             nx, ny, nz):
+	
 	compute_uniform_exch(& spin[0], & field[0], J, dx, dy, dz, nx, ny, nz)    
 
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -143,7 +145,7 @@ cdef class RK2S(object):
 		self.update_fun(self.pred_m)
 		run_step2(self._c_plan,&pred_m[0],&field[0],&spin[0])
 		self.t=t
-				
+					
 	def integrate(self, t):
 		while self.t<t:
 			self.run_step(self.t+self.dt)

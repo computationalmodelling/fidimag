@@ -67,9 +67,5 @@ def temperature_test(T):
     plot_mxyz(ts,mx,my,mz,me,name)
 
 
-
-
-
-
 if __name__=='__main__':
     temperature_test(300)

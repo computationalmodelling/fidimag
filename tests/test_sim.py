@@ -13,19 +13,25 @@ def init_m(pos):
         return (0,0,1)
 
 
-
-
-def test_sim_mesh():
+def test_sim_init_m():
     mesh=FDMesh(nx=3,ny=4,nz=5)
     sim=Sim(mesh)
-    sim.set_m(init_m)
+    sim.set_m((0,1,0))
     sim.spin.shape=(3,-1)
-    spin_z=sim.spin[2]
-    spin_z.shape=(3,4,5)
-    assert spin_z[1,2,3]==3
+    spin_y=sim.spin[1]
+    assert(spin_y.any()==1)
+    
 
 
+def test_sim_init_m_fun():
+    mesh=FDMesh(nx=3,ny=4,nz=5)
+    sim=Sim(mesh)
+    sim.set_m(init_m,normalise=False)
+    assert(sim.spin_at(1,2,3)==(1,2,3))
+
+    
 
 
 if __name__=='__main__':
-    test_sim_mesh()
+    test_sim_init_m()
+    test_sim_init_m_fun()

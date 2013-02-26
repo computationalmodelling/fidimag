@@ -1,13 +1,12 @@
 import numpy as np
-from pccp import *
+from pccp.pc import *
 import time
-
 
 def init_m(pos):
     x,y,z=pos
-    if x<0:
+    if x<10:
         return (1,0,0)
-    elif x>0:
+    elif x>10:
         return (-1,0,0)
     else:
         return (0,1,0)
@@ -32,7 +31,7 @@ def pin_fun(t,mesh,spin):
     
 
 def relax_system(mesh):
-    sim=Sim(mesh)
+    sim=Sim(mesh,name='relax')
     sim.alpha=0.5
     sim.gamma=5
     sim.c=2
@@ -49,10 +48,12 @@ def relax_system(mesh):
     for t in ts:
         sim.run_until(t)
     
+    print sim.spin
+    sim.save_vtk()
     return sim.spin
 
 def spin_wave(mesh,m0,H0=10):
-    sim=Sim(mesh)
+    sim=Sim(mesh,name='sw')
     sim.alpha=0.01
     sim.gamma=5
     sim.c=2
@@ -68,14 +69,15 @@ def spin_wave(mesh,m0,H0=10):
     #sim.add(zeeman)
     
     sim.set_m(m0)
-    vs=VisualSpin(sim)
-    vs.init()
+    #vs=VisualSpin(sim)
+    #vs.init()
 
-    ts=np.linspace(0, 500, 50001)
+    ts=np.linspace(0, 500, 501)
     for t in ts:
         sim.run_until(t)
-        vs.update()
-        time.sleep(0.001)
+        sim.save_vtk()
+        #vs.update()
+        #time.sleep(0.001)
     
                         
 if __name__=='__main__':

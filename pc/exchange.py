@@ -28,6 +28,5 @@ class UniformExchange(object):
                                       self.dz,
                                       self.nx,
                                       self.ny,
-                                      self.nz)
-                                      
+                                      self.nz)                     
         return self.field

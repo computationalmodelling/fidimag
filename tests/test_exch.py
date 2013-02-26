@@ -36,12 +36,11 @@ def test_exch_2d():
     sim.set_m(init_m,normalise=False)
 
     field=exch.compute_field()
-    #print field
     assert field[0]==1
-    assert field[3]==2+1
-    assert field[5]==4+2
-    assert field[7]==6+3
-    assert field[9]==3+4
+    assert field[1]==2+1
+    assert field[2]==1+2+3
+    assert field[3]==2+3+4
+    assert field[4]==3+4
     assert np.max(field[21:])==0
 
 
@@ -55,13 +54,16 @@ def test_exch_3d():
 
     field=exch.compute_field()
     #print field
-    expect=[1,1,1,1,1,1,
-            4,4,5,5,4,4,
-            8,8,10,10,8,8,
-            8,8,11,11,8,8]
+    assert field[0]==1
+    assert field[1]==0+1+2+1
+    assert field[2]==1+2+3+2
+    assert field[3]==2+3+3
+   
+    assert field[4]==1
+    assert field[5]==5
+    assert field[6]==10
+    assert field[7]==11
     
-    for i in range(24):
-        assert field[i]==expect[i]
 
 
     
