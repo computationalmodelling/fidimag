@@ -50,9 +50,10 @@ def dw_motion(mesh,m0,mat,H0=1):
     sim.set_m(m0)
 
     
-    ts=np.linspace(0, 1e-11, 201)
+    ts=np.linspace(0, 5e-10, 1001)
     for t in ts:
         sim.run_until(t)
+        print t
         sim.save_vtk()
     
                         

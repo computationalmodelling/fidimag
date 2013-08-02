@@ -100,11 +100,12 @@ double ltqnorm(void) {
 	double q, r;
 	double p = real_random();
 
-	if (p <= 0) {
-		return -MT19973_RAND_MAX;
-	} else if (p >= 1) {
-		return MT19973_RAND_MAX;
-	} else if (p < P_LOW) {
+    while (p <= 0 || p >= 1){
+    	// random could be 0 or 1 which is not accepted
+    	p = random();
+    }
+
+    if (p < P_LOW) {
 		q = sqrt(-2 * log(p));
 		return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q
 				+ c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
