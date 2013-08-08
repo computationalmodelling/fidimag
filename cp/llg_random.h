@@ -102,7 +102,7 @@ double ltqnorm(void) {
 
     while (p <= 0 || p >= 1){
     	// random could be 0 or 1 which is not accepted
-    	p = random();
+    	p = real_random();
     }
 
     if (p < P_LOW) {

@@ -24,7 +24,6 @@ def test_sim_init_m():
     sim.spin.shape=(3,-1)
     spin_y=sim.spin[1]
     assert(spin_y.any()==1)
-    
 
 
 def test_sim_init_m_fun():
@@ -40,7 +39,9 @@ def test_sim_T_fun():
     sim.set_T(init_T)
     assert(sim.T[0]==0)
     assert(sim.T[-1]==9)
-
+    
+def test_sim_single_spin():
+    mesh=FDMesh(nx=1,ny=1,nz=1)
 
 if __name__=='__main__':
     #test_sim_init_m()

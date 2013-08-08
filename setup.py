@@ -30,6 +30,7 @@ ext_modules = [
               include_dirs = [numpy.get_include()],
               libraries=['m','fftw3'],
               extra_compile_args=["-fopenmp"],
+	      #extra_link_args=['-fopenmp'],
               #extra_link_args=["-g"],
         )
     ]

@@ -31,6 +31,7 @@ class Nickel(object):
         self.Tc=630
         self.J=self.k_B*self.Tc/3.0
         self.gamma=2.210173e5/self.mu_0
+        self.Ms=4.9e5
         
         
         self.alpha=0.5
@@ -43,3 +44,7 @@ if __name__=='__main__':
     print 'J',ni.J
     print 'D',ni.D
     print 'D/J:',ni.D/ni.J
+    
+    K =  1e5*ni.a**3
+    print K
+    print (ni.J/K)**0.5

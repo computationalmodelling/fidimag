@@ -36,11 +36,11 @@ class Sim(object):
         
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
-    def set_options(self,rtol=1e-8,atol=1e-20,dt=0.2e-15):
+    def set_options(self,rtol=1e-7,atol=1e-7,dt=1e-15):
 
         self.mu_s=1 #since we already consider mu_s in fields
         self.c=1e11
-
+        print self.mat.mu_s
         if self.T.any()>0:
             self.vode=clib.RK2S(self.mat.mu_s,
                                 dt,
@@ -227,7 +227,7 @@ if __name__=='__main__':
         mxs.append(av[0])
         mys.append(av[1])
         mzs.append(av[2])
-        print av
+        
 
 
         #vs.update()

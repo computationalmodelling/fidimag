@@ -2,6 +2,7 @@
 #include<math.h>
 #include <complex.h>
 #include <fftw3.h>
+#include<omp.h>
 
 void compute_uniform_exch(double *spin, double *field, double J, double dx,
 		double dy, double dz, int nx, int ny, int nz);
