@@ -75,7 +75,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 		
 		alpha_inv = 1.0/ (1.0 + alpha[i] * alpha[i]);
         coeff = -s->gamma * alpha_inv ;
-		q = sqrt(s->Q * alpha[i] *alpha_inv * T[i])*0;
+		q = sqrt(s->Q * alpha[i] *alpha_inv * T[i]);
 		
 		hi = h[i]*dt + eta[i]*q;
 		hj = h[j]*dt + eta[j]*q;
