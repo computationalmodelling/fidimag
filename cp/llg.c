@@ -57,7 +57,6 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 	double mth0, mth1, mth2;
 	
 	double mm;
-	double sqrt_dt = sqrt(s->dt);
 
 	int nxyz = s->nxyz;
 	double *eta = &s->eta[0];
@@ -67,17 +66,16 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 	double q, alpha_inv;
 	double hi,hj,hk;
 
-	gauss_random_vec(eta, 3 * s->nxyz, sqrt_dt);
+
 
 	for (i = 0; i < nxyz; i++) {
-	  
 
 		j = i + nxyz;
 		k = j + nxyz;
 		
 		alpha_inv = 1.0/ (1.0 + alpha[i] * alpha[i]);
-                coeff = -s->gamma * alpha_inv ;
-		q = sqrt(s->Q * alpha[i] *alpha_inv * T[i]);
+        coeff = -s->gamma * alpha_inv ;
+		q = sqrt(s->Q * alpha[i] *alpha_inv * T[i])*0;
 		
 		hi = h[i]*dt + eta[i]*q;
 		hj = h[j]*dt + eta[j]*q;
@@ -85,7 +83,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 		
 		mth0 = coeff * (m[j] * hk - m[k] * hj);
 		mth1 = coeff * (m[k] * hi - m[i] * hk);
-		mth2 = coeff * (m[i] * hk - m[j] * hi);
+		mth2 = coeff * (m[i] * hj - m[j] * hi);
 
 		dm[i] = mth0 + alpha[i] * (m[j] * mth2 - m[k] * mth1);
 		dm[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);
@@ -97,15 +95,15 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma) {
 
 	s->theta = 2.0 / 3.0;
-	s->theta1 = 1.0 - 0.5 / s->theta;
-	s->theta2 = 0.5 / s->theta;
+	s->theta1 = 0.25;
+	s->theta2 = 0.75;
 
 	s->dt = dt;
 	s->nxyz = nxyz;
 	s->gamma = gamma;
 	
 	double k_B = 1.3806505e-23;
-	s->Q = 2 * k_B / (gamma * mu_s);	
+	s->Q = 2 * k_B / (gamma * mu_s) * dt;
 
 	s->dm1 = (double*) malloc(3 * nxyz * sizeof(double));
 	s->dm2 = (double*) malloc(3 * nxyz * sizeof(double));
@@ -122,10 +120,12 @@ void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma) 
 }
 
 void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha) {
-	int i;
+	int i, j, k;
+	int nxyz = s->nxyz;
 	double *dm1 = s->dm1;
 	double theta = s->theta;
 
+	gauss_random_vec(s->eta, 3 * nxyz);
 	llg_rhs_dw(s, m, h, dm1, T, alpha);
 
 	for (i = 0; i < 3 * s->nxyz; i++) {

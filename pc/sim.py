@@ -20,11 +20,10 @@ from materials import UnitMaterial
 class Sim(object):
     def __init__(self,mesh,T=0,mat=UnitMaterial(),name='unnamed'):
         self.t=0
-        self.T=T
-        self.mesh=mesh
-        self.nxyz=mesh.nxyz
+        self.mesh = mesh
+        self.nxyz = mesh.nxyz
         self.unit_length=mesh.unit_length
-        self.T = np.zeros(self.nxyz)
+        self._T = np.zeros(self.nxyz)
         self._alpha = np.zeros(self.nxyz)
         self.spin = np.ones(3*self.nxyz)
         self.field = np.zeros(3*self.nxyz)
@@ -34,6 +33,7 @@ class Sim(object):
         self.pin_fun=None
         self.ode_times=0
         
+        self._T[:] = T
         self._alpha[:]=self.mat.alpha
         self.set_options()
         
@@ -43,6 +43,7 @@ class Sim(object):
 
         
         if self.T.any()>0:
+            
             self.vode=clib.RK2S(self.mat.mu_s,
                                 dt,
                                 self.nxyz,
@@ -80,22 +81,26 @@ class Sim(object):
             self.normalise()
 
         self.vode.set_initial_value(self.spin, self.t)
-        
+    
+    def get_T(self):
+        return self._T
+    
     def set_T(self,T0):
         if  hasattr(T0, '__call__'):
             T = np.array([T0(p) for p in self.mesh.pos])
             self.T[:]=T[:]
         else:
-            self.T[:]=T0
+            self.T[:] = T0
             
         self.set_options()
+    T = property(get_T, set_T)
 
     def get_alpha(self):
         return self._alpha
 
     def set_alpha(self,alpha0):
         if  hasattr(alpha0, '__call__'):
-            alpha = np.array([alpha(p) for p in self.mesh.pos])
+            alpha = np.array([alpha0(p) for p in self.mesh.pos])
             self._alpha[:] = alpha[:]
         else:
             self._alpha[:] = alpha0
@@ -112,13 +117,16 @@ class Sim(object):
     def run_until(self,t):
         ode=self.vode
         while ode.successful() and ode.t<t:
-            #print t,real_t
             ode.integrate(t)
             self.spin[:]=ode.y[:]
+        
+        #
+        self.spin[:]=ode.y[:]
+        self.t = t
 
     def ode_rhs(self,t,y):
         self.ode_times+=1
-        self.t=t
+        self.t = t
         self.field[:]=0
         self.spin[:]=y[:]
 

@@ -89,7 +89,6 @@ cdef class RK2S(object):
 	cdef ode_solver * _c_plan
 	cdef double dt
 	cdef update_fun
-	cdef np.ndarray spin
 	cdef np.ndarray pred_m
 	cdef np.ndarray field
 	cdef np.ndarray T
@@ -107,12 +106,14 @@ cdef class RK2S(object):
 			
 		self.t = 0
 		self.dt = dt
-		self.y = spin
+		
 		self.update_fun = update_fun
 		self.field = field
 		self.T = T
 		self.alpha= alpha
 		self.pred_m=np.zeros(3*nxyz,dtype=np.float)
+		self.y=np.zeros(3*nxyz,dtype=np.float)
+		
 				
 		self._c_plan = create_ode_plan()
 		if self._c_plan is NULL:
@@ -128,7 +129,8 @@ cdef class RK2S(object):
 	
 	def set_initial_value(self,np.ndarray[double, ndim=1, mode="c"] spin, t):
 		self.t = t
-		self.spin = spin
+		self.y[:] = spin[:]
+		print self.y, spin
 		
 
 	def successful(self):
@@ -136,20 +138,19 @@ cdef class RK2S(object):
 		return True
 	
 	def run_step(self, t):
-		cdef np.ndarray[double, ndim=1, mode="c"] spin=self.spin
+		cdef np.ndarray[double, ndim=1, mode="c"] y=self.y
 		cdef np.ndarray[double, ndim=1, mode="c"] field=self.field
 		cdef np.ndarray[double, ndim=1, mode="c"] pred_m=self.pred_m
 		cdef np.ndarray[double, ndim=1, mode="c"] T=self.T
 		cdef np.ndarray[double, ndim=1, mode="c"] alpha=self.alpha
 		
 		#print "from cython1", self.spin,self.field,self.pred_m
-		self.update_fun(self.spin)
-		run_step1(self._c_plan,&spin[0],&field[0],&pred_m[0],&T[0],&alpha[0])
-		#print "from cython2", self.spin,self.field,self.pred_m
+		self.update_fun(self.y)
+		run_step1(self._c_plan,&y[0],&field[0],&pred_m[0],&T[0],&alpha[0])
 		
 		self.update_fun(self.pred_m)
-		run_step2(self._c_plan,&pred_m[0],&field[0],&spin[0],&T[0],&alpha[0])
-		self.t=t
+		run_step2(self._c_plan,&pred_m[0],&field[0],&y[0],&T[0],&alpha[0])
+		self.t = t
 					
 	def integrate(self, t):
 		while self.t<t:
