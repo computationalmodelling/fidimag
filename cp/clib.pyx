@@ -4,7 +4,7 @@ cimport numpy as np
 cdef extern from "clib.h":
 	void compute_uniform_exch(double * spin, double * field, double J, double dx, double dy, double dz, int nx, int ny, int nz)
 	void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
-	void llg_rhs(double * dm_dt, double * spin, double * h, double gamma, double alpha, double mu_s, int nxyz, double c)
+	void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
 	
 	
 	
@@ -25,11 +25,10 @@ cdef extern from "clib.h":
 		pass
 	
 	ode_solver *create_ode_plan()
-	void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
-		double alpha)
+	void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma)
 	void finalize_ode_plan(ode_solver *plan)
-	void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T)
-	void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T)
+	void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha)
+	void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha)
 	
 	
 
@@ -48,10 +47,11 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
 
 
 def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                np.ndarray[double, ndim=1, mode="c"] spin,
+    		np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
-                gamma, alpha, mu_s, nxyz, c):
-	llg_rhs(& dm_dt[0], & spin[0], & field[0], gamma, alpha, mu_s, nxyz, c)
+                np.ndarray[double, ndim=1, mode="c"] alpha,
+                gamma, nxyz):
+	llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], gamma, nxyz)
 	
 	
 
@@ -93,29 +93,32 @@ cdef class RK2S(object):
 	cdef np.ndarray pred_m
 	cdef np.ndarray field
 	cdef np.ndarray T
+	cdef np.ndarray alpha
 	
 	cdef public double t
 	cdef public np.ndarray y
 	
-	def __cinit__(self,mu_s,dt,nxyz,gamma,alpha,
+	def __cinit__(self,mu_s,dt,nxyz,gamma,
+				np.ndarray[double, ndim=1, mode="c"] alpha,
 				np.ndarray[double, ndim=1, mode="c"] spin,
 				np.ndarray[double, ndim=1, mode="c"] field,
 				np.ndarray[double, ndim=1, mode="c"] T,
 				update_fun):
 			
 		self.t = 0
-		self.dt=dt
-		self.y=spin
-		self.update_fun=update_fun
-		self.field=field
+		self.dt = dt
+		self.y = spin
+		self.update_fun = update_fun
+		self.field = field
 		self.T = T
+		self.alpha= alpha
 		self.pred_m=np.zeros(3*nxyz,dtype=np.float)
 				
 		self._c_plan = create_ode_plan()
 		if self._c_plan is NULL:
 			raise MemoryError()
 		
-		init_solver(self._c_plan,mu_s,nxyz,dt,gamma,alpha)
+		init_solver(self._c_plan,mu_s,nxyz,dt,gamma)
 		
 	def __dealloc__(self):
 		if self._c_plan is not NULL:
@@ -137,14 +140,15 @@ cdef class RK2S(object):
 		cdef np.ndarray[double, ndim=1, mode="c"] field=self.field
 		cdef np.ndarray[double, ndim=1, mode="c"] pred_m=self.pred_m
 		cdef np.ndarray[double, ndim=1, mode="c"] T=self.T
+		cdef np.ndarray[double, ndim=1, mode="c"] alpha=self.alpha
 		
 		#print "from cython1", self.spin,self.field,self.pred_m
 		self.update_fun(self.spin)
-		run_step1(self._c_plan,&spin[0],&field[0],&pred_m[0],&T[0])
+		run_step1(self._c_plan,&spin[0],&field[0],&pred_m[0],&T[0],&alpha[0])
 		#print "from cython2", self.spin,self.field,self.pred_m
 		
 		self.update_fun(self.pred_m)
-		run_step2(self._c_plan,&pred_m[0],&field[0],&spin[0],&T[0])
+		run_step2(self._c_plan,&pred_m[0],&field[0],&spin[0],&T[0],&alpha[0])
 		self.t=t
 					
 	def integrate(self, t):

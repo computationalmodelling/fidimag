@@ -24,29 +24,30 @@ class Sim(object):
         self.mesh=mesh
         self.nxyz=mesh.nxyz
         self.unit_length=mesh.unit_length
-        self.T=np.zeros(self.nxyz)
-        self.spin=np.ones(3*self.nxyz)
-        self.field=np.zeros(3*self.nxyz)
-        self.dm_dt=np.zeros(3*self.nxyz)
+        self.T = np.zeros(self.nxyz)
+        self._alpha = np.zeros(self.nxyz)
+        self.spin = np.ones(3*self.nxyz)
+        self.field = np.zeros(3*self.nxyz)
+        self.dm_dt = np.zeros(3*self.nxyz)
         self.interactions=[]
         self.mat=mat
         self.pin_fun=None
         self.ode_times=0
+        
+        self._alpha[:]=self.mat.alpha
         self.set_options()
         
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
     def set_options(self,rtol=1e-7,atol=1e-7,dt=1e-15):
 
-        self.mu_s=1 #since we already consider mu_s in fields
-        self.c=1e11
-        print self.mat.mu_s
+        
         if self.T.any()>0:
             self.vode=clib.RK2S(self.mat.mu_s,
                                 dt,
                                 self.nxyz,
                                 self.mat.gamma,
-                                self.mat.alpha,
+                                self.alpha,
                                 self.spin,
                                 self.field,
                                 self.T,
@@ -57,10 +58,6 @@ class Sim(object):
                                  rtol=rtol,
                                  atol=atol,
                                  nsteps=100000)
-        self.gamma=self.mat.gamma
-        self.alpha=self.mat.alpha
-
-
 
 
     def set_m(self,m0=(1,0,0),normalise=True):
@@ -92,7 +89,19 @@ class Sim(object):
             self.T[:]=T0
             
         self.set_options()
+
+    def get_alpha(self):
+        return self._alpha
+
+    def set_alpha(self,alpha0):
+        if  hasattr(alpha0, '__call__'):
+            alpha = np.array([alpha(p) for p in self.mesh.pos])
+            self._alpha[:] = alpha[:]
+        else:
+            self._alpha[:] = alpha0
             
+        self.set_options()
+    alpha = property(get_alpha, set_alpha)
 
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin,
@@ -122,11 +131,9 @@ class Sim(object):
         clib.compute_llg_rhs(self.dm_dt,
                            self.spin,
                            self.field,
+                           self.alpha,
                            self.mat.gamma,
-                           self.mat.alpha,
-                           self.mu_s,
-                           self.nxyz,
-                           self.c)
+                           self.nxyz)
 
         return self.dm_dt
 

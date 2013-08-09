@@ -10,8 +10,7 @@ void compute_uniform_exch(double *spin, double *field, double J, double dx,
 void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 		int nxyz);
 
-void llg_rhs(double *dm_dt, double *spin, double *h, double gamma,
-		double alpha, double mu_s, int nxyz, double c);
+void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz);
 
 //==========================================
 //used for demag
@@ -81,10 +80,8 @@ typedef struct {
 	int nxyz;
 
 	double dt;
-	double alpha;
 	double T;
-	double c;
-    double gamma;
+        double gamma;
 	double mu_s;
 	double coeff;
 	double Q;
@@ -102,11 +99,10 @@ typedef struct {
 
 } ode_solver;
 
-void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma,
-		double alpha);
+void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma);
 ode_solver *create_ode_plan();
 void finalize_ode_plan(ode_solver *plan);
-void run_step1(ode_solver *s, double *m, double *h, double *m_pred,double *T);
-void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T);
+void run_step1(ode_solver *s, double *m, double *h, double *m_pred,double *T, double *alpha);
+void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha);
 
 
