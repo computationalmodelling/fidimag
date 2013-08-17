@@ -242,7 +242,6 @@ cdef class CvodeLLG(object):
         self.user_data = cv_userdata(nxyz,mu_s,gamma,
                                      <void*>self.alpha,
                                      <void*>self.field,
-                                     <void*>self.y,
                                      <void*>self.callback_fun)
 
         self.MODIFIED_GS = 1
