@@ -26,9 +26,9 @@ def single_spin(alpha=0.01):
     
     mat.alpha=alpha
     sim = Sim(mesh,T=18000,mat=mat)
-    sim.set_m((0, 0, 1))
+    sim.set_m((1, 1, 1))
     
-    sim.add(Zeeman(1,(0.0907, 0, -0.178)))
+    #sim.add(Zeeman(1,(0, 0, 1)))
     
     anis=Anisotropy(mat.K, direction=(0,0,1))
     sim.add(anis)
@@ -47,10 +47,10 @@ def single_spin(alpha=0.01):
     
     
     plt.plot(sx, sy) 
-    plt.xlabel("Sx")
-    plt.ylabel("Sy")
+    plt.xlabel("$S_x$")
+    plt.ylabel("$S_y$")
     plt.grid()
-    plt.axis((-0.4 , 0.8 , -0.5 , 0.5))
+    plt.axis((-0.9 , 0.9 , -0.9 , 0.9))
     plt.axes().set_aspect('equal')
     
     plt.savefig("macrospin.pdf")

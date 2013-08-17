@@ -20,10 +20,10 @@ def plot_mxyz(ts,mx,my,mz,me,name):
 def temperature_test(T):
     ni=Nickel()
     ni.alpha=0.1
-    ni.D*=0
-    ni.mu_s*=1
-    ni.J*=1
-    (nx,ny,nz)=(10,10,10)
+    ni.D = 1.35e-26
+    ni.mu_s = 2.16e-23 
+    ni.J = 6.16e-21
+    (nx,ny,nz)=(20,20,20)
 
     mesh=FDMesh(nx=nx,ny=ny,nz=nz)
     mesh.set_material(ni)
@@ -33,8 +33,8 @@ def temperature_test(T):
     exch=UniformExchange(ni.J)
     sim.add(exch)
 
-    #anis=Anisotropy(ni.D,mu_s=ni.mu_s)
-    #sim.add(anis)
+    anis=Anisotropy(ni.D)
+    sim.add(anis)
 
     #zeeman=Zeeman(1e2,(0,0,1))
     #sim.add(zeeman)
@@ -68,4 +68,4 @@ def temperature_test(T):
 
 
 if __name__=='__main__':
-    temperature_test(300)
+    temperature_test(600)

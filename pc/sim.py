@@ -37,7 +37,9 @@ class Sim(object):
 
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
+
     def set_options(self,rtol=1e-7,atol=1e-7,dt=1e-15):
+
         if self.T.any()>0:
             self.vode=clib.RK2S(self.mat.mu_s,dt,
                         self.nxyz,
