@@ -18,6 +18,7 @@ os.chdir(pccp_path)
 
 sources = []
 sources.append(os.path.join('cp','clib.pyx'))
+
 for root, dirnames, filenames in os.walk(cp_path):
     for filename in fnmatch.filter(filenames, '*.c'):
         if filename!='clib.c':
@@ -28,8 +29,8 @@ ext_modules = [
     Extension("clib",
               sources = sources,
               include_dirs = [numpy.get_include()],
-              libraries=['m','fftw3'],
-              extra_compile_args=["-fopenmp"],
+              libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
+              #extra_compile_args=["-fopenmp"],
 	      #extra_link_args=['-fopenmp'],
               #extra_link_args=["-g"],
         )

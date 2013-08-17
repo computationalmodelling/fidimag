@@ -44,11 +44,10 @@ def relax_system(mesh):
     
     sim.set_m(init_m)
     
-    ts=np.linspace(0, 50, 2001)
+    ts=np.linspace(0, 50, 101)
     for t in ts:
         sim.run_until(t)
     
-    print sim.spin
     sim.save_vtk()
     return sim.spin
 
@@ -82,7 +81,7 @@ def spin_wave(mesh,m0,H0=10):
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=22)
+    mesh=FDMesh(nx=20)
     
     m0=relax_system(mesh)
     print 'relax system done'

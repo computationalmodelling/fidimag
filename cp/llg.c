@@ -1,36 +1,6 @@
 #include "clib.h"
 #include "llg_random.h"
 
-void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, int nxyz) {
-
-	int i, j, k;
-
-	double mth0, mth1, mth2;
-	double coeff = - gamma;
-	double mm;
-
-	for (i = 0; i < nxyz; i++) {
-		j = i + nxyz;
-		k = j + nxyz;
-
-		coeff = - gamma/(1+alpha[i]*alpha[i]);
-
-		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
-		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
-		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
-
-		dm_dt[i] = mth0 + alpha[i] * (m[j] * mth2 - m[k] * mth1);
-		dm_dt[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);
-		dm_dt[k] = mth2 + alpha[i] * (m[i] * mth1 - m[j] * mth0);
-
-		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
-		m[i] *= mm;
-		m[j] *= mm;
-		m[k] *= mm;
-
-	}
-
-}
 
 ode_solver *create_ode_plan() {
 
@@ -165,4 +135,48 @@ void finalize_ode_plan(ode_solver *plan) {
 	free(plan->dm2);
 	free(plan->eta);
 	free(plan);
+}
+
+
+int check_array(double *a, double *b, int n){
+    int i;
+    for(i=0;i<n;i++){
+        if (fabs(a[i]-b[i])>0){
+            printf("a=%g   b=%g\n",a[i],b[i]);
+            return -1;
+        }
+    }
+    return 0;
+
+}
+
+void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, int nxyz) {
+    
+	int i, j, k;
+    
+	double mth0, mth1, mth2;
+	double coeff = - gamma;
+	double mm;
+        
+	for (i = 0; i < nxyz; i++) {
+		j = i + nxyz;
+		k = j + nxyz;
+        
+		coeff = - gamma/(1+alpha[i]*alpha[i]);
+        
+		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
+		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
+		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
+        
+		dm_dt[i] = mth0 + alpha[i] * (m[j] * mth2 - m[k] * mth1);
+		dm_dt[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);
+		dm_dt[k] = mth2 + alpha[i] * (m[i] * mth1 - m[j] * mth0);
+        
+		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
+		m[i] *= mm;
+		m[j] *= mm;
+		m[k] *= mm;
+        
+	}
+    
 }

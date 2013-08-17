@@ -2,7 +2,6 @@ from __future__ import division
 import clib
 import time
 import numpy as np
-from scipy.integrate import ode
 from fd_mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
@@ -14,7 +13,6 @@ from materials import UnitMaterial
 
 
 #from show_vector import VisualSpin
-
 
 
 class Sim(object):
@@ -32,36 +30,34 @@ class Sim(object):
         self.mat=mat
         self.pin_fun=None
         self.ode_times=0
-        
+
         self._T[:] = T
         self._alpha[:]=self.mat.alpha
         self.set_options()
-        
+
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
     def set_options(self,rtol=1e-7,atol=1e-7,dt=1e-15):
-
-        
         if self.T.any()>0:
-            
-            self.vode=clib.RK2S(self.mat.mu_s,
-                                dt,
-                                self.nxyz,
-                                self.mat.gamma,
-                                self.alpha,
-                                self.spin,
-                                self.field,
-                                self.T,
-                                self.stochastic_update_field)
+            self.vode=clib.RK2S(self.mat.mu_s,dt,
+                        self.nxyz,
+                        self.mat.gamma,
+                        self.alpha,
+                        self.spin,
+                        self.field,
+                        self.T,
+                        self.update_effective_field)
         else:
-            self.vode=ode(self.ode_rhs)
-            self.vode.set_integrator('vode',
-                                 rtol=rtol,
-                                 atol=atol,
-                                 nsteps=100000)
+            self.vode=clib.CvodeLLG(self.mat.mu_s,self.nxyz,
+                                    self.mat.gamma,
+                                    self.alpha,
+                                    self.spin,
+                                    self.field,
+                                    self.update_effective_field)
 
 
     def set_m(self,m0=(1,0,0),normalise=True):
+
         if isinstance(m0,list) or isinstance(m0,tuple):
             tmp=np.zeros((self.nxyz,3))
             tmp[:,:]=m0
@@ -73,6 +69,7 @@ class Sim(object):
                 tmp[i]=m0(self.mesh.pos[i])
             tmp=np.reshape(tmp, 3*self.nxyz, order='F')
             self.spin[:]=tmp[:]
+
         elif isinstance(m0,np.ndarray):
             if m0.shape==self.spin.shape:
                 self.spin[:]=m0[:]
@@ -81,17 +78,17 @@ class Sim(object):
             self.normalise()
 
         self.vode.set_initial_value(self.spin, self.t)
-    
+
     def get_T(self):
         return self._T
-    
+
     def set_T(self,T0):
         if  hasattr(T0, '__call__'):
             T = np.array([T0(p) for p in self.mesh.pos])
             self.T[:]=T[:]
         else:
             self.T[:] = T0
-            
+
         self.set_options()
     T = property(get_T, set_T)
 
@@ -104,7 +101,7 @@ class Sim(object):
             self._alpha[:] = alpha[:]
         else:
             self._alpha[:] = alpha0
-            
+
         self.set_options()
     alpha = property(get_alpha, set_alpha)
 
@@ -115,18 +112,20 @@ class Sim(object):
         self.interactions.append(interaction)
 
     def run_until(self,t):
-        ode=self.vode
-        while ode.successful() and ode.t<t:
-            ode.integrate(t)
-            self.spin[:]=ode.y[:]
         
-        #
+        if abs(t)<1e-15:
+            return
+        
+        ode=self.vode
+        
+        ode.run_until(t)
         self.spin[:]=ode.y[:]
+
         self.t = t
 
-    def ode_rhs(self,t,y):
-        self.ode_times+=1
-        self.t = t
+
+    def update_effective_field(self,y):
+
         self.field[:]=0
         self.spin[:]=y[:]
 
@@ -136,24 +135,7 @@ class Sim(object):
         for obj in self.interactions:
             self.field+=obj.compute_field()
 
-        clib.compute_llg_rhs(self.dm_dt,
-                           self.spin,
-                           self.field,
-                           self.alpha,
-                           self.mat.gamma,
-                           self.nxyz)
-
-        return self.dm_dt
-
-    def stochastic_update_field(self,y):
-        self.field[:]=0
-        self.spin[:]=y[:]
-
-        if self.pin_fun:
-            self.pin_fun(self.t,self.mesh,self.spin)
-
-        for obj in self.interactions:
-            self.field+=obj.compute_field()
+        self.field[:]=1
 
     def compute_average(self):
         self.spin.shape=(3,-1)
@@ -177,19 +159,19 @@ class Sim(object):
         nx=self.mesh.nx
 
         i1=k*nxy+j*nx+i
-        
+
         i2=i1+nxyz
         i3=i2+nxyz
-        
+
         #print self.spin.shape,nxy,nx,i1,i2,i3
         return (self.spin[i1],
                 self.spin[i2],
                 self.spin[i3])
-        
-        
+
+
     def save_vtk(self):
         self.vtk.save_vtk(self.spin)
-        
+
 
 
 if __name__=='__main__':
@@ -242,7 +224,7 @@ if __name__=='__main__':
         mxs.append(av[0])
         mys.append(av[1])
         mzs.append(av[2])
-        
+
 
 
         #vs.update()

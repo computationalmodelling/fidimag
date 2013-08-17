@@ -2,7 +2,7 @@
 #include<math.h>
 #include <complex.h>
 #include <fftw3.h>
-#include<omp.h>
+//#include<omp.h>
 
 void compute_uniform_exch(double *spin, double *field, double J, double dx,
 		double dy, double dz, int nx, int ny, int nz);
@@ -10,7 +10,11 @@ void compute_uniform_exch(double *spin, double *field, double J, double dx,
 void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 		int nxyz);
 
+
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz);
+
+int check_array(double *a, double *b, int n);
+
 
 //==========================================
 //used for demag
@@ -81,7 +85,7 @@ typedef struct {
 
 	double dt;
 	double T;
-        double gamma;
+    double gamma;
 	double mu_s;
 	double coeff;
 	double Q;
