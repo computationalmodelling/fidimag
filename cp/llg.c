@@ -26,8 +26,6 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 
 	double mth0, mth1, mth2;
 	
-	double mm;
-
 	int nxyz = s->nxyz;
 	double *eta = &s->eta[0];
 	double dt = s->dt;
