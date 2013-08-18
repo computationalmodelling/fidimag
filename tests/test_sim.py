@@ -136,7 +136,7 @@ def test_sim_single_spin(do_plot=False):
             np.max(np.abs(mz - mz_ref)),
             mz_ref))
    
-    assert np.max(np.abs(mz - mz_ref)) < 5e-7
+    assert np.max(np.abs(mz - mz_ref)) < 2e-5
 
   
 
