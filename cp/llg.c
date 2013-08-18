@@ -156,8 +156,8 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
     
 	double mth0, mth1, mth2;
 	double coeff = - gamma;
-	double mm;
-        
+    double mm, c;
+
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
@@ -172,11 +172,29 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
 		dm_dt[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);
 		dm_dt[k] = mth2 + alpha[i] * (m[i] * mth1 - m[j] * mth0);
         
-		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
-		m[i] *= mm;
-		m[j] *= mm;
-		m[k] *= mm;
-        
+		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
+		c = sqrt(dm_dt[i]*dm_dt[i]+dm_dt[j]*dm_dt[j]+dm_dt[k]*dm_dt[k]);
+		c = 0.1*c*(1-mm);
+		dm_dt[i] += c*m[i];
+		dm_dt[j] += c*m[j];
+		dm_dt[k] += c*m[k];
+
 	}
     
+}
+
+
+void normalise(double *m, int nxyz){
+	int i, j, k;
+	double mm;
+	for (i = 0; i < nxyz; i++) {
+			j = i + nxyz;
+			k = j + nxyz;
+
+			mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
+			m[i] *= mm;
+			m[j] *= mm;
+			m[k] *= mm;
+
+	}
 }

@@ -89,7 +89,7 @@ def test_sim_single_spin_vode(do_plot=False):
             np.max(np.abs(mz - mz_ref)),
             mz_ref))
    
-    assert np.max(np.abs(mz - mz_ref)) < 5e-7
+    assert np.max(np.abs(mz - mz_ref)) < 5e-6
 
 
 def test_sim_single_spin(do_plot=False):
@@ -144,4 +144,5 @@ if __name__=='__main__':
     #test_sim_init_m()
     #test_sim_init_m_fun()
     #test_sim_T_fun()
-    test_sim_single_spin(do_plot=True)
+    test_sim_single_spin_vode(do_plot=True)
+    #test_sim_single_spin(do_plot=True)

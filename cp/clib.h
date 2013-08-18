@@ -13,7 +13,7 @@ void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz);
 
-int check_array(double *a, double *b, int n);
+void normalise(double *m, int nxyz);
 
 
 //==========================================

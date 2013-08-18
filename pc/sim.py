@@ -121,23 +121,24 @@ class Sim(object):
         ode=self.vode
         
         ode.run_until(t)
+        
         self.spin[:]=ode.y[:]
 
         self.t = t
 
 
     def update_effective_field(self,y):
-
-        self.field[:]=0
+        
         self.spin[:]=y[:]
+        self.field[:]=0
 
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
 
         for obj in self.interactions:
             self.field+=obj.compute_field()
+        
 
-        self.field[:]=1
 
     def compute_average(self):
         self.spin.shape=(3,-1)

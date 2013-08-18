@@ -18,7 +18,7 @@ cdef extern from "clib.h":
     void compute_uniform_exch(double * spin, double * field, double J, double dx, double dy, double dz, int nx, int ny, int nz)
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
-    int check_array(double *a, double *b, int n)
+    void normalise(double *m, int nxyz)
 
 
     # used for demag
@@ -162,7 +162,7 @@ cdef class RK2S(object):
         run_step2(self._c_plan,&pred_m[0],&field[0],&y[0],&T[0],&alpha[0])
         self.t = t
 
-    def integrate(self, t):
+    def run_until(self, t):
         while self.t<t:
             self.run_step(self.t+self.dt)
 
@@ -189,7 +189,6 @@ cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data):
     cdef cv_userdata *ud = <cv_userdata *>user_data
 
     cdef double *dm_dt = (<N_VectorContent_Serial>yvdot.content).data
-    cdef int i, size = (<N_VectorContent_Serial>yvdot.content).length
 
     cdef np.ndarray[double, ndim=1, mode="c"] y=nv2arr(yv)
     cdef np.ndarray[double, ndim=1, mode="c"] heff=<np.ndarray>ud.heff
@@ -209,6 +208,7 @@ cdef class CvodeLLG(object):
     
     cdef np.ndarray field
     cdef np.ndarray alpha
+    cdef int nxyz
 
     cdef public double t
     cdef public np.ndarray y
@@ -231,6 +231,7 @@ cdef class CvodeLLG(object):
         self.callback_fun = callback_fun
         self.field = field
         self.alpha = alpha
+        self.nxyz = nxyz
 
         self.y = np.zeros(3*nxyz,dtype=np.float)
         cdef np.ndarray[double, ndim=1, mode="c"] y=self.y
@@ -250,6 +251,7 @@ cdef class CvodeLLG(object):
 
     def init_ode(self):
         self.cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+        #self.cvode_mem = CVodeCreate(CV_ADAMS, CV_FUNCTIONAL);
 
 
     def set_initial_value(self,np.ndarray[double, ndim=1, mode="c"] spin, t):
@@ -261,18 +263,20 @@ cdef class CvodeLLG(object):
 
         flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
         self.check_flag(flag,"CVodeInit")
-        #print "m0:",nv2arr(self.u_y)
 
-        flag = CVodeSStolerances(self.cvode_mem, 1e-6, 1e-6)
+        flag = CVodeSStolerances(self.cvode_mem, 1e-7, 1e-7)
 
-        #flag = CVSpgmr(self.cvode_mem, 1, 300);
+        flag = CVSpgmr(self.cvode_mem, 0, 300);
         #flag = CVSpilsSetGSType(self.cvode_mem, 1);
-        flag = CVDiag(self.cvode_mem)
+
 
     cpdef int run_until(self, double tf):
         cdef int flag
         cdef double tret
+        
         flag = CVodeStep(self.cvode_mem, tf, self.u_y, &tret, CV_NORMAL)
+        cdef np.ndarray[double, ndim=1, mode="c"] y=self.y
+        #normalise(&y[0], self.nxyz)
 
         return 0
 
