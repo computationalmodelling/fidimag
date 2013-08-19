@@ -7,6 +7,7 @@ from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
 from demag import Demag
+from fileio import DataSaver, DataReader
 from save_vtk import SaveVTK
 from materials import Nickel
 from materials import UnitMaterial
@@ -29,7 +30,8 @@ class Sim(object):
         self.interactions=[]
         self.mat=mat
         self.pin_fun=None
-        self.ode_times=0
+
+        self.saver = DataSaver(self, name+'.txt')
 
         self._T[:] = T
         self._alpha[:]=self.mat.alpha
@@ -125,6 +127,11 @@ class Sim(object):
         self.spin[:]=ode.y[:]
 
         self.t = t
+        
+        if self.pin_fun:
+            self.pin_fun(self.t,self.mesh,self.spin)
+            
+        self.saver.save()
 
 
     def update_effective_field(self,y):
@@ -137,7 +144,6 @@ class Sim(object):
 
         for obj in self.interactions:
             self.field+=obj.compute_field()
-        
 
 
     def compute_average(self):
@@ -221,7 +227,7 @@ if __name__=='__main__':
         #print 'from sim',sim.field,sim.spin
         dm=np.linalg.norm(spin)-1.0
         dms.append(dm)
-        #print sim.c,'times',sim.ode_times,dm,spin[2]
+
 
         av=sim.compute_average()
         mxs.append(av[0])
