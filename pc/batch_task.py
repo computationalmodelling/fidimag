@@ -130,12 +130,17 @@ class BatchTasks(object):
                 self.task_q.put(task)
                 
         self.ts.save_state()
-        
+
+        self.threads=[]
+
         for _ in range(self.processes):
             t = Process(target=self.run_single)
             t.start()
-            #time.sleep(self.waiting_time)
+            self.threads.append(t)
+            time.sleep(self.waiting_time)
         
+        for t in self.threads:
+            t.join()
 
     
     def post_process(self,fun):
