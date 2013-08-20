@@ -283,6 +283,9 @@ cdef class CvodeLLG(object):
         self.check_flag(flag,"CVodeInit")
 
         flag = CVodeSStolerances(self.cvode_mem, 1e-7, 1e-7)
+        
+        mxsteps=100000
+        flag = CVodeSetMaxNumSteps(self.cvode_mem, mxsteps)
 
         flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
         #flag = CVSpilsSetGSType(self.cvode_mem, 1);

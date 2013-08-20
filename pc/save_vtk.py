@@ -33,6 +33,6 @@ class SaveVTK():
         
         vtk = pyvtk.VtkData(pos,data,'spins')
                       
-        vtk.tofile("%s.%06d"%(self.name,self.index))
+        vtk.tofile("vtks/%s.%06d"%(self.name,self.index))
         
         self.index+=1

@@ -1,8 +1,7 @@
 import os
 import time
-import Queue
-import threading
 import numpy as np
+from multiprocessing import Process,Queue
 
 class TaskState(object):
     def __init__(self,taskname):
@@ -95,30 +94,25 @@ class BatchTasks(object):
         
         return base
     
-    def run_single(self,task):
-        dirname=self.generate_directory(task)
+    def run_single(self):
         
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-            
-        os.chdir(dirname)
-        
-        self.fun(**task)
-        
-        os.chdir(self.current_directory)
-        
-    def fun_wrapper(self):
-        while True:
+        while not self.task_q.empty():
             task = self.task_q.get()
-
-            self.run_single(task)
+            
+            dirname=self.generate_directory(task)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            
+            os.chdir(dirname)
+            self.fun(**task)
+            os.chdir(self.current_directory)
+           
             self.ts.update_state(task, True)
             
-            self.task_q.task_done()
             
     def start(self):
         
-        self.task_q = Queue.Queue()
+        self.task_q = Queue()
         for task in self.tasks:
             if not self.ts.done(task):
                 self.task_q.put(task)
@@ -126,11 +120,10 @@ class BatchTasks(object):
         self.ts.save_state()
         
         for _ in range(self.processes):
-            t = threading.Thread(target=self.fun_wrapper)
-            t.daemon = True
+            t = Process(target=self.run_single)
             t.start()
         
-        self.task_q.join()
+
     
     def post_process(self,fun):
         for task in self.tasks:
@@ -138,6 +131,7 @@ class BatchTasks(object):
             os.chdir(dirname)
             self.process_res.append(fun(**task))
             os.chdir(self.current_directory)
+            
     
     def get_res(self,key=None,value=None):
         res=[]
