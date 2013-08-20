@@ -1,6 +1,7 @@
-import numpy as np
-from pyvtk import *
+import os
 import pyvtk
+import numpy as np
+
 
 class SaveVTK():
     def __init__(self,mesh,m,name='unnamed'):
@@ -19,8 +20,9 @@ class SaveVTK():
         self.y=np.array(xyz[:,1],dtype='float32')
         self.z=np.array(xyz[:,2],dtype='float32')
         
-
-        
+        if not os.path.exists('vtks'):
+            os.makedirs('vtks')
+                    
     def save_vtk(self,m):
         
         pos=pyvtk.StructuredGrid([self.nx,self.ny,self.nz],self.mesh.pos)
