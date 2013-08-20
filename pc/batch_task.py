@@ -1,7 +1,9 @@
 import os
 import time
 import numpy as np
-from multiprocessing import Process,Queue
+from multiprocessing import Process,Queue, Lock
+
+lock=Lock()
 
 class TaskState(object):
     def __init__(self,taskname):
@@ -18,21 +20,26 @@ class TaskState(object):
         
         for line in data.splitlines():
             k,v=line.split(':')
-            self.state[k.strip()]=v
+            self.state[k.strip()]=v.strip()
     
     def save_state(self):
         f=open(self.taskname,'w')
-        for k in self.state:
-            f.write('%s : %s\n'%(k,self.state[k]))
+        for (k,v) in self.state.items():
+            f.write(u'%s : %s\n'%(k,v))
         f.close()
+
         
     def update_state(self,k,v,save=True):
         key=self.dict2str(k)
+        
+        if save:
+            self.load()
+        
         if v:
             self.state[key]='Done!'
         else:
             self.state[key]='Waiting!'
-            
+        
         if save:
             self.save_state()
             
@@ -61,7 +68,8 @@ class BatchTasks(object):
         self.tasks=[{}]
         self.parameters=[]
         self.current_directory=os.getcwd()
-            
+        
+       
         self.ts=TaskState(taskname+'.txt')
         self.waiting_time=waiting_time
         self.dims=[]
@@ -69,6 +77,7 @@ class BatchTasks(object):
         self.processes = processes
         
         self.process_res=[]
+        
 
         
     def add_parameters(self,name,values):
@@ -83,7 +92,6 @@ class BatchTasks(object):
                 new_tasks.append(t)
             
         self.tasks=list(new_tasks)
-        print self.tasks
         
 
     
@@ -107,7 +115,11 @@ class BatchTasks(object):
             self.fun(**task)
             os.chdir(self.current_directory)
            
+            lock.acquire()
             self.ts.update_state(task, True)
+            lock.release()
+            
+            time.sleep(self.waiting_time)
             
             
     def start(self):
@@ -122,6 +134,7 @@ class BatchTasks(object):
         for _ in range(self.processes):
             t = Process(target=self.run_single)
             t.start()
+            #time.sleep(self.waiting_time)
         
 
     
@@ -161,11 +174,11 @@ def task(p1,p2):
     #res= 1/0
     with open('res.txt','w') as f:
         f.write(res)
-    time.sleep(2)
+    time.sleep(1)
 
 
 if __name__=="__main__":
-    tasks=BatchTasks(task,4)
+    tasks=BatchTasks(task,2)
     tasks.add_parameters('p1',['a','b','c'])
     tasks.add_parameters('p2',range(1,5))
     tasks.start()
