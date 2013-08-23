@@ -82,3 +82,77 @@ void compute_uniform_exch(double *spin, double *field, double J, double dx,
 
 
 }
+
+
+
+
+
+double compute_exch_energy(double *spin, double J, int nx, int ny, int nz) {
+
+        int nxy = nx * ny;
+        int nxyz1 = nxy * nz, nxyz2 = 2*nxyz1;
+        int i, j, k;
+        int index, id;
+        double Sx,Sy,Sz;
+        double energy=0;
+
+        for (k = 0; k < nz; k++){
+                for (j = 0; j < ny; j++) {
+                	for (i = 0; i < nx; i++) {
+                		index = nxy * k + nx * j + i;
+                		Sx = spin[index];
+                		Sy = spin[index+nxyz1];
+                		Sz = spin[index+nxyz2];
+
+                		if (k > 0) {
+                			id = index - nxy;
+                			energy += J * Sx*spin[id];
+                			energy += J * Sy*spin[id+nxyz1];
+                			energy += J * Sz*spin[id+nxyz2];
+                		}
+
+                		if (j > 0) {
+                			id = index - nx;
+                			energy += J * Sx*spin[id];
+                			energy += J * Sy*spin[id+nxyz1];
+                			energy += J * Sz*spin[id+nxyz2];
+                		}
+
+                		if (i > 0) {
+                			id = index - 1;
+                			energy += J * Sx*spin[id];
+                			energy += J * Sy*spin[id+nxyz1];
+                			energy += J * Sz*spin[id+nxyz2];
+                		}
+
+                		if (i < nx - 1) {
+                			id = index + 1;
+                			energy += J * Sx*spin[id];
+                			energy += J * Sy*spin[id+nxyz1];
+                			energy += J * Sz*spin[id+nxyz2];
+                		}
+
+                		if (j < ny - 1) {
+                			id = index + nx;
+                			energy += J * Sx*spin[id];
+                			energy += J * Sy*spin[id+nxyz1];
+                			energy += J * Sz*spin[id+nxyz2];
+                		}
+
+                		if (k < nz - 1) {
+                			id = index + nxy;
+                			energy += J * Sx*spin[id];
+                			energy += J * Sy*spin[id+nxyz1];
+                			energy += J * Sz*spin[id+nxyz2];
+                		}
+
+                     }
+                }
+        }
+
+        energy=-energy;
+        //printf("energy=%g\n",energy);
+
+        return energy;
+
+}

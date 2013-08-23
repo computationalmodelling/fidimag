@@ -7,8 +7,12 @@
 void compute_uniform_exch(double *spin, double *field, double J, double dx,
 		double dy, double dz, int nx, int ny, int nz);
 
+double compute_exch_energy(double *spin, double J, int nx, int ny, int nz);
+
 void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 		int nxyz);
+
+double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz);
 
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz);

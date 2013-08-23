@@ -33,6 +33,9 @@ class DataSaver(object):
         # time needs to go first
         keys.remove('time')
         return ['time'] + sorted(keys)
+    
+    def update_entity_order(self):
+        self.entity_order = self.default_entity_order()
 
     def headers(self):
         """return line one and two of ndt data file as string"""

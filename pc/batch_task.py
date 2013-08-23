@@ -147,7 +147,10 @@ class BatchTasks(object):
         for task in self.tasks:
             dirname=self.generate_directory(task)
             os.chdir(dirname)
-            self.process_res.append(fun(**task))
+            try:
+                self.process_res.append(fun(**task))
+            except:
+                print 'error:',task
             os.chdir(self.current_directory)
             
     

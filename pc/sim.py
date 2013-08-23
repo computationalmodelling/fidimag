@@ -32,6 +32,11 @@ class Sim(object):
         self.pin_fun=None
 
         self.saver = DataSaver(self, name+'.txt')
+        self.saver.entities['E_total'] = {
+            'unit': '<J>',
+            'get': lambda sim : sim.compute_energy(),
+            'header': 'E_total'}
+        self.saver.update_entity_order()
 
         self._T[:] = T
         self._alpha[:]=self.mat.alpha
@@ -113,7 +118,29 @@ class Sim(object):
         interaction.setup(self.mesh,self.spin,
                           unit_length=self.unit_length,
                           mu_s=self.mat.mu_s)
+        for i in self.interactions:
+            if i.name == interaction.name:
+                interaction.name=i.name+'_2'
+        
         self.interactions.append(interaction)
+        
+        energy_name = 'E_{}'.format(interaction.name)
+        self.saver.entities[energy_name] = {
+            'unit': '<J>',
+            'get': lambda sim:sim.get_interaction(interaction.name).compute_energy(),
+            'header': energy_name}
+        
+        self.saver.update_entity_order()
+        
+    def get_interaction(self, name):
+        for interaction in self.interactions:
+            if interaction.name == name:
+                return interaction
+        else: 
+            raise ValueError("Failed to find the interaction with name '{}', "
+                             "available interactions: {}.".format(
+                        name, [x.name for x in self.interactions]))
+        
 
     def run_until(self,t):
         
@@ -152,7 +179,14 @@ class Sim(object):
         self.spin.shape=(3*self.nxyz)
         return average
 
-        #print "from python",self.spin,self.field
+    def compute_energy(self):
+        
+        energy=0
+        
+        for obj in self.interactions:
+            energy+=obj.compute_energy()
+            
+        return energy
 
     def normalise(self):
         a=self.spin

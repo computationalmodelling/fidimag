@@ -65,10 +65,21 @@ def test_exch_3d():
     assert field[7]==11
     
 
+def test_exch_energy_1d():
+    mesh=FDMesh(nx=2,ny=1,nz=1)
+    sim=Sim(mesh)
+    exch=UniformExchange(1)
+    sim.add(exch)
+    
+    sim.set_m((0,0,1))
 
+    energy=exch.compute_energy()
+    print energy
+    assert energy==-2.0
     
     
 if __name__=='__main__':
     test_exch_1d()
     test_exch_2d()
     test_exch_3d()
+    test_exch_energy_1d()

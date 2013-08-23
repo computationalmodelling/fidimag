@@ -34,7 +34,9 @@ cdef extern from "sundials/sundials_iterative.h":
 
 cdef extern from "clib.h":
     void compute_uniform_exch(double * spin, double * field, double J, double dx, double dy, double dz, int nx, int ny, int nz)
+    double compute_exch_energy(double *spin, double J, int nx, int ny, int nz)
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
+    double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
 
@@ -69,12 +71,21 @@ def compute_uniform_exchange(np.ndarray[double, ndim=1, mode="c"] spin,
                             dx, dy, dz,
                             nx, ny, nz):
 
-    compute_uniform_exch(& spin[0], & field[0], J, dx, dy, dz, nx, ny, nz)
+    compute_uniform_exch(&spin[0], &field[0], J, dx, dy, dz, nx, ny, nz)
+    
+def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
+                            J, nx, ny, nz):
+
+    return compute_exch_energy(&spin[0], J, nx, ny, nz)
 
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,
                         Kx, Ky, Kz, nxyz):
     compute_anis(& spin[0], & field[0], Kx, Ky, Kz, nxyz)
+    
+def compute_anisotropy_energy(np.ndarray[double, ndim=1, mode="c"] spin,
+                              Kx, Ky, Kz, nxyz):
+    return compute_anis_energy(&spin[0], Kx, Ky, Kz, nxyz)
 
 
 def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
