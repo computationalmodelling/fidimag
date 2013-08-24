@@ -104,27 +104,6 @@ double compute_exch_energy(double *spin, double J, int nx, int ny, int nz) {
                 		Sy = spin[index+nxyz1];
                 		Sz = spin[index+nxyz2];
 
-                		if (k > 0) {
-                			id = index - nxy;
-                			energy += J * Sx*spin[id];
-                			energy += J * Sy*spin[id+nxyz1];
-                			energy += J * Sz*spin[id+nxyz2];
-                		}
-
-                		if (j > 0) {
-                			id = index - nx;
-                			energy += J * Sx*spin[id];
-                			energy += J * Sy*spin[id+nxyz1];
-                			energy += J * Sz*spin[id+nxyz2];
-                		}
-
-                		if (i > 0) {
-                			id = index - 1;
-                			energy += J * Sx*spin[id];
-                			energy += J * Sy*spin[id+nxyz1];
-                			energy += J * Sz*spin[id+nxyz2];
-                		}
-
                 		if (i < nx - 1) {
                 			id = index + 1;
                 			energy += J * Sx*spin[id];
@@ -151,7 +130,6 @@ double compute_exch_energy(double *spin, double J, int nx, int ny, int nz) {
         }
 
         energy=-energy;
-        //printf("energy=%g\n",energy);
 
         return energy;
 

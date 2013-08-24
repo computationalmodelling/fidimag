@@ -3,10 +3,11 @@ import numpy as np
 
 
 class Zeeman(object):
-    def __init__(self,H0,direction=(1,0,0)):
+    def __init__(self,H0,direction=(1,0,0),name='Zeeman'):
         self.Hx=H0*direction[0]
         self.Hy=H0*direction[1]
         self.Hz=H0*direction[2]
+        self.name = name
         
         
     def setup(self,mesh,spin,unit_length=1.0,mu_s=1.0):
@@ -27,3 +28,7 @@ class Zeeman(object):
 
     def compute_field(self):            
         return self.field
+
+    def compute_energy(self):
+        # will add later
+        return 0

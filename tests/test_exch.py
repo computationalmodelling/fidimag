@@ -68,14 +68,13 @@ def test_exch_3d():
 def test_exch_energy_1d():
     mesh=FDMesh(nx=2,ny=1,nz=1)
     sim=Sim(mesh)
-    exch=UniformExchange(1)
+    exch=UniformExchange(1.23)
     sim.add(exch)
     
     sim.set_m((0,0,1))
 
     energy=exch.compute_energy()
-    print energy
-    assert energy==-2.0
+    assert energy==-1.23
     
     
 if __name__=='__main__':

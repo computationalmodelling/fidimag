@@ -94,7 +94,7 @@ class Sim(object):
     def set_T(self,T0):
         if  hasattr(T0, '__call__'):
             T = np.array([T0(p) for p in self.mesh.pos])
-            self.T[:]=T[:]
+            self.T[:] = T[:]
         else:
             self.T[:] = T0
 

@@ -35,6 +35,8 @@ double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nx
 
 	}
 
+	energy=-energy;
+
 	return energy;
 
 }
