@@ -58,8 +58,7 @@ def test_sim_single_spin_vode(do_plot=False):
     
     dt = 1e-12; 
     ts = np.linspace(0, 200 * dt, 101)
-    
-    
+        
     precession = ni.gamma/(1+ni.alpha**2)
     
     mz_ref = []

@@ -6,7 +6,7 @@ class FDMesh():
         self.nx=nx
         self.ny=ny
         self.nz=nz
-        self.nxy=nx*ny
+        self.nyz=ny*nz
         self.nxyz=nx*ny*nz
         self.unit_length=unit_length
         self.compute_pos()
@@ -20,17 +20,21 @@ class FDMesh():
         
     def compute_pos(self):
         self.pos=[]
-        for k in range(self.nz):
+        for i in range(self.nx):
             for j in range(self.ny):
-                for i in range(self.nx):
-                
+                for k in range(self.nz):
+
                     tp=(i*self.dx,
                         j*self.dy,
                         k*self.dz)
-                    #index=k*self.nxy+j*self.ny+i
+                    
                     self.pos.append(tp)
+    
+    def index(self, i, j, k):
+        idx = i*self.nyz + j*self.nz + k
+        return idx
 
     #only used for tests
     def pos_at(self,i,j,k):
-        index=k*self.nxy+j*self.nx+i
-        return self.pos[index]
+        idx=self.index(i,j,k)
+        return self.pos[idx]

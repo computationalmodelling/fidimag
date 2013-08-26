@@ -37,10 +37,10 @@ def test_exch_2d():
 
     field=exch.compute_field()
     assert field[0]==1
-    assert field[1]==2+1
-    assert field[2]==1+2+3
-    assert field[3]==2+3+4
-    assert field[4]==3+4
+    assert field[2]==2+1
+    assert field[4]==1+2+3
+    assert field[6]==2+3+4
+    assert field[8]==3+4
     assert np.max(field[21:])==0
 
 
@@ -55,14 +55,14 @@ def test_exch_3d():
     field=exch.compute_field()
     #print field
     assert field[0]==1
-    assert field[1]==0+1+2+1
-    assert field[2]==1+2+3+2
-    assert field[3]==2+3+3
+    assert field[6]==0+1+2+1
+    assert field[12]==1+2+3+2
+    assert field[18]==2+3+3
    
-    assert field[4]==1
-    assert field[5]==5
-    assert field[6]==10
-    assert field[7]==11
+    assert field[2]==1
+    assert field[8]==5
+    assert field[14]==10
+    assert field[20]==11
     
 
 def test_exch_energy_1d():

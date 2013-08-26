@@ -120,8 +120,8 @@ cdef class FFTDemag(object):
         compute_fields(self._c_plan, & spin[0], & field[0])
 
     def compute_exact(self,
-                                    np.ndarray[double, ndim=1, mode="c"] spin,
-                    np.ndarray[double, ndim=1, mode="c"] field):
+                      np.ndarray[double, ndim=1, mode="c"] spin,
+                      np.ndarray[double, ndim=1, mode="c"] field):
         exact_compute(self._c_plan, & spin[0], & field[0])
 
 

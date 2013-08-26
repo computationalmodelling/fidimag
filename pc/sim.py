@@ -198,11 +198,8 @@ class Sim(object):
     #only used for tests
     def spin_at(self,i,j,k):
         nxyz=self.mesh.nxyz
-        nxy=self.mesh.nxy
-        nx=self.mesh.nx
 
-        i1=k*nxy+j*nx+i
-
+        i1=self.mesh.index(i,j,k)
         i2=i1+nxyz
         i3=i2+nxyz
 
