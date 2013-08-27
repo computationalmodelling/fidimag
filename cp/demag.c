@@ -14,7 +14,7 @@ double Nxxdipole(double x, double y, double z) {
 	if (R == 0)
 		return 0.0;
 	double r = sqrt(R);
-	return -(2 * x2 - y2 - z2) / (R * R * r);
+	return (2 * x2 - y2 - z2) / (R * R * r);
 }
 
 double Nxydipole(double x, double y, double z) {
@@ -22,7 +22,7 @@ double Nxydipole(double x, double y, double z) {
 	if (R == 0)
 		return 0.0;
 	double r = sqrt(R);
-	return -3 * x * y / (R * R * r);
+	return 3 * x * y / (R * R * r);
 }
 
 double NXXdipole(enum Type_Nij type, double x, double y, double z) {
@@ -330,9 +330,9 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 				for (ip = 0; ip < nx; ip++) {
 					for (jp = 0; jp < ny; jp++) {
 						for (kp = 0; kp < nz; kp++) {
-							ids = i * nyz + j * nz + k;
+							ids = ip * nyz + jp * nz + kp;
 							index = (i - ip + nx - 1) * lenyz + (j - jp + ny
-									- 1) * lenz + (k - kp + nz - 1);
+                                     - 1) * lenz + (k - kp + nz - 1);
 							f_x[idf] += Nxx[index] * s_x[ids] + Nxy[index]
 									* s_y[ids] + Nxz[index] * s_z[ids];
 							f_y[idf] += Nxy[index] * s_x[ids] + Nyy[index]

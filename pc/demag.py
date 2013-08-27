@@ -31,6 +31,10 @@ class Demag(object):
         field = np.zeros(3 * self.n)
         self.demag.compute_exact(self.spin,field)
         return field
+
+    def compute_energy(self):
+        return 0
+        
     
 
 if __name__=='__main__':
