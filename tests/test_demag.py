@@ -7,7 +7,7 @@ def test_demag_fft_exact():
     mesh = FDMesh(nx=5,ny=3,nz=2)
     sim = Sim(mesh)
     
-    demag=Demag(mu_s=1e3)
+    demag=Demag()
     sim.add(demag)
     
     def init_m(pos):
@@ -22,23 +22,24 @@ def test_demag_fft_exact():
     sim.set_m(init_m)
     fft=demag.compute_field()
     exact=demag.compute_exact()
-    #print np.max(np.abs(fft-exact))
+    #print fft,exact
+    print np.max(np.abs(fft-exact))
 
-    assert np.max(np.abs(fft-exact))<5e-16
+    assert np.max(np.abs(fft-exact))<5e-22
 
 
 def test_demag_two_spin_xx():
     mesh = FDMesh(nx=2,ny=1,nz=1)
     sim = Sim(mesh)
     
-    demag=Demag(mu_s=1e3)
+    demag=Demag()
     sim.add(demag)
         
     sim.set_m((1,0,0))
     field=demag.compute_field()
     print field
-    assert(field[0]==0.2)
-    assert(field[1]==0.2)
+    assert(field[0]==2e-7)
+    assert(field[1]==2e-7)
 
 
     

@@ -18,24 +18,25 @@ void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 
 }
 
-double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz) {
+double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
+		int nxyz) {
 
 	int i, j, k;
 
-	double energy=0;
+	double energy = 0;
 
 	for (i = 0; i < nxyz; i++) {
 
 		j = i + nxyz;
 		k = j + nxyz;
 
-		energy += Dx * spin[i]*spin[i];
-		energy += Dy * spin[j]*spin[j];
-		energy += Dz * spin[k]*spin[k];
+		energy += Dx * spin[i] * spin[i];
+		energy += Dy * spin[j] * spin[j];
+		energy += Dz * spin[k] * spin[k];
 
 	}
 
-	energy=-energy;
+	energy = -energy;
 
 	return energy;
 

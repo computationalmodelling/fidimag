@@ -37,6 +37,7 @@ cdef extern from "clib.h":
     double compute_exch_energy(double *spin, double J, int nx, int ny, int nz)
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
     double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
+    double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field)
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
 
@@ -123,6 +124,12 @@ cdef class FFTDemag(object):
                       np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] field):
         exact_compute(self._c_plan, & spin[0], & field[0])
+        
+    def compute_energy(self,
+                      np.ndarray[double, ndim=1, mode="c"] spin,
+                      np.ndarray[double, ndim=1, mode="c"] field):
+        
+        return compute_demag_energy(self._c_plan, &spin[0], &field[0])
 
 
 

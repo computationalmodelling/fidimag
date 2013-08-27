@@ -3,8 +3,7 @@ import numpy as np
 
 
 class Demag(object):
-    def __init__(self,mu_s=1.0, name='demag'):
-        self.mu_s=mu_s
+    def __init__(self, name='demag'):
         self.name = name
         
     def setup(self, mesh, spin, mu_s=1,unit_length=1.0):
@@ -18,23 +17,28 @@ class Demag(object):
         self.spin = spin
         self.n = self.nx * self.ny * self.nz
         self.field = np.zeros(3 * self.n)
-        
-        self.demag=clib.FFTDemag(self.mu_s,
+        #note that the mu_s we used is from the class init 
+        self.scale = 1e-7 / unit_length**3
+        self.demag=clib.FFTDemag(mu_s,
                                  self.dx,self.dy,self.dz,
-                              self.nx,self.ny,self.nz)
+                                 self.nx,self.ny,self.nz)
         
     def compute_field(self):
         self.demag.compute_field(self.spin,self.field)
+        self.field[:]*=self.scale
         return self.field
     
     def compute_exact(self):
         field = np.zeros(3 * self.n)
         self.demag.compute_exact(self.spin,field)
+        field[:]*=self.scale
         return field
 
     def compute_energy(self):
-        return 0
         
+        energy=self.demag.compute_energy(self.spin,self.field)
+        
+        return energy
     
 
 if __name__=='__main__':
