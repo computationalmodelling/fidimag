@@ -21,7 +21,7 @@ class UniformExchange(object):
         self.name=name
         
     def setup(self,mesh,spin,unit_length=1.0,mu_s=1.0):
-        self.J/=mu_s
+        self.J_mu_s=self.J/mu_s
         self.mesh=mesh
         self.dx=mesh.dx
         self.dy=mesh.dy
@@ -37,7 +37,7 @@ class UniformExchange(object):
     def compute_field(self):
         clib.compute_uniform_exchange(self.spin,
                                       self.field,
-                                      self.J,
+                                      self.J_mu_s,
                                       self.dx,
                                       self.dy,
                                       self.dz,

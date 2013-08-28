@@ -17,7 +17,7 @@ from materials import UnitMaterial
 
 
 class Sim(object):
-    def __init__(self,mesh,T=0,mat=UnitMaterial(),name='unnamed'):
+    def __init__(self,mesh,T=0,name='unnamed'):
         self.t=0
         self.mesh = mesh
         self.nxyz = mesh.nxyz
@@ -28,7 +28,7 @@ class Sim(object):
         self.field = np.zeros(3*self.nxyz)
         self.dm_dt = np.zeros(3*self.nxyz)
         self.interactions=[]
-        self.mat=mat
+        self.mat = mesh.mat
         self.pin_fun=None
 
         self.saver = DataSaver(self, name+'.txt')

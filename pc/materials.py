@@ -23,7 +23,8 @@ class Nickel(object):
         self.mu_s=0.617*self.mu_B
         self.S=1.0/2
         self.unit_length=1e-10
-        self.a=3.524e-10
+        # the real length should be a*unit_length
+        self.a=3.524
         self.b=self.a
         self.c=self.a
         self.K=4.8e3

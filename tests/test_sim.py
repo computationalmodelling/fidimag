@@ -48,9 +48,10 @@ def test_sim_T_fun():
 def test_sim_single_spin_vode(do_plot=False):
     ni=Nickel()
     mesh=FDMesh(nx=1,ny=1,nz=1)
+    mesh.set_material(ni)
     
     ni.alpha=0.1
-    sim=Sim(mesh,T=0,mat=ni)
+    sim=Sim(mesh,T=0)
     sim.set_m((1, 0, 0))
     
     H0 = 1
@@ -94,9 +95,10 @@ def test_sim_single_spin_vode(do_plot=False):
 def test_sim_single_spin(do_plot=False):
     ni=Nickel()
     mesh=FDMesh(nx=1,ny=1,nz=1)
+    mesh.set_material(ni)
     
     ni.alpha=0.1
-    sim = Sim(mesh,T=1e-100,mat=ni)
+    sim = Sim(mesh,T=1e-100)
     sim.set_m((1, 0, 0))
     
     H0 = 1

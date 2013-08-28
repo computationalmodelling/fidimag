@@ -30,8 +30,9 @@ def init_m(pos):
 
 def relax_system(mesh,Dx=0.005,Dp=0.01):
     mat = UnitMaterial()
+    mesh.set_material(mat)
     
-    sim=Sim(mesh,mat=mat,name='relax')
+    sim=Sim(mesh,name='relax')
     sim.alpha=0.5
     
     exch=UniformExchange(mat.J)

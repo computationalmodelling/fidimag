@@ -1,6 +1,4 @@
-from pc import Anisotropy
 from pc import FDMesh
-from pc import Sim
 from pc import Nickel
 
 def test_mesh1():
@@ -14,9 +12,9 @@ def test_mesh2():
     mesh=FDMesh(nx=10,ny=10,nz=10)
     ni=Nickel()
     mesh.set_material(ni)
-    t=ni.a/mesh.unit_length
-    assert t>1
-    assert mesh.pos_at(6,7,8)==(6*t,7*t,8*t)
+    t=ni.a*mesh.unit_length
+    assert t<1e-9
+    assert mesh.pos_at(6,7,8)==(6*ni.a,7*ni.a,8*ni.a)
     
     
 if __name__=='__main__':
