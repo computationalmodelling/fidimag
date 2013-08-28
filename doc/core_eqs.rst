@@ -58,6 +58,7 @@ Therefore, the corresponding fields are,
    \vec{H}_{i,an} = \frac{2 D}{\mu_i} S_{x,i} \vec{e}_x
 
 .. math::
-   \vec{H}_{i,d} =\frac{\mu_0}{4\pi}\sum_{i \neq j}\frac{3 \vec{e}_{ij} (\vec{\mu}_j\cdot \vec{e}_{ij}) - \vec{\mu}_j}{r_{ij}^3} 
+   \vec{H}_{i,d} =\frac{\mu_0}{4\pi}\sum_{i \neq j}\frac{3 \vec{e}_{ij} (\vec{\mu}_j\cdot \vec{e}_{ij}) - \vec{\mu}_j}{r_{ij}^3}
+   :label: eq_h_d
 
 Basically, we will follow the above equations to write codes.

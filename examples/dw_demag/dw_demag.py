@@ -25,7 +25,7 @@ class Material(object):
         self.mu_s=1e-22
         
         #A =1e-11, J = 2a*A 
-        self.J=2e-20
+        self.J=1e-20
         self.Dx=0.005*self.J
         
         self.gamma=1.76e11
