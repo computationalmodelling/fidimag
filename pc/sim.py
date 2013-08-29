@@ -208,11 +208,14 @@ class Sim(object):
                 self.spin[i3]])
     
     def add_monitor_at(self, i,j,k, name='p'):
+        """
+        Save site spin with index (i,j,k) to txt file.
+        """
     
         self.saver.entities[name] = {
             'unit': '<>',
             'get': lambda sim:sim.spin_at(i,j,k),
-            'header': {name+'_x',name+'_y',name+'_z'}}
+            'header': (name+'_x',name+'_y',name+'_z')}
         
         self.saver.update_entity_order()
 
