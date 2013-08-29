@@ -195,7 +195,6 @@ class Sim(object):
         a.shape=(3*self.nxyz)
         #print a
 
-    #only used for tests
     def spin_at(self,i,j,k):
         nxyz=self.mesh.nxyz
 
@@ -204,9 +203,18 @@ class Sim(object):
         i3=i2+nxyz
 
         #print self.spin.shape,nxy,nx,i1,i2,i3
-        return (self.spin[i1],
+        return np.array([self.spin[i1],
                 self.spin[i2],
-                self.spin[i3])
+                self.spin[i3]])
+    
+    def add_monitor_at(self, i,j,k, name='p'):
+    
+        self.saver.entities[name] = {
+            'unit': '<>',
+            'get': lambda sim:sim.spin_at(i,j,k),
+            'header': {name+'_x',name+'_y',name+'_z'}}
+        
+        self.saver.update_entity_order()
 
 
     def save_vtk(self):
