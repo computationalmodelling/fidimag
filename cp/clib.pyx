@@ -234,6 +234,7 @@ cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data):
     try:
         (<object>ud.rhs_fun)(y)
     except:
+        print 'error while calling rhs_fun!'
         pass
 
     llg_rhs(dm_dt, &y[0], &heff[0], &alpha[0], ud.gamma, ud.nxyz)
