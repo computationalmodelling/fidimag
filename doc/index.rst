@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    core_eqs
+   extended_eqs
 
 
 

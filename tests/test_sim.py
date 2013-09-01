@@ -69,11 +69,14 @@ def test_sim_single_spin_vode(do_plot=False):
     for t in ts:
         sim.run_until(t)
         real_ts.append(sim.t)
-        print sim.t
+        print sim.t,abs(sim.spin_length()[0]-1)
         mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
         mz.append(sim.spin[-1])
     
     mz=np.array(mz)
+    print mz
+
+    print sim.stat()
     
     if do_plot:
         ts_ns = np.array(real_ts) * 1e9
@@ -92,13 +95,66 @@ def test_sim_single_spin_vode(do_plot=False):
     assert np.max(np.abs(mz - mz_ref)) < 5e-6
 
 
+def test_sim_single_spin_llg_s(do_plot=False):
+    ni=Nickel()
+    mesh=FDMesh(nx=1,ny=1,nz=1)
+    mesh.set_material(ni)
+    
+    ni.alpha=0.1
+    sim=Sim(mesh,driver='llg_s')
+    sim.set_m((1, 0, 0))
+    sim.chi=1e-12
+    
+    
+    H0 = 1
+    sim.add(Zeeman(H0,(0, 0, 1)))
+    
+    dt = 1e-12;
+    ts = np.linspace(0, 200 * dt, 101)
+    
+    precession = ni.gamma/(1+ni.alpha**2)
+    
+    mz_ref = []
+    
+    mxyz = []
+    real_ts=[]
+    for t in ts:
+        sim.run_until(t)
+        real_ts.append(sim.t)
+        print sim.t,abs(sim.spin_length()[0]-1), sim.spin
+        mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
+        mxyz.append(np.copy(sim.spin))
+
+    mxyz=np.array(mxyz)
+
+    print sim.stat()
+    
+    if do_plot:
+        ts_ns = np.array(real_ts) * 1e9
+        
+        plt.plot(ts_ns, mxyz[:,0], ".-", label="mx")
+        plt.plot(ts_ns, mxyz[:,1], ".-", label="my")
+        plt.plot(ts_ns, mxyz[:,2], ".-", label="mz")
+        plt.plot(ts_ns, mz_ref, "-", label="analytical")
+        plt.xlabel("time (ns)")
+        plt.ylabel("mz")
+        plt.title("integrating a macrospin")
+        plt.legend()
+        plt.savefig("test_llg_s.png")
+    
+        print("Deviation = {}".format(np.max(np.abs(mxyz[:,2] - mz_ref))))
+    
+    assert np.max(np.abs(mxyz[:,2] - mz_ref)) < 5e-6
+
+
+
 def test_sim_single_spin(do_plot=False):
     ni=Nickel()
     mesh=FDMesh(nx=1,ny=1,nz=1)
     mesh.set_material(ni)
     
     ni.alpha=0.1
-    sim = Sim(mesh,T=1e-100)
+    sim = Sim(mesh,driver='sllg')
     sim.set_m((1, 0, 0))
     
     H0 = 1
@@ -145,5 +201,6 @@ if __name__=='__main__':
     #test_sim_init_m()
     #test_sim_init_m_fun()
     #test_sim_T_fun()
-    test_sim_single_spin_vode(do_plot=True)
+    #test_sim_single_spin_vode(do_plot=True)
+    test_sim_single_spin_llg_s(do_plot=True)
     #test_sim_single_spin(do_plot=True)

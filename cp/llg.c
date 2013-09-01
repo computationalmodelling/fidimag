@@ -148,72 +148,73 @@ int check_array(double *a, double *b, int n){
 
 }
 
-void llg_rhs2(double *dm_dt, double *m, double *h, double *alpha, double gamma, int nxyz) {
-    
-	int i, j, k;
-    
-	double mth0, mth1, mth2;
-	double coeff = - gamma;
-    double mm, c;
-
-	for (i = 0; i < nxyz; i++) {
-		j = i + nxyz;
-		k = j + nxyz;
-        
-		coeff = - gamma/(1+alpha[i]*alpha[i]);
-        
-		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
-		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
-		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
-        
-		dm_dt[i] = mth0 + alpha[i] * (m[j] * mth2 - m[k] * mth1);
-		dm_dt[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);
-		dm_dt[k] = mth2 + alpha[i] * (m[i] * mth1 - m[j] * mth0);
-        
-		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		c = sqrt(dm_dt[i]*dm_dt[i]+dm_dt[j]*dm_dt[j]+dm_dt[k]*dm_dt[k]);
-		c = 0.1*c*(1-mm);
-		dm_dt[i] += c*m[i];
-		dm_dt[j] += c*m[j];
-		dm_dt[k] += c*m[k];
-
-	}
-
-}
-
 void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, int nxyz) {
 
 	int i, j, k;
 
 	double mth0, mth1, mth2;
-	double coeff = - gamma;
-    double mm, c;
+    double coeff, mh;
+    double hpi,hpj,hpk;
 
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
 
-		coeff = - gamma/(1+alpha[i]*alpha[i]);
-
-		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
-		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
-		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
-
-		dm_dt[i] = mth0 + alpha[i] * (m[j] * mth2 - m[k] * mth1);
-		dm_dt[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);
-		dm_dt[k] = mth2 + alpha[i] * (m[i] * mth1 - m[j] * mth0);
-
-		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		c = gamma*sqrt(h[i]*h[i]+h[j]*h[j]+h[k]*h[k]);
-		c = 2*c*(1-mm);
-		dm_dt[i] += c*m[i];
-		dm_dt[j] += c*m[j];
-		dm_dt[k] += c*m[k];
+		coeff = -gamma/(1+alpha[i]*alpha[i]);
+        
+        //mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
+        mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
+        
+        //suppose m is normalised, i.e., mm=1; hp=mm.h-mh.m=-mx(mxh)
+        //we found that dropping mm is a good method to normalise m (no direct normalising any more in other place)
+        //since we get a nice result: Deviation = 2.01052535731e-10 ;-)
+        hpi = h[i] - mh*m[i];
+        hpj = h[j] - mh*m[j];
+        hpk = h[k] - mh*m[k];
+        
+        mth0 = (m[j] * hpk - m[k] * hpj);
+		mth1 = (m[k] * hpi - m[i] * hpk);
+		mth2 = (m[i] * hpj - m[j] * hpi);
+        
+        dm_dt[i] = coeff*(mth0 - hpi * alpha[i]);
+        dm_dt[j] = coeff*(mth1 - hpj * alpha[i]);
+        dm_dt[k] = coeff*(mth2 - hpk * alpha[i]);
 
 	}
     
 }
 
+void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double chi, double gamma, int nxyz) {
+    
+	int i, j, k;
+    
+	double mth0, mth1, mth2;
+	double coeff = - gamma;
+    double mm, c = 1.0/chi;
+    double hpi,hpj,hpk,mh;
+    
+	for (i = 0; i < nxyz; i++) {
+		j = i + nxyz;
+		k = j + nxyz;
+        
+		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
+		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
+		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
+        
+		dm_dt[i] = mth0 + alpha[i] * gamma * h[i];
+		dm_dt[j] = mth1 + alpha[i] * gamma * h[j];
+		dm_dt[k] = mth2 + alpha[i] * gamma * h[k];
+        
+		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
+		c = c*(1-mm);
+        
+		dm_dt[i] += c*m[i];
+		dm_dt[j] += c*m[j];
+		dm_dt[k] += c*m[k];
+         
+	}
+    
+}
 
 
 void normalise(double *m, int nxyz){

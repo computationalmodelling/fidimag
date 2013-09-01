@@ -17,6 +17,9 @@ double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 		double gamma, int nxyz);
 
+void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
+             double chi, double gamma, int nxyz);
+
 void normalise(double *m, int nxyz);
 
 //==========================================

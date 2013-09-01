@@ -1,5 +1,6 @@
 from __future__ import division
 import clib
+import cvode
 import time
 import numpy as np
 from fd_mesh import FDMesh
@@ -17,7 +18,7 @@ from materials import UnitMaterial
 
 
 class Sim(object):
-    def __init__(self,mesh,T=0,name='unnamed'):
+    def __init__(self,mesh,T=0,name='unnamed',driver='llg'):
         self.t=0
         self.mesh = mesh
         self.nxyz = mesh.nxyz
@@ -30,6 +31,7 @@ class Sim(object):
         self.interactions=[]
         self.mat = mesh.mat
         self.pin_fun=None
+        self.driver = driver
 
         self.saver = DataSaver(self, name+'.txt')
         self.saver.entities['E_total'] = {
@@ -47,7 +49,7 @@ class Sim(object):
 
     def set_options(self,rtol=1e-7,atol=1e-7,dt=1e-15):
 
-        if self.T.any()>0:
+        if self.driver == 'sllg':
             self.vode=clib.RK2S(self.mat.mu_s,dt,
                         self.nxyz,
                         self.mat.gamma,
@@ -56,13 +58,19 @@ class Sim(object):
                         self.field,
                         self.T,
                         self.update_effective_field)
+        elif self.driver == 'llg':
+            self.vode=cvode.CvodeSolver(self.spin,
+                                    rtol,atol,
+                                    self.sundials_rhs)
+
+        elif self.driver == 'llg_s':
+            self.vode=cvode.CvodeSolver(self.spin,
+                                    rtol,atol,
+                                    self.sundials_llg_s_rhs)
+            self.chi=1e-5
         else:
-            self.vode=clib.CvodeLLG(self.mat.mu_s,self.nxyz,
-                                    self.mat.gamma,
-                                    self.alpha,
-                                    self.spin,
-                                    self.field,
-                                    self.update_effective_field)
+            raise Exception("Unsppourted driver:{},avaiable drivers: sllg, llg, llg_s.".format(self.driver))
+                    
 
 
     def set_m(self,m0=(1,0,0),normalise=True):
@@ -160,10 +168,20 @@ class Sim(object):
             
         self.saver.save()
 
-
     def update_effective_field(self,y):
         
         self.spin[:]=y[:]
+        
+        self.field[:]=0
+        
+        if self.pin_fun:
+            self.pin_fun(self.t,self.mesh,self.spin)
+        
+        for obj in self.interactions:
+            self.field+=obj.compute_field()
+
+    def compute_effective_field(self):
+        
         self.field[:]=0
 
         if self.pin_fun:
@@ -171,7 +189,46 @@ class Sim(object):
 
         for obj in self.interactions:
             self.field+=obj.compute_field()
+    
+    def sundials_rhs(self, t, y, ydot):
+        
+        self.t = t
+        
+        #already synchronized when call this funciton
+        #self.spin[:]=y[:]
+                
+        self.compute_effective_field()
+        
+        clib.compute_llg_rhs(ydot,
+                             self.spin,
+                             self.field,
+                             self.alpha,
+                             self.mat.gamma,
+                             self.nxyz)
+        
+                
+        #ydot[:] = self.dm_dt[:]
+                
+        return 0
 
+    def sundials_llg_s_rhs(self, t, y, ydot):
+        
+        self.t = t
+        
+        #already synchronized when call this funciton
+        #self.spin[:]=y[:]
+        
+        
+        self.compute_effective_field()
+        
+        clib.compute_llg_s_rhs(ydot,
+                             self.spin,
+                             self.field,
+                             self.alpha,
+                             self.chi,
+                             self.mat.gamma,
+                             self.nxyz)
+        
 
     def compute_average(self):
         self.spin.shape=(3,-1)
@@ -223,6 +280,14 @@ class Sim(object):
     def save_vtk(self):
         self.vtk.save_vtk(self.spin)
 
+    def stat(self):
+        return self.vode.stat()
+
+    def spin_length(self):
+        self.spin.shape=(3,-1)
+        length=np.sqrt(np.sum(self.spin**2,axis=0))
+        self.spin.shape=(-1,)
+        return length
 
 
 if __name__=='__main__':

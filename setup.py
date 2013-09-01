@@ -7,6 +7,7 @@ import numpy
 
 import fnmatch
 import os
+import glob
 
 #print __file__
 #print os.getcwd()
@@ -17,24 +18,46 @@ cp_path=os.path.join(pccp_path,'cp')
 os.chdir(pccp_path)
 
 sources = []
-sources.append(os.path.join('cp','clib.pyx'))
+sources.append(os.path.join(cp_path,'clib.pyx'))
 
-for root, dirnames, filenames in os.walk(cp_path):
+
+cfiles = glob.glob(os.path.join(cp_path,'*.c'))
+for cf in cfiles:
+    if not cf.endswith("clib.c"):
+        sources.append(cf)
+
+#print 'sources',sources
+sundials_path = os.path.join(cp_path,'sundials')
+
+sources2 = []
+sources2.append(os.path.join(sundials_path,'cvode.pyx'))
+for root, dirnames, filenames in os.walk(sundials_path):
     for filename in fnmatch.filter(filenames, '*.c'):
-        if filename!='clib.c':
-            sources.append(os.path.join('cp',filename))
+        if filename!='cvode.c':
+            sources.append(os.path.join(sundials_path,filename))
+        print filename
 
-print sources
+print sources2
+
 ext_modules = [
     Extension("clib",
               sources = sources,
               include_dirs = [numpy.get_include()],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
               #extra_compile_args=["-fopenmp"],
-	      #extra_link_args=['-fopenmp'],
+              #extra_link_args=['-fopenmp'],
+              #extra_link_args=["-g"],
+        ),
+    Extension("cvode",
+              sources = sources2,
+              include_dirs = [numpy.get_include()],
+              libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
+              #extra_compile_args=["-fopenmp"],
+              #extra_link_args=['-fopenmp'],
               #extra_link_args=["-g"],
         )
     ]
+    
 
 setup(
     cmdclass = {'build_ext': build_ext},

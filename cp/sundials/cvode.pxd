@@ -119,3 +119,30 @@ cdef extern from "cvode/cvode.h":
     int CVDlsGetNumJacEvals(void *cvode_mem, long int *njevals)
     int CVDlsGetNumRhsEvals(void *cvode_mem, long int *nrevalsLS)
 	
+
+cdef extern from "cvode/cvode_spgmr.h":
+    int CVSpgmr(void *cvode_mem, int pretype, int max1)
+
+cdef extern from "cvode/cvode_diag.h":
+    int CVDiag(void *cvode_mem)
+
+cdef extern from "cvode/cvode_spils.h":
+    int CVSpilsSetPrecType(void *cvode_mem, int pretype)
+    int CVSpilsSetGSType(void *cvode_mem, int gstype)
+    int CVSpilsSetMaxl(void *cvode_mem, int maxl)
+    int CVSpilsSetEpsLin(void *cvode_mem, realtype eplifac)
+    
+    ctypedef int (*CVSpilsJacTimesVecFn)(N_Vector v, N_Vector Jv, realtype t,
+                                    N_Vector y, N_Vector fy,
+                                    void *user_data, N_Vector tmp)
+    
+    int CVSpilsSetJacTimesVecFn(void *cvode_mem, CVSpilsJacTimesVecFn jtv)
+    
+cdef extern from "sundials/sundials_iterative.h":
+    int PREC_NONE
+    int PREC_LEFT
+    int PREC_RIGHT
+    int PREC_BOTH
+    
+    int MODIFIED_GS
+    int CLASSICAL_GS
