@@ -184,33 +184,51 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
     
 }
 
-void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double chi, double gamma, int nxyz) {
+void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double *chi, double gamma, int nxyz) {
     
 	int i, j, k;
     
 	double mth0, mth1, mth2;
 	double coeff = - gamma;
-    double mm, c = 1.0/chi;
+    double mm, c;
     double hpi,hpj,hpk,mh;
     
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
         
-		mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
-		mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
-		mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
+        if (chi[i] > 0.0){
+            mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
+            mth1 = coeff * (m[k] * h[i] - m[i] * h[k]);
+            mth2 = coeff * (m[i] * h[j] - m[j] * h[i]);
         
-		dm_dt[i] = mth0 + alpha[i] * gamma * h[i];
-		dm_dt[j] = mth1 + alpha[i] * gamma * h[j];
-		dm_dt[k] = mth2 + alpha[i] * gamma * h[k];
+            dm_dt[i] = mth0 + alpha[i] * gamma * h[i];
+            dm_dt[j] = mth1 + alpha[i] * gamma * h[j];
+            dm_dt[k] = mth2 + alpha[i] * gamma * h[k];
         
-		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		c = c*(1-mm);
+            mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
+            c = (1-mm)/chi[i];
         
-		dm_dt[i] += c*m[i];
-		dm_dt[j] += c*m[j];
-		dm_dt[k] += c*m[k];
+            dm_dt[i] += c*m[i];
+            dm_dt[j] += c*m[j];
+            dm_dt[k] += c*m[k];
+        
+        }else{ //do LL equation, simliar to the function of llg_rhs
+   
+            mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
+            
+            hpi = h[i] - mh*m[i];
+            hpj = h[j] - mh*m[j];
+            hpk = h[k] - mh*m[k];
+            
+            mth0 = (m[j] * hpk - m[k] * hpj);
+            mth1 = (m[k] * hpi - m[i] * hpk);
+            mth2 = (m[i] * hpj - m[j] * hpi);
+            
+            dm_dt[i] = coeff*(mth0 - hpi * alpha[i]);
+            dm_dt[j] = coeff*(mth1 - hpj * alpha[i]);
+            dm_dt[k] = coeff*(mth2 - hpk * alpha[i]);
+        }
          
 	}
     

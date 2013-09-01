@@ -18,7 +18,7 @@ void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 		double gamma, int nxyz);
 
 void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
-             double chi, double gamma, int nxyz);
+             double *chi, double gamma, int nxyz);
 
 void normalise(double *m, int nxyz);
 

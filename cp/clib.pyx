@@ -12,7 +12,7 @@ cdef extern from "clib.h":
     double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
     double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field)
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
-    void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double chi, double gamma, int nxyz)
+    void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
 
 
@@ -74,8 +74,9 @@ def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
-                chi, gamma, nxyz):
-    llg_s_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], chi, gamma, nxyz)
+                np.ndarray[double, ndim=1, mode="c"] chi,
+                gamma, nxyz):
+    llg_s_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &chi[0], gamma, nxyz)
 
 
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, nxyz):

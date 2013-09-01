@@ -25,6 +25,7 @@ class Sim(object):
         self.unit_length=mesh.unit_length
         self._T = np.zeros(self.nxyz)
         self._alpha = np.zeros(self.nxyz)
+        self._chi = np.zeros(self.nxyz)
         self.spin = np.ones(3*self.nxyz)
         self.field = np.zeros(3*self.nxyz)
         self.dm_dt = np.zeros(3*self.nxyz)
@@ -67,7 +68,7 @@ class Sim(object):
             self.vode=cvode.CvodeSolver(self.spin,
                                     rtol,atol,
                                     self.sundials_llg_s_rhs)
-            self.chi=1e-5
+            self.chi=1e-11
         else:
             raise Exception("Unsppourted driver:{},avaiable drivers: sllg, llg, llg_s.".format(self.driver))
                     
@@ -102,12 +103,23 @@ class Sim(object):
     def set_T(self,T0):
         if  hasattr(T0, '__call__'):
             T = np.array([T0(p) for p in self.mesh.pos])
-            self.T[:] = T[:]
+            self._T[:] = T[:]
         else:
-            self.T[:] = T0
+            self._T[:] = T0
 
-        self.set_options()
     T = property(get_T, set_T)
+    
+    def get_chi(self):
+        return self._chi
+    
+    def set_chi(self,chi0):
+        if  hasattr(chi0, '__call__'):
+            chi = np.array([chi0(p) for p in self.mesh.pos])
+            self._chi[:] = chi[:]
+        else:
+            self._chi[:] = chi0
+        
+    chi = property(get_chi, set_chi)
 
     def get_alpha(self):
         return self._alpha
@@ -119,7 +131,6 @@ class Sim(object):
         else:
             self._alpha[:] = alpha0
 
-        self.set_options()
     alpha = property(get_alpha, set_alpha)
 
     def add(self,interaction):
