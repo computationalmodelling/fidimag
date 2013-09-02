@@ -35,7 +35,6 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 	double hi,hj,hk;
 
 
-
 	for (i = 0; i < nxyz; i++) {
 
 		j = i + nxyz;

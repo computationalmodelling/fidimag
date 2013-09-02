@@ -37,6 +37,19 @@ The Hamiltonian for dipolar interaction is,
 .. math::
    \mathcal{H}_{d}=-\frac{\mu_0}{4\pi}\sum_{i<j}\frac{3 (\vec{\mu}_i\cdot \vec{e}_{ij})(\vec{\mu}_j\cdot \vec{e}_{ij}) - \vec{\mu}_i \cdot \vec{\mu}_j}{r_{ij}^3} 
 
+Dzyaloshinskii-Moriya interaction (DMI)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DMI is an antisymmetric, anisotropic exchange coupling beteen spins (magnetic moments), 
+
+.. math::
+   \mathcal{H}_{dmi}=\sum_{<i,j>} \vec{D}\cdot [\vec{S}_i \times \vec{S}_j]
+
+Note that :math:`\vec{a}\cdot(\vec{b}\times\vec{c})=(\vec{a}\times\vec{b})\cdot\vec{c}`, the effective field can be computed by
+
+.. math::
+   \vec{H}_i = - \frac{1}{\mu_i}\frac{\partial \mathcal{H}}{\partial \vec{S}_i} =\sum_{<i,j>} \frac{1}{\mu_i} \vec{D}\times\vec{S}_j
+
+
 Landau-Lifshitz-Gilbert (LLG) equation
 ---------------------------------------
 The dynamic of magnetic moments are governed by LLG equation,

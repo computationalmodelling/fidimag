@@ -23,6 +23,7 @@ from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
 from demag import Demag
+from dmi import DMI 
 from materials import Nickel
 from fileio import DataSaver, DataReader
 #from show_vector import VisualSpin

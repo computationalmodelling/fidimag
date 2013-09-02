@@ -11,6 +11,9 @@ cdef extern from "clib.h":
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
     double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
     double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field)
+    void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz, int nx, int ny, int nz)
+    double compute_dmi_eny(double *spin, double Dx, double Dy, double Dz,int nx, int ny, int nz)
+
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
@@ -61,6 +64,17 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
 def compute_anisotropy_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                               Kx, Ky, Kz, nxyz):
     return compute_anis_energy(&spin[0], Kx, Ky, Kz, nxyz)
+    
+def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
+                        np.ndarray[double, ndim=1, mode="c"] field,
+                            Dx, Dy, Dz,
+                            nx, ny, nz):
+    compute_dmi(&spin[0],&field[0],Dx, Dy, Dz,nx,ny,nz)
+    
+def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
+                        Dx, Dy, Dz,nx, ny, nz):
+    return compute_dmi_eny(&spin[0],Dx, Dy, Dz, nx, ny, nz)
+    
 
 
 def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
