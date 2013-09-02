@@ -15,8 +15,8 @@ def test_dmi_1d():
     sim.add(dmi)
     
     field=dmi.compute_field()
-    
-    expected=np.array([0,0,1,1,0,0])
+
+    expected=np.array([0,0,0,0,0,0])
     
     assert (field==expected).all()
    

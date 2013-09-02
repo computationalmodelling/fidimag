@@ -42,13 +42,14 @@ Dzyaloshinskii-Moriya interaction (DMI)
 DMI is an antisymmetric, anisotropic exchange coupling beteen spins (magnetic moments), 
 
 .. math::
-   \mathcal{H}_{dmi}=\sum_{<i,j>} \vec{D}\cdot [\vec{S}_i \times \vec{S}_j]
+   \mathcal{H}_{dmi}=\sum_{<i,j>} \vec{D}_{ij}\cdot [\vec{S}_i \times \vec{S}_j]
 
 Note that :math:`\vec{a}\cdot(\vec{b}\times\vec{c})=(\vec{a}\times\vec{b})\cdot\vec{c}`, the effective field can be computed by
 
 .. math::
-   \vec{H}_i = - \frac{1}{\mu_i}\frac{\partial \mathcal{H}}{\partial \vec{S}_i} =\sum_{<i,j>} \frac{1}{\mu_i} \vec{D}\times\vec{S}_j
+   \vec{H}_i = - \frac{1}{\mu_i}\frac{\partial \mathcal{H}}{\partial \vec{S}_i} =\sum_{<i,j>} \frac{1}{\mu_i} \vec{D}_{ij}\times\vec{S}_j
 
+since :math:`\vec{D}_{ij}` is a vector such that :math:`\vec{D}_{ij}=-\vec{D}_{ji}`, we need to take care of the sign of the field according to the relative position of spins in implementation. 
 
 Landau-Lifshitz-Gilbert (LLG) equation
 ---------------------------------------
