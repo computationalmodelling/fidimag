@@ -50,8 +50,8 @@ void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz,
                     Sx = spin[id];
                     Sy = spin[id + n1];
                     Sz = spin[id + n2];
-                    fy += -Dx*Sz;
-                    fz += Dx*Sy;
+                    fy += Dx*Sz;
+                    fz += -Dx*Sy;
 				}
 
 				if (j < ny - 1) {
@@ -59,8 +59,8 @@ void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz,
                     Sx = spin[id];
                     Sy = spin[id + n1];
                     Sz = spin[id + n2];
-                    fx += Dy*Sz;
-                    fz += -Dy*Sx;
+                    fx += -Dy*Sz;
+                    fz += Dy*Sx;
 				}
 
 				if (k < nz - 1) {
@@ -68,8 +68,8 @@ void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz,
                     Sx = spin[id];
                     Sy = spin[id + n1];
                     Sz = spin[id + n2];
-                    fx += -Dz*Sy;
-                    fy += Dz*Sx;
+                    fx += Dz*Sy;
+                    fy += -Dz*Sx;
 				}
 
 				field[index] = fx;
