@@ -257,7 +257,7 @@ class Sim(object):
                              self.chi,
                              self.mat.gamma,
                              self.nxyz)
-
+        
     
     def sundials_llg_stt_rhs(self, t, y, ydot):
         
@@ -279,7 +279,8 @@ class Sim(object):
                                self.mesh.nx,
                                self.mesh.ny,
                                self.mesh.nz)        
-        
+        print self.field_stt
+        assert(1==2)
         clib.compute_llg_stt_rhs(ydot,
                                self.spin,
                                self.field,
