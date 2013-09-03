@@ -26,6 +26,12 @@ void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
              double *chi, double gamma, int nxyz);
 
+
+void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,
+                       double dx, double dy, double dz, int nx, int ny, int nz);
+void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,
+                 double beta, double u0, double gamma, int nxyz);
+
 void normalise(double *m, int nxyz);
 
 //==========================================

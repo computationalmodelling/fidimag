@@ -12,8 +12,10 @@ from fileio import DataSaver, DataReader
 from save_vtk import SaveVTK
 from materials import Nickel
 from materials import UnitMaterial
+from constant import Constant
 
 
+const = Constant()
 #from show_vector import VisualSpin
 
 
@@ -25,7 +27,6 @@ class Sim(object):
         self.unit_length=mesh.unit_length
         self._T = np.zeros(self.nxyz)
         self._alpha = np.zeros(self.nxyz)
-        self._chi = np.zeros(self.nxyz)
         self.spin = np.ones(3*self.nxyz)
         self.field = np.zeros(3*self.nxyz)
         self.dm_dt = np.zeros(3*self.nxyz)
@@ -68,9 +69,26 @@ class Sim(object):
             self.vode=cvode.CvodeSolver(self.spin,
                                     rtol,atol,
                                     self.sundials_llg_s_rhs)
+            self._chi = np.zeros(self.nxyz)
             self.chi=1e-11
+        elif self.driver == 'llg_stt':
+            self.vode=cvode.CvodeSolver(self.spin,
+                                        rtol,atol,
+                                        self.sundials_llg_stt_rhs)
+            
+            self.field_stt = np.zeros(3*self.nxyz)
+
+            self.jx = 0
+            self.jy = 0
+            self.jz = 0
+            self.p = 0.5
+            self.beta = 0
+            #a^3/dx ==> unit_length^2
+            cell_size=self.mesh.cell_size
+            self.u0 = const.g_e*const.mu_B*cell_size/(2*const.e*self.mat.mu_s)*self.unit_length**2
+            
         else:
-            raise Exception("Unsppourted driver:{},avaiable drivers: sllg, llg, llg_s.".format(self.driver))
+            raise Exception("Unsppourted driver:{},avaiable drivers: sllg, llg, llg_s, llg_stt.".format(self.driver))
                     
 
 
@@ -239,6 +257,40 @@ class Sim(object):
                              self.chi,
                              self.mat.gamma,
                              self.nxyz)
+
+    
+    def sundials_llg_stt_rhs(self, t, y, ydot):
+        
+        self.t = t
+        
+        #already synchronized when call this funciton
+        #self.spin[:]=y[:]
+        
+        self.compute_effective_field()
+        
+        clib.compute_stt_field(self.spin,
+                               self.field_stt,
+                               self.jx,
+                               self.jy,
+                               self.jz,
+                               self.mesh.dx,
+                               self.mesh.dy,
+                               self.mesh.dz,
+                               self.mesh.nx,
+                               self.mesh.ny,
+                               self.mesh.nz)        
+        
+        clib.compute_llg_stt_rhs(ydot,
+                               self.spin,
+                               self.field,
+                               self.field_stt,
+                               self.alpha,
+                               self.beta,
+                               self.u0*self.p,
+                               self.mat.gamma,
+                               self.nxyz)
+        
+        #print 'field',self.field
         
 
     def compute_average(self):

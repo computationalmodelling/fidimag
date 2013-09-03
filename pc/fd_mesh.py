@@ -24,8 +24,12 @@ class FDMesh():
         self.dx=mat.a
         self.dy=mat.b
         self.dz=mat.c
+        self.dx_real = mat.a*mat.unit_length
+        self.dy_real = mat.b*mat.unit_length
+        self.dz_real = mat.c*mat.unit_length
         self.compute_pos()
         self.mat = mat
+        self.cell_size=self.dx*self.dy*self.dz
         
     def compute_pos(self):
         self.pos=[]
