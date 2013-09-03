@@ -183,6 +183,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
     
 }
 
+
 void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double *chi, double gamma, int nxyz) {
     
 	int i, j, k;

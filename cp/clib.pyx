@@ -17,6 +17,11 @@ cdef extern from "clib.h":
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
+    
+    void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,
+                       double dx, double dy, double dz, int nx, int ny, int nz)
+    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,
+                 double beta, double u0, double gamma, int nxyz)
 
 
     # used for demag
@@ -91,6 +96,20 @@ def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] chi,
                 gamma, nxyz):
     llg_s_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &chi[0], gamma, nxyz)
+
+
+def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] field,
+                jx, jy, jz, dx, dy, dz, nx, ny, nz):
+    compute_stt_field_c(&spin[0], &field[0],jx, jy, jz, dx, dy, dz, nx, ny, nz)
+
+def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
+                np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] field,
+                np.ndarray[double, ndim=1, mode="c"] field_stt,
+                np.ndarray[double, ndim=1, mode="c"] alpha,
+                beta, u0, gamma, nxyz):
+    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0] ,&alpha[0], beta, u0, gamma, nxyz)
 
 
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, nxyz):
