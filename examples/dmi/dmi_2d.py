@@ -50,7 +50,7 @@ def relax_system(mesh):
     exch=UniformExchange(mat.J)
     sim.add(exch)
 
-    dmi=DMI(0.1*mat.J,direction=(1,2,0))
+    dmi=DMI(0.1*mat.J,direction=(1,1,0))
     sim.add(dmi)
     
     sim.set_m(init_m)
