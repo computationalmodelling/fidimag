@@ -62,6 +62,7 @@ cdef class CvodeSolver(object):
     
     cdef public double t
     cdef public np.ndarray y
+    cdef double rtol, atol
     cdef np.ndarray spin
     cdef np.ndarray dm_dt
     cdef N_Vector u_y
@@ -81,6 +82,9 @@ cdef class CvodeSolver(object):
         self.spin = spin
         self.dm_dt = np.copy(spin)
         self.y = np.copy(spin)
+        
+        self.rtol = rtol
+        self.atol = atol
         
         self.callback_fun = callback_fun
         
@@ -113,7 +117,7 @@ cdef class CvodeSolver(object):
         flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
         self.check_flag(flag,"CVodeInit")
 
-        flag = CVodeSStolerances(self.cvode_mem, 1e-7, 1e-7)
+        flag = CVodeSStolerances(self.cvode_mem, self.rtol, self.atol)
         
         mxsteps=100000
         flag = CVodeSetMaxNumSteps(self.cvode_mem, mxsteps)

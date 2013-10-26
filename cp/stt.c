@@ -30,7 +30,7 @@ void compute_stt_field_c(double *spin, double *field, double jx, double jy, doub
                         id2 = id;
                     }
                     
-					field[id] += jx * (spin[id2]-spin[id1])/(2*dx);
+		    field[id] += jx * (spin[id2]-spin[id1])/(2*dx);
                     field[id+n1] += jx * (spin[id2+n1]-spin[id1+n1])/(2*dx);
                     field[id+n2] += jx * (spin[id2+n2]-spin[id1+n2])/(2*dx);
                 }
@@ -55,7 +55,7 @@ void compute_stt_field_c(double *spin, double *field, double jx, double jy, doub
                         id2 = id;
                     }
                     
-					field[id] += jy * (spin[id2]-spin[id1])/(2*dy);
+		    field[id] += jy * (spin[id2]-spin[id1])/(2*dy);
                     field[id+n1] += jy * (spin[id2+n1]-spin[id1+n1])/(2*dy);
                     field[id+n2] += jy * (spin[id2+n2]-spin[id1+n2])/(2*dy);
                 }
@@ -79,7 +79,7 @@ void compute_stt_field_c(double *spin, double *field, double jx, double jy, doub
                         id2 = id;
                     }
                     
-					field[id] += jz * (spin[id2]-spin[id1])/(2*dz);
+	            field[id] += jz * (spin[id2]-spin[id1])/(2*dz);
                     field[id+n1] += jz * (spin[id2+n1]-spin[id1+n1])/(2*dz);
                     field[id+n2] += jz * (spin[id2+n2]-spin[id1+n2])/(2*dz);
                 }
@@ -132,8 +132,8 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alp
         hpk = h_stt[k] - mht*m[k];
         
         mth0 = (m[j] * hpk - m[k] * hpj);
-		mth1 = (m[k] * hpi - m[i] * hpk);
-		mth2 = (m[i] * hpj - m[j] * hpi);
+	mth1 = (m[k] * hpi - m[i] * hpk);
+	mth2 = (m[i] * hpj - m[j] * hpi);
         
         dm_dt[i] += coeff_stt*((1 + alpha[i]*beta)*hpi - (beta - alpha[i])*mth0);
         dm_dt[j] += coeff_stt*((1 + alpha[i]*beta)*hpj - (beta - alpha[i])*mth1);

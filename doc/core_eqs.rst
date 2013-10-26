@@ -51,6 +51,16 @@ Note that :math:`\vec{a}\cdot(\vec{b}\times\vec{c})=(\vec{a}\times\vec{b})\cdot\
 
 since :math:`\vec{D}_{ij}` is a vector such that :math:`\vec{D}_{ij}=-\vec{D}_{ji}`, we need to take care of the sign of the field according to the relative position of spins in implementation. 
 
+In the continuum limit the dmi energy could be written, 
+
+.. math::
+   E_{dmi} = \int_\Omega D \vec{m} \cdot (\nabla \times \vec{m}) dx
+
+and the effective field is
+
+.. math::
+   \vec{H}=-\frac{2D}{\mu_0 M_s} (\nabla \times \vec{m})
+
 Landau-Lifshitz-Gilbert (LLG) equation
 ---------------------------------------
 The dynamic of magnetic moments are governed by LLG equation,

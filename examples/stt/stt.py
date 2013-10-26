@@ -20,9 +20,9 @@ class Material(object):
 
 def init_m(pos):
     x,y,z=pos
-    if x<140*5:
+    if x<250*5:
         return (1,0,0)
-    elif x>160*5:
+    elif x>270*5:
         return (-1,0,0)
     else:
         return (0,1,0)
@@ -73,7 +73,7 @@ def dynamic(mesh):
     sim.alpha=0.01
     sim.beta=0.02
     
-    ts = np.linspace(0, 2e-10, 101)
+    ts = np.linspace(0, 1e-9, 101)
     for t in ts:
         sim.run_until(t)
         sim.save_vtk()
@@ -82,6 +82,6 @@ def dynamic(mesh):
 
 
 if __name__=='__main__':
-    mesh=FDMesh(nx=300,ny=1,nz=1)
-    #relax_system(mesh)
+    mesh=FDMesh(nx=500,ny=1,nz=1)
+    relax_system(mesh)
     dynamic(mesh)

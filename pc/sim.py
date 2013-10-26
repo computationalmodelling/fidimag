@@ -49,7 +49,7 @@ class Sim(object):
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
 
-    def set_options(self,rtol=1e-7,atol=1e-7,dt=1e-15):
+    def set_options(self,rtol=1e-8,atol=1e-14,dt=1e-15):
 
         if self.driver == 'sllg':
             self.vode=clib.RK2S(self.mat.mu_s,dt,
@@ -279,8 +279,7 @@ class Sim(object):
                                self.mesh.nx,
                                self.mesh.ny,
                                self.mesh.nz)        
-        print self.field_stt
-        assert(1==2)
+
         clib.compute_llg_stt_rhs(ydot,
                                self.spin,
                                self.field,
