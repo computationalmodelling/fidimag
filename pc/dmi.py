@@ -4,7 +4,7 @@ import numpy as np
 
 class DMI(object):
     """
-    Hamiltonian=-D*[S_i x S_j]
+    Hamiltonian = D*[S_i x S_j]
         ==> H = D x S_j
     """
     def __init__(self,D,direction=(1,0,0),name='dmi'):
@@ -38,8 +38,8 @@ class DMI(object):
                                self.nx,
                                self.ny,
                                self.nz)
-                                      
-        return self.field
+        
+        return -self.field
     
     def compute_energy(self):
         self.energy=clib.compute_dmi_energy(self.spin,

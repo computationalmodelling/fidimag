@@ -42,18 +42,18 @@ print sources2
 ext_modules = [
     Extension("clib",
               sources = sources,
-              include_dirs = [numpy.get_include()],
+              include_dirs = [numpy.get_include(),'/usr/local/include'],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
               #extra_compile_args=["-fopenmp"],
-              #extra_link_args=['-fopenmp'],
+              extra_link_args=['-L/usr/local/lib'],
               #extra_link_args=["-g"],
         ),
     Extension("cvode",
               sources = sources2,
-              include_dirs = [numpy.get_include()],
+              include_dirs = [numpy.get_include(),'/usr/local/include'],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
               #extra_compile_args=["-fopenmp"],
-              #extra_link_args=['-fopenmp'],
+              extra_link_args=['-L/usr/local/lib'],
               #extra_link_args=["-g"],
         )
     ]
