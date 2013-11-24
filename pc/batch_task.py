@@ -1,7 +1,7 @@
 import os
 import time
 import numpy as np
-from multiprocessing import Process,Queue, Lock
+from multiprocessing import Process, Queue, Lock
 
 lock=Lock()
 
