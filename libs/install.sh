@@ -3,6 +3,9 @@
 SUNDIALS=sundials-2.5.0
 FFTW=fftw-3.3.3
 
+
+LIBS_DIR=`pwd`
+
 #============================================================================
 #sundials
 #============================================================================
@@ -13,9 +16,9 @@ fi;
 if [ ! -e ${SUNDIALS} ]; then
   tar -xvzf ${SUNDIALS}.tar.gz
   cd ${SUNDIALS}
-  ./configure --enable-shared
+  ./configure --enable-shared --prefix=${LIBS_DIR}
   make
-  sudo make install
+  make install
   cd ..
 fi;
 
@@ -30,8 +33,8 @@ fi;
 if [ ! -e ${FFTW} ]; then
   tar -xvzf ${FFTW}.tar.gz
   cd ${FFTW}
-  ./configure --enable-shared
+  ./configure --enable-shared --prefix=${LIBS_DIR}
   make
-  sudo make install
+  make install
   cd ..
 fi;

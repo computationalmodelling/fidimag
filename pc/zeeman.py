@@ -1,6 +1,4 @@
-
 import numpy as np
-
 
 class Zeeman(object):
     def __init__(self,H0,direction=(1,0,0),name='Zeeman'):
