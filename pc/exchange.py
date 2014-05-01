@@ -6,7 +6,7 @@ class UniformExchange(object):
     """
     The Hamiltonian is defined as
     
-        Hamiltonian = -J \sum_<i,j> S_i \cdot S_j
+        Hamiltonian = - J \sum_<i,j> S_i \cdot S_j
     
     where the brackets represent the nearest neighbours and only evaluate once
     for each pair, which means for two spins case, the total energy is -J S_1 S_2. Therefore,
@@ -20,8 +20,8 @@ class UniformExchange(object):
         self.J=J
         self.name=name
         
-    def setup(self,mesh,spin,unit_length=1.0,mu_s=1.0):
-        self.J_mu_s=self.J/mu_s
+    def setup(self,mesh,spin,mu_s_inv,pbc):
+        self.J_mu_s=self.J*mu_s_inv
         self.mesh=mesh
         self.dx=mesh.dx
         self.dy=mesh.dy
@@ -33,9 +33,12 @@ class UniformExchange(object):
         n=self.nx*self.ny*self.nz
         self.field=np.zeros(3*n)
         self.energy=0
+        self.pbc = pbc
 
     def compute_field(self):
-        clib.compute_uniform_exchange(self.spin,
+        
+        if self.pbc=='1d':
+            clib.compute_uniform_exchange(self.spin,
                                       self.field,
                                       self.J_mu_s,
                                       self.dx,
@@ -43,7 +46,28 @@ class UniformExchange(object):
                                       self.dz,
                                       self.nx,
                                       self.ny,
-                                      self.nz)                     
+                                      self.nz)
+        elif self.pbc=='2d':
+            clib.compute_uniform_exchange(self.spin,
+                                      self.field,
+                                      self.J_mu_s,
+                                      self.dx,
+                                      self.dy,
+                                      self.dz,
+                                      self.nx,
+                                      self.ny,
+                                      self.nz)
+        else:
+            clib.compute_uniform_exchange(self.spin,
+                                      self.field,
+                                      self.J_mu_s,
+                                      self.dx,
+                                      self.dy,
+                                      self.dz,
+                                      self.nx,
+                                      self.ny,
+                                      self.nz)
+                             
         return self.field
 
     def compute_energy(self):

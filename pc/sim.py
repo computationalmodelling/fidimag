@@ -14,26 +14,44 @@ from materials import Nickel
 from materials import UnitMaterial
 from constant import Constant
 
+import pccp.util.helper as helper
 
 const = Constant()
 #from show_vector import VisualSpin
 
 
 class Sim(object):
-    def __init__(self,mesh,T=0,name='unnamed',driver='llg'):
+    
+    def __init__(self,mesh,T=0,name='unnamed',driver='llg',pbc=None):
+        """Simulation object.
+
+        *Arguments*
+
+          mesh : a dolfin mesh
+
+          name : the Simulation name (used for writing data files, for examples)
+
+          pbc : Periodic boundary type: None, '1d' or '2d'
+
+          driver : 'llg', 'sllg' or 'llg_stt'
+
+        """
+        
         self.t=0
         self.mesh = mesh
         self.nxyz = mesh.nxyz
         self.unit_length=mesh.unit_length
-        self._T = np.zeros(self.nxyz)
-        self._alpha = np.zeros(self.nxyz)
-        self.spin = np.ones(3*self.nxyz)
-        self.field = np.zeros(3*self.nxyz)
-        self.dm_dt = np.zeros(3*self.nxyz)
+        self._T = np.zeros(self.nxyz,dtype=np.float)
+        self._alpha = np.zeros(self.nxyz,dtype=np.float)
+        self._mu_s = np.zeros(3*self.nxyz,dtype=np.float)
+        self.mu_s_inv = np.zeros(3*self.nxyz,dtype=np.float)
+        self.spin = np.ones(3*self.nxyz,dtype=np.float)
+        self.field = np.zeros(3*self.nxyz,dtype=np.float)
+        self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
         self.interactions=[]
-        self.mat = mesh.mat
         self.pin_fun=None
         self.driver = driver
+        self.pbc = pbc
 
         self.saver = DataSaver(self, name+'.txt')
         self.saver.entities['E_total'] = {
@@ -43,13 +61,17 @@ class Sim(object):
         self.saver.update_entity_order()
 
         self._T[:] = T
-        self._alpha[:]=self.mat.alpha
         self.set_options()
 
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
 
     def set_options(self,rtol=1e-8,atol=1e-14,dt=1e-15):
+        
+        self._alpha[:] = 0.1
+        self.gamma = 1
+        self._mu_s[:] = 1
+        self.mu_s_inv[:] = 1
 
         if self.driver == 'sllg':
             self.vode=clib.RK2S(self.mat.mu_s,dt,
@@ -60,17 +82,12 @@ class Sim(object):
                         self.field,
                         self.T,
                         self.update_effective_field)
+            
         elif self.driver == 'llg':
             self.vode=cvode.CvodeSolver(self.spin,
                                     rtol,atol,
                                     self.sundials_rhs)
 
-        elif self.driver == 'llg_s':
-            self.vode=cvode.CvodeSolver(self.spin,
-                                    rtol,atol,
-                                    self.sundials_llg_s_rhs)
-            self._chi = np.zeros(self.nxyz)
-            self.chi=1e-11
         elif self.driver == 'llg_stt':
             self.vode=cvode.CvodeSolver(self.spin,
                                         rtol,atol,
@@ -93,25 +110,8 @@ class Sim(object):
 
 
     def set_m(self,m0=(1,0,0),normalise=True):
-
-        if isinstance(m0,list) or isinstance(m0,tuple):
-            tmp=np.zeros((self.nxyz,3))
-            tmp[:,:]=m0
-            tmp=np.reshape(tmp, 3*self.nxyz, order='F')
-            self.spin[:]=tmp[:]
-        elif hasattr(m0, '__call__'):
-            tmp=np.zeros((self.nxyz,3))
-            for i in range(self.mesh.nxyz):
-                tmp[i]=m0(self.mesh.pos[i])
-            tmp=np.reshape(tmp, 3*self.nxyz, order='F')
-            self.spin[:]=tmp[:]
-
-        elif isinstance(m0,np.ndarray):
-            if m0.shape==self.spin.shape:
-                self.spin[:]=m0[:]
-
-        if normalise:
-            self.normalise()
+        
+        self.spin[:]=helper.init_vector(m0,self.mesh, normalise)
 
         self.vode.set_initial_value(self.spin, self.t)
 
@@ -142,19 +142,28 @@ class Sim(object):
     def get_alpha(self):
         return self._alpha
 
-    def set_alpha(self,alpha0):
-        if  hasattr(alpha0, '__call__'):
-            alpha = np.array([alpha0(p) for p in self.mesh.pos])
-            self._alpha[:] = alpha[:]
-        else:
-            self._alpha[:] = alpha0
-
+    def set_alpha(self,value):
+        self._alpha[:] = helper.init_scalar(value, self.mesh)
+        
     alpha = property(get_alpha, set_alpha)
+    
+    def get_mu_s(self):
+        return self._mu_s
+
+    def set_mu_s(self, value):
+        self._mu_s[:] = helper.init_scalar(value, self.mesh)
+        for i in range(self.nxyz):
+            if self._mu_s[i] == 0.0:
+                self.mu_s_inv[i] = 0
+            else: 
+                self.mu_s_inv[i]=1.0/self._mu_s[i]
+        
+    mu_s = property(get_mu_s, set_mu_s)
 
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin,
                           unit_length=self.unit_length,
-                          mu_s=self.mat.mu_s)
+                          mu_s_inv=self.mu_s_inv)
         for i in self.interactions:
             if i.name == interaction.name:
                 interaction.name=i.name+'_2'
@@ -184,7 +193,7 @@ class Sim(object):
         if abs(t)<1e-15:
             return
         
-        ode=self.vode
+        ode = self.vode
         
         ode.run_until(t)
         
@@ -240,25 +249,6 @@ class Sim(object):
                 
         return 0
 
-    def sundials_llg_s_rhs(self, t, y, ydot):
-        
-        self.t = t
-        
-        #already synchronized when call this funciton
-        #self.spin[:]=y[:]
-        
-        
-        self.compute_effective_field()
-        
-        clib.compute_llg_s_rhs(ydot,
-                             self.spin,
-                             self.field,
-                             self.alpha,
-                             self.chi,
-                             self.mat.gamma,
-                             self.nxyz)
-        
-    
     def sundials_llg_stt_rhs(self, t, y, ydot):
         
         self.t = t

@@ -5,7 +5,6 @@ import os
 realpath=os.path.realpath(__file__)
 pccp_path=os.path.split(os.path.split(realpath)[0])[0]
 
-
 cmd=('python',
      os.path.join(pccp_path,'setup.py'),
      'build_ext',
@@ -18,7 +17,7 @@ except subprocess.CalledProcessError, ex:
     raise Exception("make_modules: Make failed")
 
 from sim import Sim
-from fd_mesh import FDMesh
+from mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman

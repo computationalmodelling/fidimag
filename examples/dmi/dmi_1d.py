@@ -1,23 +1,10 @@
 import numpy as np
-from pccp.pc import *
-import time
+#from pccp.pc import *
+from pccp.pc import Sim
+from pccp.pc import FDMesh
+from pccp.pc import DMI
+from pccp.pc import UniformExchange
 
-class Material(object):
-    def __init__(self):
-        self.a=5
-        self.b=5
-        self.c=5
-        #Ms = 8e5, mu_s = Ms * v
-        self.mu_s=1e-22
-        
-        #A =0.5e-11, J = 2a*A 
-        self.J=1e-20
-        self.Dx=0.003*self.J
-        self.Dp=-0.02*self.J
-
-        self.gamma=1.76e11
-        self.alpha=0.01
-        self.unit_length=1e-10
 
 def init_m(pos):
     x,y,z=pos
@@ -27,29 +14,18 @@ def init_m(pos):
         return (0,1,-1)
     else:
         return (0,1,0)
-    
-def pin_fun(t,mesh,spin):
-    n=mesh.nxyz
-    
-    spin[0]=0
-    spin[n]=0
-    spin[n+n]=1
-    
+
 
 def relax_system(mesh):
-    
-    mat = Material()
-    mesh.set_material(mat)
-    
-    sim=Sim(mesh,name='relax')
+        
+    sim=Sim(mesh,name='relax',pbc='2d')
     sim.alpha=0.1
-    
-    #sim.pin_fun=pin_fun
-    
-    exch=UniformExchange(mat.J)
+
+    J = 1
+    exch = UniformExchange(J)
     sim.add(exch)
 
-    dmi=DMI(0.1*mat.J,direction=(1,0,0))
+    dmi=DMI(0.1*J,direction=(1,0,0))
     sim.add(dmi)
     
     sim.set_m(init_m)
