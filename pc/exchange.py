@@ -20,8 +20,8 @@ class UniformExchange(object):
         self.J=J
         self.name=name
         
-    def setup(self,mesh,spin,mu_s_inv,pbc):
-        self.J_mu_s=self.J*mu_s_inv
+    def setup(self,mesh,spin,mu_s_inv,pbc=None):
+        self.J=self.J
         self.mesh=mesh
         self.dx=mesh.dx
         self.dy=mesh.dy
@@ -34,41 +34,30 @@ class UniformExchange(object):
         self.field=np.zeros(3*n)
         self.energy=0
         self.pbc = pbc
+        self.mu_s_inv = mu_s_inv
+    
+        self.xperiodic = 0
+        self.yperiodic = 0
+        
+        if pbc=='1d':
+            self.xperiodic = 1
+        elif pbc=='2d':
+            self.xperiodic = 1
+            self.yperiodic = 1
 
     def compute_field(self):
         
-        if self.pbc=='1d':
-            clib.compute_uniform_exchange(self.spin,
+        clib.compute_exchange_field(self.spin,
                                       self.field,
-                                      self.J_mu_s,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
+                                      self.J,
                                       self.nx,
                                       self.ny,
-                                      self.nz)
-        elif self.pbc=='2d':
-            clib.compute_uniform_exchange(self.spin,
-                                      self.field,
-                                      self.J_mu_s,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
-                                      self.nx,
-                                      self.ny,
-                                      self.nz)
-        else:
-            clib.compute_uniform_exchange(self.spin,
-                                      self.field,
-                                      self.J_mu_s,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
-                                      self.nx,
-                                      self.ny,
-                                      self.nz)
+                                      self.nz,
+                                      self.xperiodic,
+                                      self.yperiodic)
+
                              
-        return self.field
+        return self.field*self.mu_s_inv
 
     def compute_energy(self):
         
@@ -76,5 +65,8 @@ class UniformExchange(object):
                                                  self.J,
                                                  self.nx,    
                                                  self.ny,
-                                                 self.nz)
+                                                 self.nz,
+                                                 self.xperiodic,
+                                                 self.yperiodic)
+                                                 
         return self.energy

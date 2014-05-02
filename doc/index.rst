@@ -14,6 +14,7 @@ Contents:
    install
    core_eqs
    extended_eqs
+   develop
 
 
 

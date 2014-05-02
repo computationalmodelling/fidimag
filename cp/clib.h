@@ -3,10 +3,8 @@
 #include <fftw3.h>
 //#include<omp.h>
 
-void compute_uniform_exch(double *spin, double *field, double J, double dx,
-		double dy, double dz, int nx, int ny, int nz);
-
-double compute_exch_energy(double *spin, double J, int nx, int ny, int nz);
+void compute_exch_field(double *spin, double *field, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
+double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
 
 void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 		int nxyz);
@@ -14,11 +12,8 @@ void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
 		int nxyz);
 
-void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz,
-                 int nx, int ny, int nz);
-
-double compute_dmi_eny(double *spin, double Dx, double Dy, double Dz,
-                       int nx, int ny, int nz);
+void dmi_field(double *spin, double *field, double D, int nx, int ny, int nz, int xperiodic, int yperiodic);
+double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 		double gamma, int nxyz);

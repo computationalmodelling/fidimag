@@ -162,8 +162,7 @@ class Sim(object):
 
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin,
-                          unit_length=self.unit_length,
-                          mu_s_inv=self.mu_s_inv)
+                          mu_s_inv=self.mu_s_inv,pbc=self.pbc)
         for i in self.interactions:
             if i.name == interaction.name:
                 interaction.name=i.name+'_2'

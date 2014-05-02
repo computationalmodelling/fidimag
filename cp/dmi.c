@@ -1,104 +1,107 @@
 #include "clib.h"
 
-void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz,
-                          int nx, int ny, int nz) {
+inline double cross_x(double a0, double a1, double a2, double b0, double b1, double b2) { return a1*b2 - a2*b1; }
+inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
+inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
+
+
+void dmi_field(double *spin, double *field, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
 	int i, j, k;
 	int index, id;
 	double fx,fy,fz;
-    double Sx,Sy,Sz;
     
-    for (i = 0; i < nx; i++) {
-		for (j = 0; j < ny; j++) {
-			for (k = 0; k < nz; k++) {
-				index = nyz * i + nz * j + k;
-				fx = 0;
-				fy = 0;
-				fz = 0;
-
-				if (k > 0) {
-					id = index - 1;
-                    Sx = spin[id];
-                    Sy = spin[id + n1];
-                    Sz = spin[id + n2];
-                    fx += -Dz*Sy;
-                    fy += Dz*Sx;
-				}
-
-				if (j > 0) {
-					id = index - nz;
-                    Sx = spin[id];
-                    Sy = spin[id + n1];
-                    Sz = spin[id + n2];
-                    fx += Dy*Sz;
-                    fz += -Dy*Sx;
-				}
-
-				if (i > 0) {
-					id = index - nyz;
-                    Sx = spin[id];
-                    Sy = spin[id + n1];
-                    Sz = spin[id + n2];
-                    fy += -Dx*Sz;
-                    fz += Dx*Sy;
-				}
-
-				if (i < nx - 1) {
-					id = index + nyz;
-                    Sx = spin[id];
-                    Sy = spin[id + n1];
-                    Sz = spin[id + n2];
-                    fy += Dx*Sz;
-                    fz += -Dx*Sy;
-				}
-
-				if (j < ny - 1) {
-					id = index + nz;
-                    Sx = spin[id];
-                    Sy = spin[id + n1];
-                    Sz = spin[id + n2];
-                    fx += -Dy*Sz;
-                    fz += Dy*Sx;
-				}
-
-				if (k < nz - 1) {
-					id = index + 1;
-                    Sx = spin[id];
-                    Sy = spin[id + n1];
-                    Sz = spin[id + n2];
-                    fx += Dz*Sy;
-                    fy += -Dz*Sx;
-				}
-
-				field[index] = fx;
-				field[index + n1] = fy;
-				field[index + n2] = fz;
-
-			}
-		}
+	for (i = 0; i < nx; i++) {
+        for (j = 0; j < ny; j++) {
+            for (k = 0; k < nz; k++) {
+                
+                index = nyz * i + nz * j + k;
+                fx = 0;
+                fy = 0;
+                fz = 0;
+                
+                if (k > 0) {
+                    id = index - 1;
+                    fx += D * cross_x(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += D * cross_y(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += D * cross_z(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
+                }
+                
+                if (j > 0 || yperiodic) {
+                    id = index - nz;
+                    if (j==0) {
+                        id += nyz;
+                    }
+                    fx += D * cross_x(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += D * cross_y(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += D * cross_z(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
+                }
+                
+                if (i > 0 || xperiodic) {
+                    id = index - nyz;
+                    if (i==0) {
+                        id += n1;
+                    }
+                    fx += D * cross_x(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += D * cross_y(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += D * cross_z(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                }
+                
+                if (i < nx - 1 || xperiodic) {
+                    id = index + nyz;
+                    if (i == nx-1){
+                        id -= n1;
+                    }
+                    fx += D * cross_x(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += D * cross_y(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += D * cross_z(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                }
+                
+                if (j < ny - 1 || yperiodic) {
+                    id = index + nz;
+                    if (j == ny-1){
+                        id -= nyz;
+                    }
+                    fx += D * cross_x(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += D * cross_y(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += D * cross_z(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
+                }
+                
+                if (k < nz - 1) {
+                    id = index + 1;
+                    fx += D * cross_x(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += D * cross_y(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += D * cross_z(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
+                }
+                
+                field[index] = fx;
+                field[index + n1] = fy;
+                field[index + n2] = fz;
+                
+            }
+        }
 	}
 
 }
 
-inline double single_energy_x(double Dx, double Si[3], double Sj[3]){
-    double tx = Dx*(-Si[2]*Sj[1]+Si[1]*Sj[2]);
+inline double single_energy_x(double D, double Si[3], double Sj[3]){
+    double tx = D*(-Si[2]*Sj[1]+Si[1]*Sj[2]);
     return tx;
 }
 
-inline double single_energy_y(double Dy, double Si[3], double Sj[3]){
-    double ty = Dy*(Si[2]*Sj[0]-Si[0]*Sj[2]);
+inline double single_energy_y(double D, double Si[3], double Sj[3]){
+    double ty = D*(Si[2]*Sj[0]-Si[0]*Sj[2]);
     return ty;
 }
 
-inline double single_energy_z(double Dz, double Si[3], double Sj[3]){
-    double tz = Dz*(-Si[1]*Sj[0]+Si[0]*Sj[1]);
+inline double single_energy_z(double D, double Si[3], double Sj[3]){
+    double tz = D*(-Si[1]*Sj[0]+Si[0]*Sj[1]);
     return tz;
 }
 
-double compute_dmi_eny(double *spin, double Dx, double Dy, double Dz,
-                          int nx, int ny, int nz) {
+double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
@@ -117,20 +120,26 @@ double compute_dmi_eny(double *spin, double Dx, double Dy, double Dz,
 				S_i[1] = spin[index + n1];
 				S_i[2] = spin[index + n2];
 
-				if (i < nx - 1) {
+				if (i < nx - 1 || xperiodic) {
 					id = index + nyz;
+                    if (j == ny-1){
+                        id -= n1;
+                    }
                     S_j[0] = spin[id];
                     S_j[1] = spin[id + n1];
                     S_j[2] = spin[id + n2];
-					energy += single_energy_x(Dx,S_i,S_j);
+					energy += single_energy_x(D,S_i,S_j);
 				}
 
-				if (j < ny - 1) {
+				if (j < ny - 1 || yperiodic) {
 					id = index + nz;
+                    if (j == ny-1){
+                        id -= nyz;
+                    }
                     S_j[0] = spin[id];
                     S_j[1] = spin[id + n1];
                     S_j[2] = spin[id + n2];
-					energy += single_energy_y(Dy,S_i,S_j);
+					energy += single_energy_y(D,S_i,S_j);
 				}
 
 				if (k < nz - 1) {
@@ -138,7 +147,7 @@ double compute_dmi_eny(double *spin, double Dx, double Dy, double Dz,
                     S_j[0] = spin[id];
                     S_j[1] = spin[id + n1];
                     S_j[2] = spin[id + n2];
-					energy += single_energy_z(Dz,S_i,S_j);
+					energy += single_energy_z(D,S_i,S_j);
 				}
 
 			}

@@ -10,7 +10,7 @@ def test_dmi_1d():
     sim=Sim(mesh)
     sim.set_m((1,0,0))
     
-    dmi = DMI(D=1,direction=(0,0,1))
+    dmi = DMI(D=1)
     sim.add(dmi)
     
     field=dmi.compute_field()
@@ -37,7 +37,7 @@ def test_dmi_1d_field():
     sim=Sim(mesh)
     sim.set_m(init_m)
     
-    dmi = DMI(D=1.23,direction=(1,0,0))
+    dmi = DMI(D=1.23)
     sim.add(dmi)
     
     field=dmi.compute_field()
@@ -46,9 +46,11 @@ def test_dmi_1d_field():
     assert (field==expected).all()
     
     energy=dmi.compute_energy()
+    print energy
     assert energy==1.23
     
     
 if __name__=='__main__':
+    test_dmi_1d()
     test_dmi_1d_field()
     

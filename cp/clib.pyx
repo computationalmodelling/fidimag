@@ -6,22 +6,23 @@ from libc.string cimport memcpy
      
 
 cdef extern from "clib.h":
-    void compute_uniform_exch(double * spin, double * field, double J, double dx, double dy, double dz, int nx, int ny, int nz)
-    double compute_exch_energy(double *spin, double J, int nx, int ny, int nz)
+    void compute_exch_field(double *spin, double *field, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    
+    void dmi_field(double *spin, double *field, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
+
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
     double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
+
     double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field)
     void compute_dmi(double *spin, double *field, double Dx, double Dy, double Dz, int nx, int ny, int nz)
-    double compute_dmi_eny(double *spin, double Dx, double Dy, double Dz,int nx, int ny, int nz)
 
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
-    
-    void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,
-                       double dx, double dy, double dz, int nx, int ny, int nz)
-    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,
-                 double beta, double u0, double gamma, int nxyz)
+    void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,double dx, double dy, double dz, int nx, int ny, int nz)
+    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,double beta, double u0, double gamma, int nxyz)
 
 
     # used for demag
@@ -48,23 +49,23 @@ cdef extern from "clib.h":
 
 
 
-def compute_uniform_exchange(np.ndarray[double, ndim=1, mode="c"] spin,
+def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
                             J,
-                            dx, dy, dz,
-                            nx, ny, nz):
+                            nx, ny, nz,
+                            xperiodic,yperiodic):
 
-    compute_uniform_exch(&spin[0], &field[0], J, dx, dy, dz, nx, ny, nz)
+    compute_exch_field(&spin[0], &field[0], J, nx, ny, nz, xperiodic,yperiodic)
     
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
-                            J, nx, ny, nz):
+                            J, nx, ny, nz, xperiodic,yperiodic):
 
-    return compute_exch_energy(&spin[0], J, nx, ny, nz)
+    return compute_exch_energy(&spin[0], J, nx, ny, nz, xperiodic,yperiodic)
 
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,
                         Kx, Ky, Kz, nxyz):
-    compute_anis(& spin[0], & field[0], Kx, Ky, Kz, nxyz)
+    compute_anis(&spin[0], &field[0], Kx, Ky, Kz, nxyz)
     
 def compute_anisotropy_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                               Kx, Ky, Kz, nxyz):
@@ -72,13 +73,14 @@ def compute_anisotropy_energy(np.ndarray[double, ndim=1, mode="c"] spin,
     
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,
-                            Dx, Dy, Dz,
-                            nx, ny, nz):
-    compute_dmi(&spin[0],&field[0],Dx, Dy, Dz,nx,ny,nz)
+                        D, nx, ny, nz,
+                        xperiodic,yperiodic):
+    dmi_field(&spin[0],&field[0],D, nx, ny, nz, xperiodic,yperiodic)
     
 def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
-                        Dx, Dy, Dz,nx, ny, nz):
-    return compute_dmi_eny(&spin[0],Dx, Dy, Dz, nx, ny, nz)
+                        D, nx, ny, nz,
+                        xperiodic,yperiodic):
+    return dmi_energy(&spin[0], D, nx, ny, nz, xperiodic,yperiodic)
     
 
 

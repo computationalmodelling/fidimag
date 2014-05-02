@@ -20,12 +20,15 @@ def relax_system(mesh):
         
     sim=Sim(mesh,name='relax',pbc='2d')
     sim.alpha=0.1
+    
+    sim.set_m(init_m)
+    print sim.m
 
     J = 1
     exch = UniformExchange(J)
     sim.add(exch)
 
-    dmi=DMI(0.1*J,direction=(1,0,0))
+    dmi= DMI(0.05*J)
     sim.add(dmi)
     
     sim.set_m(init_m)

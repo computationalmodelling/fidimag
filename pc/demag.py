@@ -6,7 +6,7 @@ class Demag(object):
     def __init__(self, name='demag'):
         self.name = name
         
-    def setup(self, mesh, spin, mu_s=1,unit_length=1.0):
+    def setup(self, mesh, spin, mu_s_inv=1,pbc=None):
         self.mesh = mesh
         self.dx = mesh.dx
         self.dy = mesh.dy
@@ -17,8 +17,10 @@ class Demag(object):
         self.spin = spin
         self.n = self.nx * self.ny * self.nz
         self.field = np.zeros(3 * self.n)
+        unit_length = mesh.unit_length
         #note that the mu_s we used is from the class init 
         self.scale = 1e-7 / unit_length**3
+        mu_s = 1.0/mu_s_inv[0]
         self.demag=clib.FFTDemag(mu_s,
                                  self.dx,self.dy,self.dz,
                                  self.nx,self.ny,self.nz)
