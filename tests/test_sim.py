@@ -48,21 +48,25 @@ def test_sim_T_fun():
     assert(sim.T[-1]==9)
     
 def test_sim_single_spin_vode(do_plot=False):
-    ni=Nickel()
+
     mesh=FDMesh(nx=1,ny=1,nz=1)
-    mesh.set_material(ni)
+
+    sim = Sim(mesh)
     
-    ni.alpha=0.1
-    sim=Sim(mesh,T=0)
+    alpha = 0.1
+    gamma = 2.21e5
+    sim.alpha = alpha
+    sim.gamma = gamma
+    
     sim.set_m((1, 0, 0))
     
-    H0 = 1
-    sim.add(Zeeman(H0,(0, 0, 1)))
+    H0 = 1e5
+    sim.add(Zeeman((0, 0, H0)))
     
     dt = 1e-12; 
     ts = np.linspace(0, 200 * dt, 101)
         
-    precession = ni.gamma/(1+ni.alpha**2)
+    precession = gamma/(1+alpha**2)
     
     mz_ref = []
     
@@ -72,7 +76,7 @@ def test_sim_single_spin_vode(do_plot=False):
         sim.run_until(t)
         real_ts.append(sim.t)
         print sim.t,abs(sim.spin_length()[0]-1)
-        mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
+        mz_ref.append(np.tanh(precession * alpha * H0 * sim.t))
         mz.append(sim.spin[-1])
     
     mz=np.array(mz)
@@ -97,60 +101,7 @@ def test_sim_single_spin_vode(do_plot=False):
     assert np.max(np.abs(mz - mz_ref)) < 5e-6
 
 
-def test_sim_single_spin_llg_s(do_plot=False):
-    ni=Nickel()
-    mesh=FDMesh(nx=1,ny=1,nz=1)
-    mesh.set_material(ni)
-    
-    ni.alpha=0.1
-    sim=Sim(mesh,driver='llg_s')
-    sim.set_m((1, 0, 0))
-    sim.chi=1e-12
-    
-    
-    H0 = 1
-    sim.add(Zeeman(H0,(0, 0, 1)))
-    
-    dt = 1e-12;
-    ts = np.linspace(0, 200 * dt, 101)
-    
-    precession = ni.gamma
-    
-    mz_ref = []
-    mxyz = []
-    real_ts=[]
-    
-    
-    for t in ts:
-        sim.run_until(t)
-        real_ts.append(sim.t)
-        print sim.t,abs(sim.spin_length()[0]-1), sim.spin
-        mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
-        mxyz.append(np.copy(sim.spin))
-
-    mxyz=np.array(mxyz)
-
-    print sim.stat()
-    
-    if do_plot:
-        ts_ns = np.array(real_ts) * 1e9
-        
-        plt.plot(ts_ns, mxyz[:,0], ".-", label="mx")
-        plt.plot(ts_ns, mxyz[:,1], ".-", label="my")
-        plt.plot(ts_ns, mxyz[:,2], ".-", label="mz")
-        plt.plot(ts_ns, mz_ref, "-", label="analytical")
-        plt.xlabel("time (ns)")
-        plt.ylabel("mz")
-        plt.title("integrating a macrospin")
-        plt.legend()
-        plt.savefig("test_llg_s.png")
-    
-        print("Deviation = {}".format(np.max(np.abs(mxyz[:,2] - mz_ref))))
-    
-    assert abs(sim.spin_length()[0]-1) < 1e-2
-
-
-def test_sim_single_spin_llg_stt(do_plot=False):
+def disable_test_sim_single_spin_llg_stt(do_plot=False):
     ni=Nickel()
     mesh=FDMesh(nx=1,ny=1,nz=1)
     mesh.set_material(ni)
@@ -160,7 +111,7 @@ def test_sim_single_spin_llg_stt(do_plot=False):
     sim.set_m((1, 0, 0))
     
     H0 = 1
-    sim.add(Zeeman(H0,(0, 0, 1)))
+    sim.add(Zeeman((0, 0, H0)))
     
     dt = 1e-12;
     ts = np.linspace(0, 200 * dt, 101)
@@ -200,62 +151,13 @@ def test_sim_single_spin_llg_stt(do_plot=False):
     
     assert np.max(np.abs(mxyz[:,2] - mz_ref))<1e-9
 
-
-
-def test_sim_single_spin(do_plot=False):
-    ni=Nickel()
-    mesh=FDMesh(nx=1,ny=1,nz=1)
-    mesh.set_material(ni)
-    
-    ni.alpha=0.1
-    sim = Sim(mesh,driver='sllg')
-    sim.set_m((1, 0, 0))
-    
-    H0 = 1
-    sim.add(Zeeman(H0,(0, 0, 1)))
-    
-    dt = 1e-12; 
-    ts = np.linspace(0, 100 * dt, 101)
-    
-    
-    precession = ni.gamma/(1+ni.alpha**2)
-    
-    mz_ref = []
-    
-    mz = []
-    real_ts=[]
-    for t in ts:
-        sim.run_until(t)
-        real_ts.append(sim.t)
-        print sim.t
-        mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
-        mz.append(sim.spin[-1])
-    
-    mz=np.array(mz)
-    
-    if do_plot:
-        ts_ns = np.array(real_ts) * 1e9
-        plt.plot(ts_ns, mz, "b.", label="computed") 
-        plt.plot(ts_ns, mz_ref, "r-", label="analytical") 
-        plt.xlabel("time (ns)")
-        plt.ylabel("mz")
-        plt.title("integrating a macrospin")
-        plt.legend()
-        plt.savefig("test_llb.png")
-        
-    print("Deviation = {}, total value={}".format(
-            np.max(np.abs(mz - mz_ref)),
-            mz_ref))
-   
-    assert np.max(np.abs(mz - mz_ref)) < 2e-5
-
   
 
 if __name__=='__main__':
     #test_sim_init_m()
     #test_sim_init_m_fun()
     #test_sim_T_fun()
-    #test_sim_single_spin_vode(do_plot=True)
+    test_sim_single_spin_vode(do_plot=True)
     #test_sim_single_spin_llg_s(do_plot=True)
-    test_sim_single_spin_llg_stt(do_plot=True)
+    #test_sim_single_spin_llg_stt(do_plot=True)
     #test_sim_single_spin(do_plot=True)

@@ -5,7 +5,7 @@ inline double cross_y(double a0, double a1, double a2, double b0, double b1, dou
 inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
 
-void dmi_field(double *spin, double *field, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
+void dmi_field(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
@@ -80,6 +80,8 @@ void dmi_field(double *spin, double *field, double D, int nx, int ny, int nz, in
                 field[index + n1] = fy;
                 field[index + n2] = fz;
                 
+                energy[index] = -(fx*spin[index]+fy*spin[index+n1]+fz*spin[index+n2]);
+
             }
         }
 	}
@@ -122,7 +124,7 @@ double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic,
 
 				if (i < nx - 1 || xperiodic) {
 					id = index + nyz;
-                    if (j == ny-1){
+                    if (i == nx -1){
                         id -= n1;
                     }
                     S_j[0] = spin[id];

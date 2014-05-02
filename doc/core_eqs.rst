@@ -27,7 +27,7 @@ Interactions
 In the level of atomic moments, :math:`\vec{\mu}_s`, originated from the angular momentum of electrons in atoms, could be employed as the base unit in simulations. There are several typical interactions between magnetic moments. The total Hamiltonian is the summation of them.
 
 .. math::
-   \mathcal{H} = \mathcal{H}_{ex} + \mathcal{H}_{an} + \mathcal{H}_d
+   \mathcal{H} = \mathcal{H}_{ex} + \mathcal{H}_{an} + \mathcal{H}_d + \mathcal{H}_{ext}
 
 
 Exchange interaction
@@ -35,7 +35,7 @@ Exchange interaction
 The classical Heisenberg Hamiltonian with the nearest-neighbor exchange interaction, 
 
 .. math::
-   \mathcal{H}_{ex} = -J \sum_{<i,j>}\vec{S}_i \vec{S}_j
+   \mathcal{H}_{ex} = -J \sum_{<i,j>}\vec{S}_i \codt \vec{S}_j
 
 where the summation is taken only once for each pair, so the effective field is 
 
@@ -89,5 +89,14 @@ and the effective field is
 
 .. math::
    \vec{H}=-\frac{2D}{\mu_0 M_s} (\nabla \times \vec{m})
+
+
+Zeeman energy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The zeeman energy is,
+
+.. math::
+   \mathcal{H}_{dmi}= - \sum_{i} \mu_s \vec{H}_{ext}\cdot  \vec{S}_i
+
 
 Basically, we will follow the above equations to write codes.

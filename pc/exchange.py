@@ -32,7 +32,8 @@ class UniformExchange(object):
         self.spin=spin
         n=self.nx*self.ny*self.nz
         self.field=np.zeros(3*n)
-        self.energy=0
+        self.energy=np.zeros(3*n)
+        self.total_energy=0
         self.pbc = pbc
         self.mu_s_inv = mu_s_inv
     
@@ -45,23 +46,34 @@ class UniformExchange(object):
             self.xperiodic = 1
             self.yperiodic = 1
 
-    def compute_field(self):
+    def compute_field(self, t=0):
         
         clib.compute_exchange_field(self.spin,
                                       self.field,
+                                      self.energy,
                                       self.J,
                                       self.nx,
                                       self.ny,
                                       self.nz,
                                       self.xperiodic,
                                       self.yperiodic)
-
+        
+        self.total_energy = np.sum(self.energy)/2.0
                              
         return self.field*self.mu_s_inv
-
+        
     def compute_energy(self):
         
-        self.energy=clib.compute_exchange_energy(self.spin,
+        #since we are not always calling this function, so it's okay to call compute_field again
+        self.compute_field()
+        
+        self.total_energy = np.sum(self.energy)/2.0
+        
+        return self.total_energy
+    
+    def compute_energy_directly(self):
+        
+        energy=clib.compute_exchange_energy(self.spin,
                                                  self.J,
                                                  self.nx,    
                                                  self.ny,
@@ -69,4 +81,4 @@ class UniformExchange(object):
                                                  self.xperiodic,
                                                  self.yperiodic)
                                                  
-        return self.energy
+        return energy

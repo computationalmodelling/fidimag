@@ -74,9 +74,9 @@ class Sim(object):
         self.mu_s_inv[:] = 1
 
         if self.driver == 'sllg':
-            self.vode=clib.RK2S(self.mat.mu_s,dt,
+            self.vode=clib.RK2S(self.mu_s,dt,
                         self.nxyz,
-                        self.mat.gamma,
+                        self.gamma,
                         self.alpha,
                         self.spin,
                         self.field,
@@ -102,7 +102,7 @@ class Sim(object):
             self.beta = 0
             #a^3/dx ==> unit_length^2
             cell_size=self.mesh.cell_size
-            self.u0 = const.g_e*const.mu_B*cell_size/(2*const.e*self.mat.mu_s)*self.unit_length**2
+            self.u0 = const.g_e*const.mu_B*cell_size/(2*const.e*self.mu_s)*self.unit_length**2
             
         else:
             raise Exception("Unsppourted driver:{},avaiable drivers: sllg, llg, llg_s, llg_stt.".format(self.driver))
@@ -162,7 +162,10 @@ class Sim(object):
 
     def add(self,interaction):
         interaction.setup(self.mesh,self.spin,
-                          mu_s_inv=self.mu_s_inv,pbc=self.pbc)
+                          mu_s_inv=self.mu_s_inv,
+                          pbc=self.pbc)
+        
+        #TODO: FIX
         for i in self.interactions:
             if i.name == interaction.name:
                 interaction.name=i.name+'_2'
@@ -203,9 +206,14 @@ class Sim(object):
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
             
+        length = abs(self.spin_length()-1)
+        if np.max(length)>1e-6:
+            print length
+            raise Exception("the error of spin length is large than 1e-7!!!! please check your code!!!")
+            
         self.saver.save()
 
-    def update_effective_field(self,y):
+    def update_effective_field(self, y):
         
         self.spin[:]=y[:]
         
@@ -215,17 +223,17 @@ class Sim(object):
             self.pin_fun(self.t,self.mesh,self.spin)
         
         for obj in self.interactions:
-            self.field+=obj.compute_field()
+            self.field += obj.compute_field()
 
-    def compute_effective_field(self):
+    def compute_effective_field(self, t):
         
         self.field[:]=0
 
         if self.pin_fun:
-            self.pin_fun(self.t,self.mesh,self.spin)
+            self.pin_fun(t,self.mesh,self.spin)
 
         for obj in self.interactions:
-            self.field+=obj.compute_field()
+            self.field += obj.compute_field(t)
     
     def sundials_rhs(self, t, y, ydot):
         
@@ -234,13 +242,13 @@ class Sim(object):
         #already synchronized when call this funciton
         #self.spin[:]=y[:]
                 
-        self.compute_effective_field()
+        self.compute_effective_field(t)
         
         clib.compute_llg_rhs(ydot,
                              self.spin,
                              self.field,
                              self.alpha,
-                             self.mat.gamma,
+                             self.gamma,
                              self.nxyz)
         
                 
@@ -276,7 +284,7 @@ class Sim(object):
                                self.alpha,
                                self.beta,
                                self.u0*self.p,
-                               self.mat.gamma,
+                               self.gamma,
                                self.nxyz)
         
         #print 'field',self.field

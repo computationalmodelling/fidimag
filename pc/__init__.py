@@ -21,6 +21,7 @@ from mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman
+from zeeman import TimeZeeman
 from demag import Demag
 from dmi import DMI 
 from materials import Nickel

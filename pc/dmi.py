@@ -22,7 +22,8 @@ class DMI(object):
         
         self.nxyz=mesh.nxyz
         self.field=np.zeros(3*self.nxyz)
-        self.energy=0
+        self.energy=np.zeros(3*self.nxyz)
+        self.total_energy=0
     
         self.xperiodic = 0
         self.yperiodic = 0
@@ -33,10 +34,11 @@ class DMI(object):
             self.xperiodic = 1
             self.yperiodic = 1
 
-    def compute_field(self):
+    def compute_field(self, t=0):
         
         clib.compute_dmi_field(self.spin,
                                     self.field,
+                                    self.energy,
                                     self.D,
                                     self.nx,
                                     self.ny,
@@ -47,7 +49,19 @@ class DMI(object):
         return self.field*self.mu_s_inv
     
     def compute_energy(self):
-        self.energy=clib.compute_dmi_energy(self.spin,
+        
+        #since we are not always calling this function, so it's okay to call compute_field again
+        self.compute_field()
+        
+        self.total_energy = np.sum(self.energy)/2.0
+        
+        return self.total_energy
+    
+    def compute_energy_direct(self):
+        """
+        mainly for testing
+        """
+        energy=clib.compute_dmi_energy(self.spin,
                                             self.D,
                                             self.nx,
                                             self.ny,
@@ -55,4 +69,5 @@ class DMI(object):
                                             self.xperiodic,
                                             self.yperiodic)
         
-        return self.energy
+        
+        return energy

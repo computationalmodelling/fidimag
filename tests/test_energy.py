@@ -29,11 +29,13 @@ def init_m(pos):
 
 
 def relax_system(mesh,Dx=0.005,Dp=0.01):
-    mat = UnitMaterial()
-    mesh.set_material(mat)
     
-    sim=Sim(mesh,name='relax')
-    sim.alpha=0.5
+    mat = UnitMaterial()
+    
+    sim = Sim(mesh,name='relax')
+    sim.alpha = mat.alpha
+    sim.gamma = mat.gamma
+    
     
     exch=UniformExchange(mat.J)
     sim.add(exch)

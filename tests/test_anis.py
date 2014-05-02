@@ -9,7 +9,7 @@ def test_anis():
     mesh=FDMesh(nx=5,ny=3,nz=2)
     spin=np.zeros(90)
     anis=Anisotropy(1)
-    anis.setup(mesh,spin)
+    anis.setup(mesh,spin,np.array([1]))
     field=anis.compute_field()
     assert len(mesh.pos)==5*3*2
     assert np.max(field)==0

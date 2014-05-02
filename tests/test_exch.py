@@ -1,9 +1,8 @@
-from pc import UniformExchange
-from pc import Anisotropy
-from pc import FDMesh
-from pc import Sim
-from pc import Nickel
 import numpy as np
+from pc import Sim
+from pc import FDMesh
+from pc import UniformExchange
+
 
 def init_m(pos):
     x,y,z=pos
@@ -25,6 +24,22 @@ def test_exch_1d():
     assert field[3]==6
     assert field[4]==3
     assert np.max(field[5:])==0
+    
+def test_exch_1d_pbc():
+    mesh=FDMesh(nx=5,ny=1,nz=1)
+    sim=Sim(mesh,pbc='1d')
+    exch=UniformExchange(1)
+    sim.add(exch)
+    
+    sim.set_m(init_m,normalise=False)
+
+    field=exch.compute_field()
+    assert field[0]==1+4
+    assert field[1]==2
+    assert field[2]==4
+    assert field[3]==6
+    assert field[4]==3+0
+    assert np.max(field[5:])==0
 
     
 def test_exch_2d():
@@ -42,6 +57,24 @@ def test_exch_2d():
     assert field[6]==2+3+4
     assert field[8]==3+4
     assert np.max(field[21:])==0
+    
+def test_exch_2d_pbc2d():
+    mesh=FDMesh(nx=3,ny=2,nz=1)
+    sim=Sim(mesh, pbc='2d')
+    exch=UniformExchange(1)
+    sim.add(exch)
+
+    sim.set_m(init_m,normalise=False)
+
+    field=exch.compute_field()
+    
+    expected_x=np.array([3,3,4,4,5,5])
+    expected_y=np.array([2,2,2,2,2,2])
+    
+    assert np.max(abs(field[:6]-expected_x))==0
+    assert np.max(abs(field[6:12]-expected_y))==0
+
+    assert np.max(field[12:])==0
 
 
 def test_exch_3d():
@@ -78,7 +111,9 @@ def test_exch_energy_1d():
     
     
 if __name__=='__main__':
-    test_exch_1d()
-    test_exch_2d()
-    test_exch_3d()
-    test_exch_energy_1d()
+    #test_exch_1d()
+    #test_exch_1d_pbc()
+    #test_exch_2d()
+    test_exch_2d_pbc2d()
+    #test_exch_3d()
+    #test_exch_energy_1d()

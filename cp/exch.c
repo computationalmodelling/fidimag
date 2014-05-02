@@ -12,8 +12,8 @@
  Note that the pair <i,j> only run once for each pair.
  
  */
-void compute_exch_field(double *spin, double *field, double J, int nx, int ny, int nz, int xperiodic, int yperiodic) {
-    
+void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic) {
+
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
 	int i, j, k;
@@ -87,6 +87,8 @@ void compute_exch_field(double *spin, double *field, double J, int nx, int ny, i
                 field[index + n1] = fy;
                 field[index + n2] = fz;
                 
+                energy[index] = -(fx*spin[index]+fy*spin[index+n1]+fz*spin[index+n2]);
+
             }
         }
 	}

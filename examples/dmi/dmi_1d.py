@@ -18,22 +18,20 @@ def init_m(pos):
 
 def relax_system(mesh):
         
-    sim=Sim(mesh,name='relax',pbc='2d')
+    sim=Sim(mesh,name='relax',pbc=None)
     sim.alpha=0.1
     
     sim.set_m(init_m)
-    print sim.m
 
     J = 1
     exch = UniformExchange(J)
     sim.add(exch)
 
-    dmi= DMI(0.05*J)
+    dmi = DMI(0.05*J)
     sim.add(dmi)
     
-    sim.set_m(init_m)
     
-    ts=np.linspace(0, 5e-10, 101)
+    ts=np.linspace(0, 1, 11)
     for t in ts:
         print t,sim.spin_length()-1
         sim.run_until(t)

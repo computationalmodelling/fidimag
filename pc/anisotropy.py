@@ -11,20 +11,22 @@ class Anisotropy(object):
         self.Dy=D*direction[1]
         self.Dz=D*direction[2]
         self.name=name
-        
-    def setup(self,mesh,spin,unit_length=1.0,mu_s=1.0):
+    
+    
+    def setup(self,mesh,spin,mu_s_inv=1.0, pbc=None):
         self.mesh=mesh
         self.spin=spin
         
-        self.Dx_mu_s=self.Dx/mu_s
-        self.Dy_mu_s=self.Dy/mu_s
-        self.Dz_mu_s=self.Dz/mu_s
+        #TODO: change Dx, Dy, Dz to arrays
+        self.Dx_mu_s=self.Dx*mu_s_inv[0]
+        self.Dy_mu_s=self.Dy*mu_s_inv[0]
+        self.Dz_mu_s=self.Dz*mu_s_inv[0]
         
         self.nxyz=mesh.nxyz
         self.field=np.zeros(3*self.nxyz)
         self.energy=0
 
-    def compute_field(self):
+    def compute_field(self, t=0):
         clib.compute_anisotropy(self.spin,
                                 self.field,
                                 self.Dx_mu_s,

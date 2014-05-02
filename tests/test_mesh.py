@@ -8,15 +8,5 @@ def test_mesh1():
     assert mesh.pos_at(0,0,0)==(0,0,0)
     assert mesh.pos_at(3,2,1)==(3*0.23,2*0.41,1)
 
-def test_mesh2():
-    mesh=FDMesh(nx=10,ny=10,nz=10)
-    ni=Nickel()
-    mesh.set_material(ni)
-    t=ni.a*mesh.unit_length
-    assert t<1e-9
-    assert mesh.pos_at(6,7,8)==(6*ni.a,7*ni.a,8*ni.a)
-    
-    
 if __name__=='__main__':
     test_mesh1()
-    test_mesh2()
