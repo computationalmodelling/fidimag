@@ -15,9 +15,9 @@ class Zeeman(object):
         self.spin=spin
         self.nxyz = mesh.nxyz
         
-        self.mu_s = np.zeros(mesh.nxyz)
+        self.mu_s = np.zeros(3*mesh.nxyz)
         
-        for i in range(self.nxyz):
+        for i in range(3*self.nxyz):
             if mu_s_inv[i] == 0.0:
                 self.mu_s[i] = 0
             else: 
@@ -31,14 +31,11 @@ class Zeeman(object):
         return self.field
 
     def compute_energy(self):
-        sf = self.field*self.spin
-        sf.shape=(3,-1)
+        sf = self.field*self.spin*self.mu_s
         
-        energy_d = -np.sum(sf, axis=0)*self.mu_s
+        energy = -np.sum(sf)
         
-        sf.shape=(-1,)
-        
-        return np.sum(energy_d)
+        return energy
     
 
 class TimeZeeman(object):
@@ -55,9 +52,9 @@ class TimeZeeman(object):
         self.spin=spin
         self.nxyz = mesh.nxyz
         
-        self.mu_s = np.zeros(mesh.nxyz)
+        self.mu_s = np.zeros(3*mesh.nxyz)
         
-        for i in range(self.nxyz):
+        for i in range(3*self.nxyz):
             if mu_s_inv[i] == 0.0:
                 self.mu_s[i] = 0
             else: 
@@ -72,11 +69,6 @@ class TimeZeeman(object):
         return self.field
 
     def compute_energy(self):
-        sf = self.field*self.spin
-        sf.shape=(3,-1)
-        
-        energy_d = -np.sum(sf, axis=0)*self.mu_s
-        
-        sf.shape=(-1,)
-        
-        return np.sum(energy_d)
+        sf = self.field*self.spin*self.mu_s
+        energy = -np.sum(sf)
+        return energy

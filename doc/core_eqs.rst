@@ -35,7 +35,7 @@ Exchange interaction
 The classical Heisenberg Hamiltonian with the nearest-neighbor exchange interaction, 
 
 .. math::
-   \mathcal{H}_{ex} = -J \sum_{<i,j>}\vec{S}_i \codt \vec{S}_j
+   \mathcal{H}_{ex} = -J \sum_{<i,j>}\vec{S}_i \cdot \vec{S}_j
 
 where the summation is taken only once for each pair, so the effective field is 
 

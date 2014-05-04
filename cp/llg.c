@@ -152,7 +152,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
 	int i, j, k;
 
 	double mth0, mth1, mth2;
-    double coeff, mh;
+    double coeff, mm, mh, c;
     double hpi,hpj,hpk;
 
 	for (i = 0; i < nxyz; i++) {
@@ -161,12 +161,13 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
 
 		coeff = -gamma/(1+alpha[i]*alpha[i]);
         
-        //mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
+        mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
         mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
         
         //suppose m is normalised, i.e., mm=1; hp=mm.h-mh.m=-mx(mxh)
-        //we found that dropping mm is a good method to normalise m (no direct normalising any more in other place)
-        //since we get a nice result: Deviation = 2.01052535731e-10 ;-)
+        //hpi = mm*h[i] - mh*m[i];
+        //hpj = mm*h[j] - mh*m[j];
+        //hpk = mm*h[k] - mh*m[k];
         hpi = h[i] - mh*m[i];
         hpj = h[j] - mh*m[j];
         hpk = h[k] - mh*m[k];
@@ -178,6 +179,15 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
         dm_dt[i] = coeff*(mth0 - hpi * alpha[i]);
         dm_dt[j] = coeff*(mth1 - hpj * alpha[i]);
         dm_dt[k] = coeff*(mth2 - hpk * alpha[i]);
+        
+        // in future, we will try the new method to integrate the LLG equation,
+        // A mixed mid-point Runge-Kutta like scheme for the integration of Landau-Lifshitz equation
+        // Journal of Applied Physics 115, 17D101 (2014)
+        // if possible, we can combine it with adaptive step size, don't know how to do but it's worth a try.
+        c = 6*sqrt(dm_dt[i]*dm_dt[i]+dm_dt[j]*dm_dt[j]+dm_dt[k]*dm_dt[k]);
+        dm_dt[i] += c*(1-mm)*m[i];
+        dm_dt[j] += c*(1-mm)*m[j];
+        dm_dt[k] += c*(1-mm)*m[k];
 
 	}
     

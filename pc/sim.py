@@ -1,4 +1,5 @@
 from __future__ import division
+import os
 import clib
 import cvode
 import time
@@ -10,8 +11,6 @@ from zeeman import Zeeman
 from demag import Demag
 from fileio import DataSaver, DataReader
 from save_vtk import SaveVTK
-from materials import Nickel
-from materials import UnitMaterial
 from constant import Constant
 
 import pccp.util.helper as helper
@@ -43,13 +42,13 @@ class Sim(object):
         self.unit_length=mesh.unit_length
         self._T = np.zeros(self.nxyz,dtype=np.float)
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
-        self._mu_s = np.zeros(3*self.nxyz,dtype=np.float)
+        self._mu_s = np.zeros(self.nxyz,dtype=np.float)
         self.mu_s_inv = np.zeros(3*self.nxyz,dtype=np.float)
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
         self.field = np.zeros(3*self.nxyz,dtype=np.float)
         self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
         self.interactions=[]
-        self.pin_fun=None
+        self.pin_fun = None
         self.driver = driver
         self.pbc = pbc
 
@@ -152,11 +151,13 @@ class Sim(object):
 
     def set_mu_s(self, value):
         self._mu_s[:] = helper.init_scalar(value, self.mesh)
+        self.mu_s_inv.shape=(3,-1)
         for i in range(self.nxyz):
             if self._mu_s[i] == 0.0:
-                self.mu_s_inv[i] = 0
+                self.mu_s_inv[:,i] = 0
             else: 
-                self.mu_s_inv[i]=1.0/self._mu_s[i]
+                self.mu_s_inv[:,i]=1.0/self._mu_s[i]
+        self.mu_s_inv.shape=(-1,)
         
     mu_s = property(get_mu_s, set_mu_s)
 
@@ -205,11 +206,14 @@ class Sim(object):
         
         if self.pin_fun:
             self.pin_fun(self.t,self.mesh,self.spin)
-            
+        
+        """
         length = abs(self.spin_length()-1)
         if np.max(length)>1e-6:
             print length
-            raise Exception("the error of spin length is large than 1e-7!!!! please check your code!!!")
+            raise Exception("the error of spin length is large than 1e-6, please check the tolerence!!!")
+        """
+        
             
         self.saver.save()
 
@@ -339,6 +343,12 @@ class Sim(object):
 
     def save_vtk(self):
         self.vtk.save_vtk(self.spin)
+    
+    def save_m(self):
+        if not os.path.exists('npys'):
+            os.makedirs('npys')
+        name = 'npys/m_%g.npy'%self.t
+        np.save(name,self.spin)
 
     def stat(self):
         return self.vode.stat()
@@ -351,70 +361,4 @@ class Sim(object):
 
 
 if __name__=='__main__':
-
-    T=1000
-    ni=Nickel()
-    ni.alpha=0.1
-
-    mesh=FDMesh(nx=1,ny=1,nz=1)
-    mesh.set_material(ni)
-
-    sim=Sim(mesh,T=T,mat=ni)
-
-    exch=UniformExchange(ni.J,mu_s=ni.mu_s)
-    sim.add(exch)
-
-    anis=Anisotropy(ni.D,mu_s=ni.mu_s)
-    sim.add(anis)
-
-    zeeman=Zeeman(1e5,(0,0,1))
-    sim.add(zeeman)
-
-    #demag=Demag(mu_s=ni.mu_s)
-    #sim.add(demag)
-
-    sim.set_m((1,0,0))
-    print sim.vode.successful()
-    print sim.vode.successful()
-    #vs=VisualSpin(sim)
-    #vs.init()
-
-
-    #print exch.compute_field()
-    #print anis.compute_field()
-
-    ts=np.linspace(0, 1e-10, 100)
-    mxs=[]
-    mys=[]
-    mzs=[]
-    dms=[]
-    for t in ts:
-        sim.run_until(t)
-        spin=sim.spin
-        #print 'from sim',sim.field,sim.spin
-        dm=np.linalg.norm(spin)-1.0
-        dms.append(dm)
-
-
-        av=sim.compute_average()
-        mxs.append(av[0])
-        mys.append(av[1])
-        mzs.append(av[2])
-
-
-
-        #vs.update()
-        #time.sleep(0.01)
-
-    import matplotlib as mpl
-    mpl.use("Agg")
-    import matplotlib.pyplot as plt
-    fig=plt.figure()
-    plt.plot(ts,mxs,'^-',label='mx')
-    plt.plot(ts,mys,'.-',label='my')
-    plt.plot(ts,mzs,'o-',label='mz')
-    plt.legend()
-    fig.savefig("mxyz_T%g.png"%T)
-    fig=plt.figure()
-    plt.plot(ts,dms,'^-')
-    plt.savefig('dm_%g.png'%T)
+    pass
