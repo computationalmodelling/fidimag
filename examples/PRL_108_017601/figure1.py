@@ -17,15 +17,9 @@ def init_m(pos):
     m1 = (0.05,0.01,-1)
     m2 = (0,0,1)
     
-    if x1**2 + y1**2 < r**2:
+    if (x1-r)**2 + (y1-r)**2 < r**2:
         return m1
-    elif (x1-x0)**2 + y1**2 < r**2:
-        return m1
-    elif (x1-x0)**2 + (y1-y0)**2 < r**2:
-        return m1
-    elif (x1)**2 + (y1-y0)**2 < r**2:
-        return m1
-    elif (x1-x0/2.)**2 + (y1-y0/2.)**2 < r**2:
+    elif (x1-x0/2.-r)**2 + (y1-y0/2.-r)**2 < r**2:
         return m1
     else:
         return m2
@@ -56,22 +50,17 @@ def relax_system(mesh):
     zeeman = Zeeman([0,0,3.75e-3])
     sim.add(zeeman)
     
-    ts=np.linspace(0, 1000, 201)
-    for t in ts:
-        sim.run_until(t)
-        sim.save_vtk()
-        sim.save_m()
-        print 'sim time %g'%t
-
-    return sim.spin
-
+    sim.relax(dt=1.0, stopping_dmdt=1e-4, max_steps=1000, save_m_steps=100, save_vtk_steps=50)
+    
+    np.save('m0.npy',sim.spin)
 
                         
 if __name__=='__main__':
     
     np.random.seed(11)
     
-    mesh = FDMesh(nx=288,ny=288,nz=1)
+    #mesh = FDMesh(nx=288,ny=288,nz=1)
+    mesh = FDMesh(nx=166,ny=96*2,nz=1)
     
     relax_system(mesh)
     

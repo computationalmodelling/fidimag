@@ -29,6 +29,13 @@ class Zeeman(object):
 
     def compute_field(self, t=0):     
         return self.field
+    
+    #Todo: update it later
+    def average_field(self):
+        hx = self.field[0]
+        hy = self.field[self.nxyz]
+        hz = self.field[2*self.nxyz]
+        return np.array([hx,hy,hz])
 
     def compute_energy(self):
         sf = self.field*self.spin*self.mu_s
@@ -67,6 +74,13 @@ class TimeZeeman(object):
     def compute_field(self, t=0):
         self.field[:] = self.H_init[:]*self.time_fun(t)
         return self.field
+    
+    #Todo: update it later
+    def average_field(self):
+        hx = self.field[0]
+        hy = self.field[self.nxyz]
+        hz = self.field[2*self.nxyz]
+        return np.array([hx,hy,hz])
 
     def compute_energy(self):
         sf = self.field*self.spin*self.mu_s

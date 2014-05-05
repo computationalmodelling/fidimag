@@ -155,6 +155,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
     double coeff, mm, mh, c;
     double hpi,hpj,hpk;
 
+	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, mth0, mth1, mth2, hpi,hpj,hpk)
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;

@@ -1,7 +1,7 @@
 #include<math.h>
 #include <complex.h>
 #include <fftw3.h>
-//#include<omp.h>
+#include<omp.h>
 
 void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);

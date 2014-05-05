@@ -19,6 +19,8 @@ void compute_exch_field(double *spin, double *field, double *energy, double J, i
 	int i, j, k;
 	int index, id;
 	double fx,fy,fz;
+
+	#pragma omp parallel for private(i,j,k, index, id, fx, fy, fz)
 	for (i = 0; i < nx; i++) {
         for (j = 0; j < ny; j++) {
             for (k = 0; k < nz; k++) {

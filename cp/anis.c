@@ -5,6 +5,7 @@ void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
 
 	int i, j, k;
 
+    #pragma omp parallel for private(i,j,k)
 	for (i = 0; i < nxyz; i++) {
 
 		j = i + nxyz;
@@ -25,6 +26,7 @@ double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
 
 	double energy = 0;
 
+	#pragma omp parallel for private(i,j,k)
 	for (i = 0; i < nxyz; i++) {
 
 		j = i + nxyz;

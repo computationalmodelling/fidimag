@@ -146,6 +146,12 @@ cdef class CvodeSolver(object):
         #CVDlsGetNumJacEvals(self.cvode_mem, &self.njevals)
         
         return self.__str__()
+    
+    def get_current_step(self):
+        cdef double step
+        CVodeGetCurrentStep(self.cvode_mem, &step)
+        return step
+        
 
     def __repr__(self):
         s = []

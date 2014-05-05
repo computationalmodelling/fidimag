@@ -4,7 +4,7 @@ import numpy as np
 
 
 class SaveVTK():
-    def __init__(self,mesh,m,name='unnamed'):
+    def __init__(self,mesh,m,name='unnamed',vtkname='m'):
         self.mesh=mesh
         self.m=m
         self.nx=mesh.nx
@@ -13,26 +13,35 @@ class SaveVTK():
         self.dx=mesh.dx
         self.dy=mesh.dy
         self.dz=mesh.dz
-        self.name=name
+        self.name = '%s_vtks'%name
+        self.vtkname = vtkname
         self.index=0
         xyz=np.array(mesh.pos)
         self.x=np.array(xyz[:,0],dtype='float32')
         self.y=np.array(xyz[:,1],dtype='float32')
         self.z=np.array(xyz[:,2],dtype='float32')
         
-        if not os.path.exists('vtks'):
-            os.makedirs('vtks')
+        if not os.path.exists(self.name):
+            os.makedirs(self.name)
+        
+        #build a new index since we have used difference order 
+        ids = [self.mesh.index(i,j,k) for k in range(self.nz) for j in range(self.ny) for i in range(self.nx)]
+        self.ids = np.array(ids)
+        
+        self.pos = []
+        for i in range(len(ids)):
+            self.pos.append(self.mesh.pos[self.ids[i]])
                     
     def save_vtk(self,m):
         
-        pos=pyvtk.StructuredGrid([self.nx,self.ny,self.nz],self.mesh.pos)
+        pos=pyvtk.StructuredGrid([self.nx,self.ny,self.nz],self.pos)
         
         m.shape=(3,-1)
-        data=pyvtk.PointData(pyvtk.Vectors(np.transpose(m),'m'))
+        data=pyvtk.PointData(pyvtk.Vectors(np.transpose(m)[self.ids],'m'))
         m.shape=(-1,)
         
         vtk = pyvtk.VtkData(pos,data,'spins')
                       
-        vtk.tofile("vtks/%s.%06d"%(self.name,self.index))
+        vtk.tofile("%s/%s.%06d"%(self.name,self.vtkname,self.index),'binary')
         
         self.index+=1

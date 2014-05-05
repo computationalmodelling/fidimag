@@ -36,7 +36,8 @@ class Sim(object):
 
         """
         
-        self.t=0
+        self.t = 0
+        self.name = name
         self.mesh = mesh
         self.nxyz = mesh.nxyz
         self.unit_length=mesh.unit_length
@@ -45,6 +46,7 @@ class Sim(object):
         self._mu_s = np.zeros(self.nxyz,dtype=np.float)
         self.mu_s_inv = np.zeros(3*self.nxyz,dtype=np.float)
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
+        self.spin_last = np.ones(3*self.nxyz,dtype=np.float)
         self.field = np.zeros(3*self.nxyz,dtype=np.float)
         self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
         self.interactions=[]
@@ -161,7 +163,7 @@ class Sim(object):
         
     mu_s = property(get_mu_s, set_mu_s)
 
-    def add(self,interaction):
+    def add(self,interaction, save_field=False):
         interaction.setup(self.mesh,self.spin,
                           mu_s_inv=self.mu_s_inv,
                           pbc=self.pbc)
@@ -179,6 +181,13 @@ class Sim(object):
             'get': lambda sim:sim.get_interaction(interaction.name).compute_energy(),
             'header': energy_name}
         
+        if save_field:
+            fn = '{}'.format(interaction.name)
+            self.saver.entities[fn] = {
+            'unit': '<>',
+            'get': lambda sim:sim.get_interaction(interaction.name).average_field(),
+            'header': ('%s_x'%fn, '%s_y'%fn, '%s_z'%fn)}
+        
         self.saver.update_entity_order()
         
     def get_interaction(self, name):
@@ -193,10 +202,12 @@ class Sim(object):
 
     def run_until(self,t):
         
-        if abs(t)<1e-15:
+        if t <= self.t:
             return
         
         ode = self.vode
+        
+        self.spin_last[:] = self.spin[:]
         
         ode.run_until(t)
         
@@ -345,9 +356,9 @@ class Sim(object):
         self.vtk.save_vtk(self.spin)
     
     def save_m(self):
-        if not os.path.exists('npys'):
-            os.makedirs('npys')
-        name = 'npys/m_%g.npy'%self.t
+        if not os.path.exists('%s_npys'%self.name):
+            os.makedirs('%s_npys'%self.name)
+        name = '%s_npys/m_%g.npy'%(self.name,self.t)
         np.save(name,self.spin)
 
     def stat(self):
@@ -358,6 +369,45 @@ class Sim(object):
         length=np.sqrt(np.sum(self.spin**2,axis=0))
         self.spin.shape=(-1,)
         return length
+    
+    def compute_dmdt(self, dt):
+        m0 = self.spin_last
+        m1 = self.spin
+        dm = (m1 - m0).reshape((3, -1))
+        max_dm = np.max(np.sqrt(np.sum(dm**2, axis=0))) 
+        max_dmdt = max_dm / dt
+        return max_dmdt
+    
+    def relax(self, dt=1.0, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
+                 
+        for i in range(0,max_steps+1):
+            
+            cvode_dt = self.vode.get_current_step()
+            
+            increment_dt = dt
+            
+            if cvode_dt > dt:
+                increment_dt = cvode_dt
+
+            self.run_until(self.t+increment_dt)
+                
+            if i%save_vtk_steps==0:
+                self.save_vtk()
+                
+            if i%save_m_steps==0:
+                self.save_m()
+            
+            dmdt = self.compute_dmdt(increment_dt)
+            
+            print 'sim time=%g, max_dmdt=%g ode_step=%g'%(self.t,dmdt, cvode_dt)
+            
+            if dmdt<stopping_dmdt:
+                break
+        
+        
+        self.save_vtk()
+        self.save_m()
+    
 
 
 if __name__=='__main__':
