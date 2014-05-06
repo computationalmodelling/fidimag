@@ -31,6 +31,7 @@ def random_m(pos):
 def relax_system(mesh):
     
     sim=Sim(mesh,name='relax',pbc='2d')
+    #sim.set_options(rtol=1e-10,atol=1e-14)
     sim.alpha = 1.0
     sim.gamma = 1.0
     sim.mu_s = 1.0
@@ -50,7 +51,7 @@ def relax_system(mesh):
     zeeman = Zeeman([0,0,3.75e-3])
     sim.add(zeeman)
     
-    sim.relax(dt=1.0, stopping_dmdt=1e-4, max_steps=1000, save_m_steps=100, save_vtk_steps=50)
+    sim.relax(dt=2.0, stopping_dmdt=1e-6, max_steps=1000, save_m_steps=100, save_vtk_steps=50)
     
     np.save('m0.npy',sim.spin)
 

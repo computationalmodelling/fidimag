@@ -39,20 +39,28 @@ for root, dirnames, filenames in os.walk(sundials_path):
 
 print sources2
 
+
+libs_path = os.path.join(pccp_path,'libs')
+include_path = os.path.join(libs_path,'include')
+lib_path = os.path.join(libs_path,'lib')
+
+print include_path
+print lib_path
+
 ext_modules = [
     Extension("clib",
               sources = sources,
-              include_dirs = [numpy.get_include(),'/usr/local/include'],
+              include_dirs = [numpy.get_include(),include_path],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
               extra_compile_args=["-fopenmp"],
-              extra_link_args=['-L/usr/local/lib','-fopenmp'],
+              extra_link_args=['-L%s'%lib_path,'-fopenmp'],
         ),
     Extension("cvode",
               sources = sources2,
-              include_dirs = [numpy.get_include(),'/usr/local/include'],
+              include_dirs = [numpy.get_include(),include_path],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
               extra_compile_args=["-fopenmp"],
-              extra_link_args=['-L/usr/local/lib','-fopenmp'],
+              extra_link_args=['-L%s'%lib_path,'-fopenmp'],
               #extra_link_args=["-g"],
         )
     ]

@@ -59,6 +59,12 @@ class Sim(object):
             'unit': '<J>',
             'get': lambda sim : sim.compute_energy(),
             'header': 'E_total'}
+        
+        self.saver.entities['m_error'] = {
+            'unit': '<>',
+            'get': lambda sim : sim.compute_spin_error(),
+            'header': 'm_error'}
+        
         self.saver.update_entity_order()
 
         self._T[:] = T
@@ -203,6 +209,9 @@ class Sim(object):
     def run_until(self,t):
         
         if t <= self.t:
+            if t == self.t and self.t==0.0:
+                self.compute_effective_field(t)
+                self.saver.save()
             return
         
         ode = self.vode
@@ -224,8 +233,8 @@ class Sim(object):
             print length
             raise Exception("the error of spin length is large than 1e-6, please check the tolerence!!!")
         """
-        
-            
+        #update field before saving data
+        self.compute_effective_field(t)
         self.saver.save()
 
     def update_effective_field(self, y):
@@ -369,6 +378,10 @@ class Sim(object):
         length=np.sqrt(np.sum(self.spin**2,axis=0))
         self.spin.shape=(-1,)
         return length
+    
+    def compute_spin_error(self):
+        length = self.spin_length()-1.0
+        return np.max(abs(length))
     
     def compute_dmdt(self, dt):
         m0 = self.spin_last

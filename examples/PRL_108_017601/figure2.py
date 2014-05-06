@@ -5,15 +5,23 @@ from pccp.pc import DMI
 from pccp.pc import UniformExchange
 from pccp.pc import Zeeman, TimeZeeman
 from pccp.pc import DataReader
+import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 
+
+def sinc_fun(t):
+
+    w0 = 0.01
+    
+    return np.sinc(w0*t)
 
 def excite_system(mesh):
     
     sim=Sim(mesh,name='dyn',pbc='2d')
     
-    sim.set_options(rtol=1e-10,atol=1e-14)
-    sim.alpha = 0.015
+    #sim.set_options(rtol=1e-10,atol=1e-14)
+    sim.alpha = 0.04
     sim.gamma = 1.0
     sim.mu_s = 1.0
     
@@ -35,10 +43,10 @@ def excite_system(mesh):
     def time_fun(t):
         return np.exp(-w0*t)
     
-    hx = TimeZeeman([0,0,1e-6], time_fun, name='h')
+    hx = TimeZeeman([0,0,1e-5], sinc_fun, name='h')
     sim.add(hx, save_field=True)
     
-    ts = np.linspace(0,1000,4001)
+    ts = np.linspace(0,20000,5001)
     for t in ts:
         sim.run_until(t)
         print 'sim t=%g'%t
@@ -47,7 +55,7 @@ def deal_plot():
     data = DataReader('dyn.txt')
     ts = data['time']
     N = len(ts)
-    dt = ts[-1]/(N-1)
+    dt = ts[1] - ts[0]
     print 'dt=',dt
     
     freq = np.fft.fftshift(np.fft.fftfreq(N, dt))
@@ -66,11 +74,11 @@ def deal_plot():
     rx = (a*c+b*d)/(a*a+b*b)
     ix = (b*c-a*d)/(a*a+b*b)
     
-    plt.plot(freq, ix, '.-')
+    plt.plot(freq*2*np.pi, ix, '.-')
     #plt.legend()
-    plt.xlim([0, 0.02])
+    plt.xlim([0, 0.012])
     #plt.ylim([-5, 100])
-    plt.xlabel('Frequency (Hz)')
+    plt.xlabel(r'$w$')
     plt.ylabel('Susceptibility')
     plt.savefig('res.pdf')
     
