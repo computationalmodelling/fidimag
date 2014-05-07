@@ -26,7 +26,7 @@ double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
 
 	double energy = 0;
 
-	#pragma omp parallel for private(i,j,k)
+	#pragma omp parallel for private(i,j,k) reduction(+:energy)
 	for (i = 0; i < nxyz; i++) {
 
 		j = i + nxyz;

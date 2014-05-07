@@ -2,7 +2,13 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from pccp.pc import *
+from pc import UniformExchange
+from pc import Anisotropy
+from pc import FDMesh
+from pc import Sim
+from pc import Zeeman
+from pc import UnitMaterial
+from pc import DataReader
 import numpy as np
 
 class UnitMaterial(object):
@@ -10,12 +16,12 @@ class UnitMaterial(object):
         self.a=1
         self.b=1
         self.c=1
-        self.J=1
+        self.J=1.0
         self.Dx=0.5
-        self.mu_s=1
+        self.mu_s=1.0
         self.gamma=2*np.pi
         self.alpha=0.01
-        self.unit_length=1
+        self.unit_length=1.0
 
 def init_m(pos):
     x,y,z=pos
@@ -33,6 +39,8 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     mat = UnitMaterial()
     
     sim = Sim(mesh,name='relax')
+    sim.set_options(rtol=1e-10,atol=1e-14)
+    
     sim.alpha = mat.alpha
     sim.gamma = mat.gamma
     
@@ -48,8 +56,8 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     
     sim.set_m(init_m)
     
-    T = 1.0/Dx
-    ts=np.linspace(0, 0.5*T, 501)
+    T = 0.5/Dx
+    ts=np.linspace(0, T, 101)
     for t in ts:
         sim.run_until(t)
     
@@ -64,6 +72,8 @@ def save_plot():
     data = DataReader('relax.txt')
     ts = data['time']
     
+    #plt.plot(ts, data['E_Dp'], label='E_Dp')
+    #plt.plot(ts, data['E_Dp'], label='E_Dp')
     #plt.plot(ts, data['E_Dx'], label='E_Dx')
     plt.plot(ts, data['E_exch'], label='E_exch')
     plt.plot(ts, data['E_total'], label='E_total')

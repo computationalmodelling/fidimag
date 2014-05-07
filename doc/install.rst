@@ -31,11 +31,24 @@ for example, suppose pccp is in the directory of ~/work, then::
    export PYTHONPATH="~/work/pccp:$PYTHONPATH"
    export PYTHONPATH="~/work:$PYTHONPATH"
 
+Add the library path to LD_LIBRARY_PATH
+---------------------------------------
+In default, the libraries are installed in pccp/libs, so in order 
+to run pccp we need to include the libs path in LD_LIBRARY_PATH, so
+pleaase add the following to your .bashrc file::
+
+   export LD_LIBRARY_PATH="path_of_pccp_folder/libs:$LD_LIBRARY_PATH"
+
+for instance::
+
+  export LD_LIBRARY_PATH="~/work/pccp/libs:$LD_LIBRARY_PATH"
+
+
 
 
 Quick test
 ===============
-Go to the pccp/tests folder and run "py.test", a similar result is expected ::
+Go to the pccp/tests folder and type "py.test", a similar result is expected ::
 
    ============================= test session starts ==============================
    platform linux2 -- Python 2.7.5 -- pytest-2.4.2

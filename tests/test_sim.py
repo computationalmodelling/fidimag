@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from pc import Anisotropy
 from pc import FDMesh
 from pc import Sim
-from pc import Nickel
 from pc import Zeeman
 import numpy as np
 
@@ -51,7 +50,7 @@ def test_sim_single_spin_vode(do_plot=False):
 
     mesh=FDMesh(nx=1,ny=1,nz=1)
 
-    sim = Sim(mesh)
+    sim = Sim(mesh,name='spin')
     
     alpha = 0.1
     gamma = 2.21e5
@@ -63,13 +62,14 @@ def test_sim_single_spin_vode(do_plot=False):
     H0 = 1e5
     sim.add(Zeeman((0, 0, H0)))
     
-    dt = 1e-12; 
-    ts = np.linspace(0, 200 * dt, 101)
+    ts = np.linspace(0, 1e-9, 101)
         
     precession = gamma/(1+alpha**2)
     
     mz_ref = []
     
+    mx = []
+    my = []
     mz = []
     real_ts=[]
     for t in ts:
@@ -77,32 +77,35 @@ def test_sim_single_spin_vode(do_plot=False):
         real_ts.append(sim.t)
         print sim.t,abs(sim.spin_length()[0]-1)
         mz_ref.append(np.tanh(precession * alpha * H0 * sim.t))
-        mz.append(sim.spin[-1])
+        mx.append(sim.spin[0])
+        my.append(sim.spin[1])
+        mz.append(sim.spin[2])
     
     mz=np.array(mz)
-    print mz
+    #print mz
 
     print sim.stat()
     
     if do_plot:
         ts_ns = np.array(real_ts) * 1e9
-        plt.plot(ts_ns, mz, "b.", label="computed") 
-        plt.plot(ts_ns, mz_ref, "r-", label="analytical") 
+        plt.plot(ts_ns, mx, "-", label="mx", color='DarkGreen')
+        plt.plot(ts_ns, my, "-", label="my", color='darkslateblue') 
+        plt.plot(ts_ns, mz, ":", label="mz", color='m') 
+        plt.plot(ts_ns, mz_ref, "--", label="analytical", color='b') 
         plt.xlabel("time (ns)")
-        plt.ylabel("mz")
+        plt.ylabel("m")
         plt.title("integrating a macrospin")
         plt.legend()
-        plt.savefig("test_llb.png")
+        plt.savefig("single_spin.pdf")
         
-    print("Deviation = {}, total value={}".format(
-            np.max(np.abs(mz - mz_ref)),
-            mz_ref))
+    print("Max Deviation = {}".format(
+            np.max(np.abs(mz - mz_ref))))
    
-    assert np.max(np.abs(mz - mz_ref)) < 5e-6
+    assert np.max(np.abs(mz - mz_ref)) < 5e-7
 
 
 def disable_test_sim_single_spin_llg_stt(do_plot=False):
-    ni=Nickel()
+    ni = Nickel()
     mesh=FDMesh(nx=1,ny=1,nz=1)
     mesh.set_material(ni)
     

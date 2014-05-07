@@ -1,7 +1,6 @@
 from pc import DMI 
 from pc import FDMesh
 from pc import Sim
-from pc import Nickel
 import numpy as np
 
 def test_dmi_1d():
