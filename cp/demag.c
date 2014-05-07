@@ -92,13 +92,13 @@ void print_c(char *str, fftw_complex *x, int n) {
 	int i;
 	printf("%s\n", str);
 	for (i = 0; i < n; i++) {
-		printf("%f+%fI  ", x[i]);
+		//printf("%f+%fI  ", x[i]);
 	}
 	printf("\n");
 
 }
 
-fft_demag_plan *create_plan() {
+fft_demag_plan *create_plan(void) {
 
 	fft_demag_plan *plan = (fft_demag_plan*) malloc(sizeof(fft_demag_plan));
 
@@ -297,7 +297,7 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 	int nyz = ny * nz;
 	int nxyz = nx * nyz;
 
-	int lenx = plan->lenx;
+	//int lenx = plan->lenx;
 	int leny = plan->leny;
 	int lenz = plan->lenz;
 	int lenyz = leny * lenz;

@@ -1,6 +1,24 @@
 Extended equations
 ===================
 
+Stochastic LLG equation
+---------------------------------------
+The implemented equation including the thermal fluctuation effects is
+
+.. math::
+   \frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times (\vec{H}+\vec{\xi}) + \alpha \vec{m} \times  \frac{\partial \vec{m}}{\partial t}
+
+where :math:`\vec{\xi}` is the thermal fluctuation field and is assumed to have the following
+properties,
+
+.. math::
+   \left< \vec{\xi} \right> = 0, \;\;\; \left< \vec{\xi}_i^u,\vec{\xi}_j^v \right> = 2 D \delta_{ij} \delta_{uv}
+
+and 
+
+.. math::
+   D = \frac{\alpha k_B T}{\gamma \mu_s}
+
 .. Including the susceptibility 
 .. -------------------------------
 .. The dynamic equation we used including the susceptibility is,

@@ -73,17 +73,24 @@ class Sim(object):
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
 
-    def set_options(self,rtol=1e-8,atol=1e-14,dt=1e-15):
+    def set_options(self,rtol=1e-8,atol=1e-14, dt=1e-2, theta=1.0, gamma=1.0, k_B=1.0):
+        """
+        theta = 1.0 Heun method
+        """
         
         self._alpha[:] = 0.1
-        self.gamma = 1
         self._mu_s[:] = 1
         self.mu_s_inv[:] = 1
+        self.gamma = gamma
+        self.k_B = k_B
 
         if self.driver == 'sllg':
-            self.vode=clib.RK2S(self.mu_s,dt,
+            self.vode=clib.RK2S(dt,
                         self.nxyz,
                         self.gamma,
+                        self.k_B,
+                        theta,
+                        self.mu_s_inv,
                         self.alpha,
                         self.spin,
                         self.field,

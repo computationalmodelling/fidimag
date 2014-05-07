@@ -1,6 +1,6 @@
 #include<math.h>
-#include <complex.h>
-#include <fftw3.h>
+#include<complex.h>
+#include<fftw3.h>
 #include<omp.h>
 
 void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
@@ -82,7 +82,7 @@ typedef struct {
 
 } fft_demag_plan;
 
-fft_demag_plan *create_plan();
+fft_demag_plan *create_plan(void);
 void finalize_plan(fft_demag_plan *plan);
 void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy,
 		double dz, int nx, int ny, int nz);
@@ -99,7 +99,7 @@ typedef struct {
 	double dt;
 	double T;
 	double gamma;
-	double mu_s;
+	double *mu_s;
 	double coeff;
 	double Q;
 
@@ -113,11 +113,11 @@ typedef struct {
 
 } ode_solver;
 
-void init_solver(ode_solver *s, double mu_s, int nxyz, double dt, double gamma);
-ode_solver *create_ode_plan();
+void init_solver(ode_solver *s, double k_B, double theta, int nxyz, double dt, double gamma);
+ode_solver *create_ode_plan(void);
 void finalize_ode_plan(ode_solver *plan);
 void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T,
-		double *alpha);
+		double *alpha, double *mu_s_inv);
 void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T,
-		double *alpha);
+		double *alpha, double *mu_s_inv);
 

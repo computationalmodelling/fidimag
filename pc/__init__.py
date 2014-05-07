@@ -28,7 +28,6 @@ from zeeman import TimeZeeman
 from demag import Demag
 from dmi import DMI
 from fileio import DataSaver, DataReader
-from materials import UnitMaterial
-#from materials import Nickel
+from materials import UnitMaterial, Nickel
 
 #from show_vector import VisualSpin

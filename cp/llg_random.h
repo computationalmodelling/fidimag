@@ -1,3 +1,6 @@
+#include <stdlib.h>  // rand(), srand()
+#include <time.h>    // time()
+
 #define MT19937_N		624
 #define MT19937_M		397
 #define MT19937_INIT_MULT	0x6c078965U

@@ -1,6 +1,6 @@
 import numpy as np
 from pc import *
-from pc.show_vector import VisualSpin
+
 import time
 
 import matplotlib as mpl
@@ -18,17 +18,20 @@ def plot_mxyz(ts,mx,my,mz,me,name):
 
 
 def temperature_test(T):
-    ni=Nickel()
+    ni = Nickel()
     ni.alpha=0.1
     ni.D = 1.35e-26
     ni.mu_s = 2.16e-23 
     ni.J = 6.16e-21
-    (nx,ny,nz)=(20,20,20)
+    
+    (nx,ny,nz)=(24,24,24)
 
     mesh=FDMesh(nx=nx,ny=ny,nz=nz)
-    mesh.set_material(ni)
+    
 
-    sim=Sim(mesh,T=T,mat=ni)
+    sim=Sim(mesh,T=T, driver='sllg')
+    sim.set_options(dt=1e-15,gamma=ni.gamma, k_B=ni.k_B)
+    sim.mu_s = ni.mu_s
 
     exch=UniformExchange(ni.J)
     sim.add(exch)
@@ -63,9 +66,10 @@ def temperature_test(T):
         me.append(np.sqrt(np.sum(av*av)))
         #time.sleep(0.001)
         print av,me[-1]
+        sim.save_vtk()
     name='nx%d_ny%d_nz%d_T%g.png'%(nx,ny,nz,T)
     plot_mxyz(ts,mx,my,mz,me,name)
 
 
 if __name__=='__main__':
-    temperature_test(600)
+    temperature_test(100)
