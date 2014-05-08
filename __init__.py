@@ -1,3 +1,4 @@
+"""
 import sys
 import subprocess
 import os
@@ -15,3 +16,4 @@ try:
 except subprocess.CalledProcessError, ex:
     sys.stderr.write(ex.output)
     raise Exception("make_modules: Make failed")
+"""
