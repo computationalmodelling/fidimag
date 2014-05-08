@@ -98,7 +98,7 @@ def test_sim_single_spin_vode(do_plot=False):
         plt.legend()
         plt.savefig("single_spin.pdf")
         
-    print("Max Deviation = {}".format(
+    print("Max Deviation = {0}".format(
             np.max(np.abs(mz - mz_ref))))
    
     assert np.max(np.abs(mz - mz_ref)) < 5e-7
@@ -150,7 +150,7 @@ def disable_test_sim_single_spin_llg_stt(do_plot=False):
         plt.legend()
         plt.savefig("test_llg_stt.png")
         
-        print("Deviation = {}".format(np.max(np.abs(mxyz[:,2] - mz_ref))))
+        print("Deviation = {0}".format(np.max(np.abs(mxyz[:,2] - mz_ref))))
     
     assert np.max(np.abs(mxyz[:,2] - mz_ref))<1e-9
 

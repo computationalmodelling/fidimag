@@ -16,7 +16,7 @@ fi;
 if [ ! -e ${SUNDIALS} ]; then
   tar -xvzf ${SUNDIALS}.tar.gz
   cd ${SUNDIALS}
-  ./configure --enable-shared --prefix=${LIBS_DIR}
+  ./configure --enable-shared --prefix=${LIBS_DIR} --disable-lapack
   make
   make install
   cd ..

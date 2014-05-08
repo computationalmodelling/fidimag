@@ -117,7 +117,7 @@ class Sim(object):
             self.u0 = const.g_e*const.mu_B*cell_size/(2*const.e*self.mu_s)*self.unit_length**2
             
         else:
-            raise Exception("Unsppourted driver:{},avaiable drivers: sllg, llg, llg_s, llg_stt.".format(self.driver))
+            raise Exception("Unsppourted driver:{0},avaiable drivers: sllg, llg, llg_s, llg_stt.".format(self.driver))
                     
 
 
@@ -186,14 +186,14 @@ class Sim(object):
         
         self.interactions.append(interaction)
         
-        energy_name = 'E_{}'.format(interaction.name)
+        energy_name = 'E_{0}'.format(interaction.name)
         self.saver.entities[energy_name] = {
             'unit': '<J>',
             'get': lambda sim:sim.get_interaction(interaction.name).compute_energy(),
             'header': energy_name}
         
         if save_field:
-            fn = '{}'.format(interaction.name)
+            fn = '{0}'.format(interaction.name)
             self.saver.entities[fn] = {
             'unit': '<>',
             'get': lambda sim:sim.get_interaction(interaction.name).average_field(),
@@ -206,8 +206,8 @@ class Sim(object):
             if interaction.name == name:
                 return interaction
         else: 
-            raise ValueError("Failed to find the interaction with name '{}', "
-                             "available interactions: {}.".format(
+            raise ValueError("Failed to find the interaction with name '{0}', "
+                             "available interactions: {1}.".format(
                         name, [x.name for x in self.interactions]))
         
 

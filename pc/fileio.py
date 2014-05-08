@@ -114,7 +114,7 @@ class DataReader(object):
         try:
             self.data = np.loadtxt(self.f)
         except ValueError:
-            raise RuntimeError("Cannot load data from file '{}'. Maybe the file was incompletely written?".format(self.f))
+            raise RuntimeError("Cannot load data from file '{0}'. Maybe the file was incompletely written?".format(self.f))
         self.f.close()
 
         # some consistency checks: must have as many columns as
@@ -151,7 +151,7 @@ class DataReader(object):
             res = [self.datadic[e] for e in entity]
         else:
             raise TypeError("'entity' must be a string or a tuple. "
-                            "Got: {} ({})".format(entity, type(entity)))
+                            "Got: {0} ({1})".format(entity, type(entity)))
         return res
 
 
