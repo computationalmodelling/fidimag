@@ -8,5 +8,7 @@ class Constant(object):
     m_e = 9.10938291e-31
     g_e = 2.0023193043737
     h_bar = 1.05457172647e-34
+    h = h_bar*2.*np.pi
     gamma = g_e*mu_B/h_bar
     mu_s_1 = g_e*mu_B*1.0 #for S=1
+    

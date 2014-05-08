@@ -1,8 +1,7 @@
 import numpy as np
 cimport numpy as np
+np.import_array()
 
-
-from libc.string cimport memcpy
      
 
 cdef extern from "clib.h":
@@ -216,10 +215,10 @@ cdef class RK2S(object):
         cdef np.ndarray[double, ndim=1, mode="c"] mu_s_inv=self.mu_s_inv
 
         #print "from cython1", self.spin,self.field,self.pred_m
-        self.update_fun(self.y)
+        self.update_fun(self.y, self.t)
         run_step1(self._c_plan,&y[0],&field[0],&pred_m[0],&T[0],&alpha[0], &mu_s_inv[0])
 
-        self.update_fun(self.pred_m)
+        self.update_fun(self.pred_m, t)
         run_step2(self._c_plan,&pred_m[0],&field[0],&y[0],&T[0],&alpha[0], &mu_s_inv[0])
         self.t = t
 

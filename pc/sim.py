@@ -15,10 +15,7 @@ from constant import Constant
 
 import pccp.util.helper as helper
 
-
 const = Constant()
-
-
 
 class Sim(object):
     
@@ -245,7 +242,7 @@ class Sim(object):
         self.compute_effective_field(t)
         self.saver.save()
 
-    def update_effective_field(self, y):
+    def update_effective_field(self, y, t):
         
         self.spin[:]=y[:]
         
@@ -255,7 +252,7 @@ class Sim(object):
             self.pin_fun(self.t,self.mesh,self.spin)
         
         for obj in self.interactions:
-            self.field += obj.compute_field()
+            self.field += obj.compute_field(t)
 
     def compute_effective_field(self, t):
         

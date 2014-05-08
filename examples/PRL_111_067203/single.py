@@ -14,6 +14,13 @@ const = Constant()
 """
 If we only consider the exchange, dmi and external field, 
 we don't have to consider the lattice constant a.
+
+The typical period is (in the paper it should be h rather than h_bar)
+    
+    T=2*pi/(gamma*J/mu_s) = 2*pi*h_bar*S/J  = h*S/J
+
+so T = 9.6e-13 s and 0.05*T = 4.8e-14s for S=1 and J=50*k_B
+
 """
 
 def init_m(pos):
@@ -38,10 +45,8 @@ def relax_system(mesh):
     sim.mu_s = const.mu_s_1
     
     sim.set_m(init_m)
-    #sim.set_m(random_m)
-    #sim.set_m(np.load('m_10000.npy'))
 
-    J = 1.0*const.k_B
+    J = 50.0*const.k_B
     exch = UniformExchange(J)
     sim.add(exch)
     
@@ -55,74 +60,48 @@ def relax_system(mesh):
     
     ONE_DEGREE_PER_NS = 17453292.52
     
-    sim.relax(dt=1e-13, stopping_dmdt=ONE_DEGREE_PER_NS, max_steps=1000, save_m_steps=100, save_vtk_steps=50)
+    sim.relax(dt=1e-13, stopping_dmdt=0.01*ONE_DEGREE_PER_NS, max_steps=1000, save_m_steps=100, save_vtk_steps=50)
     
     np.save('m0.npy',sim.spin)
-
-def plot_mxyz(ts,mx,my,mz,me,name):
-    fig=plt.figure()
-    plt.plot(ts,mx,'^-',label='mx')
-    plt.plot(ts,my,'.-',label='my')
-    plt.plot(ts,mz,'o-',label='mz')
-    plt.plot(ts,me,'>-',label='me')
-    plt.legend()
-    fig.savefig(name)
-
-
-def temperature_test(T):
-    ni = Nickel()
-    ni.alpha=0.1
-    ni.D = 1.35e-26
-    ni.mu_s = 2.16e-23 
-    ni.J = 6.16e-21
     
-    (nx,ny,nz)=(24,24,24)
-
-    mesh=FDMesh(nx=nx,ny=ny,nz=nz)
+def temperature_gradient(pos):
     
+    x = pos[0]
+    
+    return x/150.0*0.25*50
 
-    sim=Sim(mesh,T=T, driver='sllg')
-    sim.set_options(dt=1e-15,gamma=ni.gamma, k_B=ni.k_B)
-    sim.mu_s = ni.mu_s
+def excite_system(mesh):
+    
+    sim=Sim(mesh,name='dyn',pbc='2d',driver='sllg')
+    sim.set_options(dt = 2e-14, gamma=const.gamma, k_B=const.k_B)
+    sim.alpha = 0.1
+    sim.mu_s = const.mu_s_1
+    sim.T = temperature_gradient
+    
+    sim.set_m(np.load("m0.npy"))
 
-    exch=UniformExchange(ni.J)
+    J = 50.0*const.k_B
+    exch = UniformExchange(J)
     sim.add(exch)
-
-    anis=Anisotropy(ni.D)
-    sim.add(anis)
-
-    #zeeman=Zeeman(1e2,(0,0,1))
-    #sim.add(zeeman)
-
-    #demag=Demag(mu_s=ni.mu_s)
-    #sim.add(demag)
-
-    sim.set_m((0,0.6,0.99))
-
-
-    #vs=VisualSpin(sim)
-    #vs.init()
-
-    ts=np.linspace(0, 1e-11, 101)
-    me=[]
-    mx=[]
-    my=[]
-    mz=[]
+    
+    D = 0.5*J
+    dmi = DMI(D)
+    sim.add(dmi)
+    
+    Hz = 0.2*J/const.mu_s_1
+    zeeman = Zeeman([0,0,Hz])
+    sim.add(zeeman)
+    
+    dt = 2e-14*50 #1e-12
+    ts = np.linspace(0,1000*dt,501)
     for t in ts:
         sim.run_until(t)
-        #vs.update()
-        av=sim.compute_average()
-        mx.append(av[0])
-        my.append(av[1])
-        mz.append(av[2])
-        me.append(np.sqrt(np.sum(av*av)))
-        #time.sleep(0.001)
-        print av,me[-1]
         sim.save_vtk()
-    name='nx%d_ny%d_nz%d_T%g.png'%(nx,ny,nz,T)
-    plot_mxyz(ts,mx,my,mz,me,name)
+        sim.save_m()
+        print 'sim t=%g'%t
 
 
 if __name__=='__main__':
     mesh=FDMesh(nx=150,ny=50,nz=1)
-    relax_system(mesh)
+    #relax_system(mesh)
+    excite_system(mesh)
