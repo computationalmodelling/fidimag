@@ -6,7 +6,6 @@ from pc import UniformExchange
 from pc import Anisotropy
 from pc import FDMesh
 from pc import Sim
-from pc import Zeeman
 from pc import UnitMaterial
 from pc import DataReader
 import numpy as np
@@ -23,14 +22,6 @@ class UnitMaterial(object):
         self.alpha=0.01
         self.unit_length=1.0
 
-def init_m(pos):
-    x,y,z=pos
-    if x<12:
-        return (1,0,0)
-    elif x>18:
-        return (-1,0,0)
-    else:
-        return (0,1,0)
 
 def pin_fun(pos):
     if pos[0]==0:
@@ -76,7 +67,7 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
 def save_plot():
     fig=plt.figure()
         
-    data = DataReader('relax.txt')
+    data = DataReader('test_energy.txt')
     ts = data['time']
     
     #plt.plot(ts, data['E_Dp'], label='E_Dp')
@@ -100,7 +91,7 @@ def test_energy(do_plot=False):
     if do_plot:
         save_plot()
     
-    data = DataReader('relax.txt')
+    data = DataReader('test_energy.txt')
     energy = data['E_total']
     
     for i in range(len(energy)-1):
