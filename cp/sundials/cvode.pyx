@@ -32,7 +32,7 @@ cdef inline copy_nv2arr(N_Vector v, np.ndarray[realtype, ndim=1, mode='c'] np_x)
     memcpy(np_x.data, v_data, n*sizeof(realtype))
     return 0
 
-cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data):
+cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data) except -1:
 
     cdef cv_userdata *ud = <cv_userdata *>user_data
 
@@ -49,10 +49,10 @@ cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data):
     
 
     #weird thing is cython gets error without this
-    try:
-        (<object>ud.rhs_fun)(t,y_arr,ydot_arr)
-    except:
-        raise Exception('error while calling rhs_fun!')
+    #try:
+    (<object>ud.rhs_fun)(t,y_arr,ydot_arr)
+    #except:
+        #raise Exception('error while calling rhs_fun!')
     
     copy_arr2nv(ydot_arr,yvdot)
 
@@ -119,13 +119,13 @@ cdef class CvodeSolver(object):
 
         flag = CVodeSStolerances(self.cvode_mem, self.rtol, self.atol)
         
-        mxsteps=100000
+        mxsteps = 100000
         flag = CVodeSetMaxNumSteps(self.cvode_mem, mxsteps)
 
         flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
         #flag = CVSpilsSetGSType(self.cvode_mem, 1);
 
-    cpdef int run_until(self, double tf):
+    cpdef int run_until(self, double tf) except -1:
         cdef int flag
         cdef double tret
         

@@ -88,7 +88,7 @@ if __name__=='__main__':
     #mesh = FDMesh(nx=288,ny=288,nz=1)
     mesh = FDMesh(nx=166,ny=96*2,nz=1)
     
-    #excite_system(mesh)
+    excite_system(mesh)
     
     deal_plot()
     

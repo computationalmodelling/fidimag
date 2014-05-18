@@ -1,6 +1,6 @@
 #include "clib.h"
 
-void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, int nxyz) {
+void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, double gamma, int nxyz) {
 
 	int i, j, k;
 
@@ -12,6 +12,13 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, double gamma, i
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
+
+		if (pins[i]>0){
+			 dm_dt[i] = 0;
+			 dm_dt[j] = 0;
+			 dm_dt[k] = 0;
+			 continue;
+		}
 
 		coeff = -gamma/(1+alpha[i]*alpha[i]);
         

@@ -17,6 +17,9 @@ class DataSaver(object):
         self.string_format = "%" + str(charwidth) + "s "
 
         self.entities = {
+            'step': {'unit': '<>',
+                    'get': lambda sim: sim.step,
+                    'header': 'step'},
             'time': {'unit': '<s>',
                         'get': lambda sim: sim.t,
                         'header': 'time'},
@@ -31,8 +34,9 @@ class DataSaver(object):
     def default_entity_order(self):
         keys = self.entities.keys()
         # time needs to go first
+        keys.remove('step')
         keys.remove('time')
-        return ['time'] + sorted(keys)
+        return ['step'] + ['time'] + sorted(keys)
     
     def update_entity_order(self):
         self.entity_order = self.default_entity_order()

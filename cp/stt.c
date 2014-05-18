@@ -132,8 +132,8 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alp
         hpk = h_stt[k] - mht*m[k];
         
         mth0 = (m[j] * hpk - m[k] * hpj);
-	mth1 = (m[k] * hpi - m[i] * hpk);
-	mth2 = (m[i] * hpj - m[j] * hpi);
+        mth1 = (m[k] * hpi - m[i] * hpk);
+        mth2 = (m[i] * hpj - m[j] * hpi);
         
         dm_dt[i] += coeff_stt*((1 + alpha[i]*beta)*hpi - (beta - alpha[i])*mth0);
         dm_dt[j] += coeff_stt*((1 + alpha[i]*beta)*hpj - (beta - alpha[i])*mth1);

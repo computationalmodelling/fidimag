@@ -5,6 +5,8 @@ np.import_array()
      
 
 cdef extern from "clib.h":
+    double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz)
+
     void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
     
@@ -16,7 +18,7 @@ cdef extern from "clib.h":
 
     double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field)
 
-    void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, double gamma, int nxyz)
+    void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, int *pins, double gamma, int nxyz)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
     void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,double dx, double dy, double dz, int nx, int ny, int nz)
@@ -45,6 +47,12 @@ cdef extern from "clib.h":
     void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha, double *mu_s_inv)
     void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha, double *mu_s_inv)
 
+
+def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
+                            np.ndarray[double, ndim=1, mode="c"] charge,
+                            nx, ny, nz):
+
+    return skyrmion_number(&spin[0], &charge[0], nx, ny, nz)
 
 
 def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -88,8 +96,9 @@ def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
+                np.ndarray[int, ndim=1, mode="c"] pins,
                 gamma, nxyz):
-    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], gamma, nxyz)
+    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, nxyz)
     
 def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,

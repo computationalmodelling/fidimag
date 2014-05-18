@@ -25,24 +25,30 @@ class UnitMaterial(object):
 
 def init_m(pos):
     x,y,z=pos
-    if x<80:
+    if x<12:
         return (1,0,0)
-    elif x>120:
+    elif x>18:
         return (-1,0,0)
     else:
         return (0,1,0)
-    
+
+def pin_fun(pos):
+    if pos[0]==0:
+        return 1
+    else:
+        return 0    
 
 
 def relax_system(mesh,Dx=0.005,Dp=0.01):
     
     mat = UnitMaterial()
     
-    sim = Sim(mesh,name='relax')
-    sim.set_options(rtol=1e-10,atol=1e-14)
+    sim = Sim(mesh,name='test_energy')
+    sim.set_options(rtol=1e-10,atol=1e-12)
     
     sim.alpha = mat.alpha
     sim.gamma = mat.gamma
+    sim.pins = pin_fun
     
     
     exch=UniformExchange(mat.J)
@@ -54,11 +60,12 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     anis2=Anisotropy(-Dp, direction=(0,0,1), name='Dp')
     sim.add(anis2)
     
-    sim.set_m(init_m)
+    sim.set_m((1,1,1))
     
-    T = 0.5/Dx
-    ts=np.linspace(0, T, 101)
+    T = 100
+    ts=np.linspace(0, T, 201)
     for t in ts:
+        sim.save_vtk()
         sim.run_until(t)
     
 
@@ -87,7 +94,7 @@ def save_plot():
     fig.savefig('energy.pdf')
     
 def test_energy(do_plot=False):
-    mesh=FDMesh(nx=200)
+    mesh=FDMesh(nx=30)
     relax_system(mesh)
     
     if do_plot:

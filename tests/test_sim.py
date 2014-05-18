@@ -20,6 +20,29 @@ def init_m(pos):
 def init_T(pos):
     return np.sum(pos)
 
+def pin_fun(pos):
+    if pos[0]==0:
+        return 1
+    else:
+        return 0
+
+def test_sim_pin():
+    mesh=FDMesh(nx=3,ny=2,nz=1)
+    sim = Sim(mesh)
+    sim.set_m((0,0.8,0.6))
+    sim.alpha = 0.1
+    sim.gamma = 1.0
+    sim.pins = pin_fun
+    
+    anis=Anisotropy(1.0, direction=(0,0,1), name='Dx')
+    sim.add(anis)
+    
+    sim.run_until(1.0)
+    print sim.spin
+    assert sim.spin[0] == 0
+    assert sim.spin[2] != 0
+    
+    
 
 def test_sim_init_m():
     mesh=FDMesh(nx=3,ny=4,nz=5)
@@ -45,6 +68,13 @@ def test_sim_T_fun():
     sim.set_T(init_T)
     assert(sim.T[0]==0)
     assert(sim.T[-1]==9)
+
+def test_m_average():
+    mesh=FDMesh(nx=3,ny=4,nz=5)
+    sim=Sim(mesh)
+    sim.set_m((0,0,1))
+    a = sim.compute_average()
+    assert a[2] == 1.0
     
 def test_sim_single_spin_vode(do_plot=False):
 
@@ -56,6 +86,7 @@ def test_sim_single_spin_vode(do_plot=False):
     gamma = 2.21e5
     sim.alpha = alpha
     sim.gamma = gamma
+    sim.mu_s = 1.0
     
     sim.set_m((1, 0, 0))
     
@@ -160,7 +191,8 @@ if __name__=='__main__':
     #test_sim_init_m()
     #test_sim_init_m_fun()
     #test_sim_T_fun()
-    test_sim_single_spin_vode(do_plot=True)
+    #test_sim_single_spin_vode(do_plot=True)
     #test_sim_single_spin_llg_s(do_plot=True)
     #test_sim_single_spin_llg_stt(do_plot=True)
     #test_sim_single_spin(do_plot=True)
+    test_sim_pin()

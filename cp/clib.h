@@ -16,7 +16,7 @@ void dmi_field(double *spin, double *field, double *energy,double D, int nx, int
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
-		double gamma, int nxyz);
+		int *pins, double gamma, int nxyz);
 
 void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
              double *chi, double gamma, int nxyz);
@@ -28,6 +28,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alp
                  double beta, double u0, double gamma, int nxyz);
 
 void normalise(double *m, int nxyz);
+double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz);
 
 //==========================================
 //used for demag

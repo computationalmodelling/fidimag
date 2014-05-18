@@ -15,7 +15,6 @@ class SaveVTK():
         self.dz=mesh.dz
         self.name = '%s_vtks'%name
         self.vtkname = vtkname
-        self.index=0
         xyz=np.array(mesh.pos)
         self.x=np.array(xyz[:,0],dtype='float32')
         self.y=np.array(xyz[:,1],dtype='float32')
@@ -32,7 +31,7 @@ class SaveVTK():
         for i in range(len(ids)):
             self.pos.append(self.mesh.pos[self.ids[i]])
                     
-    def save_vtk(self,m):
+    def save_vtk(self,m, step):
         
         pos=pyvtk.StructuredGrid([self.nx,self.ny,self.nz],self.pos)
         
@@ -42,6 +41,5 @@ class SaveVTK():
         
         vtk = pyvtk.VtkData(pos,data,'spins')
                       
-        vtk.tofile("%s/%s.%06d"%(self.name,self.vtkname,self.index),'binary')
+        vtk.tofile("%s/%s.%06d"%(self.name,self.vtkname,step),'binary')
         
-        self.index+=1

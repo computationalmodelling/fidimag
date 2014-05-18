@@ -38,6 +38,7 @@ class Sim(object):
         self.name = name
         self.mesh = mesh
         self.nxyz = mesh.nxyz
+        self.nxyz_nonzero = mesh.nxyz
         self.unit_length=mesh.unit_length
         self._T = np.zeros(self.nxyz,dtype=np.float)
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
@@ -45,14 +46,19 @@ class Sim(object):
         self.mu_s_inv = np.zeros(3*self.nxyz,dtype=np.float)
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
         self.spin_last = np.ones(3*self.nxyz,dtype=np.float)
+        self._pins = np.zeros(self.nxyz,dtype=np.int32)
         self.field = np.zeros(3*self.nxyz,dtype=np.float)
         self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
+        self._skx_number = np.zeros(self.nxyz,dtype=np.float)
         self.interactions=[]
         self.pin_fun = None
         self.driver = driver
         self.pbc = pbc
-
+        
+        self.step = 0
+        
         self.saver = DataSaver(self, name+'.txt')
+        
         self.saver.entities['E_total'] = {
             'unit': '<J>',
             'get': lambda sim : sim.compute_energy(),
@@ -63,15 +69,22 @@ class Sim(object):
             'get': lambda sim : sim.compute_spin_error(),
             'header': 'm_error'}
         
+        self.saver.entities['skx_num'] = {
+            'unit': '<>',
+            'get': lambda sim : sim.skyrmion_number(),
+            'header': 'skx_num'}
+        
+        
         self.saver.update_entity_order()
 
         self._T[:] = T
         self.set_options()
+        
 
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
 
-    def set_options(self,rtol=1e-8,atol=1e-14, dt=1e-15, theta=1.0, gamma=const.gamma, k_B=const.k_B):
+    def set_options(self,rtol=1e-8,atol=1e-12, dt=1e-15, theta=1.0, gamma=const.gamma, k_B=const.k_B):
         """
         theta = 1.0 Heun method
         """
@@ -124,6 +137,11 @@ class Sim(object):
     def set_m(self,m0=(1,0,0),normalise=True):
         
         self.spin[:]=helper.init_vector(m0,self.mesh, normalise)
+        
+        #TODO: carefully checking and requires to call set_mu first
+        for i in range(len(self.spin)):
+            if self.mu_s_inv[i]==0:
+                self.spin[i] = 0
 
         self.vode.set_initial_value(self.spin, self.t)
 
@@ -131,25 +149,22 @@ class Sim(object):
         return self._T
 
     def set_T(self,T0):
-        if  hasattr(T0, '__call__'):
-            T = np.array([T0(p) for p in self.mesh.pos])
-            self._T[:] = T[:]
-        else:
-            self._T[:] = T0
+        self._T[:]=helper.init_scalar(T0, self.mesh)
 
     T = property(get_T, set_T)
     
-    def get_chi(self):
-        return self._chi
-    
-    def set_chi(self,chi0):
-        if  hasattr(chi0, '__call__'):
-            chi = np.array([chi0(p) for p in self.mesh.pos])
-            self._chi[:] = chi[:]
-        else:
-            self._chi[:] = chi0
+    def get_pins(self):
+        return self._pins
+
+    def set_pins(self,pin):
+        self._pins[:]=helper.init_scalar(pin, self.mesh)
         
-    chi = property(get_chi, set_chi)
+        for i in range(len(self._mu_s)):
+            if self._mu_s[i] == 0.0:
+                self._pins[i] = 1
+
+    pins = property(get_pins, set_pins)
+    
 
     def get_alpha(self):
         return self._alpha
@@ -165,12 +180,20 @@ class Sim(object):
     def set_mu_s(self, value):
         self._mu_s[:] = helper.init_scalar(value, self.mesh)
         self.mu_s_inv.shape=(3,-1)
+        nonzero = 0 
         for i in range(self.nxyz):
             if self._mu_s[i] == 0.0:
                 self.mu_s_inv[:,i] = 0
             else: 
                 self.mu_s_inv[:,i]=1.0/self._mu_s[i]
+                nonzero += 1
+        
+        self.nxyz_nonzero = nonzero
         self.mu_s_inv.shape=(-1,)
+        
+        for i in range(len(self._mu_s)):
+            if self._mu_s[i] == 0.0:
+                self._pins[i] = 1
         
     mu_s = property(get_mu_s, set_mu_s)
 
@@ -223,21 +246,16 @@ class Sim(object):
         
         self.spin_last[:] = self.spin[:]
         
-        ode.run_until(t)
+        flag = ode.run_until(t)
+        
+        if flag<0:
+            raise Exception("Run cython run_until failed!!!")
         
         self.spin[:]=ode.y[:]
 
         self.t = t
+        self.step += 1
         
-        if self.pin_fun:
-            self.pin_fun(self.t,self.mesh,self.spin)
-        
-        """
-        length = abs(self.spin_length()-1)
-        if np.max(length)>1e-6:
-            print length
-            raise Exception("the error of spin length is large than 1e-6, please check the tolerence!!!")
-        """
         #update field before saving data
         self.compute_effective_field(t)
         self.saver.save()
@@ -258,9 +276,6 @@ class Sim(object):
         
         self.field[:]=0
 
-        if self.pin_fun:
-            self.pin_fun(t,self.mesh,self.spin)
-
         for obj in self.interactions:
             self.field += obj.compute_field(t)
     
@@ -277,6 +292,7 @@ class Sim(object):
                              self.spin,
                              self.field,
                              self.alpha,
+                             self._pins,
                              self.gamma,
                              self.nxyz)
         
@@ -318,10 +334,9 @@ class Sim(object):
         
         #print 'field',self.field
         
-
     def compute_average(self):
         self.spin.shape=(3,-1)
-        average=np.sum(self.spin,axis=1)/self.nxyz
+        average=np.sum(self.spin,axis=1)/self.nxyz_nonzero
         self.spin.shape=(3*self.nxyz)
         return average
 
@@ -334,12 +349,12 @@ class Sim(object):
             
         return energy
 
-    def normalise(self):
-        a=self.spin
-        a.shape=(3,-1)
-        a/=np.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
-        a.shape=(3*self.nxyz)
-        #print a
+    def skyrmion_number(self):
+        nx = self.mesh.nx
+        ny = self.mesh.ny
+        nz = self.mesh.nz
+        number = clib.compute_skymrion_number(self.spin,self._skx_number,nx,ny,nz)
+        return number
 
     def spin_at(self,i,j,k):
         nxyz=self.mesh.nxyz
@@ -367,12 +382,12 @@ class Sim(object):
 
 
     def save_vtk(self):
-        self.vtk.save_vtk(self.spin)
+        self.vtk.save_vtk(self.spin, step=self.step)
     
     def save_m(self):
         if not os.path.exists('%s_npys'%self.name):
             os.makedirs('%s_npys'%self.name)
-        name = '%s_npys/m_%g.npy'%(self.name,self.t)
+        name = '%s_npys/m_%g.npy'%(self.name,self.step)
         np.save(name,self.spin)
 
     def stat(self):
@@ -386,6 +401,7 @@ class Sim(object):
     
     def compute_spin_error(self):
         length = self.spin_length()-1.0
+        length[self._pins>0] = 0 
         return np.max(abs(length))
     
     def compute_dmdt(self, dt):
@@ -417,7 +433,7 @@ class Sim(object):
             
             dmdt = self.compute_dmdt(increment_dt)
             
-            print 'sim time=%g, max_dmdt=%g ode_step=%g'%(self.t,dmdt, cvode_dt)
+            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g'%(self.step, self.t, dmdt, cvode_dt)
             
             if dmdt<stopping_dmdt:
                 break
