@@ -30,9 +30,9 @@ class Anisotropy(object):
     def compute_field(self, t=0):
         clib.compute_anisotropy(self.spin,
                                 self.field,
-                                self.Dx_mu_s,
-                                self.Dy_mu_s,
-                                self.Dz_mu_s,
+                                self.Dx,
+                                self.Dy,
+                                self.Dz,
                                 self.nxyz)
                                       
         return self.field*self.mu_s_inv
