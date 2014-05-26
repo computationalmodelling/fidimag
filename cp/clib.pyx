@@ -16,7 +16,7 @@ cdef extern from "clib.h":
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
     double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
 
-    void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, int *pins, double gamma, int nxyz)
+    void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, int *pins, double gamma, int nxyz, int do_procession)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
     void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,double dx, double dy, double dz, int nx, int ny, int nz)
@@ -95,8 +95,8 @@ def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 np.ndarray[int, ndim=1, mode="c"] pins,
-                gamma, nxyz):
-    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, nxyz)
+                gamma, nxyz, do_procession):
+    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, nxyz, do_procession)
     
 def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,

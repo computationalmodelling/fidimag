@@ -163,14 +163,27 @@ class BatchTasks(object):
                 par.append(task.values()[0])
                 res.append(self.process_res[i])
         elif len(self.parameters)==2:
+            pass
+            #I can not remember what's the meaning of the following lines.
+            """
             for i,task in enumerate(self.tasks):
                 if key in task and task[key]==value:
                     res.append(self.process_res[i])
                     tmp_task=dict(task)
                     del tmp_task[key]
                     par.append(tmp_task.values()[0])
+            """
         else:
             raise NotImplementedError('Only support one- and two- parameter case!')
+        
+        
+        if key is None and value is None and len(self.parameters)==2:
+            v0 = self.parameters[0]
+            v1 = self.parameters[1]
+            for i,task in enumerate(self.tasks):
+                par.append((task[v0], task[v1]))
+                res.append(self.process_res[i])
+        
         
         return np.array(par),np.array(res)
     

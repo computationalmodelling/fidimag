@@ -94,6 +94,7 @@ class Sim(object):
         self.mu_s_inv[:] = 1
         self.gamma = gamma
         self.k_B = k_B
+        self.do_procession = True
 
         if self.driver == 'sllg':
             self.vode=clib.RK2S(dt,
@@ -294,7 +295,8 @@ class Sim(object):
                              self.alpha,
                              self._pins,
                              self.gamma,
-                             self.nxyz)
+                             self.nxyz,
+                             self.do_procession)
         
                 
         #ydot[:] = self.dm_dt[:]

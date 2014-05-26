@@ -1,12 +1,14 @@
 #include "clib.h"
 
-void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, double gamma, int nxyz) {
+void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, double gamma, int nxyz, int do_procession) {
 
 	int i, j, k;
 
 	double mth0, mth1, mth2;
     double coeff, mm, mh, c;
     double hpi,hpj,hpk;
+
+    //printf("%d\n",do_procession);
 
 	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, mth0, mth1, mth2, hpi,hpj,hpk)
 	for (i = 0; i < nxyz; i++) {
@@ -37,9 +39,9 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, doub
 		mth1 = (m[k] * hpi - m[i] * hpk);
 		mth2 = (m[i] * hpj - m[j] * hpi);
         
-        dm_dt[i] = coeff*(mth0 - hpi * alpha[i]);
-        dm_dt[j] = coeff*(mth1 - hpj * alpha[i]);
-        dm_dt[k] = coeff*(mth2 - hpk * alpha[i]);
+        dm_dt[i] = coeff*(mth0*do_procession - hpi * alpha[i]);
+        dm_dt[j] = coeff*(mth1*do_procession - hpj * alpha[i]);
+        dm_dt[k] = coeff*(mth2*do_procession - hpk * alpha[i]);
         
         // in future, we will try the new method to integrate the LLG equation,
         // A mixed mid-point Runge-Kutta like scheme for the integration of Landau-Lifshitz equation

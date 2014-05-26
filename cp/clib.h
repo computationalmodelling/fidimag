@@ -16,7 +16,7 @@ void dmi_field(double *spin, double *field, double *energy,double D, int nx, int
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
-		int *pins, double gamma, int nxyz);
+		int *pins, double gamma, int nxyz, int do_procession);
 
 void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
              double *chi, double gamma, int nxyz);
