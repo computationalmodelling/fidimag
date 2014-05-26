@@ -11,3 +11,5 @@ iridis:
 
 	icc -pthread -shared build/temp.linux-x86_64-2.7/home/ww1g11/Softwares/pccp/cp/sundials/cvode.o -L/home/ww1g11/Softwares/pccp/libs/lib -L/local/software/intel/2013.4.183/composer_xe_2013.4.183/compiler/lib/intel64 -Wl,-R/home/ww1g11/Softwares/pccp/libs/lib -Wl,-R/local/software/intel/2013.4.183/composer_xe_2013.4.183/compiler/lib/intel64 -lm -lfftw3 -lsundials_cvodes -lsundials_nvecserial -liomp5 -o /home/ww1g11/Softwares/pccp/cvode.so
 	
+clean:
+	rm *.so

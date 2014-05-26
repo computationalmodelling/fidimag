@@ -16,8 +16,6 @@ cdef extern from "clib.h":
     void compute_anis(double * spin, double * field, double Dx, double Dy, double Dz, int nxyz)
     double compute_anis_energy(double *spin, double Dx, double Dy, double Dz, int nxyz)
 
-    double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field)
-
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, int *pins, double gamma, int nxyz)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
@@ -31,10 +29,10 @@ cdef extern from "clib.h":
 
     fft_demag_plan * create_plan()
     void finalize_plan(fft_demag_plan * plan)
-    void init_plan(fft_demag_plan * plan, double mu_s, double dx, double dy, double dz, int nx,
-            int ny, int nz)
-    void compute_fields(fft_demag_plan * plan, double * spin, double * field)
-    void exact_compute(fft_demag_plan * plan, double * spin, double * field)
+    void init_plan(fft_demag_plan * plan, double dx, double dy, double dz, int nx,int ny, int nz)
+    void compute_fields(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
+    void exact_compute(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
+    double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field)
 
 
     # used for sllg
@@ -128,13 +126,13 @@ def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, nxyz):
 
 
 cdef class FFTDemag(object):
-    cdef fft_demag_plan * _c_plan
+    cdef fft_demag_plan *_c_plan
 
-    def __cinit__(self, mu_s, dx, dy, dz, nx, ny, nz):
+    def __cinit__(self, dx, dy, dz, nx, ny, nz):
         self._c_plan = create_plan()
         if self._c_plan is NULL:
             raise MemoryError()
-        init_plan(self._c_plan, mu_s, dx, dy, dz, nx, ny, nz)
+        init_plan(self._c_plan, dx, dy, dz, nx, ny, nz)
 
     def free(self):
         self.__dealloc__()
@@ -146,19 +144,22 @@ cdef class FFTDemag(object):
 
 
     def compute_field(self,np.ndarray[double, ndim=1, mode="c"] spin,
+                        np.ndarray[double, ndim=1, mode="c"] mu_s,
                         np.ndarray[double, ndim=1, mode="c"] field):
-        compute_fields(self._c_plan, & spin[0], & field[0])
+        compute_fields(self._c_plan, &spin[0], &mu_s[0], &field[0])
 
     def compute_exact(self,
                       np.ndarray[double, ndim=1, mode="c"] spin,
+                      np.ndarray[double, ndim=1, mode="c"] mu_s,
                       np.ndarray[double, ndim=1, mode="c"] field):
-        exact_compute(self._c_plan, & spin[0], & field[0])
+        exact_compute(self._c_plan, &spin[0], &mu_s[0], &field[0])
         
     def compute_energy(self,
                       np.ndarray[double, ndim=1, mode="c"] spin,
+                      np.ndarray[double, ndim=1, mode="c"] mu_s,
                       np.ndarray[double, ndim=1, mode="c"] field):
         
-        return compute_demag_energy(self._c_plan, &spin[0], &field[0])
+        return compute_demag_energy(self._c_plan, &spin[0], &mu_s[0], &field[0])
 
 
 

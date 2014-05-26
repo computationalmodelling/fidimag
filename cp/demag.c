@@ -105,10 +105,10 @@ fft_demag_plan *create_plan(void) {
 	return plan;
 }
 
-void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy,
+void init_plan(fft_demag_plan *plan, double dx, double dy,
 		double dz, int nx, int ny, int nz) {
 
-	plan->mu_s = mu_s;
+	//plan->mu_s = mu_s;
 
 	plan->dx = dx;
 	plan->dy = dy;
@@ -195,7 +195,9 @@ void init_plan(fft_demag_plan *plan, double mu_s, double dx, double dy,
 
 }
 
-void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
+//The computed results doesn't consider the coefficient of \frac{\mu_0}{4 \pi}, the
+//reason is in future we can use the following code directly for continuum case
+void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *field) {
 
 	int i, j, k, id1, id2;
 
@@ -223,9 +225,9 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 			for (k = 0; k < nz; k++) {
 				id1 = i * nyz + j * nz + k;
 				id2 = i * lenyz + j * lenz + k;
-				plan->mx[id2] = spin_x[id1];
-				plan->my[id2] = spin_y[id1];
-				plan->mz[id2] = spin_z[id1];
+				plan->mx[id2] = spin_x[id1]*mu_s[id1];
+				plan->my[id2] = spin_y[id1]*mu_s[id1];
+				plan->mz[id2] = spin_z[id1]*mu_s[id1];
 			}
 		}
 	}
@@ -269,7 +271,7 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 	//print_r("hy", plan->hy, plan->total_length);
 	//print_r("hz", plan->hz, plan->total_length);
 
-	double scale = plan->mu_s  / plan->total_length;
+	double scale = 1.0  / plan->total_length;
 	double *field_x = &field[0];
 	double *field_y = &field[nxyz];
 	double *field_z = &field[2 * nxyz];
@@ -288,7 +290,7 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *field) {
 }
 
 //only used for debug
-void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
+void exact_compute(fft_demag_plan *plan, double *spin,  double *mu_s, double *field) {
 	int i, j, k, index;
 	int ip, jp, kp, idf, ids;
 	int nx = plan->nx;
@@ -316,7 +318,6 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 	double *s_x = &spin[0];
 	double *s_y = &spin[nxyz];
 	double *s_z = &spin[2 * nxyz];
-	double scale = plan->mu_s;
 
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
@@ -333,19 +334,15 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 							ids = ip * nyz + jp * nz + kp;
 							index = (i - ip + nx - 1) * lenyz + (j - jp + ny
 									- 1) * lenz + (k - kp + nz - 1);
-							f_x[idf] += Nxx[index] * s_x[ids] + Nxy[index]
-									* s_y[ids] + Nxz[index] * s_z[ids];
-							f_y[idf] += Nxy[index] * s_x[ids] + Nyy[index]
-									* s_y[ids] + Nyz[index] * s_z[ids];
-							f_z[idf] += Nxz[index] * s_x[ids] + Nyz[index]
-									* s_y[ids] + Nzz[index] * s_z[ids];
+							f_x[idf] += (Nxx[index] * s_x[ids] + Nxy[index]
+									* s_y[ids] + Nxz[index] * s_z[ids])*mu_s[ids];
+							f_y[idf] += (Nxy[index] * s_x[ids] + Nyy[index]
+									* s_y[ids] + Nyz[index] * s_z[ids])*mu_s[ids];
+							f_z[idf] += (Nxz[index] * s_x[ids] + Nyz[index]
+									* s_y[ids] + Nzz[index] * s_z[ids])*mu_s[ids];
 						}
 					}
 				}
-
-				f_x[idf] *= scale;
-				f_y[idf] *= scale;
-				f_z[idf] *= scale;
 
 			}
 		}
@@ -353,17 +350,18 @@ void exact_compute(fft_demag_plan *plan, double *spin, double *field) {
 
 }
 
-double compute_demag_energy(fft_demag_plan *plan, double *spin, double *field) {
+double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field) {
 
-	int i;
+	int i,j,k;
 
 	int nxyz = plan->nx * plan->ny * plan->nz;
 
-	double energy = 0, mu_s = plan->mu_s;
+	double energy = 0;
 
-	for (i = 0; i < 3 * nxyz; i++) {
-
-		energy += mu_s * spin[i] * field[i];
+	for (i = 0; i < nxyz; i++) {
+		j = i + nxyz;
+		k = j + nxyz;
+		energy += mu_s[i]*(spin[i]*field[i]+spin[j]*field[j]+spin[k]*field[k]);
 	}
 
 	energy = -energy / 2.0;

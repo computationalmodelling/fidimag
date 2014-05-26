@@ -8,6 +8,8 @@ def normalise(a):
     """
     a.shape=(3,-1)
     b = np.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+    ids = (b == 0)
+    b[ids] = 1.0
     a /= b
     a.shape=(-1,)
 
@@ -55,6 +57,42 @@ def init_scalar(value,mesh):
 
     return mesh_v
 
+
+def extract_data(mesh, npys, pos, comp='x'):
+    """
+    extract data of special positions for given npy data
+    
+    npys:
+        the names of npys
+    
+    pos:
+         something like [(1,0,0),...,(2,3,4)]
+    """
+    ids = []
+    for p in pos:
+        ids.append(mesh.index(p[0],p[1],p[2]))
+        
+    ids = np.array(ids)
+    
+    if comp == 'x':
+        cmpi = 0
+    elif comp == 'y':
+        cmpi = 1
+    elif comp == 'z':
+        cmpi = 2
+    else:
+        raise Exception('Seems given component is wrong!!!')
+        
+    ids += cmpi*mesh.nxyz 
+    
+    all_data = []
+
+    for ny in npys:
+        
+        all_data.append(np.load(ny)[ids])
+    
+    return np.array(all_data)
+    
 
 if __name__=='__main__':
 

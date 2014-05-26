@@ -18,13 +18,14 @@ class Anisotropy(object):
         self.spin=spin
         
         #TODO: change Dx, Dy, Dz to arrays
-        self.Dx_mu_s=self.Dx*mu_s_inv[0]
-        self.Dy_mu_s=self.Dy*mu_s_inv[0]
-        self.Dz_mu_s=self.Dz*mu_s_inv[0]
+        self.Dx=self.Dx
+        self.Dy=self.Dy
+        self.Dz=self.Dz
         
         self.nxyz=mesh.nxyz
         self.field=np.zeros(3*self.nxyz)
         self.energy=0
+        self.mu_s_inv = mu_s_inv
 
     def compute_field(self, t=0):
         clib.compute_anisotropy(self.spin,
@@ -34,7 +35,7 @@ class Anisotropy(object):
                                 self.Dz_mu_s,
                                 self.nxyz)
                                       
-        return self.field
+        return self.field*self.mu_s_inv
     
     def compute_energy(self):
         self.energy=clib.compute_anisotropy_energy(self.spin,

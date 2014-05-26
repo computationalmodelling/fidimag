@@ -13,7 +13,7 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
-	int i, j, k;
+	int i, j;
 	int index, id;
 	
 	double sum = 0;
