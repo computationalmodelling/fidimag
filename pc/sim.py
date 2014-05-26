@@ -426,12 +426,13 @@ class Sim(object):
                 increment_dt = cvode_dt
 
             self.run_until(self.t+increment_dt)
-                
-            if i%save_vtk_steps==0:
-                self.save_vtk()
-                
-            if i%save_m_steps==0:
-                self.save_m()
+            
+            if save_vtk_steps is not None:
+                if i%save_vtk_steps==0:
+                    self.save_vtk()
+            if save_m_steps is not None:
+                if i%save_m_steps==0:
+                    self.save_m()
             
             dmdt = self.compute_dmdt(increment_dt)
             
@@ -440,10 +441,11 @@ class Sim(object):
             if dmdt<stopping_dmdt:
                 break
         
-        
-        self.save_vtk()
-        self.save_m()
-    
+        if save_m_steps is not None:
+            self.save_m()
+            
+        if save_vtk_steps is not None:
+            self.save_vtk()
 
 
 if __name__=='__main__':

@@ -1,4 +1,9 @@
 from __future__ import division
+import matplotlib as mpl
+mpl.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as color
 
 import numpy as np
 
@@ -92,6 +97,35 @@ def extract_data(mesh, npys, pos, comp='x'):
         all_data.append(np.load(ny)[ids])
     
     return np.array(all_data)
+
+
+def plot_m(mesh, npy, comp='x'):
+    
+    if comp == 'x':
+        cmpi = 0
+    elif comp == 'y':
+        cmpi = 1
+    elif comp == 'z':
+        cmpi = 2
+    else:
+        raise Exception('Seems the given component is wrong!!!')
+    
+    data = np.load(npy)
+    data.shape = (3,-1)
+    m = data[cmpi]
+    
+    nx = mesh.nx
+    ny = mesh.ny
+    
+    m.shape=(nx,ny)
+    
+    fig = plt.figure()
+    plt.imshow(m, aspect = 1, cmap = plt.cm.coolwarm, norm=color.Normalize(-1,1), origin='lower')
+    plt.autoscale(False)
+    plt.xticks([])
+    plt.yticks([])
+    fig.savefig('%s_%s.png'%(npy[:-4],comp))
+    
     
 
 if __name__=='__main__':
