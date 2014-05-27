@@ -19,7 +19,7 @@ const = Constant()
 
 class Sim(object):
     
-    def __init__(self,mesh,T=0,name='unnamed',driver='llg',pbc=None):
+    def __init__(self,mesh,name='unnamed',driver='llg',pbc=None,T=0):
         """Simulation object.
 
         *Arguments*
@@ -107,6 +107,7 @@ class Sim(object):
                         self.spin,
                         self.field,
                         self.T,
+                        self._pins,
                         self.update_effective_field)
             
         elif self.driver == 'llg':
@@ -266,10 +267,7 @@ class Sim(object):
         self.spin[:]=y[:]
         
         self.field[:]=0
-        
-        if self.pin_fun:
-            self.pin_fun(self.t,self.mesh,self.spin)
-        
+                
         for obj in self.interactions:
             self.field += obj.compute_field(t)
 

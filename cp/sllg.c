@@ -37,7 +37,7 @@ void init_solver(ode_solver *s, double k_B, double theta, int nxyz, double dt, d
 }
 
 
-void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv) {
+void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins) {
 
 	int i, j, k;
 
@@ -57,6 +57,14 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 		j = i + nxyz;
 		k = j + nxyz;
 		
+		if (pins[i]>0){
+			 dm[i] = 0;
+			 dm[j] = 0;
+			 dm[k] = 0;
+			 continue;
+		}
+
+
         coeff = -s->gamma/ (1.0 + alpha[i] * alpha[i]) ;
 		q = sqrt(Q * alpha[i] * T[i] * mu_s_inv[i]);
 		
@@ -75,14 +83,14 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 	}
 }
 
-void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha, double *mu_s_inv) {
+void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha, double *mu_s_inv, int *pins) {
 	int i;
 	int nxyz = s->nxyz;
 	double *dm1 = s->dm1;
 	double theta = s->theta;
 
 	gauss_random_vec(s->eta, 3 * nxyz);
-	llg_rhs_dw(s, m, h, dm1, T, alpha, mu_s_inv);
+	llg_rhs_dw(s, m, h, dm1, T, alpha, mu_s_inv, pins);
 
 	//#pragma omp parallel for private(i)
 	for (i = 0; i < 3 * s->nxyz; i++) {
@@ -91,7 +99,7 @@ void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, d
 
 }
 
-void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha, double *mu_s_inv) {
+void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha, double *mu_s_inv, int *pins) {
 	int i, j, k;
 	int nxyz = s->nxyz;
 	double *dm1 = s->dm1;
@@ -99,7 +107,7 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, d
 	double theta1 = s->theta1;
 	double theta2 = s->theta2;
 
-	llg_rhs_dw(s, m_pred, h, dm2, T, alpha, mu_s_inv);
+	llg_rhs_dw(s, m_pred, h, dm2, T, alpha, mu_s_inv, pins);
 
 	//#pragma omp parallel for private(i)
 	for (i = 0; i < 3 * nxyz; i++) {
@@ -109,6 +117,10 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, d
 	double mm;
 	#pragma omp parallel for private(i,j,k,mm)
 	for (i = 0; i < s->nxyz; i++) {
+		if (pins[i]>0){
+			continue;
+		}
+
 		j = i + nxyz;
 		k = j + nxyz;
 		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);

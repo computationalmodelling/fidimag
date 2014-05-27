@@ -76,6 +76,23 @@ def test_m_average():
     a = sim.compute_average()
     assert a[2] == 1.0
     
+
+def single_spin(alpha, gamma, H0, ts):
+    """
+    compute single spin under the external field H
+    """
+    
+    precession = gamma/(1+alpha**2)
+    beta = precession * H0 * ts
+    
+    mx = np.cos(beta)/np.cosh(alpha*beta)
+    my = np.sin(beta)/np.cosh(alpha*beta)
+    mz = np.tanh(alpha*beta)
+    
+    return mx,my,mz
+    
+    
+
 def test_sim_single_spin_vode(do_plot=False):
 
     mesh=FDMesh(nx=1,ny=1,nz=1)
@@ -94,10 +111,6 @@ def test_sim_single_spin_vode(do_plot=False):
     sim.add(Zeeman((0, 0, H0)))
     
     ts = np.linspace(0, 1e-9, 101)
-        
-    precession = gamma/(1+alpha**2)
-    
-    mz_ref = []
     
     mx = []
     my = []
@@ -107,22 +120,24 @@ def test_sim_single_spin_vode(do_plot=False):
         sim.run_until(t)
         real_ts.append(sim.t)
         print sim.t,abs(sim.spin_length()[0]-1)
-        mz_ref.append(np.tanh(precession * alpha * H0 * sim.t))
         mx.append(sim.spin[0])
         my.append(sim.spin[1])
         mz.append(sim.spin[2])
     
     mz=np.array(mz)
     #print mz
+    a_mx,a_my,a_mz = single_spin(alpha,gamma,H0, ts)
 
     print sim.stat()
     
     if do_plot:
         ts_ns = np.array(real_ts) * 1e9
-        plt.plot(ts_ns, mx, "-", label="mx", color='DarkGreen')
-        plt.plot(ts_ns, my, "-", label="my", color='darkslateblue') 
-        plt.plot(ts_ns, mz, ":", label="mz", color='m') 
-        plt.plot(ts_ns, mz_ref, "--", label="analytical", color='b') 
+        plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
+        plt.plot(ts_ns, my, ".", label="my", color='darkslateblue') 
+        plt.plot(ts_ns, mz, ".", label="mz", color='m') 
+        plt.plot(ts_ns, a_mx, "--", label="analytical", color='b') 
+        plt.plot(ts_ns, a_my, "--",  color='b') 
+        plt.plot(ts_ns, a_mz, "--",  color='b') 
         plt.xlabel("time (ns)")
         plt.ylabel("m")
         plt.title("integrating a macrospin")
@@ -130,9 +145,66 @@ def test_sim_single_spin_vode(do_plot=False):
         plt.savefig("single_spin.pdf")
         
     print("Max Deviation = {0}".format(
-            np.max(np.abs(mz - mz_ref))))
+            np.max(np.abs(mz - a_mz))))
    
-    assert np.max(np.abs(mz - mz_ref)) < 5e-7
+    assert np.max(np.abs(mz - a_mz)) < 5e-7
+    
+def test_sim_single_spin_sllg(do_plot=False):
+
+    mesh=FDMesh(nx=1,ny=1,nz=1)
+
+    sim = Sim(mesh,name='spin',driver='sllg')
+   
+    alpha = 0.1
+    gamma = 2.21e5
+    
+    sim.set_options(dt=1e-15, gamma=gamma)
+    
+    sim.alpha = alpha
+    sim.mu_s = 1.0
+    
+    sim.set_m((1, 0, 0))
+    
+    H0 = 1e5
+    sim.add(Zeeman((0, 0, H0)))
+    
+    ts = np.linspace(0, 1e-10, 101)
+        
+    
+    mx = []
+    my = []
+    mz = []
+    real_ts=[]
+    for t in ts:
+        sim.run_until(t)
+        real_ts.append(sim.t)
+        print sim.t,abs(sim.spin_length()[0]-1)
+        mx.append(sim.spin[0])
+        my.append(sim.spin[1])
+        mz.append(sim.spin[2])
+    
+    mz=np.array(mz)
+    
+    a_mx,a_my,a_mz = single_spin(alpha,gamma,H0, ts)
+    
+    if do_plot:
+        ts_ns = np.array(real_ts) * 1e9
+        plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
+        plt.plot(ts_ns, my, ".", label="my", color='darkslateblue') 
+        plt.plot(ts_ns, mz, ".", label="mz", color='m') 
+        plt.plot(ts_ns, a_mx, "--", label="analytical", color='b') 
+        plt.plot(ts_ns, a_my, "--",  color='b') 
+        plt.plot(ts_ns, a_mz, "--",  color='b') 
+        plt.xlabel("time (ns)")
+        plt.ylabel("m")
+        plt.title("integrating a macrospin")
+        plt.legend()
+        plt.savefig("single_spin_sllg.pdf")
+        
+    print("Max Deviation = {0}".format(
+            np.max(np.abs(mz - a_mz))))
+   
+    assert np.max(np.abs(mz - a_mz)) < 5e-6
 
 
 def disable_test_sim_single_spin_llg_stt(do_plot=False):
@@ -166,8 +238,6 @@ def disable_test_sim_single_spin_llg_stt(do_plot=False):
     
     mxyz=np.array(mxyz)
     
-    print sim.stat()
-    
     if do_plot:
         ts_ns = np.array(real_ts) * 1e9
         
@@ -192,7 +262,6 @@ if __name__=='__main__':
     #test_sim_init_m_fun()
     #test_sim_T_fun()
     #test_sim_single_spin_vode(do_plot=True)
-    #test_sim_single_spin_llg_s(do_plot=True)
+    test_sim_single_spin_sllg(do_plot=True)
     #test_sim_single_spin_llg_stt(do_plot=True)
     #test_sim_single_spin(do_plot=True)
-    test_sim_pin()

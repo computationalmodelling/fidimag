@@ -120,7 +120,7 @@ def plot_m(mesh, npy, comp='x'):
     m.shape=(nx,ny)
     
     fig = plt.figure()
-    plt.imshow(m, aspect = 1, cmap = plt.cm.coolwarm, norm=color.Normalize(-1,1), origin='lower')
+    plt.imshow(np.transpose(m), aspect = 1, cmap = plt.cm.coolwarm, norm=color.Normalize(-1,1), origin='lower')
     plt.autoscale(False)
     plt.xticks([])
     plt.yticks([])

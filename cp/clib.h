@@ -116,7 +116,7 @@ void init_solver(ode_solver *s, double k_B, double theta, int nxyz, double dt, d
 ode_solver *create_ode_plan(void);
 void finalize_ode_plan(ode_solver *plan);
 void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T,
-		double *alpha, double *mu_s_inv);
+		double *alpha, double *mu_s_inv, int *pins);
 void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T,
-		double *alpha, double *mu_s_inv);
+		double *alpha, double *mu_s_inv, int *pins);
 

@@ -32,6 +32,7 @@ def test_skx_num():
     sim.mu_s = 1.0
     
     sim.set_m(init_m)
+    sim.do_procession = False
     
 
     J = 1.0
@@ -45,7 +46,7 @@ def test_skx_num():
     zeeman = Zeeman([0,0,5e-3])
     sim.add(zeeman)
     
-    sim.relax(dt=2.0, stopping_dmdt=1e-2, max_steps=1000, save_m_steps=100, save_vtk_steps=50)
+    sim.relax(dt=2.0, stopping_dmdt=1e-2, max_steps=1000, save_m_steps=None, save_vtk_steps=None)
     
     skn =  sim.skyrmion_number()
     print 'skx_number', skn

@@ -56,11 +56,11 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     T = 100
     ts=np.linspace(0, T, 201)
     for t in ts:
-        sim.save_vtk()
+        #sim.save_vtk()
         sim.run_until(t)
     
 
-    sim.save_vtk()
+    #sim.save_vtk()
     np.save('m0.npy', sim.spin)
 
 
