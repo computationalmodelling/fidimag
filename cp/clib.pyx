@@ -242,10 +242,7 @@ cdef class RK2S(object):
         
 
     def run_until(self, t):
-        if t <= self.t:
-            return 0
-        steps = int((t-self.t)/self.dt)
-        for _ in range(steps):
+        while (self.t<t):
             self.run_step()
         return 0
 

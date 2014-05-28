@@ -128,6 +128,7 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, d
 		m[j] *= mm;
 		m[k] *= mm;
 	}
+	//we have to say that this kind of method is quite inaccurate, so in future we can try other methods
 
 }
 
