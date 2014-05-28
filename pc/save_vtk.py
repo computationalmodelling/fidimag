@@ -28,7 +28,7 @@ class SaveVTK():
         for i in range(len(ids)):
             self.pos.append(self.mesh.pos[self.ids[i]])
                     
-    def save_vtk(self,m, step):
+    def save_vtk(self, m, step=0):
         
         if not os.path.exists(self.name):
             os.makedirs(self.name)
