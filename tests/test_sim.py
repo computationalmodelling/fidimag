@@ -34,7 +34,7 @@ def test_sim_pin():
     sim.gamma = 1.0
     sim.pins = pin_fun
     
-    anis=Anisotropy(1.0, direction=(0,0,1), name='Dx')
+    anis=Anisotropy([0,0,1.0], name='Dx')
     sim.add(anis)
     
     sim.run_until(1.0)

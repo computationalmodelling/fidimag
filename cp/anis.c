@@ -1,40 +1,28 @@
 #include "clib.h"
 
-void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
-		int nxyz) {
+void compute_anis(double *spin, double *field, double *Ku, int nxyz) {
 
-	int i, j, k;
+	int i;
 
-    #pragma omp parallel for private(i,j,k)
-	for (i = 0; i < nxyz; i++) {
+    #pragma omp parallel for private(i)
+	for (i = 0; i < 3*nxyz; i++) {
 
-		j = i + nxyz;
-		k = j + nxyz;
-
-		field[i] = 2 * Dx * spin[i];
-		field[j] = 2 * Dy * spin[j];
-		field[k] = 2 * Dz * spin[k];
+		field[i] = 2 * Ku[i] * spin[i];
 
 	}
 
 }
 
-double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
-		int nxyz) {
+double compute_anis_energy(double *spin, double *Ku, int nxyz) {
 
-	int i, j, k;
+	int i;
 
 	double energy = 0;
 
-	#pragma omp parallel for private(i,j,k) reduction(+:energy)
-	for (i = 0; i < nxyz; i++) {
+	#pragma omp parallel for private(i) reduction(+:energy)
+	for (i = 0; i < 3*nxyz; i++) {
 
-		j = i + nxyz;
-		k = j + nxyz;
-
-		energy += Dx * spin[i] * spin[i];
-		energy += Dy * spin[j] * spin[j];
-		energy += Dz * spin[k] * spin[k];
+		energy += Ku[i] * spin[i] * spin[i];
 
 	}
 

@@ -6,11 +6,8 @@
 void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
 
-void compute_anis(double *spin, double *field, double Dx, double Dy, double Dz,
-		int nxyz);
-
-double compute_anis_energy(double *spin, double Dx, double Dy, double Dz,
-		int nxyz);
+void compute_anis(double *spin, double *field, double *Ku, int nxyz);
+double compute_anis_energy(double *spin, double *Ku, int nxyz);
 
 void dmi_field(double *spin, double *field, double *energy,double D, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);

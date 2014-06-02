@@ -45,10 +45,10 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     exch=UniformExchange(mat.J)
     sim.add(exch)
 
-    anis=Anisotropy(Dx, direction=(1,0,0), name='Dx')
+    anis=Anisotropy([Dx,0,0], name='Dx')
     sim.add(anis)
     
-    anis2=Anisotropy(-Dp, direction=(0,0,1), name='Dp')
+    anis2=Anisotropy([0,0,-Dp], name='Dp')
     sim.add(anis2)
     
     sim.set_m((1,1,1))
