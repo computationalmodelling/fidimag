@@ -128,8 +128,9 @@ class Sim(object):
             self.p = 0.5
             self.beta = 0
             #a^3/dx ==> unit_length^2
-            cell_size=self.mesh.cell_size
-            self.u0 = const.g_e*const.mu_B*cell_size/(2*const.e*self.mu_s)*self.unit_length**2
+            cell_size=self.mesh.dx*self.mesh.dy*self.mesh.dz
+            #FIXME: change the u0 to spatial 
+            self.u0 = const.g_e*const.mu_B*cell_size/(2*const.c_e*self.mu_s[0])*self.unit_length**2
             
         else:
             raise Exception("Unsppourted driver:{0},avaiable drivers: sllg, llg, llg_s, llg_stt.".format(self.driver))
@@ -308,7 +309,7 @@ class Sim(object):
         #already synchronized when call this funciton
         #self.spin[:]=y[:]
         
-        self.compute_effective_field()
+        self.compute_effective_field(t)
         
         clib.compute_stt_field(self.spin,
                                self.field_stt,
