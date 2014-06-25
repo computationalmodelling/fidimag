@@ -25,6 +25,7 @@ class Zeeman(object):
         
         self.field=np.zeros(3*self.nxyz)
         self.field[:]=helper.init_vector(self.H0, self.mesh)
+        #print self.field
         
 
     def compute_field(self, t=0):     

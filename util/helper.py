@@ -29,7 +29,10 @@ def init_vector(m0,mesh,norm=False):
         spin = np.reshape(spin, 3*nxyz, order='F')
     elif hasattr(m0, '__call__'):
         for i in range(nxyz):
-            spin[i] = m0(mesh.pos[i])
+            v = m0(mesh.pos[i])
+            if len(v)!=3:
+                raise Exception('The length of the value in init_vector method must be 3.')
+            spin[i,:] = v[:]
         spin = np.reshape(spin, 3*nxyz, order='F')
     elif isinstance(m0,np.ndarray):
         spin.shape=(-1,)
