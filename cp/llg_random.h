@@ -133,3 +133,10 @@ void gauss_random_vec(double *x, int n) {
 
 }
 
+void gauss_random_vec_with_init(double *x, int n) {
+
+	initial_random();
+
+	gauss_random_vec(x,n);
+
+}

@@ -5,6 +5,9 @@ np.import_array()
      
 
 cdef extern from "clib.h":
+    
+    void gauss_random_vec_with_init(double *x, int n)
+    
     double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz)
 
     void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
@@ -44,6 +47,15 @@ cdef extern from "clib.h":
     void finalize_ode_plan(ode_solver *plan)
     void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha, double *mu_s_inv, int *pins)
     void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha, double *mu_s_inv, int *pins)
+
+def random_number(np.ndarray[double, ndim=1, mode="c"] v):
+    cdef int n = len(v)
+    
+    
+    print n
+    
+    gauss_random_vec_with_init(&v[0], n)
+    
 
 
 def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
