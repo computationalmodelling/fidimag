@@ -55,6 +55,8 @@ class Sim(object):
         self.driver = driver
         self.pbc = pbc
         
+        self.update_j_fun = None
+        
         self.step = 0
         
         self.saver = DataSaver(self, name+'.txt')
@@ -79,6 +81,14 @@ class Sim(object):
 
         self._T[:] = T
         self.set_options()
+        
+        self.xperiodic = 0
+        self.yperiodic = 0
+        if pbc=='1d':
+            self.xperiodic = 1
+        elif pbc=='2d':
+            self.xperiodic = 1
+            self.yperiodic = 1
         
 
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
@@ -122,9 +132,12 @@ class Sim(object):
             
             self.field_stt = np.zeros(3*self.nxyz)
 
-            self.jx = 0
-            self.jy = 0
-            self.jz = 0
+            self.jx = np.zeros(self.nxyz,dtype=np.float)
+            self.jy = np.zeros(self.nxyz,dtype=np.float)
+            
+            self.jx0 = np.zeros(self.nxyz,dtype=np.float)
+            self.jy0 = np.zeros(self.nxyz,dtype=np.float)
+            
             self.p = 0.5
             self.beta = 0
             #a^3/dx ==> unit_length^2
@@ -311,17 +324,22 @@ class Sim(object):
         
         self.compute_effective_field(t)
         
+        if self.update_j_fun is not None:
+            self.jx[:] = self.jx0[:]*self.update_j_fun(t)
+            self.jy[:] = self.jy0[:]*self.update_j_fun(t)
+            self.jz[:] = self.jz0[:]*self.update_j_fun(t)
+        
         clib.compute_stt_field(self.spin,
                                self.field_stt,
                                self.jx,
                                self.jy,
-                               self.jz,
                                self.mesh.dx,
                                self.mesh.dy,
-                               self.mesh.dz,
                                self.mesh.nx,
                                self.mesh.ny,
-                               self.mesh.nz)        
+                               self.mesh.nz,
+                               self.xperiodic,
+                               self.yperiodic)        
 
         clib.compute_llg_stt_rhs(ydot,
                                self.spin,

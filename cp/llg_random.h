@@ -128,7 +128,7 @@ double ltqnorm(void) {
 void gauss_random_vec(double *x, int n) {
 	int i;
 	for (i = 0; i < n; i++) {
-		x[i] = ltqnorm();
+		x[i] = gauss_random();
 	}
 
 }

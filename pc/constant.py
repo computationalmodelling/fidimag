@@ -13,5 +13,6 @@ class Constant(object):
     h = h_bar*2.*np.pi
     gamma = g_e*mu_B/h_bar
     mu_s_1 = g_e*mu_B*1.0 #for S=1, 1.856952823077189e-23
+    h_bar_gamma = h_bar*gamma
     
     

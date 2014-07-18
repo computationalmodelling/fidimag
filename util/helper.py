@@ -102,7 +102,7 @@ def extract_data(mesh, npys, pos, comp='x'):
     return np.array(all_data)
 
 
-def plot_m(mesh, npy, comp='x'):
+def plot_m(mesh, npy, comp='x', based=None):
     
     if comp == 'x':
         cmpi = 0
@@ -114,6 +114,10 @@ def plot_m(mesh, npy, comp='x'):
         raise Exception('Seems the given component is wrong!!!')
     
     data = np.load(npy)
+    
+    if based is not None:
+        data = data - based
+    
     data.shape = (3,-1)
     m = data[cmpi]
     
@@ -123,7 +127,8 @@ def plot_m(mesh, npy, comp='x'):
     m.shape=(nx,ny)
     
     fig = plt.figure()
-    plt.imshow(np.transpose(m), aspect = 1, cmap = plt.cm.coolwarm, norm=color.Normalize(-1,1), origin='lower')
+    #norm=color.Normalize(-1,1)
+    plt.imshow(np.transpose(m), aspect = 1, cmap = plt.cm.coolwarm, origin='lower', interpolation='none')
     plt.autoscale(False)
     plt.xticks([])
     plt.yticks([])

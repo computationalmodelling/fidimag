@@ -22,7 +22,9 @@ cdef extern from "clib.h":
     void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, int *pins, double gamma, int nxyz, int do_procession)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
-    void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,double dx, double dy, double dz, int nx, int ny, int nz)
+    void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
+        double dx, double dy, int nx, int ny, int nz, int xperiodic,
+        int yperiodic)
     void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,double beta, double u0, double gamma, int nxyz)
 
 
@@ -122,8 +124,10 @@ def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
 
 def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
-                jx, jy, jz, dx, dy, dz, nx, ny, nz):
-    compute_stt_field_c(&spin[0], &field[0],jx, jy, jz, dx, dy, dz, nx, ny, nz)
+                np.ndarray[double, ndim=1, mode="c"] jx,
+                np.ndarray[double, ndim=1, mode="c"] jy,
+                dx, dy, nx, ny, nz, xperiodic, yperiodic):
+    compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0], dx, dy, nx, ny, nz, xperiodic,yperiodic)
 
 def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,

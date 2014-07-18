@@ -13,8 +13,8 @@ ode_solver *create_ode_plan(void) {
 void init_solver(ode_solver *s, double k_B, double theta, int nxyz, double dt, double gamma) {
 
 	s->theta = theta;
-	s->theta1 = 1-0.5*theta;
-	s->theta2 = 0.5*theta;
+	s->theta1 = 1-0.5/theta;
+	s->theta2 = 0.5/theta;
 
 	s->dt = dt;
 	s->nxyz = nxyz;
@@ -75,6 +75,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 		mth0 = coeff * (m[j] * hk - m[k] * hj);
 		mth1 = coeff * (m[k] * hi - m[i] * hk);
 		mth2 = coeff * (m[i] * hj - m[j] * hi);
+
 
 		dm[i] = mth0 + alpha[i] * (m[j] * mth2 - m[k] * mth1);
 		dm[j] = mth1 + alpha[i] * (m[k] * mth0 - m[i] * mth2);

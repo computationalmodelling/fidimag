@@ -19,10 +19,13 @@ void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
              double *chi, double gamma, int nxyz);
 
 
-void compute_stt_field_c(double *spin, double *field, double jx, double jy, double jz,
-                       double dx, double dy, double dz, int nx, int ny, int nz);
+void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
+		double dx, double dy, int nx, int ny, int nz, int xperiodic, int yperiodic);
+
 void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,
                  double beta, double u0, double gamma, int nxyz);
+
+
 
 void normalise(double *m, int nxyz);
 double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz);
