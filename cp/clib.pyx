@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 cimport numpy as np
 np.import_array()
 
@@ -9,6 +9,7 @@ cdef extern from "clib.h":
     void gauss_random_vec_with_init(double *x, int n)
     
     double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz)
+    void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
 
     void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
@@ -65,6 +66,17 @@ def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
                             nx, ny, nz):
 
     return skyrmion_number(&spin[0], &charge[0], nx, ny, nz)
+
+def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
+                            nx, ny, nz):
+    
+    res = numpy.array([0.0,0.0])
+    
+    cdef np.ndarray[double, ndim=1, mode="c"] R = res
+
+    compute_guiding_center(&spin[0], nx, ny, nz, &R[0])
+    
+    return res[0], res[1]
 
 
 def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,

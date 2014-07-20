@@ -29,6 +29,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alp
 
 void normalise(double *m, int nxyz);
 double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz);
+void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res);
 
 //==========================================
 //used for demag
