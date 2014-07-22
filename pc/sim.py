@@ -408,6 +408,12 @@ class Sim(object):
             os.makedirs('%s_npys'%self.name)
         name = '%s_npys/m_%g.npy'%(self.name,self.step)
         np.save(name,self.spin)
+        
+    def save_skx(self):
+        if not os.path.exists('%s_skx_npys'%self.name):
+            os.makedirs('%s_skx_npys'%self.name)
+        name = '%s_skx_npys/m_%g.npy'%(self.name,self.step)
+        np.save(name,self._skx_number)
 
     def stat(self):
         return self.vode.stat()
