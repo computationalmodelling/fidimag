@@ -1,7 +1,5 @@
-
-
-Developing note
-===============
+Developing notes
+=================
 
 Data structure
 ---------------------------------------
@@ -22,6 +20,18 @@ So we label the cells along z axis first then along y axis and the last is x, th
 			}
 		}
 	}
+
+
+Units
+-------------------------------------------------------
+We try to follow the SI units in the whole development, for example the gyromagnetic ratio 
+:math:`\gamma` is 1.76e11 rad/(s T). Because we use the sampe code to compute the exchange 
+field and DMI field for both the atomic moments and the continuum case, so we need to 
+take care of the relation between the two. For example, the saturated magnetization :math:`M_s`
+can be computed by 
+
+.. math::
+   M_s = \frac{\hbar \gamma S}{a^3}
 
 Exchange and DMI energy
 --------------------------------------------------

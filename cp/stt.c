@@ -204,7 +204,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 	double coeff, coeff_stt, mh, mht, c, mm;
 	double hpi, hpj, hpk;
 
-#pragma omp parallel for private(i,j,k, mth0, mth1, mth2, coeff, coeff_stt, mh, mht, c, mm, hpi,hpj,hpk)
+	#pragma omp parallel for private(i,j,k, mth0, mth1, mth2, coeff, coeff_stt, mh, mht, c, mm, hpi,hpj,hpk)
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
@@ -248,10 +248,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 		dm_dt[k] += coeff_stt * ((1 + alpha[i] * beta) * hpk
 				- (beta - alpha[i]) * mth2);
 
-		c = 6
-				* sqrt(
-						dm_dt[i] * dm_dt[i] + dm_dt[j] * dm_dt[j] + dm_dt[k]
-								* dm_dt[k]);
+		c = 6 * sqrt(dm_dt[i] * dm_dt[i] + dm_dt[j] * dm_dt[j] + dm_dt[k]* dm_dt[k]);
 		dm_dt[i] += c * (1 - mm) * m[i];
 		dm_dt[j] += c * (1 - mm) * m[j];
 		dm_dt[k] += c * (1 - mm) * m[k];

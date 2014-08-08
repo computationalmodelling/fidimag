@@ -39,7 +39,7 @@ class Sim(object):
         self.mesh = mesh
         self.nxyz = mesh.nxyz
         self.nxyz_nonzero = mesh.nxyz
-        self.unit_length=mesh.unit_length
+        self.unit_length = mesh.unit_length
         self._T = np.zeros(self.nxyz,dtype=np.float)
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
         self._mu_s = np.zeros(self.nxyz,dtype=np.float)

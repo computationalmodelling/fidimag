@@ -11,8 +11,8 @@ cdef extern from "clib.h":
     double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz)
     void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
 
-    void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
-    double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jx, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     
     void dmi_field(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
@@ -82,16 +82,16 @@ def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
 def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
                             np.ndarray[double, ndim=1, mode="c"] energy,
-                            J,
+                            Jx, Jy, Jz,
                             nx, ny, nz,
                             xperiodic,yperiodic):
 
-    compute_exch_field(&spin[0], &field[0], &energy[0], J, nx, ny, nz, xperiodic,yperiodic)
+    compute_exch_field(&spin[0], &field[0], &energy[0], Jx, Jy, Jz, nx, ny, nz, xperiodic, yperiodic)
     
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
-                            J, nx, ny, nz, xperiodic,yperiodic):
+                            Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):
 
-    return compute_exch_energy(&spin[0], J, nx, ny, nz, xperiodic,yperiodic)
+    return compute_exch_energy(&spin[0], Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic)
 
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,
@@ -226,8 +226,8 @@ cdef class RK2S(object):
         self.T = T
         self.alpha = alpha
         self.pins = pins
-        self.pred_m=np.zeros(3*nxyz,dtype=np.float)
-        self.y=np.zeros(3*nxyz,dtype=np.float)
+        self.pred_m = numpy.zeros(3*nxyz,dtype=numpy.float)
+        self.y = numpy.zeros(3*nxyz,dtype=numpy.float)
         
 
         self._c_plan = create_ode_plan()

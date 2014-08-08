@@ -16,12 +16,16 @@ class UniformExchange(object):
     
     notice that there is no factor of 2 associated with J.
     """
-    def __init__(self,J,name='exch'):
-        self.J=J
+    def __init__(self,J,name='exch', A=None):
+        self.J = J
+        self.A = A
         self.name=name
         
+        self.Jx = self.J
+        self.Jy = self.J
+        self.Jz = self.J
+        
     def setup(self,mesh,spin,mu_s_inv,pbc=None):
-        self.J=self.J
         self.mesh=mesh
         self.dx=mesh.dx
         self.dy=mesh.dy
@@ -36,6 +40,11 @@ class UniformExchange(object):
         self.total_energy=0
         self.pbc = pbc
         self.mu_s_inv = mu_s_inv
+                
+        if self.A is not None:
+            self.Jx = 2*self.A*self.dx*mesh.unit_length
+            self.Jy = 2*self.A*self.dy*mesh.unit_length
+            self.Jz = 2*self.A*self.dz*mesh.unit_length
     
         self.xperiodic = 0
         self.yperiodic = 0
@@ -51,7 +60,9 @@ class UniformExchange(object):
         clib.compute_exchange_field(self.spin,
                                       self.field,
                                       self.energy,
-                                      self.J,
+                                      self.Jx,
+                                      self.Jy,
+                                      self.Jz,
                                       self.nx,
                                       self.ny,
                                       self.nz,
@@ -74,7 +85,9 @@ class UniformExchange(object):
     def compute_energy_directly(self):
         
         energy=clib.compute_exchange_energy(self.spin,
-                                                 self.J,
+                                                 self.Jx,
+                                                 self.Jy,
+                                                 self.Jz,
                                                  self.nx,    
                                                  self.ny,
                                                  self.nz,

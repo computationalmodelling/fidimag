@@ -42,6 +42,17 @@ where the summation is taken only once for each pair, so the effective field is
 .. math::
    \vec{H}_{i,ex} = \frac{J}{\mu_s} \sum_{<i,j>} \vec{S}_j
 
+
+In the continuum limit the exchange energy could be written, 
+
+.. math::
+   E_{ex} = \int_\Omega A (\nabla \vec{m})^2 dx
+
+so the corresponding effective field is
+
+.. math::
+   \vec{H}=-\frac{2 A}{\mu_0 M_s} \nabla^2 \vec{m}
+
 Anisotropy 
 ~~~~~~~~~~~
 The Hamiltonian for uniaxial anisotropy with easy axis in x direction is expressed as,

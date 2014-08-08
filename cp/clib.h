@@ -3,8 +3,8 @@
 #include<fftw3.h>
 #include<omp.h>
 
-void compute_exch_field(double *spin, double *field, double *energy, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
-double compute_exch_energy(double *spin, double J, int nx, int ny, int nz, int xperiodic, int yperiodic);
+void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
+double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 
 void compute_anis(double *spin, double *field, double *Ku, int nxyz);
 double compute_anis_energy(double *spin, double *Ku, int nxyz);
