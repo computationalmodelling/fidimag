@@ -49,7 +49,7 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     assert np.abs(max(field - field_oommf))< 5e-7
 
 def test_demag_field_oommf(Ms=6e5):
-    mesh = FDMesh(nx=5,ny=2,nz=3)
+    mesh = FDMesh(nx=5,ny=2,nz=3, unit_length=1e-9)
     sim = Sim(mesh)
     
     sim.Ms = Ms
@@ -74,9 +74,9 @@ def test_demag_field_oommf(Ms=6e5):
     
     init_m0="""
     
-    if { $x <=2 } {
+    if { $x <=2e-9 } {
         return "1 0 0"
-    } elseif { $x >= 4 } {
+    } elseif { $x >= 4e-9 } {
         return "0 0 1"
     } else {
         return "0 1 0"

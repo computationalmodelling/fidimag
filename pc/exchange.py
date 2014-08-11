@@ -39,11 +39,10 @@ class UniformExchange(object):
         self.energy=np.zeros(3*n)
         self.total_energy=0
         self.pbc = pbc
-        self.mu_s_inv = mu_s_inv
+        self.mu_s_inv = mu_s_inv.copy()
                 
         if self.A is not None:
             self.mu_s_inv[:] *= (2.0/mu_0)/(mesh.unit_length**2)
-            print 'step1',self.mu_s_inv
     
         self.xperiodic = 0
         self.yperiodic = 0
@@ -84,7 +83,6 @@ class UniformExchange(object):
         
         self.total_energy = np.sum(self.energy)/2.0
         
-        print 'hahahah',self.mu_s_inv
         return self.field*self.mu_s_inv
         
     def compute_energy(self):

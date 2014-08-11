@@ -28,12 +28,15 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, doub
         mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
         
         //suppose m is normalised, i.e., mm=1; hp=mm.h-mh.m=-mx(mxh)
-        //hpi = mm*h[i] - mh*m[i];
-        //hpj = mm*h[j] - mh*m[j];
-        //hpk = mm*h[k] - mh*m[k];
-        hpi = h[i] - mh*m[i];
-        hpj = h[j] - mh*m[j];
-        hpk = h[k] - mh*m[k];
+        hpi = mm*h[i] - mh*m[i];
+        hpj = mm*h[j] - mh*m[j];
+        hpk = mm*h[k] - mh*m[k];
+        //IMPORTANT: never ignore mm!!!
+        //what we found is that if we igonre mm, i.e. using
+        // 	hpi = h[i] - mh*m[i]
+        // 	hpj = mm*h[j] - mh*m[j];
+        // 	hpk = mm*h[k] - mh*m[k];
+        //then the standard problem 4 failed to converge ?!!
         
         mth0 = (m[j] * hpk - m[k] * hpj);
 		mth1 = (m[k] * hpi - m[i] * hpk);
@@ -86,13 +89,14 @@ void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double *chi, 
             dm_dt[j] += c*m[j];
             dm_dt[k] += c*m[k];
         
-        }else{ //do LL equation, simliar to the function of llg_rhs
-   
+        }else{ //do LL equation, similiar to the function of llg_rhs
+
+        	mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
             mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
             
-            hpi = h[i] - mh*m[i];
-            hpj = h[j] - mh*m[j];
-            hpk = h[k] - mh*m[k];
+            hpi = mm*h[i] - mh*m[i];
+            hpj = mm*h[j] - mh*m[j];
+            hpk = mm*h[k] - mh*m[k];
             
             mth0 = (m[j] * hpk - m[k] * hpj);
             mth1 = (m[k] * hpi - m[i] * hpk);

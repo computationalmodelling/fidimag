@@ -215,9 +215,9 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 		mh = m[i] * h[i] + m[j] * h[j] + m[k] * h[k];
 
 		//we use the same trick as llg does that drops the mm
-		hpi = h[i] - mh * m[i];
-		hpj = h[j] - mh * m[j];
-		hpk = h[k] - mh * m[k];
+        hpi = mm*h[i] - mh*m[i];
+        hpj = mm*h[j] - mh*m[j];
+        hpk = mm*h[k] - mh*m[k];
 
 		mth0 = (m[j] * hpk - m[k] * hpj);
 		mth1 = (m[k] * hpi - m[i] * hpk);
