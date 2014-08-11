@@ -35,7 +35,7 @@ cdef extern from "clib.h":
 
     fft_demag_plan * create_plan()
     void finalize_plan(fft_demag_plan * plan)
-    void init_plan(fft_demag_plan * plan, double dx, double dy, double dz, int nx,int ny, int nz)
+    void init_plan(fft_demag_plan * plan, double dx, double dy, double dz, int nx,int ny, int nz, int oommf)
     void compute_fields(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
     void exact_compute(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
     double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field)
@@ -157,11 +157,11 @@ def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, nxyz):
 cdef class FFTDemag(object):
     cdef fft_demag_plan *_c_plan
 
-    def __cinit__(self, dx, dy, dz, nx, ny, nz):
+    def __cinit__(self, dx, dy, dz, nx, ny, nz, oommf):
         self._c_plan = create_plan()
         if self._c_plan is NULL:
             raise MemoryError()
-        init_plan(self._c_plan, dx, dy, dz, nx, ny, nz)
+        init_plan(self._c_plan, dx, dy, dz, nx, ny, nz, oommf)
 
     def free(self):
         self.__dealloc__()
@@ -277,3 +277,12 @@ cdef class RK2S(object):
 
 
 
+cdef extern from "demagcoef.h":
+    double CalculateSDA00(double x, double y, double z, double dx,double dy,double dz)
+    double DemagNxxAsymptotic(double x, double y, double z, double dx,double dy,double dz)
+    
+def compute_Nxx(x, y, z, dx, dy, dz):
+    return CalculateSDA00(x,y,z,dx,dy,dz)
+
+def compute_Nxx_asy(x, y, z, dx, dy, dz):
+    return DemagNxxAsymptotic(x,y,z,dx,dy,dz)

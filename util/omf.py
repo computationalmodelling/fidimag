@@ -44,7 +44,6 @@ class OMF2:
         data = f.read(8*count)
         self.data = numpy.frombuffer(data)
         self.data = numpy.reshape(self.data,(3,-1),order='F')
-        print self.data
         f.close()
         return
 

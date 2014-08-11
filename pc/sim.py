@@ -212,6 +212,14 @@ class Sim(object):
                 self._pins[i] = 1
         
     mu_s = property(get_mu_s, set_mu_s)
+    
+    def get_Ms(self):
+        return self._mu_s
+    
+    def set_Ms(self, value):
+        self.set_mu_s(value)
+    
+    Ms = property(get_Ms, set_Ms)
 
     def add(self,interaction, save_field=False):
         interaction.setup(self.mesh,self.spin,

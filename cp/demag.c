@@ -1,6 +1,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include "clib.h"
+#include "demagcoef.h"
+
 
 enum Type_Nij {
 	Tensor_xx, Tensor_yy, Tensor_zz, Tensor_xy, Tensor_xz, Tensor_yz
@@ -14,7 +16,7 @@ double Nxxdipole(double x, double y, double z) {
 	if (R == 0)
 		return 0.0;
 	double r = sqrt(R);
-	return (2 * x2 - y2 - z2) / (R * R * r);
+	return -(2 * x2 - y2 - z2) / (R * R * r);
 }
 
 double Nxydipole(double x, double y, double z) {
@@ -22,25 +24,64 @@ double Nxydipole(double x, double y, double z) {
 	if (R == 0)
 		return 0.0;
 	double r = sqrt(R);
-	return 3 * x * y / (R * R * r);
+	return -3 * x * y / (R * R * r);
 }
 
 double NXXdipole(enum Type_Nij type, double x, double y, double z) {
 	switch (type) {
-	case Tensor_xx:
-		return Nxxdipole(x, y, z);
-	case Tensor_yy:
-		return Nxxdipole(y, x, z);
-	case Tensor_zz:
-		return Nxxdipole(z, y, x);
-	case Tensor_xy:
-		return Nxydipole(x, y, z);
-	case Tensor_xz:
-		return Nxydipole(x, z, y);
-	case Tensor_yz:
-		return Nxydipole(y, z, x);
+		case Tensor_xx:
+			return Nxxdipole(x, y, z);
+		case Tensor_yy:
+			return Nxxdipole(y, x, z);
+		case Tensor_zz:
+			return Nxxdipole(z, y, x);
+		case Tensor_xy:
+			return Nxydipole(x, y, z);
+		case Tensor_xz:
+			return Nxydipole(x, z, y);
+		case Tensor_yz:
+			return Nxydipole(y, z, x);
 	}
 	return 0;
+}
+
+//compute the demag tensors, i.e, H=-N.M
+void compute_all_tensors_oommf(fft_demag_plan *plan) {
+
+	int i, j, k, id;
+	double x, y, z;
+
+	int nx = plan->nx;
+	int ny = plan->ny;
+	int nz = plan->nz;
+	int lenx = plan->lenx;
+	int leny = plan->leny;
+	int lenz = plan->lenz;
+	int lenyz = leny * lenz;
+
+	double dx = plan->dx;
+	double dy = plan->dy;
+	double dz = plan->dz;
+
+	for (i = 0; i < lenx; i++) {
+		for (j = 0; j < leny; j++) {
+			for (k = 0; k < lenz; k++) {
+				id = i * lenyz + j * lenz + k;
+				x = (i - nx + 1) * dx;
+				y = (j - ny + 1) * dy;
+				z = (k - nz + 1) * dz;
+
+				//printf("%g %g %g %g %g %g\n",x,y,z,dx,dy,dz);
+				plan->tensor_xx[id] = CalculateSDA00(x, y, z, dx, dy, dz);
+				plan->tensor_yy[id] = CalculateSDA11(x, y, z, dx, dy, dz);
+				plan->tensor_zz[id] = CalculateSDA22(x, y, z, dx, dy, dz);
+				plan->tensor_xy[id] = CalculateSDA01(x, y, z, dx, dy, dz);
+				plan->tensor_xz[id] = CalculateSDA02(x, y, z, dx, dy, dz);
+				plan->tensor_yz[id] = CalculateSDA12(x, y, z, dx, dy, dz);
+
+			}
+		}
+	}
 }
 
 //compute the demag tensors, i.e, H=-N.M
@@ -106,7 +147,7 @@ fft_demag_plan *create_plan(void) {
 }
 
 void init_plan(fft_demag_plan *plan, double dx, double dy,
-		double dz, int nx, int ny, int nz) {
+		double dz, int nx, int ny, int nz, int oommf) {
 
 	//plan->mu_s = mu_s;
 
@@ -166,8 +207,7 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 	plan->h_plan = fftw_plan_dft_c2r_3d(plan->lenx, plan->leny, plan->lenz,
 			plan->Hx, plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-	int i;
-	for (i = 0; i < plan->total_length; i++) {
+	for (int i = 0; i < plan->total_length; i++) {
 		plan->Nxx[i] = 0;
 		plan->Nyy[i] = 0;
 		plan->Nzz[i] = 0;
@@ -183,8 +223,11 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 		plan->hy[i] = 0;
 		plan->hz[i] = 0;
 	}
-
-	compute_all_tensors(plan);
+	if (oommf){
+		compute_all_tensors_oommf(plan);
+	}else{
+		compute_all_tensors(plan);
+	}
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, plan->Nyy);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_zz, plan->Nzz);
@@ -271,7 +314,7 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *fi
 	//print_r("hy", plan->hy, plan->total_length);
 	//print_r("hz", plan->hz, plan->total_length);
 
-	double scale = 1.0  / plan->total_length;
+	double scale = -1.0  / plan->total_length;
 	double *field_x = &field[0];
 	double *field_y = &field[nxyz];
 	double *field_z = &field[2 * nxyz];
@@ -328,12 +371,13 @@ void exact_compute(fft_demag_plan *plan, double *spin,  double *mu_s, double *fi
 				f_y[idf] = 0;
 				f_z[idf] = 0;
 
+
 				for (ip = 0; ip < nx; ip++) {
 					for (jp = 0; jp < ny; jp++) {
 						for (kp = 0; kp < nz; kp++) {
 							ids = ip * nyz + jp * nz + kp;
-							index = (i - ip + nx - 1) * lenyz + (j - jp + ny
-									- 1) * lenz + (k - kp + nz - 1);
+							index = (ip - i + nx - 1) * lenyz + (jp - j + ny
+									- 1) * lenz + (kp - k + nz - 1);
 							f_x[idf] += (Nxx[index] * s_x[ids] + Nxy[index]
 									* s_y[ids] + Nxz[index] * s_z[ids])*mu_s[ids];
 							f_y[idf] += (Nxy[index] * s_x[ids] + Nyy[index]
@@ -344,6 +388,9 @@ void exact_compute(fft_demag_plan *plan, double *spin,  double *mu_s, double *fi
 					}
 				}
 
+				f_x[idf] *= (-1);
+				f_y[idf] *= (-1);
+				f_z[idf] *= (-1);
 			}
 		}
 	}

@@ -19,9 +19,9 @@ class FDMesh():
             for j in range(self.ny):
                 for k in range(self.nz):
 
-                    tp=(i*self.dx,
-                        j*self.dy,
-                        k*self.dz)
+                    tp=((i+0.5)*self.dx,
+                        (j+0.5)*self.dy,
+                        (k+0.5)*self.dz)
                     
                     self.pos.append(tp)
                     
@@ -32,5 +32,5 @@ class FDMesh():
 
     #only used for tests
     def pos_at(self,i,j,k):
-        idx=self.index(i,j,k)
+        idx = self.index(i,j,k)
         return self.pos[idx]

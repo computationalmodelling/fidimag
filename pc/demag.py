@@ -3,10 +3,11 @@ import numpy as np
 
 
 class Demag(object):
-    def __init__(self, name='demag'):
+    def __init__(self, name='demag', oommf=False):
         self.name = name
+        self.oommf = oommf
         
-    def setup(self, mesh, spin, mu_s_inv=1,pbc=None):
+    def setup(self, mesh, spin, mu_s_inv=1, pbc=None):
         self.mesh = mesh
         self.dx = mesh.dx
         self.dy = mesh.dy
@@ -27,11 +28,15 @@ class Demag(object):
             if mu_s_inv[i] == 0.0:
                 self.mu_s[i] = 0.0
             else: 
-                self.mu_s[i] = 1.0/mu_s_inv[i]*self.scale
+                if self.oommf:
+                    self.mu_s[i] = 1.0/mu_s_inv[i]
+                else:
+                    self.mu_s[i] = 1.0/mu_s_inv[i]*self.scale
         
         
         self.demag=clib.FFTDemag(self.dx,self.dy,self.dz,
-                                 self.nx,self.ny,self.nz)
+                                 self.nx,self.ny,self.nz,
+                                 self.oommf)
         
     def compute_field(self, t=0):
         self.demag.compute_field(self.spin,self.mu_s,self.field)

@@ -87,7 +87,7 @@ typedef struct {
 fft_demag_plan *create_plan(void);
 void finalize_plan(fft_demag_plan *plan);
 void init_plan(fft_demag_plan *plan, double dx, double dy,
-		double dz, int nx, int ny, int nz);
+		double dz, int nx, int ny, int nz, int oommf);
 void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
 void exact_compute(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
 double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
