@@ -53,7 +53,7 @@ ext_modules = [
               sources = sources,
               include_dirs = [numpy.get_include(),include_path],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
-              extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s'%lib_path,'-fopenmp'],
         ),
     Extension("cvode",

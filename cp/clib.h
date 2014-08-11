@@ -3,6 +3,8 @@
 #include<fftw3.h>
 #include<omp.h>
 
+#define WIDE_PI 3.1415926535897932384626433832795L
+
 void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 

@@ -63,7 +63,7 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz) {
 
 
 			charge[index]  += volume(S, S_i, S_j);
-			charge[index] /= (8*M_PI);
+			charge[index] /= (8*WIDE_PI);
 
 			sum += charge[index];
 		}
