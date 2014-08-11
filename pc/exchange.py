@@ -1,6 +1,6 @@
 import clib 
 import numpy as np
-
+from constant import mu_0
 
 class UniformExchange(object):
     """
@@ -16,7 +16,7 @@ class UniformExchange(object):
     
     notice that there is no factor of 2 associated with J.
     """
-    def __init__(self,J,name='exch', A=None):
+    def __init__(self,J=0,name='exch', A=None):
         self.J = J
         self.A = A
         self.name=name
@@ -42,9 +42,8 @@ class UniformExchange(object):
         self.mu_s_inv = mu_s_inv
                 
         if self.A is not None:
-            self.Jx = 2*self.A*self.dx*mesh.unit_length
-            self.Jy = 2*self.A*self.dy*mesh.unit_length
-            self.Jz = 2*self.A*self.dz*mesh.unit_length
+            self.mu_s_inv[:] *= (2.0/mu_0)/(mesh.unit_length**2)
+            print 'step1',self.mu_s_inv
     
         self.xperiodic = 0
         self.yperiodic = 0
@@ -56,8 +55,22 @@ class UniformExchange(object):
             self.yperiodic = 1
 
     def compute_field(self, t=0):
-        
-        clib.compute_exchange_field(self.spin,
+        if self.A is not None:
+            clib.compute_exchange_field_c(self.spin,
+                                      self.field,
+                                      self.energy,
+                                      self.A,
+                                      self.dx,
+                                      self.dy,
+                                      self.dz,
+                                      self.nx,
+                                      self.ny,
+                                      self.nz,
+                                      self.xperiodic,
+                                      self.yperiodic)
+            
+        else:
+            clib.compute_exchange_field(self.spin,
                                       self.field,
                                       self.energy,
                                       self.Jx,
@@ -70,7 +83,8 @@ class UniformExchange(object):
                                       self.yperiodic)
         
         self.total_energy = np.sum(self.energy)/2.0
-                             
+        
+        print 'hahahah',self.mu_s_inv
         return self.field*self.mu_s_inv
         
     def compute_energy(self):

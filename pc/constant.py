@@ -1,7 +1,9 @@
 import numpy as np
 
+mu_0 = 4*np.pi*1e-7
+
 class Constant(object):
-    mu_0 = 4*np.pi*1e-7
+    mu_0 = mu_0
     mu_B = 9.27400949e-24
     k_B = 1.3806505e-23
     c_e = 1.602176565e-19

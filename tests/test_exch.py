@@ -3,7 +3,6 @@ from pc import Sim
 from pc import FDMesh
 from pc import UniformExchange
 
-
 def init_m(pos):
     x,y,z = pos
     return (x-0.5,y-0.5,z-0.5)

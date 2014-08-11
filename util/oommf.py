@@ -22,6 +22,10 @@ Specify Oxs_RectangularMesh:mesh [subst {
   atlas :atlas
 }]
 
+Specify Oxs_UniformExchange {
+  A  %(A)s
+}
+
 Specify Oxs_Demag {}
 
 Specify Oxs_RungeKuttaEvolve:evolve {
@@ -53,12 +57,12 @@ proc init_m0 { x y z} {
 
 Destination archive mmArchive
 
-Schedule Oxs_Demag::Field archive Stage 1
+Schedule Oxs_%(field)s::Field archive Stage 1
 """
 
-def gen_conf_demag(mesh, init_m0, Ms=8e5, base_name='demag'):
+def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, field='Demag'):
 
-    conf_path = os.path.join(MODULE_DIR, base_name)
+    conf_path = os.path.join(MODULE_DIR, field)
     if not os.path.exists(conf_path):
         os.makedirs(conf_path)
     
@@ -67,35 +71,37 @@ def gen_conf_demag(mesh, init_m0, Ms=8e5, base_name='demag'):
     dz = mesh.dz*mesh.unit_length
     
     params = {
-        'length_x': "%0.16e" %(dx*mesh.nx),
-        'length_y': "%0.16e" %(dy*mesh.ny),
-        'length_z': "%0.16e" %(dz*mesh.nz),
-        'cellsize_x': "%0.16e" % dx,
-        'cellsize_y': "%0.16e" % dy,
-        'cellsize_z': "%0.16e" % dz,
-        'base_name': base_name,
-        'Ms': "%0.16e" % Ms,
+        'length_x': "%0.16g" %(dx*mesh.nx),
+        'length_y': "%0.16g" %(dy*mesh.ny),
+        'length_z': "%0.16g" %(dz*mesh.nz),
+        'cellsize_x': "%0.16g" % dx,
+        'cellsize_y': "%0.16g" % dy,
+        'cellsize_z': "%0.16g" % dz,
+        'base_name': field.lower(),
+        'Ms': "%0.16g" % Ms,
+        'A': "%0.16g" % A,
         'init_m0': init_m0,
+        'field': field
     }
     
     mif = mif_demag%params
 
-    with open(os.path.join(conf_path, base_name+".mif"), "w") as mif_file:
+    with open(os.path.join(conf_path, field+".mif"), "w") as mif_file:
         mif_file.write(mif)
 
-def run_oommf(base_name='demag'):
+def run_oommf(field='Demag'):
 
     command = ('tclsh',
            '/home/ww1g11/Softwares/oommf-1.2a5/oommf.tcl',
            'boxsi',
            '-threads',
            '1',
-           base_name+".mif")
+           field+".mif")
     
     cmd = ' '.join(command)
    
     save_path=os.getcwd()
-    new_path=os.path.join(MODULE_DIR, base_name)
+    new_path=os.path.join(MODULE_DIR, field)
  
     os.chdir(new_path)
     
@@ -104,9 +110,9 @@ def run_oommf(base_name='demag'):
     os.chdir(save_path)
 
 
-def get_field(mesh, base_name='demag', Field='Demag'):
-    new_path = os.path.join(MODULE_DIR, base_name)
-    file_name = '%s-Oxs_%s-Field-00-0000001.ohf'%(base_name,Field)
+def get_field(mesh,  field='Demag'):
+    new_path = os.path.join(MODULE_DIR, field)
+    file_name = '%s-Oxs_%s-Field-00-0000001.ohf'%(field.lower(),field)
     ovf_file = os.path.join(new_path, file_name)
     ovf = omf.OMF2(ovf_file)
     
@@ -127,13 +133,30 @@ def get_field(mesh, base_name='demag', Field='Demag'):
     return m
 
 
-def compute_demag_field(mesh, init_m0, Ms=8e5,base_name='demag'):
-    gen_conf_demag(mesh, Ms=Ms, init_m0=init_m0, base_name=base_name)
-    run_oommf(base_name)
+def compute_demag_field(mesh, init_m0, Ms=8e5, field='Demag'):
+    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, field=field)
+    run_oommf(field)
     
-    m = get_field(mesh,base_name=base_name)
+    m = get_field(mesh,field=field)
     
-    new_path=os.path.join(MODULE_DIR, base_name)
+    new_path=os.path.join(MODULE_DIR, field)
+    
+    command = ('rm',
+           '-rf',
+           new_path)
+    cmd = ' '.join(command)
+    os.system(cmd)
+    
+    return m
+
+def compute_exch_field(mesh, init_m0, Ms=8e5, A=1.3e-11, field='UniformExchange'):
+    
+    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, A=A, field=field)
+    run_oommf(field)
+    
+    m = get_field(mesh,field=field)
+    
+    new_path=os.path.join(MODULE_DIR, field)
     
     command = ('rm',
            '-rf',
@@ -147,9 +170,7 @@ def compute_demag_field(mesh, init_m0, Ms=8e5,base_name='demag'):
 if __name__=="__main__":
     
     mesh=FDMesh(nx=5,ny=2,nz=1,dx=1.0,dy=1.0,dz=1.0)
-    gen_conf_demag(mesh, 'return "1 0 0"')
-    run_oommf()
-    m = get_field(mesh)
+    m = compute_demag_field(mesh, init_m0='return "1 0 0"')
     print m
     
     

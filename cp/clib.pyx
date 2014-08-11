@@ -13,6 +13,9 @@ cdef extern from "clib.h":
 
     void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jx, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    void compute_exch_field_c(double *spin, double *field, double *energy,
+                        double A, double dx, double dy, double dz,
+                        int nx, int ny, int nz, int xperiodic, int yperiodic)
     
     void dmi_field(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
@@ -91,7 +94,18 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                             Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):
 
-    return compute_exch_energy(&spin[0], Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic)
+    return compute_exch_energy(&spin[0], Jx, Jy, Jz, nx, ny, nz, xperiodic, yperiodic)
+
+
+def compute_exchange_field_c(np.ndarray[double, ndim=1, mode="c"] spin,
+                            np.ndarray[double, ndim=1, mode="c"] field,
+                            np.ndarray[double, ndim=1, mode="c"] energy,
+                            A,
+                            dx, dy, dz,
+                            nx, ny, nz,
+                            xperiodic,yperiodic):
+
+    compute_exch_field_c(&spin[0], &field[0], &energy[0], A, dx, dy, dz, nx, ny, nz, xperiodic, yperiodic)
 
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,
