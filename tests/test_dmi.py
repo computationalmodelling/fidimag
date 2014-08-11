@@ -4,6 +4,7 @@ from pc import Sim
 import numpy as np
 
 def test_dmi_1d():
+    
     mesh=FDMesh(nx=2,ny=1,nz=1)
     
     sim=Sim(mesh)
@@ -23,8 +24,7 @@ def test_dmi_1d():
 
 
 def init_m(pos):
-    x,y,z=pos
-    if x<0.5:
+    if pos[0] < 1:
         return (0,1,0)
     else:
         return (0,0,1)

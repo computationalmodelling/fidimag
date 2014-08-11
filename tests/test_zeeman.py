@@ -18,8 +18,8 @@ def test_zeeman():
     
     field = zeeman.compute_field()
 
-    assert field[4]==1.2*2
-    assert field[14]==2.3*0
+    assert field[4]==1.2*(2+0.5)
+    assert field[14]==2.3*0.5
 
     
     

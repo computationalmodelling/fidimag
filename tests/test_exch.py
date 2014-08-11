@@ -5,8 +5,8 @@ from pc import UniformExchange
 
 
 def init_m(pos):
-    x,y,z=pos
-    return (x,y,z)
+    x,y,z = pos
+    return (x-0.5,y-0.5,z-0.5)
     
 
 def test_exch_1d():
@@ -33,7 +33,7 @@ def test_exch_1d_pbc():
     
     sim.set_m(init_m,normalise=False)
 
-    field=exch.compute_field()
+    field = exch.compute_field()
     assert field[0]==1+4
     assert field[1]==2
     assert field[2]==4
