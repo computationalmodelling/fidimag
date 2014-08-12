@@ -1,52 +1,92 @@
-"""
-    Although we assume that the magnetisation length is one, the magnetisation length actually is not exact one 
-    due to the reason that the cartesian ode solvers allow magnetisation length to change. In this script 
-    we test how the tolerence setting influence the magnetisation length.
-"""
-
-
 import numpy as np
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import Zeeman, TimeZeeman
+from pc import Sim
+from pc import FDMesh
+from pc import Zeeman
+from pc import DataReader
 import matplotlib.pyplot as plt
+
+def single_spin(alpha, gamma, H0, ts):
+    """
+    compute single spin under the external field H
+    """
+    
+    precession = gamma/(1+alpha**2)
+    beta = precession * H0 * ts
+    
+    mx = np.cos(beta)/np.cosh(alpha*beta)
+    my = np.sin(beta)/np.cosh(alpha*beta)
+    mz = np.tanh(alpha*beta)
+    
+    return mx,my,mz
 
 def relax_system(rtol=1e-10,atol=1e-12):
     mesh = FDMesh(nx=1,ny=1,nz=1)
-    sim = Sim(mesh)
+    sim = Sim(mesh, name='relax')
     sim.set_options(rtol=rtol,atol=atol)
-    sim.alpha = 0.0
+    sim.alpha = 0.5
     sim.gamma = 2.21e5
     sim.mu_s = 1.0
     
-    sim.set_m((0,0.6,0.8))
+    sim.set_m((1.0,0,0))
     
     sim.add(Zeeman((0,0,1e5)))
     
-    ts=np.linspace(0, 10e-9, 1001)
-    mzs=[]
-    lengths=[]
+    ts = np.linspace(0, 1e-9, 1001)
     
     for t in ts:
         sim.run_until(t)
-        mzs.append(sim.spin[2]-0.8)
-        lengths.append(sim.spin_length()[0]-1.0)
+
+def custom_legend(legend):
+    frame = legend.get_frame()
+    frame.set_facecolor('0.90')
     
-    return ts,mzs,lengths
+    # Set the fontsize
+    for label in legend.get_texts():
+        label.set_fontsize(11)
 
-
-def plot_m(ts, mz, lengths):
-    fig = plt.figure()
-    plt.plot(ts, lengths, '-', label='length')
-    plt.plot(ts, mz, '--', label='mz')
-    plt.xlabel('time (ns)')
-    plt.ylabel('errors')
-    plt.legend()
-    fig.savefig('error.pdf')
+    for label in legend.get_lines():
+        label.set_linewidth(1.5)  # the legend line width
+        
+def plot_all():
+    
+    font = {'family' : 'serif',
+        'weight' : 'normal',
+        'size'   : 12,
+        }
+    
+    plt.rc('font', **font)
+    
+    data = DataReader('relax.txt')
+    ts = data['time']
+    
+    mx,my,mz = single_spin(0.5,2.21e5,1e5,ts)
+    
+    ts = ts*1e9
+    fig = plt.figure(figsize=(5,4))
+    plt.plot(ts, mx, '--', label='mx',dashes=(2.0,2.0))
+    plt.plot(ts, my, '--', label='my',dashes=(2.0,2.0))
+    plt.plot(ts, mz, '--', label='mz',dashes=(2.0,2.0))
+    
+    ts = ts[::10]
+    mx = data['m_x'][::10]
+    my = data['m_y'][::10]
+    mz = data['m_z'][::10]
+    plt.plot(ts,mx,'.',color='b')
+    plt.plot(ts,my,'.',color='g')
+    plt.plot(ts[::2],mz[::2],'.',color='r')
+    plt.xlim([0,1.01])
+    
+    l1 = plt.legend(bbox_to_anchor=[0.8,0.8], shadow=True, frameon=True)
+    custom_legend(l1)
+    
+    plt.xlabel('Time (ns)')
+    plt.ylabel('m')
+    plt.tight_layout()
+    fig.savefig('m_ts.pdf')
 
 
 if __name__=='__main__':
     
-    ts,mzs,lengths = relax_system()
-    plot_m(ts,mzs,lengths)
+    relax_system()
+    plot_all()
     

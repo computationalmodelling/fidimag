@@ -1,10 +1,5 @@
 #include "clib.h"
 
-inline double cross_x(double a0, double a1, double a2, double b0, double b1, double b2) { return a1*b2 - a2*b1; }
-inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
-inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
-
-
 void dmi_field(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
