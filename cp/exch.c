@@ -153,6 +153,16 @@ double compute_exch_energy(double *spin, double Jx,  double Jy, double Jz,
     
 }
 
+void write_field(double *field, int nx, int ny, int nz){
+
+	FILE *f = fopen("file.txt", "w");
+	for (int i = 0; i < 3*nx*ny*nz; i++){
+		fprintf(f, "%0.20e\n",field[i]);
+	 }
+	fclose(f);
+}
+
+
 void compute_exch_field_c(double *spin, double *field, double *energy,
 						double A, double dx, double dy, double dz,
 						int nx, int ny, int nz, int xperiodic, int yperiodic) {
@@ -161,25 +171,23 @@ void compute_exch_field_c(double *spin, double *field, double *energy,
 	int n1 = nx * nyz, n2 = 2 * n1;
 	int i, j, k;
 	int index, id;
-	double fx,fy,fz;
-	double dx2=dx*dx, dy2=dy*dy,dz2=dz*dz;
 
-	#pragma omp parallel for private(i, j, k, index, id, fx, fy, fz)
+	double ax = A/(dx*dx), ay = A/(dy*dy), az = A/(dz*dz);
+
+	#pragma omp parallel for private(i, j, k, index, id)
 	for (i = 0; i < nx; i++) {
         for (j = 0; j < ny; j++) {
             for (k = 0; k < nz; k++) {
 
                 index = nyz * i + nz * j + k;
 
-                fx=0;
-                fy=0;
-                fz=0;
+                double fx=0,fy=0,fz=0;
 
                 if (k > 0) {
                     id = index - 1;
-                    fx += A * (spin[id] - spin[index])/dz2;
-                    fy += A * (spin[id + n1]-spin[index+n1])/dz2;
-                    fz += A * (spin[id + n2]-spin[index+n2])/dz2;
+                    fx += az * (spin[id] - spin[index]);
+                    fy += az * (spin[id + n1]-spin[index+n1]);
+                    fz += az * (spin[id + n2]-spin[index+n2]);
                 }
 
                 if (j > 0 || yperiodic) {
@@ -187,9 +195,9 @@ void compute_exch_field_c(double *spin, double *field, double *energy,
                     if (j==0) {
                         id += nyz;
                     }
-                    fx += A * (spin[id] - spin[index])/dy2;
-                    fy += A * (spin[id + n1]-spin[index+n1])/dy2;
-                    fz += A * (spin[id + n2]-spin[index+n2])/dy2;
+                    fx += ay * (spin[id] - spin[index]);
+                    fy += ay * (spin[id + n1]-spin[index+n1]);
+                    fz += ay * (spin[id + n2]-spin[index+n2]);
                 }
 
                 if (i > 0 || xperiodic) {
@@ -197,9 +205,9 @@ void compute_exch_field_c(double *spin, double *field, double *energy,
                     if (i==0) {
                         id += n1;
                     }
-                    fx += A * (spin[id] - spin[index])/dx2;
-                    fy += A * (spin[id + n1]-spin[index+n1])/dx2;
-                    fz += A * (spin[id + n2]-spin[index+n2])/dx2;
+                    fx += ax * (spin[id] - spin[index]);
+                    fy += ax * (spin[id + n1]-spin[index+n1]);
+                    fz += ax * (spin[id + n2]-spin[index+n2]);
                 }
 
                 if (i < nx - 1 || xperiodic) {
@@ -207,9 +215,9 @@ void compute_exch_field_c(double *spin, double *field, double *energy,
                     if (i == nx-1){
                         id -= n1;
                     }
-                    fx += A * (spin[id] - spin[index])/dx2;
-                    fy += A * (spin[id + n1]-spin[index+n1])/dx2;
-                    fz += A * (spin[id + n2]-spin[index+n2])/dx2;
+                    fx += ax * (spin[id] - spin[index]);
+                    fy += ax * (spin[id + n1]-spin[index+n1]);
+                    fz += ax * (spin[id + n2]-spin[index+n2]);
                 }
 
                 if (j < ny - 1 || yperiodic) {
@@ -217,16 +225,16 @@ void compute_exch_field_c(double *spin, double *field, double *energy,
                     if (j == ny-1){
                         id -= nyz;
                     }
-                    fx += A * (spin[id] - spin[index])/dy2;
-                    fy += A * (spin[id + n1]-spin[index+n1])/dy2;
-                    fz += A * (spin[id + n2]-spin[index+n2])/dy2;
+                    fx += ay * (spin[id] - spin[index]);
+                    fy += ay * (spin[id + n1]-spin[index+n1]);
+                    fz += ay * (spin[id + n2]-spin[index+n2]);
                 }
 
                 if (k < nz - 1) {
                     id = index + 1;
-                    fx += A * (spin[id] - spin[index])/dz2;
-                    fy += A * (spin[id + n1]-spin[index+n1])/dz2;
-                    fz += A * (spin[id + n2]-spin[index+n2])/dz2;
+                    fx += az * (spin[id] - spin[index]);
+                    fy += az * (spin[id + n1]-spin[index+n1]);
+                    fz += az * (spin[id + n2]-spin[index+n2]);
                 }
 
                 field[index] = fx;

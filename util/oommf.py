@@ -93,6 +93,7 @@ def run_oommf(field='Demag'):
 
     command = ('tclsh',
            '/home/ww1g11/Softwares/oommf-1.2a5/oommf.tcl',
+           #'/home/ww1g11/Softwares/oommf12a4pre-20051118/oommf.tcl',
            'boxsi',
            '-threads',
            '1',

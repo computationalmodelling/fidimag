@@ -1,16 +1,14 @@
 #include "clib.h"
 
-void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, double gamma, int nxyz, int do_procession) {
+void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
+		double gamma, int nxyz, int do_procession, double default_c) {
 
 	int i, j, k;
 
-	double mth0, mth1, mth2;
-    double coeff, mm, mh, c;
+    double coeff, mm, mh, c=default_c;
     double hpi,hpj,hpk;
 
-    //printf("%d\n",do_procession);
-
-	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, mth0, mth1, mth2, hpi,hpj,hpk)
+	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
 	for (i = 0; i < nxyz; i++) {
 		j = i + nxyz;
 		k = j + nxyz;
@@ -22,7 +20,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, doub
 			 continue;
 		}
 
-		coeff = -gamma/(1+alpha[i]*alpha[i]);
+		coeff = -gamma/(1.0+alpha[i]*alpha[i]);
         
         mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
         mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
@@ -34,23 +32,30 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins, doub
         //IMPORTANT: never ignore mm!!!
         //what we found is that if we igonre mm, i.e. using
         // 	hpi = h[i] - mh*m[i]
-        // 	hpj = mm*h[j] - mh*m[j];
-        // 	hpk = mm*h[k] - mh*m[k];
+        // 	hpj = h[j] - mh*m[j];
+        // 	hpk = h[k] - mh*m[k];
         //then the standard problem 4 failed to converge ?!!
+        double mth0=0, mth1=0, mth2=0;
+
+        if (do_procession){
+            mth0 = cross_x(m[i],m[j],m[k],hpi,hpj,hpk);
+            mth1 = cross_y(m[i],m[j],m[k],hpi,hpj,hpk);
+            mth2 = cross_z(m[i],m[j],m[k],hpi,hpj,hpk);
+        }
         
-        mth0 = (m[j] * hpk - m[k] * hpj);
-		mth1 = (m[k] * hpi - m[i] * hpk);
-		mth2 = (m[i] * hpj - m[j] * hpi);
-        
-        dm_dt[i] = coeff*(mth0*do_procession - hpi * alpha[i]);
-        dm_dt[j] = coeff*(mth1*do_procession - hpj * alpha[i]);
-        dm_dt[k] = coeff*(mth2*do_procession - hpk * alpha[i]);
+        dm_dt[i] = coeff*(mth0 - hpi * alpha[i]);
+        dm_dt[j] = coeff*(mth1 - hpj * alpha[i]);
+        dm_dt[k] = coeff*(mth2 - hpk * alpha[i]);
         
         // in future, we will try the new method to integrate the LLG equation,
         // A mixed mid-point Runge-Kutta like scheme for the integration of Landau-Lifshitz equation
         // Journal of Applied Physics 115, 17D101 (2014)
         // if possible, we can combine it with adaptive step size, don't know how to do but it's worth a try.
-        c = 6*sqrt(dm_dt[i]*dm_dt[i]+dm_dt[j]*dm_dt[j]+dm_dt[k]*dm_dt[k]);
+
+        if (default_c<0){
+        	c = 6*sqrt(dm_dt[i]*dm_dt[i]+dm_dt[j]*dm_dt[j]+dm_dt[k]*dm_dt[k]);
+        }
+
         dm_dt[i] += c*(1-mm)*m[i];
         dm_dt[j] += c*(1-mm)*m[j];
         dm_dt[k] += c*(1-mm)*m[k];

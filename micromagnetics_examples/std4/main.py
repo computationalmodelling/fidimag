@@ -47,14 +47,14 @@ def relax_system(mesh):
             
     ONE_DEGREE_PER_NS = 17453292.52
     
-    sim.relax(dt=1e-13, stopping_dmdt=0.0001*ONE_DEGREE_PER_NS, max_steps=5000, save_m_steps=100, save_vtk_steps=50)
+    sim.relax(dt=1e-13, stopping_dmdt=0.00001*ONE_DEGREE_PER_NS, max_steps=5000, save_m_steps=100, save_vtk_steps=50)
     
     np.save('m0.npy',sim.spin)
     
 
 def apply_field1(mesh):
     
-    sim = Sim(mesh,name='dyn',pbc='2d')
+    sim = Sim(mesh,name='dyn')
     
     sim.set_options(rtol=1e-10,atol=1e-14)
     sim.alpha = 0.02
@@ -76,7 +76,7 @@ def apply_field1(mesh):
     zeeman = Zeeman([-24.6*mT,4.3*mT,0],name='H')
     sim.add(zeeman, save_field=True)
         
-    ts = np.linspace(0,1e-9,101)
+    ts = np.linspace(0,1e-9,201)
     for t in ts:
         sim.run_until(t)
         print 'sim t=%g'%t
@@ -84,18 +84,26 @@ def apply_field1(mesh):
 def deal_plot():
     data = DataReader('dyn.txt')
     ts = data['time']*1e9
-    #mx = data['m_x']
+    mx = data['m_x']
     my = data['m_y']
+    mz = data['m_z']
     
-    data2 = np.loadtxt('data.txt')
+    data2 = np.loadtxt('oommf.txt')
     
-    ts2 = data2[:,0]
-    my2 = data2[:,-2]
+    ts2 = data2[:,0]*1e9
+    mx2 = data2[:,1]
+    my2 = data2[:,2]
+    mz2 = data2[:,3]
     
-    plt.plot(ts, my, '.')
-    plt.plot(ts2, my2, '--')
-    
-    #plt.legend()
+    plt.plot(ts, mx, '--', label='mx_pccp',dashes=(2,2))
+    plt.plot(ts, my, '--', label='',dashes=(2,2))
+    plt.plot(ts, mz, '--', label='',dashes=(2,2))
+    plt.plot(ts2, mx2, '--', label='mx_oommf')
+    plt.plot(ts2, my2, '--', label='')
+    plt.plot(ts2, mz2, '--', label='')
+
+    plt.title('std4')
+    plt.legend()
     #plt.xlim([0, 0.012])
     #plt.ylim([-5, 100])
     plt.xlabel(r'Ts (ns)')

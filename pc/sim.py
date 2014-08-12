@@ -98,7 +98,7 @@ class Sim(object):
         """
         theta = 1.0 Heun method
         """
-        
+        self.default_c = -1.0 
         self._alpha[:] = 0.1
         self._mu_s[:] = const.mu_s_1
         self.mu_s_inv[:] = 1
@@ -217,6 +217,7 @@ class Sim(object):
         return self._mu_s
     
     def set_Ms(self, value):
+        self.default_c = 1e11
         self.set_mu_s(value)
     
     Ms = property(get_Ms, set_Ms)
@@ -275,7 +276,7 @@ class Sim(object):
         if flag<0:
             raise Exception("Run cython run_until failed!!!")
         
-        self.spin[:]=ode.y[:]
+        self.spin[:] = ode.y[:]
 
         self.t = t
         self.step += 1
@@ -316,7 +317,8 @@ class Sim(object):
                              self._pins,
                              self.gamma,
                              self.nxyz,
-                             self.do_procession)
+                             self.do_procession,
+                             self.default_c)
         
                 
         #ydot[:] = self.dm_dt[:]

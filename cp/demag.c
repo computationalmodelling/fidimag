@@ -63,6 +63,9 @@ void compute_all_tensors_oommf(fft_demag_plan *plan) {
 	double dy = plan->dy;
 	double dz = plan->dz;
 
+	double length = pow(dx*dy*dz, 1/3.0);
+	double asymptotic_radius_sq = pow(26.0*length,2.0);
+
 	for (i = 0; i < lenx; i++) {
 		for (j = 0; j < leny; j++) {
 			for (k = 0; k < lenz; k++) {
@@ -71,14 +74,25 @@ void compute_all_tensors_oommf(fft_demag_plan *plan) {
 				y = (j - ny + 1) * dy;
 				z = (k - nz + 1) * dz;
 
-				//printf("%g %g %g %g %g %g\n",x,y,z,dx,dy,dz);
-				plan->tensor_xx[id] = CalculateSDA00(x, y, z, dx, dy, dz);
-				plan->tensor_yy[id] = CalculateSDA11(x, y, z, dx, dy, dz);
-				plan->tensor_zz[id] = CalculateSDA22(x, y, z, dx, dy, dz);
-				plan->tensor_xy[id] = CalculateSDA01(x, y, z, dx, dy, dz);
-				plan->tensor_xz[id] = CalculateSDA02(x, y, z, dx, dy, dz);
-				plan->tensor_yz[id] = CalculateSDA12(x, y, z, dx, dy, dz);
+				double radius_sq = x*x+y*y+z*z;
 
+				if (radius_sq>asymptotic_radius_sq){
+					//printf("%g %g %g %g %g %g\n",x,y,z,dx,dy,dz);
+					plan->tensor_xx[id] = DemagNxxAsymptotic(x, y, z, dx, dy, dz);
+					plan->tensor_yy[id] = DemagNyyAsymptotic(x, y, z, dx, dy, dz);
+					plan->tensor_zz[id] = DemagNzzAsymptotic(x, y, z, dx, dy, dz);
+					plan->tensor_xy[id] = DemagNxyAsymptotic(x, y, z, dx, dy, dz);
+					plan->tensor_xz[id] = DemagNxzAsymptotic(x, y, z, dx, dy, dz);
+					plan->tensor_yz[id] = DemagNyzAsymptotic(x, y, z, dx, dy, dz);
+				}else{
+					//printf("%g %g %g %g %g %g\n",x,y,z,dx,dy,dz);
+					plan->tensor_xx[id] = CalculateSDA00(x, y, z, dx, dy, dz);
+					plan->tensor_yy[id] = CalculateSDA11(x, y, z, dx, dy, dz);
+					plan->tensor_zz[id] = CalculateSDA22(x, y, z, dx, dy, dz);
+					plan->tensor_xy[id] = CalculateSDA01(x, y, z, dx, dy, dz);
+					plan->tensor_xz[id] = CalculateSDA02(x, y, z, dx, dy, dz);
+					plan->tensor_yz[id] = CalculateSDA12(x, y, z, dx, dy, dz);
+				}
 			}
 		}
 	}

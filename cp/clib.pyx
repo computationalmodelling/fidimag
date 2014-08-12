@@ -23,7 +23,8 @@ cdef extern from "clib.h":
     void compute_anis(double *spin, double *field, double *Ku, int nxyz)
     double compute_anis_energy(double *spin, double *Ku, int nxyz)
 
-    void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha, int *pins, double gamma, int nxyz, int do_procession)
+    void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins, 
+                 double gamma, int nxyz, int do_procession, double default_c)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
     void normalise(double *m, int nxyz)
     void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
@@ -136,8 +137,8 @@ def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 np.ndarray[int, ndim=1, mode="c"] pins,
-                gamma, nxyz, do_procession):
-    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, nxyz, do_procession)
+                gamma, nxyz, do_procession, default_c):
+    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, nxyz, do_procession, default_c)
     
 def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,
@@ -288,7 +289,6 @@ cdef class RK2S(object):
         while (self.t<t):
             self.run_step()
         return 0
-
 
 
 cdef extern from "demagcoef.h":

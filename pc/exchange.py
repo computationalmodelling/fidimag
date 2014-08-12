@@ -27,9 +27,9 @@ class UniformExchange(object):
         
     def setup(self,mesh,spin,mu_s_inv,pbc=None):
         self.mesh=mesh
-        self.dx=mesh.dx
-        self.dy=mesh.dy
-        self.dz=mesh.dz
+        self.dx=mesh.dx*mesh.unit_length
+        self.dy=mesh.dy*mesh.unit_length
+        self.dz=mesh.dz*mesh.unit_length
         self.nx=mesh.nx
         self.ny=mesh.ny
         self.nz=mesh.nz
@@ -42,7 +42,7 @@ class UniformExchange(object):
         self.mu_s_inv = mu_s_inv.copy()
                 
         if self.A is not None:
-            self.mu_s_inv[:] *= (2.0/mu_0)/(mesh.unit_length**2)
+            self.mu_s_inv[:] *= (2.0/mu_0)
     
         self.xperiodic = 0
         self.yperiodic = 0

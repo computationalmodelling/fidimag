@@ -3,7 +3,7 @@ from __future__ import division
 #mpl.use("Agg")
 import matplotlib.pyplot as plt
 #import matplotlib.cm as cm
-import matplotlib.colors as color
+#import matplotlib.colors as color
 
 import numpy as np
 
