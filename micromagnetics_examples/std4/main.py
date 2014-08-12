@@ -117,7 +117,7 @@ if __name__=='__main__':
     
     #relax_system(mesh)
     
-    #apply_field1(mesh)
+    apply_field1(mesh)
     deal_plot()
     
     

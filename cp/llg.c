@@ -5,7 +5,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
 
 	int i, j, k;
 
-    double coeff, mm, mh, c=default_c;
+    double coeff, mm, mh, c;
     double hpi,hpj,hpk;
 
 	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
@@ -54,7 +54,10 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
 
         if (default_c<0){
         	c = 6*sqrt(dm_dt[i]*dm_dt[i]+dm_dt[j]*dm_dt[j]+dm_dt[k]*dm_dt[k]);
+        }else{
+        	c = default_c;
         }
+        //printf("%0.15g   %0.15g\n", c, default_c);
 
         dm_dt[i] += c*(1-mm)*m[i];
         dm_dt[j] += c*(1-mm)*m[j];
