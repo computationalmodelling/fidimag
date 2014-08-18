@@ -34,9 +34,9 @@ class DMI(object):
         self.dz=mesh.dz*mesh.unit_length
         
         if self.Dc is not None:
-            self.Dx = 2*self.Dc*self.dy*self.dz
-            self.Dy = 2*self.Dc*self.dx*self.dz
-            self.Dz = 2*self.Dc*self.dx*self.dy
+            self.Dx = self.Dc*self.dy*self.dz
+            self.Dy = self.Dc*self.dx*self.dz
+            self.Dz = self.Dc*self.dx*self.dy
             self.mu_s_inv[:] *= (1.0/(mu_0*self.dx*self.dy*self.dz))
         
         self.nxyz=mesh.nxyz

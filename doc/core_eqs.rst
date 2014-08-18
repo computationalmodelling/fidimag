@@ -113,7 +113,7 @@ Similar to the exchange case, the effective field in the continuum case
 can be computed by the same codes with 
 
 .. math::
-  D_x = 2 D \Delta y \Delta z
+  D_x = D \Delta y \Delta z
 
 Also, note that we needs the factor of :math:`\mu_0` to convert the units from T to A/m.
 
