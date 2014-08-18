@@ -51,7 +51,15 @@ In the continuum limit the exchange energy could be written,
 so the corresponding effective field is
 
 .. math::
-   \vec{H}=-\frac{2 A}{\mu_0 M_s} \nabla^2 \vec{m}
+   \vec{H} = \frac{2 A}{\mu_0 M_s} \nabla^2 \vec{m}
+
+Once we implemented the Heisenberg exchange interaction, the effective field in the continuum case
+can be computed by the same codes with 
+
+.. math::
+  J_x = 2A \frac{\Delta y \Delta z}{\Delta x}
+
+Note that we needs the factor of :math:`\mu_0` to convert the units from T to A/m.
 
 Anisotropy 
 ~~~~~~~~~~~
@@ -101,6 +109,13 @@ and the effective field is
 .. math::
    \vec{H}=-\frac{2D}{\mu_0 M_s} (\nabla \times \vec{m})
 
+Similar to the exchange case, the effective field in the continuum case
+can be computed by the same codes with 
+
+.. math::
+  D_x = 2 D \Delta y \Delta z
+
+Also, note that we needs the factor of :math:`\mu_0` to convert the units from T to A/m.
 
 Zeeman energy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

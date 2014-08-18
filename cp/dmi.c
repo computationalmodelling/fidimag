@@ -1,6 +1,7 @@
 #include "clib.h"
 
-void dmi_field(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
+void dmi_field(double *spin, double *field, double *energy, double Dx, double Dy, double Dz,
+		int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
@@ -20,9 +21,9 @@ void dmi_field(double *spin, double *field, double *energy, double D, int nx, in
                 
                 if (k > 0) {
                     id = index - 1;
-                    fx += D * cross_x(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += D * cross_y(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += D * cross_z(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
+                    fx += Dz * cross_x(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += Dz * cross_y(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += Dz * cross_z(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
                 }
                 
                 if (j > 0 || yperiodic) {
@@ -30,9 +31,9 @@ void dmi_field(double *spin, double *field, double *energy, double D, int nx, in
                     if (j==0) {
                         id += nyz;
                     }
-                    fx += D * cross_x(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += D * cross_y(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += D * cross_z(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fx += Dy * cross_x(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += Dy * cross_y(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += Dy * cross_z(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
                 }
                 
                 if (i > 0 || xperiodic) {
@@ -40,9 +41,9 @@ void dmi_field(double *spin, double *field, double *energy, double D, int nx, in
                     if (i==0) {
                         id += n1;
                     }
-                    fx += D * cross_x(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += D * cross_y(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += D * cross_z(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fx += Dx * cross_x(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += Dx * cross_y(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += Dx * cross_z(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
                 }
                 
                 if (i < nx - 1 || xperiodic) {
@@ -50,9 +51,9 @@ void dmi_field(double *spin, double *field, double *energy, double D, int nx, in
                     if (i == nx-1){
                         id -= n1;
                     }
-                    fx += D * cross_x(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += D * cross_y(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += D * cross_z(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fx += Dx * cross_x(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += Dx * cross_y(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += Dx * cross_z(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
                 }
                 
                 if (j < ny - 1 || yperiodic) {
@@ -60,16 +61,16 @@ void dmi_field(double *spin, double *field, double *energy, double D, int nx, in
                     if (j == ny-1){
                         id -= nyz;
                     }
-                    fx += D * cross_x(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += D * cross_y(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += D * cross_z(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fx += Dy * cross_x(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += Dy * cross_y(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += Dy * cross_z(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
                 }
                 
                 if (k < nz - 1) {
                     id = index + 1;
-                    fx += D * cross_x(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += D * cross_y(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += D * cross_z(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
+                    fx += Dz * cross_x(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
+                    fy += Dz * cross_y(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
+                    fz += Dz * cross_z(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
                 }
                 
                 field[index] = fx;

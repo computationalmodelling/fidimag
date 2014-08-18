@@ -18,7 +18,8 @@ void compute_exch_field_c(double *spin, double *field, double *energy,
 void compute_anis(double *spin, double *field, double *Ku, int nxyz);
 double compute_anis_energy(double *spin, double *Ku, int nxyz);
 
-void dmi_field(double *spin, double *field, double *energy,double D, int nx, int ny, int nz, int xperiodic, int yperiodic);
+
+void dmi_field(double *spin, double *field, double *energy,double Dx, double Dy, double Dz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
