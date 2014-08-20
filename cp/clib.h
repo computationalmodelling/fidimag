@@ -1,7 +1,7 @@
 #include<math.h>
 #include<complex.h>
 #include<fftw3.h>
-#include<omp.h>
+//#include<omp.h>
 
 #define WIDE_PI 3.1415926535897932384626433832795L
 
