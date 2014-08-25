@@ -10,6 +10,8 @@ import fnmatch
 import os
 import glob
 
+os.environ["CC"] = "gcc"
+
 #print __file__
 #print os.getcwd()
 realpath=os.path.realpath(__file__)
