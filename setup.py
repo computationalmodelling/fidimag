@@ -52,6 +52,16 @@ for cf in cfiles:
         baryakhtar_sources.append(cf)
 
 
+micro_path=os.path.join(pccp_path,'micro')
+micro_path = os.path.join(micro_path,'cython')
+micro_sources = []
+micro_sources.append(os.path.join(micro_path,'micro_clib.pyx'))
+cfiles = glob.glob(os.path.join(micro_path,'*.c'))
+for cf in cfiles:
+    if not cf.endswith("micro_clib.c"):
+        micro_sources.append(cf)
+
+
 libs_path = os.path.join(pccp_path,'libs')
 include_path = os.path.join(libs_path,'include')
 lib_path = os.path.join(libs_path,'lib')
@@ -81,7 +91,17 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s'%lib_path,'-fopenmp'],
               #extra_link_args=["-g"],
-        )
+        ),
+    
+    Extension("micro_clib",
+              sources = micro_sources,
+              include_dirs = [numpy.get_include(),include_path],
+              libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
+              extra_compile_args=["-fopenmp", '-std=c99'],
+              extra_link_args=['-L%s'%lib_path,'-fopenmp'],
+              #extra_link_args=["-g"],
+       )
+
     ]
     
 

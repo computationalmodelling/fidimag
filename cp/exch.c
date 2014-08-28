@@ -35,8 +35,8 @@ void compute_exch_field(double *spin, double *field, double *energy,
                 
                 if (k > 0) {
                     id = index - 1;
-                    fx += Jx * spin[id];
-                    fy += Jy * spin[id + n1];
+                    fx += Jz * spin[id];
+                    fy += Jz * spin[id + n1];
                     fz += Jz * spin[id + n2];
                 }
                 
@@ -45,9 +45,9 @@ void compute_exch_field(double *spin, double *field, double *energy,
                     if (j==0) {
                         id += nyz;
                     }
-                    fx += Jx * spin[id];
+                    fx += Jy * spin[id];
                     fy += Jy * spin[id + n1];
-                    fz += Jz * spin[id + n2];
+                    fz += Jy * spin[id + n2];
                 }
                 
                 if (i > 0 || xperiodic) {
@@ -56,8 +56,8 @@ void compute_exch_field(double *spin, double *field, double *energy,
                         id += n1;
                     }
                     fx += Jx * spin[id];
-                    fy += Jy * spin[id + n1];
-                    fz += Jz * spin[id + n2];
+                    fy += Jx * spin[id + n1];
+                    fz += Jx * spin[id + n2];
                 }
                 
                 if (i < nx - 1 || xperiodic) {
@@ -66,8 +66,8 @@ void compute_exch_field(double *spin, double *field, double *energy,
                         id -= n1;
                     }
                     fx += Jx * spin[id];
-                    fy += Jy * spin[id + n1];
-                    fz += Jz * spin[id + n2];
+                    fy += Jx * spin[id + n1];
+                    fz += Jx * spin[id + n2];
                 }
                 
                 if (j < ny - 1 || yperiodic) {
@@ -75,15 +75,15 @@ void compute_exch_field(double *spin, double *field, double *energy,
                     if (j == ny-1){
                         id -= nyz;
                     }
-                    fx += Jx * spin[id];
+                    fx += Jy * spin[id];
                     fy += Jy * spin[id + n1];
-                    fz += Jz * spin[id + n2];
+                    fz += Jy * spin[id + n2];
                 }
                 
                 if (k < nz - 1) {
                     id = index + 1;
-                    fx += Jx * spin[id];
-                    fy += Jy * spin[id + n1];
+                    fx += Jz * spin[id];
+                    fy += Jz * spin[id + n1];
                     fz += Jz * spin[id + n2];
                 }
                 
@@ -152,16 +152,6 @@ double compute_exch_energy(double *spin, double Jx,  double Jy, double Jz,
 	return energy;
     
 }
-
-void write_field(double *field, int nx, int ny, int nz){
-
-	FILE *f = fopen("file.txt", "w");
-	for (int i = 0; i < 3*nx*ny*nz; i++){
-		fprintf(f, "%0.20e\n",field[i]);
-	 }
-	fclose(f);
-}
-
 
 void compute_exch_field_c(double *spin, double *field, double *energy,
 						double A, double dx, double dy, double dz,

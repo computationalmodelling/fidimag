@@ -7,6 +7,12 @@ import omf
 
 from pc.fd_mesh import FDMesh
 
+
+if os.environ.has_key('OOMMF_PATH'):
+    OOMMF_PATH=os.environ['OOMMF_PATH']
+else:
+    OOMMF_PATH='/home/ww1g11/Softwares/oommf-1.2a5/'
+
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 mif_demag = """# MIF 2.1
@@ -89,11 +95,11 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, field='Demag'):
     with open(os.path.join(conf_path, field+".mif"), "w") as mif_file:
         mif_file.write(mif)
 
+
 def run_oommf(field='Demag'):
 
     command = ('tclsh',
-           '/home/ww1g11/Softwares/oommf-1.2a5/oommf.tcl',
-           #'/home/ww1g11/Softwares/oommf12a4pre-20051118/oommf.tcl',
+               os.path.join(OOMMF_PATH, 'oommf.tcl'),
            'boxsi',
            '-threads',
            '1',

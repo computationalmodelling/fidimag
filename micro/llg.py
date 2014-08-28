@@ -4,9 +4,9 @@ import clib
 import cvode
 import time
 import numpy as np
-from fileio import DataSaver, DataReader
-from save_vtk import SaveVTK
-from constant import Constant
+from pc.fileio import DataSaver, DataReader
+from pc.save_vtk import SaveVTK
+from pc.constant import Constant
 
 import pccp.util.helper as helper
 
@@ -33,7 +33,6 @@ class LLG(object):
         self.unit_length = mesh.unit_length
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
         self._Ms = np.zeros(self.nxyz,dtype=np.float)
-        self.Ms_inv = np.zeros(3*self.nxyz,dtype=np.float)
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
         self.spin_last = np.ones(3*self.nxyz,dtype=np.float)
         self._pins = np.zeros(self.nxyz,dtype=np.int32)
@@ -41,7 +40,6 @@ class LLG(object):
         self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
         self.interactions = []
         self.pin_fun = None
-        self.pbc = mesh.pbc
         
         self.update_j_fun = None
         
@@ -63,15 +61,8 @@ class LLG(object):
 
         self.set_options()
         
-        self.xperiodic = 0
-        self.yperiodic = 0
-        if pbc == 'x':
-            self.xperiodic = 1
-        elif pbc == 'y':
-            self.yperiodic = 1
-        elif pbc=='xy':
-            self.xperiodic = 1
-            self.yperiodic = 1
+        self.xperiodic = mesh.xperiodic
+        self.yperiodic = mesh.yperiodic
 
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
 
@@ -94,9 +85,11 @@ class LLG(object):
         self.spin[:]=helper.init_vector(m0,self.mesh, normalise)
         
         #TODO: carefully checking and requires to call set_mu first
+        self.spin.shape=(3,-1)
         for i in range(len(self.spin)):
-            if self.Ms_inv[i]==0:
-                self.spin[i] = 0
+            if self.Ms[i]==0:
+                self.spin[:,i] = 0
+        self.spin.shape=(-1,)
 
         self.vode.set_initial_value(self.spin, self.t)
 
@@ -127,17 +120,12 @@ class LLG(object):
 
     def set_Ms(self, value):
         self._Ms[:] = helper.init_scalar(value, self.mesh)
-        self.Ms_inv.shape=(3,-1)
         nonzero = 0 
         for i in range(self.nxyz):
-            if self._Ms[i] == 0.0:
-                self.Ms_inv[:,i] = 0
-            else: 
-                self.Ms_inv[:,i]=1.0/self._Ms[i]
+            if self._Ms[i] > 0.0:
                 nonzero += 1
         
         self.nxyz_nonzero = nonzero
-        self.Ms_inv.shape=(-1,)
         
         for i in range(len(self._Ms)):
             if self._Ms[i] == 0.0:
@@ -146,9 +134,7 @@ class LLG(object):
     Ms = property(get_Ms, set_Ms)
 
     def add(self,interaction, save_field=False):
-        interaction.setup(self.mesh,self.spin,
-                          Ms_inv=self.Ms_inv,
-                          pbc=self.pbc)
+        interaction.setup(self.mesh,self.spin, Ms = self._Ms)
         
         #TODO: FIX
         for i in self.interactions:

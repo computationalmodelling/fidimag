@@ -17,6 +17,17 @@ class FDMesh():
         self.compute_pos()
         self.pbc = pbc
         
+        self.xperiodic = 0
+        self.yperiodic = 0
+    
+        if pbc == 'x':
+            self.xperiodic = 1
+        elif pbc == 'y':
+            self.yperiodic = 1
+        elif pbc=='xy':
+            self.xperiodic = 1
+            self.yperiodic = 1
+        
     def compute_pos(self):
         self.pos=[]
         for i in range(self.nx):

@@ -1,9 +1,10 @@
 import numpy as np
 
-from pc import FDMesh
-from pc import Sim
-from pc import Demag
-from pc import UniformExchange
+from micro import FDMesh
+from micro import UniformExchange
+from micro import LLG as Sim
+from micro import Demag
+
 
 from util.oommf import compute_demag_field
 from util.oommf import compute_exch_field
@@ -75,7 +76,7 @@ def test_demag_field_oommf(Ms=6e5):
     
     sim.Ms = Ms
     
-    demag = Demag(oommf=True)
+    demag = Demag()
     sim.add(demag)
     
     def init_m(pos):
@@ -125,7 +126,7 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
     exch = UniformExchange(A=A)
     sim.add(exch)
     
-    demag = Demag(oommf=True)
+    demag = Demag()
     sim.add(demag)
         
     def init_m(pos):
