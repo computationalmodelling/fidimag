@@ -86,3 +86,21 @@ void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi
 
 	}
 }
+
+
+void compute_perp_field_c(double *m, double *field, double *field_p, int n) {
+    
+    #pragma omp parallel for
+	for (int i = 0; i < n; i++) {
+		int j = i+n;
+		int k = j+n;
+        
+		double mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
+        double hm = field[i]*m[i] + field[j]*m[j] + field[k]*m[k];
+        
+		field_p[i] = field[i] - hm*m[i]/mm;
+		field_p[j] = field[j] - hm*m[j]/mm;
+		field_p[k] = field[k] - hm*m[k]/mm;
+        
+	}
+}
