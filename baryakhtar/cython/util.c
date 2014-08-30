@@ -80,9 +80,9 @@ void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi
         double relax = Ms[i]*chi_inv/2.0;
 		double mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
 
-		field[i] += relax * (1-mm)* m[i];
-		field[j] += relax * (1-mm)* m[j];
-		field[k] += relax * (1-mm)* m[k];
+		field[i] = relax * (1-mm)* m[i];
+		field[j] = relax * (1-mm)* m[j];
+		field[k] = relax * (1-mm)* m[k];
 
 	}
 }
