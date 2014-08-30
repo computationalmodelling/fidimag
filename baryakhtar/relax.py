@@ -29,20 +29,41 @@ class Relaxation(object):
 
     def compute_field(self, t=0):
         
-        clib.compute_exchange_field_baryakhtar(self.spin,
+        clib.compute_relaxation_field(self.spin,
                                       self.field,
-                                      self.Me,
+                                      self.Ms,
                                       self.chi_inv,
-                                      self.A,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
-                                      self.nx,
-                                      self.ny,
-                                      self.nz)
+                                      self.mesh.nxyz)
         
         return self.field
         
     def compute_energy(self):
         
         return 0.0
+
+
+class Laplace(object):
+    """
+        compute the laplace for given field.
+    """
+    def __init__(self, mesh):
+        self.dx=mesh.dx*mesh.unit_length
+        self.dy=mesh.dy*mesh.unit_length
+        self.dz=mesh.dz*mesh.unit_length
+        self.nx=mesh.nx
+        self.ny=mesh.ny
+        self.nz=mesh.nz
+        self.field = np.zeros(3*mesh.nxyz)
+    
+    
+    def compute_laplace_field(self, h):
+        
+        clib.compute_laplace_field(h, self.field,
+                                   self.dx,
+                                   self.dy,
+                                   self.dz,
+                                   self.nx,
+                                   self.ny,
+                                   self.nz)
+                                   
+        return self.field

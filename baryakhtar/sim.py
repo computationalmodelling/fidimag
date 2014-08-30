@@ -12,31 +12,7 @@ import pccp.util.helper as helper
 
 const = Constant()
 
-class Laplace(object):
-    """
-    compute the exchange field.
-    """
-    def __init__(self, mesh):
-        self.dx=mesh.dx*mesh.unit_length
-        self.dy=mesh.dy*mesh.unit_length
-        self.dz=mesh.dz*mesh.unit_length
-        self.nx=mesh.nx
-        self.ny=mesh.ny
-        self.nz=mesh.nz
-        self.field = np.zeros(3*mesh.nxyz)
-    
 
-    def compute_laplace_field(self, h):
-        
-        clib.compute_laplace_field(h, self.field,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
-                                      self.nx,
-                                      self.ny,
-                                      self.nz)
-        
-        return self.field
 
 class Sim(object):
     
