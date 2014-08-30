@@ -70,23 +70,14 @@ void compute_laplace_m(double *m, double *field, double A, double dx, double dy,
 }
 
 
-void compute_exch_field_baryakhtar(double *m, double *field, double Me,
-						double chi_inv, double A, double dx, double dy, double dz,
-						int nx, int ny, int nz) {
-
-
-	double reduced_A = 2*A/(MU0*Me);
-
-	compute_laplace_m(m, field, reduced_A, dx, dy, dz, nx, ny, nz);
-
-	int n = nx*ny*nz;
-	double relax = Me*chi_inv/2.0;
+void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi_inv, int n) {
 
 	#pragma omp parallel for
 	for (int i = 0; i < n; i++) {
 		int j = i+n;
 		int k = j+n;
-
+        
+        double relax = Ms[i]*chi_inv/2.0;
 		double mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
 
 		field[i] += relax * (1-mm)* m[i];

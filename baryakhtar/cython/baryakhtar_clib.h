@@ -12,9 +12,7 @@ inline double cross_z(double a0, double a1, double a2, double b0, double b1, dou
 void compute_laplace_m(double *m, double *field, double A, double dx, double dy, double dz,
 		int nx, int ny, int nz);
 
-void compute_exch_field_baryakhtar(double *m, double *field, double Me,
-						double chi_inv, double A, double dx, double dy, double dz,
-						int nx, int ny, int nz);
+void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi_inv, int n);
 
 void llg_rhs_baryakhtar(double *dm_dt, double *m, double *h, double *delta_h,
 		double *alpha, double beta, int *pins,

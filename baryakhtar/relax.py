@@ -1,16 +1,15 @@
 import baryakhtar_clib as clib 
 import numpy as np
 
-class UniformExchange(object):
+class Relaxation(object):
     """
-    compute the exchange field.
+    compute the relaxation field related to exchange field.
     """
-    def __init__(self, A, chi, name='exch'):
-        self.A = A
+    def __init__(self, chi, name='relax'):
         self.chi = chi
         self.name = name    
     
-    def setup(self,mesh,m,Me):
+    def setup(self, mesh, m, Ms):
         self.mesh=mesh
         self.dx=mesh.dx*mesh.unit_length
         self.dy=mesh.dy*mesh.unit_length
@@ -19,7 +18,7 @@ class UniformExchange(object):
         self.ny=mesh.ny
         self.nz=mesh.nz
         self.spin = m
-        self.Me = Me
+        self.Ms = Ms
         self.field = np.zeros(3*mesh.nxyz)
         
         if self.chi == 0.0:

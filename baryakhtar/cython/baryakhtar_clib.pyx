@@ -6,9 +6,7 @@ cdef extern from "baryakhtar_clib.h":
     void compute_laplace_m(double *m, double *field, double A, double dx, double dy, double dz,
         int nx, int ny, int nz)
     
-    void compute_exch_field_baryakhtar(double *m, double *field, double Me,
-                        double chi_inv, double A, double dx, double dy, double dz,
-                        int nx, int ny, int nz)
+    void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi_inv, int n)
     
     void llg_rhs_baryakhtar(double *dm_dt, double *m, double *h, double *delta_h,
         double *alpha, double beta, int *pins,
@@ -21,14 +19,12 @@ def compute_laplace_field(np.ndarray[double, ndim=1, mode="c"] spin,
 
     compute_laplace_m(&spin[0], &field[0], 1.0, dx, dy, dz, nx, ny, nz)
 
-def compute_exchange_field_baryakhtar(np.ndarray[double, ndim=1, mode="c"] spin,
+def compute_relaxation_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
-                            Me, chi_inv, 
-                            A, 
-                            dx, dy, dz,
-                            nx, ny, nz):
+                            np.ndarray[double, ndim=1, mode="c"] Ms,
+                            chi_inv,n):
 
-    compute_exch_field_baryakhtar(&spin[0], &field[0], Me, chi_inv, A, dx, dy, dz, nx, ny, nz)
+    compute_relaxation_field_c(&spin[0], &field[0], &Ms[0], chi_inv, n)
 
 
 def compute_llg_rhs_baryakhtar(np.ndarray[double, ndim=1, mode="c"] dm_dt,
