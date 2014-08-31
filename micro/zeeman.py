@@ -51,13 +51,13 @@ class TimeZeeman(Zeeman):
     """
     The time dependent external field, also can vary with space
     """
-    def __init__(self,H0, time_fun, name='TimeZeeman'):
+    def __init__(self, H0, time_fun, name='TimeZeeman'):
         self.H0 = H0
         self.time_fun = time_fun
         self.name = name
         
     def setup(self,mesh,spin, Ms):
-        super(self, mesh, spin, Ms)
+        super(TimeZeeman, self).setup(mesh, spin, Ms)
         self.H_init = self.field.copy()
     
     

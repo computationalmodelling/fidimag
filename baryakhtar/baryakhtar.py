@@ -1,4 +1,6 @@
 import cvode
+
+import numpy as np
 import baryakhtar_clib as clib 
 from micro import LLG
 from relax import Relaxation
@@ -56,7 +58,7 @@ class LLBar(LLG):
     
     def __init__(self, mesh, name='unnamed'):
         
-        super(LLBarFull, self).__init__(mesh, name=name)
+        super(LLBar, self).__init__(mesh, name=name)
         self.lap = Laplace(mesh)
     
         self.field_perp = np.zeros(3*self.nxyz,dtype=np.float)
@@ -82,7 +84,7 @@ class LLBar(LLG):
         #self.spin[:]=y[:]
         
         self.compute_effective_field(t)
-        clib.compute_perp_field(self.m, self.field, self.field_perp, self.nxyz)
+        clib.compute_perp_field(self.spin, self.field, self.field_perp, self.nxyz)
         delta_h = self.lap.compute_laplace_field(self.field_perp)
         
         clib.compute_llg_rhs_baryakhtar_reduced(ydot,

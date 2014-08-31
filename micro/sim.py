@@ -1,7 +1,10 @@
 from llg import LLG
+from baryakhtar import LLBar
 from baryakhtar import LLBarFull
 
-KNOWN_DRIVERS = {'llg':LLG, 'llbar_full': LLBarFull}
+KNOWN_DRIVERS = {'llg': LLG, 
+                 'llbar': LLBar,
+                 'llbar_full': LLBarFull}
 
 def Sim(*args, **kwargs):
     

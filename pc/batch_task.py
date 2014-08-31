@@ -149,7 +149,7 @@ class BatchTasks(object):
             os.chdir(dirname)
             try:
                 self.process_res.append(fun(**task))
-            except:
+            except RuntimeError:
                 print 'error:',task
             os.chdir(self.current_directory)
             
