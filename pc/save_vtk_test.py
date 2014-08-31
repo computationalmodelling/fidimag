@@ -1,5 +1,5 @@
 import numpy as np
-from fd_mesh import FDMesh
+from mesh import FDMesh
 from sim import Sim
 from save_vtk import SaveVTK
 from materials import Nickel

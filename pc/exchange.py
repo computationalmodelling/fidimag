@@ -16,9 +16,8 @@ class UniformExchange(object):
     
     notice that there is no factor of 2 associated with J.
     """
-    def __init__(self,J=0,name='exch', A=None):
+    def __init__(self,J=0,name='exch'):
         self.J = J
-        self.A = A
         self.name=name
         
         self.Jx = self.J
@@ -40,9 +39,6 @@ class UniformExchange(object):
         self.total_energy=0
         self.pbc = pbc
         self.mu_s_inv = mu_s_inv.copy()
-                
-        if self.A is not None:
-            self.mu_s_inv[:] *= (2.0/mu_0)
     
         self.xperiodic = 0
         self.yperiodic = 0
@@ -54,22 +50,8 @@ class UniformExchange(object):
             self.yperiodic = 1
 
     def compute_field(self, t=0):
-        if self.A is not None:
-            clib.compute_exchange_field_c(self.spin,
-                                      self.field,
-                                      self.energy,
-                                      self.A,
-                                      self.dx,
-                                      self.dy,
-                                      self.dz,
-                                      self.nx,
-                                      self.ny,
-                                      self.nz,
-                                      self.xperiodic,
-                                      self.yperiodic)
-            
-        else:
-            clib.compute_exchange_field(self.spin,
+
+        clib.compute_exchange_field(self.spin,
                                       self.field,
                                       self.energy,
                                       self.Jx,

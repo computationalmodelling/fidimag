@@ -4,7 +4,7 @@ import clib
 import cvode
 import time
 import numpy as np
-from fd_mesh import FDMesh
+from mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman

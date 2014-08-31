@@ -10,9 +10,9 @@ class DMI(object):
     Hamiltonian = D*[S_i x S_j]
         ==> H = D x S_j
     """
-    def __init__(self,D,name='dmi',Dc=None):
+    def __init__(self,D,name='dmi'):
         self.D = D
-        self.Dc = Dc
+
         self.name=name
         
         self.Dx = D
@@ -32,12 +32,6 @@ class DMI(object):
         self.dx=mesh.dx*mesh.unit_length
         self.dy=mesh.dy*mesh.unit_length
         self.dz=mesh.dz*mesh.unit_length
-        
-        if self.Dc is not None:
-            self.Dx = self.Dc*self.dy*self.dz
-            self.Dy = self.Dc*self.dx*self.dz
-            self.Dz = self.Dc*self.dx*self.dy
-            self.mu_s_inv[:] *= (1.0/(mu_0*self.dx*self.dy*self.dz))
         
         self.nxyz=mesh.nxyz
         self.field=np.zeros(3*self.nxyz)

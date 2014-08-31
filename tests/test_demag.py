@@ -31,7 +31,7 @@ def test_demag_fft_exact_oommf():
     mesh = FDMesh(nx=5,ny=3,nz=2)
     sim = Sim(mesh)
     
-    demag=Demag(oommf=True)
+    demag=Demag()
     sim.add(demag)
     
     def init_m(pos):
