@@ -12,3 +12,11 @@ inline double cross_z(double a0, double a1, double a2, double b0, double b1, dou
 
 void compute_exch_field_micro(double *m, double *field, double *energy, double *Ms_inv,
                          double A, double dx, double dy, double dz, int nx, int ny, int nz, int xperiodic, int yperiodic);
+
+void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
+                    double D, double dx, double dy, double dz,
+                    int nx, int ny, int nz, int xperiodic, int yperiodic);
+
+void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_inv,
+                           double D, double dx, double dy, double dz,
+                           int nx, int ny, int nz, int xperiodic, int yperiodic);
