@@ -150,7 +150,6 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
     demag_oommf = compute_demag_field(mesh, Ms=Ms, init_m0=init_m0)
     exch_oommf = compute_exch_field(mesh, Ms=Ms, init_m0=init_m0, A=A)
     
-    
 
     mx0,mx1,mx2 = compare_fields(demag_oommf, demag_field)
     print mx0,mx1,mx2
@@ -163,12 +162,53 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
     #mx0,mx1,mx2 = compare_fields(demag_oommf, exact)
     #print mx0,mx1,mx2
     
+    
+def test_energy(Ms=8e5, A=1.3e-11):
+    
+    mesh = FDMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    sim = Sim(mesh)
+    
+    sim.Ms = Ms
+    
+    exch = UniformExchange(A=A)
+    sim.add(exch)
+    
+    demag = Demag()
+    sim.add(demag)
+        
+    def init_m(pos):
+        
+        x,y,z = pos
+        
+        return (np.sin(x)+y+2.3*z,np.cos(x)+y+1.3*z,0)
+    
+    sim.set_m(init_m)
+    demag_energy = demag.compute_energy()
+    exch_energy = exch.compute_energy()
+    
+    
+    #init_m0="""
+    #return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
+    #"""
+    
+    #field_oommf = compute_exch_field(mesh, Ms=Ms, init_m0=init_m0, A=A)
+    
+    exch_energy_oommf =  1.9885853028738599e-19
+    demag_energy_oommf =  5.5389695779175673e-19
+    
+    print demag_energy, exch_energy
+    
+    assert abs(exch_energy - exch_energy_oommf)/exch_energy_oommf<1e-15
+    assert abs(demag_energy - demag_energy_oommf)/demag_energy_oommf <1e-10
+    
 if __name__=='__main__':
 
     #test_demag_field_oommf()
     
     #test_exch_field_oommf()
     
-    test_demag_field_oommf_large()
+    #test_demag_field_oommf_large()
+    
+    test_energy()
     
     

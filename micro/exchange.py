@@ -60,6 +60,6 @@ class UniformExchange(object):
         #since we are not always calling this function, so it's okay to call compute_field again
         self.compute_field()
         
-        self.total_energy = np.sum(self.energy)
+        self.total_energy = np.sum(self.energy)*self.mesh.cellsize
         
         return self.total_energy

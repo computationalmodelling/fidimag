@@ -2,9 +2,6 @@ import clib
 import numpy as np
 from constant import mu_0
 
-
-
-
 class DMI(object):
     """
     Hamiltonian = D*[S_i x S_j]
@@ -12,7 +9,7 @@ class DMI(object):
     """
     def __init__(self,D,name='dmi'):
         self.D = D
-
+        
         self.name=name
         
         self.Dx = D

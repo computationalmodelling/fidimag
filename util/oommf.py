@@ -5,7 +5,7 @@ import numpy as np
 import subprocess
 import omf
 
-from pc.fd_mesh import FDMesh
+from micro import FDMesh
 
 
 if os.environ.has_key('OOMMF_PATH'):
@@ -62,7 +62,7 @@ proc init_m0 { x y z} {
 }
 
 Destination archive mmArchive
-
+Schedule DataTable archive Stage 1
 Schedule Oxs_%(field)s::Field archive Stage 1
 """
 

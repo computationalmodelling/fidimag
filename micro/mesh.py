@@ -17,6 +17,8 @@ class FDMesh():
         self.compute_pos()
         self.pbc = pbc
         
+        self.cellsize=dx*dy*dz*unit_length**3
+        
         self.xperiodic = 0
         self.yperiodic = 0
     

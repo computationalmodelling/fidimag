@@ -1,6 +1,8 @@
 import clib 
 import numpy as np
 
+mu_0 = 4*np.pi*1e-7
+
 class Demag(object):
     def __init__(self, name='demag'):
         self.name = name
@@ -36,7 +38,8 @@ class Demag(object):
 
     def compute_energy(self):
         
-        #energy=self.demag.compute_energy(self.spin,self.mu_s,self.field)
+        self.compute_field()
+        energy = self.demag.compute_energy(self.spin,self.Ms,self.field)
         
-        return 0.0
+        return energy*self.mesh.cellsize*mu_0
     
