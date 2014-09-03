@@ -44,7 +44,7 @@ class Zeeman(object):
         
         energy = -np.sum(sf)
         
-        return energy
+        return energy*self.mesh.cellsize
     
 
 class TimeZeeman(Zeeman):

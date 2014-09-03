@@ -82,6 +82,6 @@ class DMI(object):
         
         self.total_energy = np.sum(self.energy)
         
-        return self.total_energy
+        return self.total_energy*self.mesh.cellsize
     
 

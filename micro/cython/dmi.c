@@ -7,7 +7,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
     
-    double Dx = D/dx, Dy=D/dy, Dz=D/dz;
+    double Dx = -D/dx, Dy=-D/dy, Dz=-D/dz;
     
 	#pragma omp parallel for
 	for (int i = 0; i < nx; i++) {

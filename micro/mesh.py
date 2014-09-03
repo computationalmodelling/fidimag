@@ -1,7 +1,7 @@
 
 
 class FDMesh():
-    def __init__(self,dx=1.0,dy=1.0,dz=1.0,nx=10,ny=1,nz=1,unit_length=1.0, pbc=None):
+    def __init__(self,dx=1.0,dy=1.0,dz=1.0,nx=10,ny=1,nz=1,unit_length=1.0, x0=0, y0=0, z0=0, pbc=None):
         """
         pbc could be None, 'x', 'y' or 'xy'.
         """
@@ -14,8 +14,14 @@ class FDMesh():
         self.nyz=ny*nz
         self.nxyz=nx*ny*nz
         self.unit_length=unit_length
-        self.compute_pos()
+
         self.pbc = pbc
+        
+        self.x0 = x0
+        self.y0 = y0
+        self.z0 = z0
+        
+        self.compute_pos()
         
         self.cellsize=dx*dy*dz*unit_length**3
         
@@ -36,9 +42,9 @@ class FDMesh():
             for j in range(self.ny):
                 for k in range(self.nz):
 
-                    tp=((i+0.5)*self.dx,
-                        (j+0.5)*self.dy,
-                        (k+0.5)*self.dz)
+                    tp=((i+0.5)*self.dx+self.x0,
+                        (j+0.5)*self.dy+self.y0,
+                        (k+0.5)*self.dz+self.z0)
                     
                     self.pos.append(tp)
                     

@@ -86,8 +86,8 @@ class LLG(object):
         
         #TODO: carefully checking and requires to call set_mu first
         self.spin.shape=(3,-1)
-        for i in range(len(self.spin)):
-            if self.Ms[i]==0:
+        for i in range(self.spin.shape[1]):
+            if self._Ms[i]==0:
                 self.spin[:,i] = 0
         self.spin.shape=(-1,)
 
@@ -311,7 +311,9 @@ class LLG(object):
         max_dmdt = max_dm / dt
         return max_dmdt
     
-    def relax(self, dt=1.0, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
+    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
+        
+        ONE_DEGREE_PER_NS = 17453292.52
                  
         for i in range(0,max_steps+1):
             
@@ -333,9 +335,9 @@ class LLG(object):
             
             dmdt = self.compute_dmdt(increment_dt)
             
-            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g'%(self.step, self.t, dmdt, cvode_dt)
+            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g'%(self.step, self.t, dmdt/ONE_DEGREE_PER_NS, cvode_dt)
             
-            if dmdt<stopping_dmdt:
+            if dmdt<stopping_dmdt*ONE_DEGREE_PER_NS:
                 break
         
         if save_m_steps is not None:
