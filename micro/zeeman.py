@@ -1,7 +1,7 @@
 import numpy as np
 
 from pc.constant import mu_0
-import pccp.util.helper as helper
+import util.helper as helper
 
 class Zeeman(object):
     """

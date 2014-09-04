@@ -14,18 +14,8 @@ class LLBarFull(LLG):
         super(LLBarFull, self).__init__(mesh, name=name)
         self.lap = Laplace(mesh)
         self.add(Relaxation(chi))
-    
-    def set_options(self, rtol=1e-8, atol=1e-12, gamma=2.21e5, Ms=8.0e5, alpha=0.1, beta=0.0):
-        self._alpha[:] = alpha
-        self._Ms[:] = Ms
-        self.gamma = gamma
-        self.beta =  beta
-        self.do_procession = True
         
-        self.vode = cvode.CvodeSolver(self.spin,
-                                    rtol,atol,
-                                    self.sundials_rhs)
-    
+        self.beta =  0    
     
     def sundials_rhs(self, t, y, ydot):
         
@@ -62,20 +52,9 @@ class LLBar(LLG):
         self.lap = Laplace(mesh)
     
         self.field_perp = np.zeros(3*self.nxyz,dtype=np.float)
-    
-    def set_options(self, rtol=1e-8, atol=1e-12, gamma=2.21e5, Ms=8.0e5, alpha=0.1, beta=0.0):
-        self.default_c = 1e11
-        self._alpha[:] = alpha
-        self._Ms[:] = Ms
-        self.gamma = gamma
-        self.beta =  beta
-        self.do_procession = True
         
-        self.vode = cvode.CvodeSolver(self.spin,
-                                      rtol,atol,
-                                      self.sundials_rhs)
-    
-    
+        self.beta =  0
+        
     def sundials_rhs(self, t, y, ydot):
         
         self.t = t

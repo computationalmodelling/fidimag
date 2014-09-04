@@ -41,8 +41,6 @@ class LLG(object):
         self.interactions = []
         self.pin_fun = None
         
-        self.update_j_fun = None
-        
         self.step = 0
         
         self.saver = DataSaver(self, name+'.txt')
@@ -59,26 +57,26 @@ class LLG(object):
         
         self.saver.update_entity_order()
 
-        self.set_options()
-        
         self.xperiodic = mesh.xperiodic
         self.yperiodic = mesh.yperiodic
 
         self.vtk=SaveVTK(self.mesh,self.spin,name=name)
+        
+        self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs)
+        
+        self.set_default_options()
+        
+        self.set_tols()
 
-
-    def set_options(self,rtol=1e-8,atol=1e-12, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
+    def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
         self.default_c = 1e11
         self._alpha[:] = alpha
         self._Ms[:] = Ms
         self.gamma = gamma
         self.do_procession = True
-        
-        self.vode=cvode.CvodeSolver(self.spin,
-                                    rtol,atol,
-                                    self.sundials_rhs)
-
-
+    
+    def set_tols(self, rtol=1e-8, atol=1e-10):
+        self.vode.set_options(rtol, atol)
 
     def set_m(self,m0=(1,0,0),normalise=True):
         

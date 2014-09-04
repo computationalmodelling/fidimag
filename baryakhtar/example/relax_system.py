@@ -13,7 +13,7 @@ def relax_system(mesh):
     
     sim = Sim(mesh, chi=1e-3, name='relax', driver='llbar_full')
     
-    sim.set_options(rtol=1e-6,atol=1e-6)
+    sim.set_tols(rtol=1e-6,atol=1e-6)
     sim.Ms = 8.0e5
     sim.alpha = 0.1
     sim.beta = 0

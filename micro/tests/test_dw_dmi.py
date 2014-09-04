@@ -59,12 +59,14 @@ def relax_system(mesh=mesh):
     Ms = 8.0e5
     sim = Sim(mesh, name = 'relax')
     
+    sim.set_m(m_init_dw)
+    
     sim.set_options(rtol=1e-8,atol=1e-12)
     sim.Ms = Ms
     sim.alpha = 0.5
     #sim.do_procession = False
     
-    sim.set_m(m_init_dw)
+    
     
     A = 1.3e-11
     D = 4e-4
