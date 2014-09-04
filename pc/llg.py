@@ -79,6 +79,9 @@ class LLG(object):
     
     def set_tols(self, rtol=1e-8, atol=1e-10):
         self.vode.set_options(rtol, atol)
+    
+    def set_options(self, rtol=1e-8, atol=1e-10)
+        self.set_tols(rtol, atol)
 
     def set_m(self,m0=(1,0,0),normalise=True):
         
