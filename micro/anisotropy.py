@@ -1,9 +1,10 @@
 import clib 
 import numpy as np
 from pc.constant import mu_0
+from energy import Energy
 import pccp.util.helper as helper
 
-class UniaxialAnisotropy(object):
+class UniaxialAnisotropy(Energy):
     """
         Ku is a number or a function
     """
@@ -14,31 +15,18 @@ class UniaxialAnisotropy(object):
     
     
     def setup(self, mesh, spin, Ms):
-        self.mesh=mesh
-        self.dx=mesh.dx*mesh.unit_length
-        self.dy=mesh.dy*mesh.unit_length
-        self.dz=mesh.dz*mesh.unit_length
-        self.nx=mesh.nx
-        self.ny=mesh.ny
-        self.nz=mesh.nz
-        self.spin=spin
+        super(UniaxialAnisotropy, self).setup(mesh, spin, Ms)
+
+        self.Ms_inv_long = np.zeros(3*mesh.nxyz)
         
-        self.nxyz = mesh.nxyz
-        
-        self.field=np.zeros(3*mesh.nxyz, dtype=np.float)
-        self.energy=np.zeros(3*mesh.nxyz, dtype=np.float)
-        self.total_energy = 0
-        self.Ms = Ms
-        self.Ms_inv = np.zeros(3*mesh.nxyz)
-        
-        self.Ms_inv.shape = (3,-1)
+        self.Ms_inv_long.shape = (3,-1)
         for i in range(mesh.nxyz):
             if self.Ms[i] == 0.0:
-                self.Ms_inv[:,i] = 0
+                self.Ms_inv_long[:,i] = 0
             else:
-                self.Ms_inv[:,i] = 1.0/(mu_0*self.Ms[i])
+                self.Ms_inv_long[:,i] = 1.0/(mu_0*self.Ms[i])
     
-        self.Ms_inv.shape = (-1,)
+        self.Ms_inv_long.shape = (-1,)
         
         self.Ku = np.zeros(3*self.nxyz, dtype=np.float)
         Ku_scalar = helper.init_scalar(self._Ku, self.mesh)
@@ -54,7 +42,7 @@ class UniaxialAnisotropy(object):
                                 self.Ku,
                                 self.nxyz)
                                 
-        return self.field*self.Ms_inv
+        return self.field*self.Ms_inv_long
     
     def compute_energy(self):
         self.energy=clib.compute_anisotropy_energy(self.spin,

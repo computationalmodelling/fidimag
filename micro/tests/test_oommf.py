@@ -2,7 +2,7 @@ import numpy as np
 
 from micro import FDMesh
 from micro import UniformExchange
-from micro import LLG as Sim
+from micro import Sim
 from micro import Demag
 
 

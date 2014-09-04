@@ -6,7 +6,7 @@ class Demag(object):
     def __init__(self, name='demag'):
         self.name = name
         
-    def setup(self, mesh, spin, mu_s_inv=1, pbc=None):
+    def setup(self, mesh, spin, mu_s):
         self.mesh = mesh
         self.dx = mesh.dx
         self.dy = mesh.dy
@@ -18,29 +18,25 @@ class Demag(object):
         self.n = mesh.nxyz
         self.field = np.zeros(3 * self.n, dtype=np.float)
         unit_length = mesh.unit_length
-        self.mu_s = np.zeros(mesh.nxyz,dtype=np.float)
+        self.mu_s_scale = np.zeros(mesh.nxyz,dtype=np.float)
         
         #note that the 1e-7 comes from \frac{\mu_0}{4\pi}
         self.scale = 1e-7 / unit_length**3
         
-        for i in range(self.n):
-            if mu_s_inv[i] == 0.0:
-                self.mu_s[i] = 0.0
-            else: 
-                self.mu_s[i] = 1.0/mu_s_inv[i]*self.scale
-        
+        #could be wrong, needs carefully tests!!!
+        self.mu_s_scale = mu_s*self.scale
         
         self.demag = clib.FFTDemag(self.dx,self.dy,self.dz,
                                  self.nx,self.ny,self.nz,
                                  False)
         
     def compute_field(self, t=0):
-        self.demag.compute_field(self.spin,self.mu_s,self.field)
+        self.demag.compute_field(self.spin,self.mu_s_scale,self.field)
         return self.field
     
     def compute_exact(self):
         field = np.zeros(3 * self.n)
-        self.demag.compute_exact(self.spin,self.mu_s,field)
+        self.demag.compute_exact(self.spin,self.mu_s_scale,field)
         return field
 
     def compute_energy(self):

@@ -25,8 +25,8 @@ def test_exch_1d():
     assert np.max(field[5:])==0
     
 def test_exch_1d_pbc():
-    mesh=FDMesh(nx=5,ny=1,nz=1)
-    sim=Sim(mesh,pbc='1d')
+    mesh=FDMesh(nx=5,ny=1,nz=1,pbc='x')
+    sim=Sim(mesh)
     exch=UniformExchange(1)
     sim.add(exch)
     
@@ -58,8 +58,8 @@ def test_exch_2d():
     assert np.max(field[21:])==0
     
 def test_exch_2d_pbc2d():
-    mesh=FDMesh(nx=3,ny=2,nz=1)
-    sim=Sim(mesh, pbc='2d')
+    mesh=FDMesh(nx=3,ny=2,nz=1, pbc='xy')
+    sim=Sim(mesh)
     exch=UniformExchange(1)
     sim.add(exch)
 

@@ -3,9 +3,9 @@ import os
 import clib
 import cvode
 import numpy as np
-from pc.fileio import DataSaver, DataReader
-from pc.save_vtk import SaveVTK
-from pc.constant import Constant
+from fileio import DataSaver
+from save_vtk import SaveVTK
+from constant import Constant
 
 import util.helper as helper
 
@@ -31,12 +31,15 @@ class LLG(object):
         self.nxyz_nonzero = mesh.nxyz
         self.unit_length = mesh.unit_length
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
-        self._Ms = np.zeros(self.nxyz,dtype=np.float)
+        self._mu_s = np.zeros(self.nxyz,dtype=np.float)
+        
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
         self.spin_last = np.ones(3*self.nxyz,dtype=np.float)
         self._pins = np.zeros(self.nxyz,dtype=np.int32)
         self.field = np.zeros(3*self.nxyz,dtype=np.float)
         self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
+        self._skx_number = np.zeros(self.nxyz,dtype=np.float)
+        
         self.interactions = []
         self.pin_fun = None
         
@@ -67,10 +70,10 @@ class LLG(object):
         
         self.set_tols()
 
-    def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
-        self.default_c = 1e11
+    def set_default_options(self, gamma=1, mu_s=1, alpha=0.1):
+        self.default_c = -1
         self._alpha[:] = alpha
-        self._Ms[:] = Ms
+        self._mu_s[:] = mu_s
         self.gamma = gamma
         self.do_procession = True
     
@@ -84,7 +87,7 @@ class LLG(object):
         #TODO: carefully checking and requires to call set_mu first
         self.spin.shape=(3,-1)
         for i in range(self.spin.shape[1]):
-            if self._Ms[i]==0:
+            if self._mu_s[i]==0:
                 self.spin[:,i] = 0
         self.spin.shape=(-1,)
 
@@ -97,8 +100,8 @@ class LLG(object):
     def set_pins(self,pin):
         self._pins[:]=helper.init_scalar(pin, self.mesh)
         
-        for i in range(len(self._Ms)):
-            if self._Ms[i] == 0.0:
+        for i in range(len(self._mu_s)):
+            if self._mu_s[i] == 0.0:
                 self._pins[i] = 1
 
     pins = property(get_pins, set_pins)
@@ -112,26 +115,26 @@ class LLG(object):
         
     alpha = property(get_alpha, set_alpha)
     
-    def get_Ms(self):
-        return self._Ms
+    def get_mu_s(self):
+        return self._mu_s
 
-    def set_Ms(self, value):
-        self._Ms[:] = helper.init_scalar(value, self.mesh)
+    def set_mu_s(self, value):
+        self._mu_s[:] = helper.init_scalar(value, self.mesh)
         nonzero = 0 
         for i in range(self.nxyz):
-            if self._Ms[i] > 0.0:
+            if self._mu_s[i] > 0.0:
                 nonzero += 1
-        
+                        
         self.nxyz_nonzero = nonzero
         
-        for i in range(len(self._Ms)):
-            if self._Ms[i] == 0.0:
+        for i in range(len(self._mu_s)):
+            if self._mu_s[i] == 0.0:
                 self._pins[i] = 1
         
-    Ms = property(get_Ms, set_Ms)
+    mu_s = property(get_mu_s, set_mu_s)
 
     def add(self,interaction, save_field=False):
-        interaction.setup(self.mesh,self.spin, Ms = self._Ms)
+        interaction.setup(self.mesh,self.spin, self._mu_s)
         
         #TODO: FIX
         for i in self.interactions:
@@ -309,8 +312,6 @@ class LLG(object):
         return max_dmdt
     
     def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
-        
-        ONE_DEGREE_PER_NS = 17453292.52
                  
         for i in range(0,max_steps+1):
             
@@ -332,9 +333,9 @@ class LLG(object):
             
             dmdt = self.compute_dmdt(increment_dt)
             
-            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g'%(self.step, self.t, dmdt/ONE_DEGREE_PER_NS, cvode_dt)
+            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g'%(self.step, self.t, dmdt, cvode_dt)
             
-            if dmdt<stopping_dmdt*ONE_DEGREE_PER_NS:
+            if dmdt<stopping_dmdt:
                 break
         
         if save_m_steps is not None:

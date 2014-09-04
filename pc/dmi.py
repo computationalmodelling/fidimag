@@ -1,8 +1,7 @@
-import clib 
-import numpy as np
-from constant import mu_0
+import clib
+from energy import Energy
 
-class DMI(object):
+class DMI(Energy):
     """
     Hamiltonian = D*[S_i x S_j]
         ==> H = D x S_j
@@ -16,34 +15,6 @@ class DMI(object):
         self.Dy = D
         self.Dz = D
         
-    def setup(self,mesh,spin,mu_s_inv,pbc=None):
-        self.mesh=mesh
-        self.spin=spin
-        #self.mu_s_inv = mu_s_inv
-        self.mu_s_inv = mu_s_inv.copy()
-        
-        self.nx=mesh.nx
-        self.ny=mesh.ny
-        self.nz=mesh.nz
-        
-        self.dx=mesh.dx*mesh.unit_length
-        self.dy=mesh.dy*mesh.unit_length
-        self.dz=mesh.dz*mesh.unit_length
-        
-        self.nxyz=mesh.nxyz
-        self.field=np.zeros(3*self.nxyz)
-        self.energy=np.zeros(3*self.nxyz)
-        self.total_energy=0
-    
-        self.xperiodic = 0
-        self.yperiodic = 0
-        
-        if pbc=='1d':
-            self.xperiodic = 1
-        elif pbc=='2d':
-            self.xperiodic = 1
-            self.yperiodic = 1
-
     def compute_field(self, t=0):
         
         clib.compute_dmi_field(self.spin,
@@ -60,14 +31,6 @@ class DMI(object):
         
         return self.field*self.mu_s_inv
     
-    def compute_energy(self):
-        
-        #since we are not always calling this function, so it's okay to call compute_field again
-        self.compute_field()
-        
-        self.total_energy = np.sum(self.energy)/2.0
-        
-        return self.total_energy
     
     def compute_energy_direct(self):
         """

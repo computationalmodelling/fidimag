@@ -1,8 +1,7 @@
-import clib 
-import numpy as np
-from constant import mu_0
+import clib
+from energy import Energy
 
-class UniformExchange(object):
+class UniformExchange(Energy):
     """
     The Hamiltonian is defined as
     
@@ -24,31 +23,6 @@ class UniformExchange(object):
         self.Jy = self.J
         self.Jz = self.J
         
-    def setup(self,mesh,spin,mu_s_inv,pbc=None):
-        self.mesh=mesh
-        self.dx=mesh.dx*mesh.unit_length
-        self.dy=mesh.dy*mesh.unit_length
-        self.dz=mesh.dz*mesh.unit_length
-        self.nx=mesh.nx
-        self.ny=mesh.ny
-        self.nz=mesh.nz
-        self.spin=spin
-        n=self.nx*self.ny*self.nz
-        self.field=np.zeros(3*n)
-        self.energy=np.zeros(3*n)
-        self.total_energy=0
-        self.pbc = pbc
-        self.mu_s_inv = mu_s_inv.copy()
-    
-        self.xperiodic = 0
-        self.yperiodic = 0
-        
-        if pbc=='1d':
-            self.xperiodic = 1
-        elif pbc=='2d':
-            self.xperiodic = 1
-            self.yperiodic = 1
-
     def compute_field(self, t=0):
 
         clib.compute_exchange_field(self.spin,
@@ -62,20 +36,9 @@ class UniformExchange(object):
                                       self.nz,
                                       self.xperiodic,
                                       self.yperiodic)
-        
-        self.total_energy = np.sum(self.energy)/2.0
-        
+            
         return self.field*self.mu_s_inv
-        
-    def compute_energy(self):
-        
-        #since we are not always calling this function, so it's okay to call compute_field again
-        self.compute_field()
-        
-        self.total_energy = np.sum(self.energy)/2.0
-        
-        return self.total_energy
-    
+            
     def compute_energy_directly(self):
         
         energy=clib.compute_exchange_energy(self.spin,

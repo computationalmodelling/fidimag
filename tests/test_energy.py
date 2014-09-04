@@ -35,7 +35,7 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     mat = UnitMaterial()
     
     sim = Sim(mesh,name='test_energy')
-    sim.set_options(rtol=1e-10,atol=1e-12)
+    sim.set_tols(rtol=1e-10,atol=1e-12)
     
     sim.alpha = mat.alpha
     sim.gamma = mat.gamma
@@ -45,7 +45,7 @@ def relax_system(mesh,Dx=0.005,Dp=0.01):
     exch=UniformExchange(mat.J)
     sim.add(exch)
 
-    anis=Anisotropy([Dx,0,0], name='Dx')
+    anis=Anisotropy(Dx, axis=[1,0,0], name='Dx')
     sim.add(anis)
     
     anis2=Anisotropy([0,0,-Dp], name='Dp')

@@ -34,7 +34,7 @@ def test_sim_pin():
     sim.gamma = 1.0
     sim.pins = pin_fun
     
-    anis = Anisotropy([0,0,1.0], name='Dx')
+    anis = Anisotropy(Ku=1.0, axis=[0,0,1], name='Dx')
     sim.add(anis)
     
     sim.run_until(1.0)
@@ -62,7 +62,7 @@ def test_sim_init_m_fun():
     assert(sim.spin_at(1,2,3)[2]==3)
 
 
-def test_sim_T_fun():
+def skip_test_sim_T_fun():
     mesh=FDMesh(nx=3,ny=4,nz=5)
     sim = Sim(mesh)
     sim.set_T(init_T)
@@ -149,7 +149,7 @@ def test_sim_single_spin_vode(do_plot=False):
    
     assert np.max(np.abs(mz - a_mz)) < 5e-7
     
-def test_sim_single_spin_sllg(do_plot=False):
+def skip_test_sim_single_spin_sllg(do_plot=False):
 
     mesh=FDMesh(nx=1,ny=1,nz=1)
 
@@ -261,7 +261,7 @@ if __name__=='__main__':
     #test_sim_init_m()
     #test_sim_init_m_fun()
     #test_sim_T_fun()
-    #test_sim_single_spin_vode(do_plot=True)
-    test_sim_single_spin_sllg(do_plot=True)
+    test_sim_single_spin_vode(do_plot=True)
+    #test_sim_single_spin_sllg(do_plot=True)
     #test_sim_single_spin_llg_stt(do_plot=True)
     #test_sim_single_spin(do_plot=True)

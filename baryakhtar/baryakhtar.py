@@ -1,8 +1,6 @@
-import cvode
-
 import numpy as np
 import baryakhtar_clib as clib 
-from micro import LLG
+from micro.llg import LLG
 from relax import Relaxation
 from relax import Laplace
 

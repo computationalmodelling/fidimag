@@ -1,6 +1,5 @@
 import numpy as np
-
-import pccp.util.helper as helper
+import util.helper as helper
 
 class Zeeman(object):
     """
@@ -10,22 +9,22 @@ class Zeeman(object):
         self.H0 = H0
         self.name = name
         
-    def setup(self,mesh,spin,mu_s_inv, pbc=None):
+    def setup(self,mesh,spin, mu_s):
         self.mesh=mesh
         self.spin=spin
         self.nxyz = mesh.nxyz
         
-        self.mu_s = np.zeros(3*mesh.nxyz)
+        self.mu_s = mu_s
+        self.mu_s_long = np.zeros(3*mesh.nxyz)
         
-        for i in range(3*self.nxyz):
-            if mu_s_inv[i] == 0.0:
-                self.mu_s[i] = 0
-            else: 
-                self.mu_s[i] = 1.0/mu_s_inv[i]
+        self.mu_s_long.shape = (3,-1)
+        for i in range(mesh.nxyz):
+            self.mu_s_long[:,i] = mu_s[i]
         
+        self.mu_s_long.shape = (-1,)
+                
         self.field=np.zeros(3*self.nxyz)
         self.field[:]=helper.init_vector(self.H0, self.mesh)
-        #print self.field
         
 
     def compute_field(self, t=0):     
@@ -39,14 +38,15 @@ class Zeeman(object):
         return np.array([hx,hy,hz])
 
     def compute_energy(self):
-        sf = self.field*self.spin*self.mu_s
+        
+        sf = self.field*self.spin*self.mu_s_long
         
         energy = -np.sum(sf)
         
         return energy
     
 
-class TimeZeeman(object):
+class TimeZeeman(Zeeman):
     """
     The time dependent external field, also can vary with space
     """
@@ -55,35 +55,10 @@ class TimeZeeman(object):
         self.time_fun = time_fun
         self.name = name
         
-    def setup(self,mesh,spin,mu_s_inv, pbc=None):
-        self.mesh=mesh
-        self.spin=spin
-        self.nxyz = mesh.nxyz
-        
-        self.mu_s = np.zeros(3*mesh.nxyz)
-        
-        for i in range(3*self.nxyz):
-            if mu_s_inv[i] == 0.0:
-                self.mu_s[i] = 0
-            else: 
-                self.mu_s[i] = 1.0/mu_s_inv[i]
-        
-        self.field=np.zeros(3*self.nxyz)
-        self.H_init=np.zeros(3*self.nxyz)
-        self.H_init[:]=helper.init_vector(self.H0, self.mesh)
+    def setup(self,mesh,spin, mu_s):
+        super(TimeZeeman, self).setup(mesh, spin, mu_s)
+        self.H_init = self.field.copy()
     
     def compute_field(self, t=0):
         self.field[:] = self.H_init[:]*self.time_fun(t)
         return self.field
-    
-    #Todo: update it later
-    def average_field(self):
-        hx = self.field[0]
-        hy = self.field[self.nxyz]
-        hz = self.field[2*self.nxyz]
-        return np.array([hx,hy,hz])
-
-    def compute_energy(self):
-        sf = self.field*self.spin*self.mu_s
-        energy = -np.sum(sf)
-        return energy

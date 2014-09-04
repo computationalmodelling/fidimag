@@ -1,9 +1,8 @@
-import numpy as np
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Zeeman
+from pc import Sim
+from pc import FDMesh
+from pc import DMI
+from pc import UniformExchange
+from pc import Zeeman
 
 
 def init_m(pos):
@@ -23,17 +22,17 @@ def init_m(pos):
 
 def test_skx_num():
     
-    mesh = FDMesh(nx=120,ny=120,nz=1)
+    mesh = FDMesh(nx=120,ny=120,nz=1, pbc='xy')
     
-    sim=Sim(mesh,name='skx_num',pbc='2d')
-    #sim.set_options(rtol=1e-8,atol=1e-10)
+    sim=Sim(mesh,name='skx_num')
+    sim.set_tols(rtol=1e-6,atol=1e-6)
     sim.alpha = 1.0
     sim.gamma = 1.0
     sim.mu_s = 1.0
     
     sim.set_m(init_m)
-    sim.do_procession = False
     
+    sim.do_procession = False
 
     J = 1.0
     exch = UniformExchange(J)

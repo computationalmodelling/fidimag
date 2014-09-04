@@ -1,28 +1,31 @@
 import clib 
 import numpy as np
-import pccp.util.helper as helper
+from energy import Energy
+import util.helper as helper
 
-class Anisotropy(object):
+class Anisotropy(Energy):
     """
     Hamiltonian = -Ku_x*S_x^2 - Ku_y*S_y^2 -Ku_z*S_z^2 
     ==>H=2D*S_x
     """
-    def __init__(self,Ku,name='anis'):
+    def __init__(self, Ku, axis=(1,0,0), name='anis', direction=None):
         self._Ku = Ku
-        self.name=name
-    
-    
-    def setup(self,mesh,spin,mu_s_inv=1.0, pbc=None):
-        self.mesh=mesh
-        self.spin=spin
-            
-        self.nxyz=mesh.nxyz
-        self.field=np.zeros(3*self.nxyz)
-        self.energy=0
-        self.mu_s_inv = mu_s_inv
+        self.name = name
+        self.axis = axis
         
-        self.Ku = np.zeros(3*self.nxyz)
-        self.Ku[:] = helper.init_vector(self._Ku, self.mesh)
+        if direction is not None:
+            self.axis = direction
+    
+    def setup(self,mesh,spin,mu_s):
+        super(Anisotropy, self).setup(mesh, spin,mu_s)
+
+        self.Ku = np.zeros(3*self.nxyz, dtype=np.float)
+        Ku_scalar = helper.init_scalar(self._Ku, self.mesh)
+        self.Ku.shape = (3,-1)
+        self.Ku[0,:] = Ku_scalar[:]*self.axis[0]
+        self.Ku[1,:] = Ku_scalar[:]*self.axis[1]
+        self.Ku[2,:] = Ku_scalar[:]*self.axis[2]
+        self.Ku.shape = (-1,)
 
     def compute_field(self, t=0):
         clib.compute_anisotropy(self.spin,
