@@ -57,6 +57,11 @@ class LLG(object):
             'get': lambda sim : sim.compute_spin_error(),
             'header': 'm_error'}
         
+        self.saver.entities['skx_num'] = {
+            'unit': '<>',
+            'get': lambda sim : sim.skyrmion_number(),
+            'header': 'skx_num'}
+        
         self.saver.update_entity_order()
 
         self.xperiodic = mesh.xperiodic
