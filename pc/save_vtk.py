@@ -27,7 +27,7 @@ class SaveVTK():
         self.pos = []
         for i in range(len(ids)):
             self.pos.append(self.mesh.pos[self.ids[i]])
-                    
+    
     def save_vtk(self, m, step=0):
         
         if not os.path.exists(self.name):
@@ -42,4 +42,20 @@ class SaveVTK():
         vtk = pyvtk.VtkData(pos,data,'spins')
                       
         vtk.tofile("%s/%s.%06d"%(self.name,self.vtkname,step),'binary')
+
+    def save_vtk_scalar(self, skx_num, step=0, vtkname='skx'):
         
+        folder_name = self.name + '_' + vtkname
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
+    
+        pos=pyvtk.StructuredGrid([self.nx,self.ny,self.nz],self.pos)
+    
+        data=pyvtk.PointData(pyvtk.Scalars(skx_num[self.ids],'skx_num', lookup_table='default'))
+    
+        vtk = pyvtk.VtkData(pos,data,'skx_num')
+    
+        vtk.tofile("%s/%s.%06d"%(folder_name,vtkname,step),'binary')
+
+
+
