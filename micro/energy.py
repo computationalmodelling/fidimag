@@ -18,7 +18,7 @@ class Energy(object):
         self.nxyz = mesh.nxyz
         
         self.field=np.zeros(3*mesh.nxyz)
-        self.energy=np.zeros(3*mesh.nxyz)
+        self.energy=np.zeros(mesh.nxyz)
         self.total_energy = 0
         self.pbc = mesh.pbc
         self.Ms = Ms

@@ -17,10 +17,13 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 mif_demag = """# MIF 2.1
 
-Specify Oxs_BoxAtlas:atlas {
-       xrange {0 %(length_x)s}
-       yrange {0 %(length_y)s}
-       zrange {0 %(length_z)s}
+Specify Oxs_MultiAtlas:atlas {
+    atlas { Oxs_BoxAtlas:world {
+        xrange {0 %(length_x)s}
+        yrange {0 %(length_y)s}
+        zrange {0 %(length_z)s}
+        name world
+    } }
 }
 
 Specify Oxs_RectangularMesh:mesh [subst {
@@ -31,6 +34,14 @@ Specify Oxs_RectangularMesh:mesh [subst {
 Specify Oxs_UniformExchange {
   A  %(A)s
 }
+
+Specify Oxs_DMExchange6Ngbr [subst {
+    default_D %(D)s
+    atlas :atlas
+    D {
+        world world %(D)s
+    }
+}]
 
 Specify Oxs_Demag {}
 
@@ -66,7 +77,7 @@ Schedule DataTable archive Stage 1
 Schedule Oxs_%(field)s::Field archive Stage 1
 """
 
-def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, field='Demag'):
+def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, field='Demag'):
 
     conf_path = os.path.join(MODULE_DIR, field)
     if not os.path.exists(conf_path):
@@ -86,6 +97,7 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, field='Demag'):
         'base_name': field.lower(),
         'Ms': "%0.16g" % Ms,
         'A': "%0.16g" % A,
+        'D': "%0.16g" % D,
         'init_m0': init_m0,
         'field': field
     }
@@ -172,7 +184,23 @@ def compute_exch_field(mesh, init_m0, Ms=8e5, A=1.3e-11, field='UniformExchange'
     os.system(cmd)
     
     return m
+
+def compute_dmi_field(mesh, init_m0, Ms=8e5, D=4e-3, field='DMExchange6Ngbr'):
     
+    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, D=D, field=field)
+    run_oommf(field)
+    
+    m = get_field(mesh,field=field)
+    
+    new_path=os.path.join(MODULE_DIR, field)
+    
+    command = ('rm',
+               '-rf',
+               new_path)
+    cmd = ' '.join(command)
+    os.system(cmd)
+               
+    return m
 
 if __name__=="__main__":
     

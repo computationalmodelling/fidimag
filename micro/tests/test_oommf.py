@@ -4,10 +4,12 @@ from micro import FDMesh
 from micro import UniformExchange
 from micro import Sim
 from micro import Demag
+from micro import DMI
 
 
 from util.oommf import compute_demag_field
 from util.oommf import compute_exch_field
+from util.oommf import compute_dmi_field
 
 import clib
 
@@ -66,6 +68,38 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
     """
     field_oommf = compute_exch_field(mesh, Ms=Ms, init_m0=init_m0, A=A)
+    
+    mx0,mx1,mx2 = compare_fields(field_oommf, field)
+    assert max([mx0,mx1,mx2])< 1e-12
+
+
+def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
+    
+    mesh = FDMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
+    
+    sim = Sim(mesh)
+    sim.Ms = Ms
+    
+    dmi = DMI(D=D, type='interfacial')
+    sim.add(dmi)
+    
+    def init_m(pos):
+        
+        x,y,z = pos
+        
+        return (np.sin(x)+y+2.3*z,np.cos(x)+y+1.3*z,0)
+    
+    sim.set_m(init_m)
+    
+    field = dmi.compute_field()
+    
+    init_m0="""
+        return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
+        """
+    field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=D)
+    
+    print field_oommf
+    print field
     
     mx0,mx1,mx2 = compare_fields(field_oommf, field)
     assert max([mx0,mx1,mx2])< 1e-12
@@ -139,8 +173,6 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
     demag_field = demag.compute_field()
     exch_field = exch.compute_field()
     
-
-    
     #exact = demag.compute_exact()
     
     init_m0="""
@@ -163,7 +195,7 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
     #print mx0,mx1,mx2
     
     
-def test_energy(Ms=8e5, A=1.3e-11):
+def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
     
     mesh = FDMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     sim = Sim(mesh)
@@ -183,9 +215,9 @@ def test_energy(Ms=8e5, A=1.3e-11):
         return (np.sin(x)+y+2.3*z,np.cos(x)+y+1.3*z,0)
     
     sim.set_m(init_m)
+    
     demag_energy = demag.compute_energy()
     exch_energy = exch.compute_energy()
-    
     
     #init_m0="""
     #return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
@@ -195,12 +227,48 @@ def test_energy(Ms=8e5, A=1.3e-11):
     
     exch_energy_oommf =  1.9885853028738599e-19
     demag_energy_oommf =  5.5389695779175673e-19
+    dmi_energy_oommf = 2.6657360769014251e-20
     
     print demag_energy, exch_energy
     
     assert abs(exch_energy - exch_energy_oommf)/exch_energy_oommf<1e-15
     assert abs(demag_energy - demag_energy_oommf)/demag_energy_oommf <1e-10
+
+def test_energy_dmi(Ms=8e5, D=1.32e-3):
     
+    mesh = FDMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    sim = Sim(mesh)
+    
+    sim.Ms = Ms
+    
+    dmi = DMI(D=D, type='interfacial')
+    #dmi = DMI(D=D, type='bulk')
+    sim.add(dmi)
+    
+    def init_m(pos):
+        
+        x,y,z = pos
+        
+        return (np.sin(x)+y+2.3*z,np.cos(x)+y+1.3*z,1)
+    
+    sim.set_m(init_m)
+    
+    dmi_energy = dmi.compute_energy()
+    
+    
+    #init_m0="""
+    #return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 1]
+    #"""
+    
+    #field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=D)
+    
+    dmi_energy_oommf = 4.5665527749090378e-20
+    
+    print 'dmi energy',dmi_energy
+    
+    assert abs(dmi_energy - dmi_energy_oommf)/dmi_energy_oommf<1e-15
+
+
 if __name__=='__main__':
 
     #test_demag_field_oommf()
@@ -209,6 +277,10 @@ if __name__=='__main__':
     
     #test_demag_field_oommf_large()
     
-    test_energy()
+    #test_energy()
+
+    test_energy_dmi()
+
+    #test_dmi_field_oommf()
     
     
