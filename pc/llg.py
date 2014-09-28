@@ -297,7 +297,7 @@ class LLG(object):
         name = '%s_skx_npys/m_%g.npy'%(self.name,self.step)
         np.save(name,self._skx_number)
         if vtk is True:
-            self.vtk.save_vtk_scalar(self._skx_number)
+            self.vtk.save_vtk_scalar(self._skx_number, self.step)
         
 
     def stat(self):
