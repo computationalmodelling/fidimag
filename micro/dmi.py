@@ -49,14 +49,4 @@ class DMI(Energy):
         
         return self.field
     
-    def compute_energy(self):
-        
-        #since we are not always calling this function, so it's okay to call compute_field again
-        self.compute_field()
-        print self.energy, self.field, np.max(self.energy)
-        
-        self.total_energy = np.sum(self.energy)
-        
-        return self.total_energy*self.mesh.cellsize
-    
 
