@@ -4,9 +4,8 @@ import numpy as np
 
 
 class SaveVTK():
-    def __init__(self,mesh,m,name='unnamed',vtkname='m'):
+    def __init__(self,mesh,name='unnamed'):
         self.mesh=mesh
-        self.m=m
         self.nx=mesh.nx
         self.ny=mesh.ny
         self.nz=mesh.nz
@@ -14,7 +13,6 @@ class SaveVTK():
         self.dy=mesh.dy
         self.dz=mesh.dz
         self.name = '%s_vtks'%name
-        self.vtkname = vtkname
         xyz=np.array(mesh.pos)
         self.x=np.array(xyz[:,0],dtype='float32')
         self.y=np.array(xyz[:,1],dtype='float32')
@@ -28,7 +26,7 @@ class SaveVTK():
         for i in range(len(ids)):
             self.pos.append(self.mesh.pos[self.ids[i]])
     
-    def save_vtk(self, m, step=0):
+    def save_vtk(self, m, step=0, vtkname='m'):
         
         if not os.path.exists(self.name):
             os.makedirs(self.name)
@@ -41,7 +39,7 @@ class SaveVTK():
         
         vtk = pyvtk.VtkData(pos,data,'spins')
                       
-        vtk.tofile("%s/%s.%06d"%(self.name,self.vtkname,step),'binary')
+        vtk.tofile("%s/%s.%06d"%(self.name,vtkname,step),'binary')
 
     def save_vtk_scalar(self, skx_num, step=0, vtkname='skx'):
         

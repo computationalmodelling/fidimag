@@ -59,7 +59,7 @@ class LLG(object):
         self.xperiodic = mesh.xperiodic
         self.yperiodic = mesh.yperiodic
 
-        self.vtk=SaveVTK(self.mesh,self.spin,name=name)
+        self.vtk=SaveVTK(self.mesh,name=name)
         
         self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs)
         
