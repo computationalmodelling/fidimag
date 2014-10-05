@@ -56,9 +56,10 @@ class Laplace(object):
         self.field = np.zeros(3*mesh.nxyz)
     
     
-    def compute_laplace_field(self, h):
+    def compute_laplace_field(self, h, Ms):
         
-        clib.compute_laplace_field(h, self.field,
+        clib.compute_laplace_field(h, self.field, 
+                                   Ms,
                                    self.dx,
                                    self.dy,
                                    self.dz,

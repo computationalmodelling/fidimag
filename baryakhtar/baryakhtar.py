@@ -23,7 +23,7 @@ class LLBarFull(LLG):
         #self.spin[:]=y[:]
         
         self.compute_effective_field(t)
-        delta_h = self.lap.compute_laplace_field(self.field)
+        delta_h = self.lap.compute_laplace_field(self.field, self._Ms)
         
         clib.compute_llg_rhs_baryakhtar(ydot,
                                         self.spin,
@@ -62,7 +62,7 @@ class LLBar(LLG):
         
         self.compute_effective_field(t)
         clib.compute_perp_field(self.spin, self.field, self.field_perp, self.nxyz)
-        delta_h = self.lap.compute_laplace_field(self.field_perp)
+        delta_h = self.lap.compute_laplace_field(self.field_perp, self._Ms)
         
         clib.compute_llg_rhs_baryakhtar_reduced(ydot,
                                         self.spin,

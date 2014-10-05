@@ -9,7 +9,7 @@ inline double cross_x(double a0, double a1, double a2, double b0, double b1, dou
 inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
 inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
-void compute_laplace_m(double *m, double *field, double A, double dx, double dy, double dz,
+void compute_laplace_m(double *m, double *field, double *Ms, double dx, double dy, double dz,
 		int nx, int ny, int nz);
 
 void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi_inv, int n);

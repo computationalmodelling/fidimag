@@ -3,7 +3,7 @@ cimport numpy as np
 np.import_array()
 
 cdef extern from "baryakhtar_clib.h":
-    void compute_laplace_m(double *m, double *field, double A, double dx, double dy, double dz,
+    void compute_laplace_m(double *m, double *field, double *Ms, double dx, double dy, double dz,
         int nx, int ny, int nz)
     
     void compute_relaxation_field_c(double *m, double *field, double *Ms, double chi_inv, int n)
@@ -20,10 +20,11 @@ cdef extern from "baryakhtar_clib.h":
 
 def compute_laplace_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
+                            np.ndarray[double, ndim=1, mode="c"] Ms,
                             dx, dy, dz,
                             nx, ny, nz):
 
-    compute_laplace_m(&spin[0], &field[0], 1.0, dx, dy, dz, nx, ny, nz)
+    compute_laplace_m(&spin[0], &field[0], &Ms[0], dx, dy, dz, nx, ny, nz)
 
 def compute_relaxation_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
