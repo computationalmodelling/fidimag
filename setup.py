@@ -71,7 +71,7 @@ ext_modules = [
     Extension("clib",
               sources = sources,
               include_dirs = [numpy.get_include(),include_path],
-              libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
+              libraries=['m','fftw3_omp','fftw3','sundials_cvodes','sundials_nvecserial'],
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s'%lib_path,'-fopenmp'],
         ),

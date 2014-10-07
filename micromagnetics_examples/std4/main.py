@@ -3,12 +3,11 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange, Demag
-from pccp.pc import Zeeman, TimeZeeman
-from pccp.pc import DataReader
+from micro import Sim
+from micro import FDMesh
+from micro import UniformExchange, Demag
+from micro import Zeeman, TimeZeeman
+from pc import DataReader
 
 mu0 = 4*np.pi*1e-7
 
@@ -27,7 +26,7 @@ def relax_system(mesh):
     
     sim = Sim(mesh,name='relax')
     
-    sim.set_options(rtol=1e-10,atol=1e-14)
+    sim.set_tols(rtol=1e-10,atol=1e-14)
     sim.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.0e5
@@ -40,7 +39,7 @@ def relax_system(mesh):
     exch = UniformExchange(A=A)
     sim.add(exch)
     
-    demag = Demag(oommf=True)
+    demag = Demag()
     sim.add(demag)
     
     mT = 795.7747154594767
@@ -56,7 +55,7 @@ def apply_field1(mesh):
     
     sim = Sim(mesh,name='dyn')
     
-    sim.set_options(rtol=1e-10,atol=1e-14)
+    sim.set_tols(rtol=1e-10,atol=1e-14)
     sim.alpha = 0.02
     sim.gamma = 2.211e5
     sim.Ms = 8.0e5
@@ -67,7 +66,7 @@ def apply_field1(mesh):
     exch = UniformExchange(A=A)
     sim.add(exch)
     
-    demag = Demag(oommf=True)
+    demag = Demag()
     sim.add(demag)
     
     mT = 0.001/mu0

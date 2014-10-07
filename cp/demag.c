@@ -165,6 +165,9 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 
 	//plan->mu_s = mu_s;
 
+	fftw_init_threads();
+	fftw_plan_with_nthreads(omp_get_max_threads());
+
 	plan->dx = dx;
 	plan->dy = dy;
 	plan->dz = dz;
@@ -463,6 +466,8 @@ void finalize_plan(fft_demag_plan *plan) {
 	fftw_free(plan->hx);
 	fftw_free(plan->hy);
 	fftw_free(plan->hz);
+
+	fftw_cleanup_threads();
 
 	free(plan);
 }
