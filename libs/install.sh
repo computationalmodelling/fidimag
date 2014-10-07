@@ -33,7 +33,7 @@ fi;
 if [ ! -e ${FFTW} ]; then
   tar -xvzf ${FFTW}.tar.gz
   cd ${FFTW}
-  ./configure --enable-shared --prefix=${LIBS_DIR}
+  ./configure --enable-shared --prefix=${LIBS_DIR} --enable-openmp
   make
   make install
   cd ..
