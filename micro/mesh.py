@@ -1,4 +1,4 @@
-
+import numpy as np
 
 class FDMesh():
     def __init__(self,dx=1.0,dy=1.0,dz=1.0,nx=10,ny=1,nz=1,unit_length=1.0, x0=0, y0=0, z0=0, pbc=None):
@@ -52,6 +52,10 @@ class FDMesh():
     def index(self, i, j, k):
         idx = i*self.nyz + j*self.nz + k
         return idx
+    
+    def index_z(self, k=0):
+        ids = [self.index(i,j,k) for i in range(self.nx) for j in range(self.ny)]
+        return np.array(ids)
 
     #only used for tests
     def pos_at(self,i,j,k):
