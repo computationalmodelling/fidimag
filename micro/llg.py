@@ -32,6 +32,7 @@ class LLG(object):
         self.unit_length = mesh.unit_length
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
         self._Ms = np.zeros(self.nxyz,dtype=np.float)
+        self._Ms_inv = np.zeros(self.nxyz,dtype=np.float)
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
         self.spin_last = np.ones(3*self.nxyz,dtype=np.float)
         self._pins = np.zeros(self.nxyz,dtype=np.int32)
@@ -120,6 +121,7 @@ class LLG(object):
         nonzero = 0 
         for i in range(self.nxyz):
             if self._Ms[i] > 0.0:
+                self._Ms_inv = 1.0/self._Ms[i]
                 nonzero += 1
         
         self.nxyz_nonzero = nonzero
@@ -127,6 +129,8 @@ class LLG(object):
         for i in range(len(self._Ms)):
             if self._Ms[i] == 0.0:
                 self._pins[i] = 1
+                
+        self.Ms_const = np.max(self._Ms)
         
     Ms = property(get_Ms, set_Ms)
 

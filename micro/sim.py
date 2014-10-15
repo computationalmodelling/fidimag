@@ -1,8 +1,10 @@
 from llg import LLG
+from llg_stt import LLG_STT
 from baryakhtar import LLBar
 from baryakhtar import LLBarFull
 
-KNOWN_DRIVERS = {'llg': LLG, 
+KNOWN_DRIVERS = {'llg': LLG,
+                 'llg_stt': LLG_STT, 
                  'llbar': LLBar,
                  'llbar_full': LLBarFull}
 

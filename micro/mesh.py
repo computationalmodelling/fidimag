@@ -8,6 +8,9 @@ class FDMesh():
         self.dx=dx
         self.dy=dy
         self.dz=dz
+        self.dx_real = dx*unit_length
+        self.dy_real = dy*unit_length
+        self.dz_real = dz*unit_length
         self.nx=nx
         self.ny=ny
         self.nz=nz
