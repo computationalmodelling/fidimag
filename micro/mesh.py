@@ -38,6 +38,8 @@ class FDMesh():
         elif pbc=='xy':
             self.xperiodic = 1
             self.yperiodic = 1
+        else:
+            raise Exception("Only options 'x', 'y' or 'xy' are acceptable!")
         
     def compute_pos(self):
         self.pos=[]
