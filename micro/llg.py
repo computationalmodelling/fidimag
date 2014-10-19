@@ -38,6 +38,7 @@ class LLG(object):
         self._pins = np.zeros(self.nxyz,dtype=np.int32)
         self.field = np.zeros(3*self.nxyz,dtype=np.float)
         self.dm_dt = np.zeros(3*self.nxyz,dtype=np.float)
+        self._skx_number = np.zeros(self.nxyz,dtype=np.float)
         self.interactions = []
         self.pin_fun = None
         
