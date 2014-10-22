@@ -105,8 +105,6 @@ def deal_plot2():
         data.shape = (3,-1)
         all.append(data[2][500])
     
-    
-    
     plt.plot(all, '--', label='mz')
     
 

@@ -30,8 +30,10 @@ class FDMesh():
         
         self.xperiodic = 0
         self.yperiodic = 0
-    
-        if pbc == 'x':
+        
+        if pbc is None:
+            pass
+        elif pbc == 'x':
             self.xperiodic = 1
         elif pbc == 'y':
             self.yperiodic = 1
@@ -39,7 +41,7 @@ class FDMesh():
             self.xperiodic = 1
             self.yperiodic = 1
         else:
-            raise Exception("Only options 'x', 'y' or 'xy' are acceptable!")
+            raise Exception("Only options None, 'x', 'y' or 'xy' are acceptable!")
         
     def compute_pos(self):
         self.pos=[]

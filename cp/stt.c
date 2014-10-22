@@ -198,30 +198,24 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 		double *alpha, double beta, double u0, double gamma, int nxyz) {
 
-	int i, j, k;
+	#pragma omp parallel for
+	for (int i = 0; i < nxyz; i++) {
+		int j = i + nxyz;
+		int k = j + nxyz;
 
-	double mth0, mth1, mth2;
-	double coeff, coeff_stt, mh, mht, c, mm;
-	double hpi, hpj, hpk;
+		double coeff = -gamma / (1 + alpha[i] * alpha[i]);
 
-	#pragma omp parallel for private(i,j,k, mth0, mth1, mth2, coeff, coeff_stt, mh, mht, c, mm, hpi,hpj,hpk)
-	for (i = 0; i < nxyz; i++) {
-		j = i + nxyz;
-		k = j + nxyz;
+		double mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
+		double mh = m[i] * h[i] + m[j] * h[j] + m[k] * h[k];
 
-		coeff = -gamma / (1 + alpha[i] * alpha[i]);
+        //hp=mm.h-mh.m=-mx(mxh)
+        double hpi = mm*h[i] - mh*m[i];
+        double hpj = mm*h[j] - mh*m[j];
+        double hpk = mm*h[k] - mh*m[k];
 
-		mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		mh = m[i] * h[i] + m[j] * h[j] + m[k] * h[k];
-
-		//we use the same trick as llg does that drops the mm
-        hpi = mm*h[i] - mh*m[i];
-        hpj = mm*h[j] - mh*m[j];
-        hpk = mm*h[k] - mh*m[k];
-
-		mth0 = (m[j] * hpk - m[k] * hpj);
-		mth1 = (m[k] * hpi - m[i] * hpk);
-		mth2 = (m[i] * hpj - m[j] * hpi);
+        double mth0 = cross_x(m[i],m[j],m[k],hpi,hpj,hpk);
+        double mth1 = cross_y(m[i],m[j],m[k],hpi,hpj,hpk);
+        double mth2 = cross_z(m[i],m[j],m[k],hpi,hpj,hpk);
 
 		dm_dt[i] = coeff * (mth0 - hpi * alpha[i]);
 		dm_dt[j] = coeff * (mth1 - hpj * alpha[i]);
@@ -229,17 +223,17 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 
 		//the above part is standard LLG equation.
 
-		coeff_stt = u0 / (1 + alpha[i] * alpha[i]);
+		double coeff_stt = u0 / (1 + alpha[i] * alpha[i]);
 
-		mht = m[i] * h_stt[i] + m[j] * h_stt[j] + m[k] * h_stt[k];
+		double mht = m[i] * h_stt[i] + m[j] * h_stt[j] + m[k] * h_stt[k];
 
-		hpi = h_stt[i] - mht * m[i];
-		hpj = h_stt[j] - mht * m[j];
-		hpk = h_stt[k] - mht * m[k];
+		hpi = mm*h_stt[i] - mht * m[i];
+		hpj = mm*h_stt[j] - mht * m[j];
+		hpk = mm*h_stt[k] - mht * m[k];
 
-		mth0 = (m[j] * hpk - m[k] * hpj);
-		mth1 = (m[k] * hpi - m[i] * hpk);
-		mth2 = (m[i] * hpj - m[j] * hpi);
+        mth0 = cross_x(m[i],m[j],m[k],hpi,hpj,hpk);
+        mth1 = cross_y(m[i],m[j],m[k],hpi,hpj,hpk);
+        mth2 = cross_z(m[i],m[j],m[k],hpi,hpj,hpk);
 
 		dm_dt[i] += coeff_stt * ((1 + alpha[i] * beta) * hpi
 				- (beta - alpha[i]) * mth0);
@@ -248,7 +242,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 		dm_dt[k] += coeff_stt * ((1 + alpha[i] * beta) * hpk
 				- (beta - alpha[i]) * mth2);
 
-		c = 6 * sqrt(dm_dt[i] * dm_dt[i] + dm_dt[j] * dm_dt[j] + dm_dt[k]* dm_dt[k]);
+		double c = 6 * sqrt(dm_dt[i] * dm_dt[i] + dm_dt[j] * dm_dt[j] + dm_dt[k]* dm_dt[k]);
 		dm_dt[i] += c * (1 - mm) * m[i];
 		dm_dt[j] += c * (1 - mm) * m[j];
 		dm_dt[k] += c * (1 - mm) * m[k];
