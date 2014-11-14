@@ -18,8 +18,6 @@ class LLG(object):
 
         *Arguments*
 
-          mesh : a dolfin mesh
-
           name : the Simulation name (used for writing data files, for examples)
 
         """
@@ -32,6 +30,7 @@ class LLG(object):
         self.unit_length = mesh.unit_length
         self._alpha = np.zeros(self.nxyz,dtype=np.float)
         self._mu_s = np.zeros(self.nxyz,dtype=np.float)
+        self._mu_s_inv = np.zeros(self.nxyz,dtype=np.float)
         
         self.spin = np.ones(3*self.nxyz,dtype=np.float)
         self.spin_last = np.ones(3*self.nxyz,dtype=np.float)
@@ -131,6 +130,7 @@ class LLG(object):
         nonzero = 0 
         for i in range(self.nxyz):
             if self._mu_s[i] > 0.0:
+                self._mu_s_inv[i] = 1.0/self._mu_s[i]
                 nonzero += 1
                         
         self.nxyz_nonzero = nonzero

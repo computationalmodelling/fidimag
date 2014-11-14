@@ -8,7 +8,7 @@ inline double volume(double S[3], double Si[3], double Sj[3]) {
 	return tx + ty + tz;
 }
 
-// C = S_i \times (S_{i+1} \times S_{j+1}) +  S_i \times (S_{i-1} \times S_{j-1})
+// C = S_i \dot (S_{i+1} \times S_{j+1}) +  S_i \dot (S_{i-1} \times S_{j-1})
 double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz) {
 
 	int nyz = ny * nz;

@@ -16,16 +16,19 @@ class Material():
         self.K=3.36e-18
         self.unit_length=1e-10
         self.gamma=2.210173e5/self.mu_0
-        self.alpha=0.5
 
 def single_spin(alpha=0.01):
     
     mat = Material()
     
-    mesh=FDMesh(nx=1,ny=1,nz=1)
+    mesh = FDMesh(nx=1,ny=1,nz=1)
     
-    mat.alpha=alpha
-    sim = Sim(mesh,T=18000,mat=mat)
+    sim = Sim(mesh, driver='sllg')
+    sim.alpha = alpha
+    sim.gamma = mat.gamma
+    sim.mu_s = mat.mu_s
+    sim.T = 10000
+    
     sim.set_m((1, 1, 1))
     
     #sim.add(Zeeman(1,(0, 0, 1)))

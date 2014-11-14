@@ -16,8 +16,6 @@ class LLG_STT(LLG):
 
         *Arguments*
 
-          mesh : a dolfin mesh
-
           name : the Simulation name (used for writing data files, for examples)
 
         """

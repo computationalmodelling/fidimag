@@ -25,7 +25,7 @@ def init_m(pos):
     x,y = pos[0]-100, pos[1]-100
     
     if x**2+y**2<10**2:
-        return (0,0,1)
+        return (0,0,-1)
     elif x>0 and y>0:
         return (-1,1,0)
     elif x<0 and y>0:
@@ -105,9 +105,9 @@ if __name__=='__main__':
     
     mesh = FDMesh(nx=80, ny=80, nz=2, dx=2.5, dy=2.5, dz=5.0, unit_length=1e-9)
     
-    #relax_system(mesh)
+    relax_system(mesh)
     
-    excite_system(mesh)
+    #excite_system(mesh)
     
     #apply_field1(mesh)
     #deal_plot()

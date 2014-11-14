@@ -149,7 +149,7 @@ def test_sim_single_spin_vode(do_plot=False):
    
     assert np.max(np.abs(mz - a_mz)) < 5e-7
     
-def skip_test_sim_single_spin_sllg(do_plot=False):
+def test_sim_single_spin_sllg(do_plot=False):
 
     mesh=FDMesh(nx=1,ny=1,nz=1)
 
@@ -158,7 +158,7 @@ def skip_test_sim_single_spin_sllg(do_plot=False):
     alpha = 0.1
     gamma = 2.21e5
     
-    sim.set_options(dt=1e-15, gamma=gamma)
+    sim.set_options(dt=5e-15, gamma=gamma)
     
     sim.alpha = alpha
     sim.mu_s = 1.0
@@ -204,7 +204,7 @@ def skip_test_sim_single_spin_sllg(do_plot=False):
     print("Max Deviation = {0}".format(
             np.max(np.abs(mz - a_mz))))
    
-    assert np.max(np.abs(mz - a_mz)) < 5e-6
+    assert np.max(np.abs(mz - a_mz)) < 1e-8
 
 
 def disable_test_sim_single_spin_llg_stt(do_plot=False):
@@ -261,7 +261,7 @@ if __name__=='__main__':
     #test_sim_init_m()
     #test_sim_init_m_fun()
     #test_sim_T_fun()
-    test_sim_single_spin_vode(do_plot=True)
-    #test_sim_single_spin_sllg(do_plot=True)
+    #test_sim_single_spin_vode(do_plot=True)
+    test_sim_single_spin_sllg(do_plot=True)
     #test_sim_single_spin_llg_stt(do_plot=True)
     #test_sim_single_spin(do_plot=True)

@@ -20,7 +20,7 @@ static unsigned int MT[MT19937_N];
 static unsigned int mt19937_matrix[2] = { 0, MT19937_MATRIX_A };
 static int index_t = 0;
 
-inline unsigned int int_rand(void) {
+static inline unsigned int int_rand(void) {
 
 	unsigned int x;
 
@@ -56,7 +56,7 @@ inline double real_random(void) {
 	return ((double) int_rand()) / (double) MT19973_RAND_MAX;
 }
 
-inline double gauss_random(void) {
+static inline double gauss_random(void) {
 	static int flag = 1;
 	static double rnd;
 	if (flag) {
