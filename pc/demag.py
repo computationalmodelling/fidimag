@@ -5,6 +5,7 @@ import numpy as np
 class Demag(object):
     def __init__(self, name='demag'):
         self.name = name
+        self.jac = True
         
     def setup(self, mesh, spin, mu_s):
         self.mesh = mesh
@@ -30,8 +31,12 @@ class Demag(object):
                                  self.nx,self.ny,self.nz,
                                  False)
         
-    def compute_field(self, t=0):
-        self.demag.compute_field(self.spin,self.mu_s_scale,self.field)
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+        self.demag.compute_field(m,self.mu_s_scale,self.field)
         return self.field
     
     def compute_exact(self):

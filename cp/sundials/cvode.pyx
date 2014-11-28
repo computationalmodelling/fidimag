@@ -143,7 +143,7 @@ cdef class CvodeSolver(object):
         # Set options for the CVODE scaled, preconditioned GMRES linear solver, CVSPGMR
         flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
         if self.has_jtimes:
-            flag = CVSpilsSetGSType(self.cvode_mem, 1);
+            #flag = CVSpilsSetGSType(self.cvode_mem, 1);
             flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, <CVSpilsJacTimesVecFn>self.jvn_fun)
 
         

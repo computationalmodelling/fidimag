@@ -22,10 +22,16 @@ class UniformExchange(Energy):
         self.Jx = self.J
         self.Jy = self.J
         self.Jz = self.J
+        self.jac = True
         
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
+        
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
 
-        clib.compute_exchange_field(self.spin,
+        clib.compute_exchange_field(m,
                                       self.field,
                                       self.energy,
                                       self.Jx,

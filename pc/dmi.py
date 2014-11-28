@@ -14,20 +14,26 @@ class DMI(Energy):
         self.Dx = D
         self.Dy = D
         self.Dz = D
+        self.jac = True
         
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
         
-        clib.compute_dmi_field(self.spin,
-                                    self.field,
-                                    self.energy,
-                                    self.Dx,
-                                    self.Dy,
-                                    self.Dz,
-                                    self.nx,
-                                    self.ny,
-                                    self.nz,
-                                    self.xperiodic,
-                                    self.yperiodic)
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+            
+        clib.compute_dmi_field(m,
+                                self.field,
+                                self.energy,
+                                self.Dx,
+                                self.Dy,
+                                self.Dz,
+                                self.nx,
+                                self.ny,
+                                self.nz,
+                                self.xperiodic,
+                                self.yperiodic)
         
         return self.field*self.mu_s_inv
     

@@ -76,19 +76,21 @@ void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, d
         int j = i + nxyz;
         int k = j + nxyz;
 
+
         if (pins[i]>0){
-             jtn[i] = 0;
-             jtn[j] = 0;
-             jtn[k] = 0;
              continue;
         }
-        /*
+
         double coeff = -gamma/(1.0+alpha[i]*alpha[i]);
 
         if (do_procession){
-            jtn[i] = coeff*(cross_x(m[i],m[j],m[k],h[i],h[j],h[k])+cross_x(mp[i],mp[j],mp[k],hp[i],hp[j],hp[k]));
-            jtn[j] = coeff*(cross_y(m[i],m[j],m[k],h[i],h[j],h[k])+cross_y(mp[i],mp[j],mp[k],hp[i],hp[j],hp[k]));
-            jtn[k] = coeff*(cross_z(m[i],m[j],m[k],h[i],h[j],h[k])+cross_z(mp[i],mp[j],mp[k],hp[i],hp[j],hp[k]));
+            jtn[i] = coeff*(cross_x(mp[i],mp[j],mp[k],h[i],h[j],h[k])+cross_x(m[i],m[j],m[k],hp[i],hp[j],hp[k]));
+            jtn[j] = coeff*(cross_y(mp[i],mp[j],mp[k],h[i],h[j],h[k])+cross_y(m[i],m[j],m[k],hp[i],hp[j],hp[k]));
+            jtn[k] = coeff*(cross_z(mp[i],mp[j],mp[k],h[i],h[j],h[k])+cross_z(m[i],m[j],m[k],hp[i],hp[j],hp[k]));
+        }else{
+            jtn[i] = 0;
+            jtn[j] = 0;
+            jtn[k] = 0;
         }
 
         double mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
@@ -100,7 +102,7 @@ void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, d
         jtn[i] += alpha[i]*coeff*((mph+mhp)*m[i]+mh*mp[i]-2*mmp*h[i]-mm*hp[i]);
         jtn[j] += alpha[i]*coeff*((mph+mhp)*m[j]+mh*mp[j]-2*mmp*h[j]-mm*hp[j]);
         jtn[k] += alpha[i]*coeff*((mph+mhp)*m[k]+mh*mp[k]-2*mmp*h[k]-mm*hp[k]);
-        */
+
     }
     
 }

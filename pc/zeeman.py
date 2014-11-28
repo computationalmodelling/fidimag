@@ -8,6 +8,7 @@ class Zeeman(object):
     def __init__(self,H0,name='Zeeman'):
         self.H0 = H0
         self.name = name
+        self.jac = False
         
     def setup(self,mesh,spin, mu_s):
         self.mesh=mesh
@@ -54,6 +55,7 @@ class TimeZeeman(Zeeman):
         self.H0 = H0
         self.time_fun = time_fun
         self.name = name
+        self.jac = False
         
     def setup(self,mesh,spin, mu_s):
         super(TimeZeeman, self).setup(mesh, spin, mu_s)

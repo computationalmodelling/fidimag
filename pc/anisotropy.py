@@ -12,6 +12,7 @@ class Anisotropy(Energy):
         self._Ku = Ku
         self.name = name
         self.axis = axis
+        self.jac = True
         
         if direction is not None:
             self.axis = direction
@@ -27,8 +28,12 @@ class Anisotropy(Energy):
         self.Ku[2,:] = Ku_scalar[:]*self.axis[2]
         self.Ku.shape = (-1,)
 
-    def compute_field(self, t=0):
-        clib.compute_anisotropy(self.spin,
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+        clib.compute_anisotropy(m,
                                 self.field,
                                 self.Ku,
                                 self.nxyz)

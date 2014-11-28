@@ -13,7 +13,7 @@ const = Constant()
 
 class LLG(object):
     
-    def __init__(self, mesh, name='unnamed', jtimes=True):
+    def __init__(self, mesh, name='unnamed', use_jac=False):
         """Simulation object.
 
         *Arguments*
@@ -68,7 +68,7 @@ class LLG(object):
 
         self.vtk=SaveVTK(self.mesh,name=name)
         
-        if jtimes is not True:
+        if use_jac is not True:
             self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs)
         else:
             self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs, self.sundials_jtn)
@@ -213,6 +213,16 @@ class LLG(object):
 
         for obj in self.interactions:
             self.field += obj.compute_field(t)
+            
+    def compute_effective_field_jac(self, t, spin):
+        
+        #self.spin[:] = y[:]
+        
+        self.field[:]=0
+
+        for obj in self.interactions:
+            if obj.jac is True:
+                self.field += obj.compute_field(t, spin=spin)
     
     def sundials_rhs(self, t, y, ydot):
         
@@ -239,14 +249,12 @@ class LLG(object):
         return 0
 
     def sundials_jtn(self, mp, Jmp, t, m, fy):
-        self.spin[:] = mp[:]
-        Hp =  self.compute_effective_field(t)
-        print 'hereeeee'
-        print Jmp.shape, fy.shape, m.shape, mp.shape
-        
+        #we can not copy mp to self.spin since m and self.spin is one object.
+        #self.spin[:] = mp[:]
+        self.compute_effective_field_jac(t, mp)
         clib.compute_llg_jtimes(Jmp,
                                 m, fy,
-                                mp,Hp,
+                                mp,self.field,
                                 self.alpha,
                                 self._pins,
                                 self.gamma,
@@ -255,7 +263,6 @@ class LLG(object):
                                 self.default_c)
         
 
-        print 'hereeeee2'
         return 0
     
     def compute_average(self):
