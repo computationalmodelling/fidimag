@@ -13,7 +13,7 @@ const = Constant()
 
 class LLG(object):
     
-    def __init__(self, mesh, name='unnamed'):
+    def __init__(self, mesh, name='unnamed', jtimes=True):
         """Simulation object.
 
         *Arguments*
@@ -68,7 +68,10 @@ class LLG(object):
 
         self.vtk=SaveVTK(self.mesh,name=name)
         
-        self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs)
+        if jtimes is not True:
+            self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs)
+        else:
+            self.vode = cvode.CvodeSolver(self.spin,self.sundials_rhs, self.sundials_jtn)
         
         self.set_default_options()
         
@@ -233,6 +236,26 @@ class LLG(object):
                 
         #ydot[:] = self.dm_dt[:]
                 
+        return 0
+
+    def sundials_jtn(self, mp, Jmp, t, m, fy):
+        self.spin[:] = mp[:]
+        Hp =  self.compute_effective_field(t)
+        print 'hereeeee'
+        print Jmp.shape, fy.shape, m.shape, mp.shape
+        
+        clib.compute_llg_jtimes(Jmp,
+                                m, fy,
+                                mp,Hp,
+                                self.alpha,
+                                self._pins,
+                                self.gamma,
+                                self.nxyz,
+                                self.do_procession,
+                                self.default_c)
+        
+
+        print 'hereeeee2'
         return 0
     
     def compute_average(self):

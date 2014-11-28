@@ -25,6 +25,9 @@ double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 		int *pins, double gamma, int nxyz, int do_procession, double default_c);
 
+void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, double *alpha, int *pins,
+        double gamma, int nxyz, int do_procession, double default_c);
+
 void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
              double *chi, double gamma, int nxyz);
 
