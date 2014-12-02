@@ -103,6 +103,13 @@ void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, d
         jtn[j] += alpha[i]*coeff*((mph+mhp)*m[j]+mh*mp[j]-2*mmp*h[j]-mm*hp[j]);
         jtn[k] += alpha[i]*coeff*((mph+mhp)*m[k]+mh*mp[k]-2*mmp*h[k]-mm*hp[k]);
 
+        /*
+        if (default_c>0){
+        	jtn[i] += default_c *((1-mm)*mp[i]-2*mmp*m[i]);
+        	jtn[j] += default_c *((1-mm)*mp[j]-2*mmp*m[j]);
+        	jtn[k] += default_c *((1-mm)*mp[k]-2*mmp*m[k]);
+        }*/
+
     }
     
 }

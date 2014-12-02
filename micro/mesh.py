@@ -33,15 +33,15 @@ class FDMesh():
         
         if pbc is None:
             pass
-        elif pbc == 'x':
+        elif pbc == 'x' or pbc=='1d':
             self.xperiodic = 1
         elif pbc == 'y':
             self.yperiodic = 1
-        elif pbc=='xy':
+        elif pbc=='xy' or pbc=='2d':
             self.xperiodic = 1
             self.yperiodic = 1
         else:
-            raise Exception("Only options None, 'x', 'y' or 'xy' are acceptable!")
+            raise Exception("Only options None, 'x' ('1d'), 'y' or 'xy' ('2d') are acceptable!")
         
     def compute_pos(self):
         self.pos=[]

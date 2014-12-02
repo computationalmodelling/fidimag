@@ -176,7 +176,7 @@ cdef class CvodeSolver(object):
         
         CVodeGetNumSteps(self.cvode_mem, &self.nsteps);
         CVodeGetNumRhsEvals(self.cvode_mem, &self.nfevals);
-        #CVDlsGetNumJacEvals(self.cvode_mem, &self.njevals)
+        CVSpilsGetNumJtimesEvals(self.cvode_mem, &self.njevals)
         
         return self.__str__()
     

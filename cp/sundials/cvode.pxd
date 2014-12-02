@@ -118,6 +118,7 @@ cdef extern from "cvode/cvode.h":
     
     int CVDlsGetNumJacEvals(void *cvode_mem, long int *njevals)
     int CVDlsGetNumRhsEvals(void *cvode_mem, long int *nrevalsLS)
+    int CVSpilsGetNumJtimesEvals(void *cvode_mem, long int *njevals)
 	
 
 cdef extern from "cvode/cvode_spgmr.h":
