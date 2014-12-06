@@ -73,6 +73,53 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz) {
 
 }
 
+//compute the first derivative respect to x and for the whole mesh
+//assume 2d pbc is used 
+void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py){
+	int nyz = ny * nz;
+	int n1 = nx * nyz, n2 = 2 * n1;
+
+	for(int i=0;i<nx; i++){
+		for (int j = 0; j < ny; j++) {
+			int index = nyz * i + nz * j;
+
+
+			//x-1
+			int id1 = index - nyz;
+            if (i==0) {
+                id1 += n1;
+            }
+
+			//x+1
+			int id2 = index + nyz;
+            if (i == nx-1){
+            	id2 -= n1;
+            }
+
+			px[index] = (spin[id2]-spin[id1])/2.0;
+			px[index+n1] = (spin[id2 + n1]-spin[id1 + n1])/2.0;
+			px[index+n2] = (spin[id2 + n2]-spin[id1 + n2])/2.0;
+
+			//y-1
+			id1 = index - nz;
+            if (j==0) {
+                id1 += nyz;
+            }
+
+			//y+1
+			id2 = index + nz;
+            if (j == ny-1){
+                id2 -= nyz;
+            }
+
+           	py[index] = (spin[id2]-spin[id1])/2.0;
+			py[index+n1] = (spin[id2 + n1]-spin[id1 + n1])/2.0;
+			py[index+n2] = (spin[id2 + n2]-spin[id1 + n2])/2.0;
+		}
+	}
+
+}
+
 // compute the guiding centre, Dynamics of magnetic vortices,     N. Papanicolaou,
 // T.N. Tomaras 360, 425-462, (1991)
 void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res) {

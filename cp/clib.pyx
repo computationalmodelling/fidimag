@@ -10,6 +10,7 @@ cdef extern from "clib.h":
     
     double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz)
     void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
+    void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py)
 
     void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jx, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
@@ -85,6 +86,12 @@ def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
     
     return res[0], res[1]
 
+def compute_px_py(np.ndarray[double, ndim=1, mode="c"] spin,
+                  nx,ny,nz,
+                  np.ndarray[double, ndim=1, mode="c"] px,
+                  np.ndarray[double, ndim=1, mode="c"] py):
+
+    compute_px_py_c(&spin[0], nx, ny, nz, &px[0], &py[0])
 
 def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
