@@ -2,7 +2,7 @@
 
 SUNDIALS=sundials-2.5.0
 FFTW=fftw-3.3.3
-
+#Note: sometimes we need set variables to make it work, such as in ARCHER 'export CC=gcc' is necessary.
 
 LIBS_DIR=`pwd`
 

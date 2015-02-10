@@ -48,7 +48,6 @@ def test_dmi_1d_field():
     print energy
     assert energy==1.23
     
-    
 if __name__=='__main__':
     test_dmi_1d()
     test_dmi_1d_field()
