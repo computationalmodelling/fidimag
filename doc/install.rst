@@ -9,39 +9,39 @@ Run the install.sh by using ::
 
    bash install.sh
 
-in the pccp/libs folder.
+in the fidimag/libs folder.
 
-Install pccp
+Install fidimag
 ---------------------------------------
-In the pccp folder type ::
+In the fidimag folder type ::
 
    make
 
-to install the pccp.
+to install the fidimag.
 
-Add the pccp to python path
+Add the fidimag to python path
 ---------------------------------------
 Add the following to your .bashrc file::
    
-   export PYTHONPATH="path_of_pccp_folder:$PYTHONPATH"
-   export PYTHONPATH="path_of_pccp_parent_folder:$PYTHONPATH"
+   export PYTHONPATH="path_of_fidimag_folder:$PYTHONPATH"
+   export PYTHONPATH="path_of_fidimag_parent_folder:$PYTHONPATH"
 
-for example, suppose pccp is in the directory of ~/work, then::  
+for example, suppose fidimag is in the directory of ~/work, then::  
 
-   export PYTHONPATH="~/work/pccp:$PYTHONPATH"
+   export PYTHONPATH="~/work/fidimag:$PYTHONPATH"
    export PYTHONPATH="~/work:$PYTHONPATH"
 
 Add the library path to LD_LIBRARY_PATH
 ---------------------------------------
-In default, the libraries are installed in pccp/libs, so in order 
-to run pccp we need to include the libs path in LD_LIBRARY_PATH, so
+In default, the libraries are installed in fidimag/libs, so in order 
+to run fidimag we need to include the libs path in LD_LIBRARY_PATH, so
 pleaase add the following to your .bashrc file::
 
-   export LD_LIBRARY_PATH="path_of_pccp_folder/libs:$LD_LIBRARY_PATH"
+   export LD_LIBRARY_PATH="path_of_fidimag_folder/libs:$LD_LIBRARY_PATH"
 
 for instance::
 
-  export LD_LIBRARY_PATH="~/work/pccp/libs:$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="~/work/fidimag/libs:$LD_LIBRARY_PATH"
 
 
 Adding OOMMF path to the system
@@ -90,7 +90,7 @@ Can only be done with ssh keys.
 
 Quick test
 ===============
-Go to the pccp/tests folder and type "py.test", a similar result is expected ::
+Go to the fidimag/tests folder and type "py.test", a similar result is expected ::
 
    ============================= test session starts ==============================
    platform linux2 -- Python 2.7.5 -- pytest-2.4.2

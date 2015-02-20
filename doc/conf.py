@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'fidimag'
-copyright = u'2013, Weiwei Wang'
+copyright = u''
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -217,7 +217,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'fidimag', u'Fidimag Documentation',
-     [u'Weiwei Wang'], 1)
+     [u''], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -231,7 +231,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'fidimag', u'Fidimag Documentation',
-   u'Weiwei Wang', 'fidimag', 'One line description of project.',
+   u'', 'fidimag', 'One line description of project.',
    'Miscellaneous'),
 ]
 

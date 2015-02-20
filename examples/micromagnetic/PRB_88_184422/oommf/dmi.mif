@@ -1,0 +1,61 @@
+# MIF 2.1
+
+Specify Oxs_MultiAtlas:atlas {
+    atlas { Oxs_BoxAtlas:world {
+        xrange {0 100e-09}
+        yrange {0 1e-09}
+        zrange {0 1e-09}
+        name world
+    } }
+}
+
+Specify Oxs_RectangularMesh:mesh [subst {
+  cellsize {1e-9 1e-09 1e-09}
+  atlas :atlas
+}]
+
+Specify Oxs_UniformExchange {
+  A  16e-12
+}
+
+Specify Oxs_DMExchange6Ngbr [subst {
+    default_D 3.6e-3
+    atlas :atlas
+    D {
+        world world 3.6e-3
+    }
+}]
+
+Specify Oxs_UniaxialAnisotropy {
+  axis {0 0 1}
+  K1 510e3
+}
+
+Specify Oxs_RungeKuttaEvolve:evolve {
+  alpha 0.5
+}
+
+Specify Oxs_TimeDriver [subst {
+ basename dmi
+ evolver :evolve
+ stage_count 1
+ stopping_dm_dt 0.01
+ mesh :mesh
+ 
+ Ms 8.6e5
+ 
+ m0 { Oxs_ScriptVectorField {
+    atlas :atlas
+    script_args {rawpt} 
+    script init_m0
+    norm 1
+  } }
+}]
+
+proc init_m0 { x y z} {
+    return [list 0 0 1]
+}
+
+Destination archive mmArchive
+Schedule DataTable archive Stage 1
+Schedule Oxs_TimeDriver::Magnetization archive Stage 1
