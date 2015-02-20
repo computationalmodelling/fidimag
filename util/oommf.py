@@ -13,6 +13,11 @@ if os.environ.has_key('OOMMF_PATH'):
 else:
     OOMMF_PATH='/home/ww1g11/Softwares/oommf-1.2a5/'
 
+if os.environ.has_key('OOMMF_TKTCL_VERSION'):
+    OOMMF_TKTCL_VERSION=os.environ['OOMMF_TKTCL_VERSION']
+else:
+    OOMMF_TKTCL_VERSION=""
+
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 mif_demag = """# MIF 2.1
@@ -110,7 +115,7 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, field='Demag'):
 
 def run_oommf(field='Demag'):
 
-    command = ('tclsh',
+    command = ('tclsh{}'.format(OOMMF_TKTCL_VERSION),
                os.path.join(OOMMF_PATH, 'oommf.tcl'),
            'boxsi',
            '-threads',
