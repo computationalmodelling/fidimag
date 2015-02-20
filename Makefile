@@ -5,7 +5,6 @@
 PROJECT_DIR = $(abspath .)
 
 build:
-	exit 17 # Testing a build error or jenkins. Try another commit if you encounter this.
 	python setup.py build_ext --inplace
 
 create-dirs:
