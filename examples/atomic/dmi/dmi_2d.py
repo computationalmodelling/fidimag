@@ -1,26 +1,13 @@
 import numpy as np
-from pccp.pc import *
+from pc import Sim
+from pc import FDMesh
+from pc import DMI
+from pc import UniformExchange
 import time
 
-class Material(object):
-    def __init__(self):
-        self.a=5
-        self.b=5
-        self.c=5
-        #Ms = 8e5, mu_s = Ms * v
-        self.mu_s=1e-22
-        
-        #A =0.5e-11, J = 2a*A 
-        self.J=1e-20
-        self.Dx=0.003*self.J
-        self.Dp=-0.02*self.J
-
-        self.gamma=1.76e11
-        self.alpha=0.01
-        self.unit_length=1e-10
 
 def init_m(pos):
-    
+
     x,y,z=pos
     if x<50:
         return (0,0,1)
@@ -28,29 +15,19 @@ def init_m(pos):
         return (0,0,-1)
     else:
         return (0,1,0)
-    
-def pin_fun(t,mesh,spin):
-    n=mesh.nxyz
-    
-    spin[0]=0
-    spin[n]=0
-    spin[n+n]=1
-    
+        
 
 def relax_system(mesh):
     
-    mat = Material()
-    mesh.set_material(mat)
-    
     sim=Sim(mesh,name='dmi_2d')
+    sim.set_default_options(gamma=1.76e11,mu_s=1e-22)
     sim.alpha=0.1
     
-    #sim.pin_fun=pin_fun
-    
-    exch=UniformExchange(mat.J)
+    J = 1e-20
+    exch=UniformExchange(J)
     sim.add(exch)
 
-    dmi=DMI(0.1*mat.J,direction=(1,1,0))
+    dmi=DMI(0.1*J)
     sim.add(dmi)
     
     sim.set_m(init_m)
@@ -63,14 +40,11 @@ def relax_system(mesh):
         sim.save_vtk()
     
     return sim.spin
-
-
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=20,ny=20,nz=1)
+    mesh=FDMesh(nx=20,ny=20,nz=1,dx=0.5,dy=0.5,dz=0.5,unit_length=1e-10)
     
     m0=relax_system(mesh)
     print 'relax system done'
-    #spin_wave(mesh,m0)
     

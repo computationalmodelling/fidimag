@@ -1,9 +1,8 @@
 import numpy as np
-#from pccp.pc import *
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
+from pc import Sim
+from pc import FDMesh
+from pc import DMI
+from pc import UniformExchange
 
 
 def init_m(pos):
@@ -18,7 +17,7 @@ def init_m(pos):
 
 def relax_system(mesh):
         
-    sim=Sim(mesh,name='relax',pbc=None)
+    sim=Sim(mesh,name='relax')
     sim.alpha=0.1
     
     sim.set_m(init_m)
@@ -44,7 +43,7 @@ def relax_system(mesh):
                         
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=20,ny=1,nz=1)
+    mesh=FDMesh(nx=20,ny=1,nz=1,pbc=None)
     
     m0=relax_system(mesh)
     print 'relax system done'
