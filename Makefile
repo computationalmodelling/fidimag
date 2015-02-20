@@ -1,7 +1,12 @@
 # build cython files
+
+PROJECT_DIR = $(abspath .)
+
 build:
 	python setup.py build_ext --inplace
 
+create-dirs:
+	mkdir -p test-reports/junit
 
 iridis:
 	# we will write a new one later when we have time
@@ -15,9 +20,8 @@ iridis:
 clean:
 	rm *.so
 
-test: 
-	py.test -v 
-
+test: create-dirs
+	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/TEST_pytest.xml
 
 test-micro:
 	cd micro/tests && py.test -v
