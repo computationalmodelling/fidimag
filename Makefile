@@ -4,7 +4,7 @@
 
 PROJECT_DIR = $(abspath .)
 
-build:
+install:
 	python setup.py build_ext --inplace
 
 create-dirs:
