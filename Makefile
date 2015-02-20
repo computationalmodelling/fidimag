@@ -14,13 +14,16 @@ clean:
 	rm *.so
 
 test: create-dirs
-	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/TEST_pytest.xml
+	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-micro:
 	cd micro/tests && py.test -v
 
 test-basic:
 	cd tests && py.test -v
+
+test-ipynb: create-dirs
+	cd doc/ipynb && py.test -v --ipynb . --sanitize_file sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
 
 # Building documentation
 doc: doc-html doc-latexpdf doc-singlehtml
