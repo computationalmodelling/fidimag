@@ -22,6 +22,9 @@ test-micro:
 test-basic:
 	cd tests && py.test -v
 
+test-ipynb: create-dirs
+	cd doc/ipynb && py.test -v --ipynb . --junitxml=$(PROJECT_DIR)/test-reports/junit/TEST_pytest.xml
+
 # Building documentation
 doc: doc-html doc-latexpdf doc-singlehtml
 
