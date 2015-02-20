@@ -44,6 +44,15 @@ for instance::
   export LD_LIBRARY_PATH="~/work/pccp/libs:$LD_LIBRARY_PATH"
 
 
+Adding OOMMF path to the system
+-------------------------------
+
+For the tests that call OOMMF (in micro/tests), we need to tell the system where to
+find it. The way it is currently set up (in util/oommf.py), we need to
+find our ``oommf.tcl`` file, and add the path to it to ``.bashrc`` in this way::
+
+  export OOMMF_PATH=/opt/oommf/oommf-1.2a5bis
+
 
 
 Quick test
