@@ -27,4 +27,14 @@ test-micro:
 	cd micro/tests && py.test -v
 
 test-basic:
-	cd tests && py.test -v 
+	cd tests && py.test -v
+
+# Building documentation
+doc: doc-html doc-latexpdf doc-singlehtml
+
+doc-clean:
+	make -C doc clean
+
+doc-%:
+	@echo $*
+	make -C doc $*
