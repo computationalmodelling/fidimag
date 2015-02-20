@@ -3,16 +3,9 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Demag
-from pccp.pc import Anisotropy
-from pccp.pc import Constant
-from pccp.pc.save_vtk import SaveVTK
-
-from pccp.pc.batch_task import BatchTasks
+from pc import Sim, FDMesh, Demag
+from pc import Constant
+from pc.save_vtk import SaveVTK
 
 const = Constant()
 
@@ -58,7 +51,7 @@ def relax_system():
     mesh = FDMesh(nx=121,ny=121,nz=1,dx=0.5,dy=0.5, unit_length=1e-9)
     
     sim=Sim(mesh,name='relax_skx')
-    sim.set_options(gamma=const.gamma, k_B=const.k_B)
+    sim.set_default_options(gamma=const.gamma)
     
     sim.alpha = 1.0
 
@@ -74,12 +67,12 @@ def relax_system():
     
     print field
     
-    vtk = SaveVTK(mesh, field, name='demag')
+    vtk = SaveVTK(mesh, name='demag')
     vtk.save_vtk(field)
     
     sim.save_vtk()
     
-    plot_f(mesh,field, sim.mu_s_inv)
+    plot_f(mesh,field, sim._mu_s_inv)
     
     
     #np.save('m0.npy',sim.spin)
