@@ -1,5 +1,5 @@
 import numpy as np
-from pccp.pc import *
+from pc import *
 import time
 
 class Material(object):
