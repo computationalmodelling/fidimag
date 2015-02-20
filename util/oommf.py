@@ -155,11 +155,7 @@ def run_oommf(field='Demag'):
 
     os.chdir(save_path)
 
-
-def get_field(mesh,  field='Demag'):
-    new_path = os.path.join(MODULE_DIR, field)
-    file_name = '%s-Oxs_%s-Field-00-0000001.ohf'%(field.lower(),field)
-    ovf_file = os.path.join(new_path, file_name)
+def extract_data(mesh, ovf_file):
     ovf = omf.OMF2(ovf_file)
     
     mx = np.zeros(mesh.nxyz)
@@ -177,6 +173,13 @@ def get_field(mesh,  field='Demag'):
     m = np.array([mx,my,mz])
     m.shape = (-1,)
     return m
+
+def get_field(mesh,  field='Demag'):
+    new_path = os.path.join(MODULE_DIR, field)
+    file_name = '%s-Oxs_%s-Field-00-0000001.ohf'%(field.lower(),field)
+    ovf_file = os.path.join(new_path, file_name)
+    
+    return extract_data(mesh, ovf_file)
 
 
 def compute_demag_field(mesh, init_m0, Ms=8e5, field='Demag'):
