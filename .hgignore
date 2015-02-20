@@ -1,0 +1,22 @@
+syntax:glob
+*.pyc
+*~
+*.so
+*.tar.gz
+
+baryakhtar/cython/baryakhtar_clib.c
+build/
+cp/clib.c
+cp/sundials/cvode.c
+micro/cython/micro_clib.c
+util/Demag/Demag.mif
+util/DMExchange6Ngbr/DMExchange6Ngbr.mif
+util/UniformExchange/UniformExchange.mif
+
+# To do: Add an ignore for compiled .c files. This could be done by finding all
+# .pyx files, and ignoring their corresponding .c files. Someone better at
+# regular expressions than me could have a go at this.
+
+syntax: regexp
+^libs/(?!install.sh$)
+tests/(?!.+\.py$)
