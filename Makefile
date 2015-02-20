@@ -1,4 +1,5 @@
-all:
+# build cython files
+build:
 	python setup.py build_ext --inplace
 
 
