@@ -40,7 +40,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pccp'
+project = u'fidimag'
 copyright = u'2013, Weiwei Wang'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -167,7 +167,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pccpdoc'
+htmlhelp_basename = 'fidimagdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -186,7 +186,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'pccp.tex', u'pccp Documentation',
+  ('index', 'fidimag.tex', u'fidimag Documentation',
    u'Weiwei Wang', 'manual'),
 ]
 
@@ -216,7 +216,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pccp', u'pccp Documentation',
+    ('index', 'fidimag', u'Fidimag Documentation',
      [u'Weiwei Wang'], 1)
 ]
 
@@ -230,8 +230,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'pccp', u'pccp Documentation',
-   u'Weiwei Wang', 'pccp', 'One line description of project.',
+  ('index', 'fidimag', u'Fidimag Documentation',
+   u'Weiwei Wang', 'fidimag', 'One line description of project.',
    'Miscellaneous'),
 ]
 

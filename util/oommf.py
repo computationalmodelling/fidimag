@@ -1,17 +1,42 @@
 import os
-import sys
-import os
-import numpy as np
+import logging
 import subprocess
+import sys
+import numpy as np
+
 import omf
 
 from micro import FDMesh
 
 
+def setup_logger():
+
+    logger = logging.getLogger("oommf")
+
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    # create formatter
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    # add formatter to ch
+    ch.setFormatter(formatter)
+    # add ch to logger
+    logger.addHandler(ch)
+    logger.setLevel(logging.INFO)
+
+    return logger
+
+logger = setup_logger()
+
 if os.environ.has_key('OOMMF_PATH'):
     OOMMF_PATH=os.environ['OOMMF_PATH']
 else:
     OOMMF_PATH='/home/ww1g11/Softwares/oommf-1.2a5/'
+
+if os.environ.has_key('OOMMF_TKTCL_VERSION'):
+    OOMMF_TKTCL_VERSION=os.environ['OOMMF_TKTCL_VERSION']
+else:
+    OOMMF_TKTCL_VERSION=""
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -110,7 +135,7 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, field='Demag'):
 
 def run_oommf(field='Demag'):
 
-    command = ('tclsh',
+    command = ('tclsh{}'.format(OOMMF_TKTCL_VERSION),
                os.path.join(OOMMF_PATH, 'oommf.tcl'),
            'boxsi',
            '-threads',
@@ -118,6 +143,8 @@ def run_oommf(field='Demag'):
            field+".mif")
     
     cmd = ' '.join(command)
+    logger.info("About to execute '{}'".format(cmd))
+    print("About to execute '{}'".format(cmd))
    
     save_path=os.getcwd()
     new_path=os.path.join(MODULE_DIR, field)
