@@ -1,3 +1,5 @@
+.PHONY: build
+
 # build cython files
 
 PROJECT_DIR = $(abspath .)
