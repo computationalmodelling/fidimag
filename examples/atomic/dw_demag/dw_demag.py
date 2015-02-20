@@ -3,44 +3,28 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from pccp.pc import *
-import time
+from pc import Sim
+from pc import FDMesh
+from pc import DMI, Demag, UniformExchange
+
 
 def init_m(pos):
     x,y,z=pos
-    if x<140*5:
-        return (1,0,0)
-    elif x>160*5:
-        return (-1,0,0)
+    if x<140*0.5:
+        return (1,0,0.1)
+    elif x>160*0.5:
+        return (-1,0,0.1)
     else:
-        return (0,1,0)
+        return (0,1,0.1)
     
-
-class Material(object):
-    def __init__(self):
-        self.a=5
-        self.b=5
-        self.c=5
-        #Ms = 8e5, mu_s = Ms * v
-        self.mu_s=1e-22
-        
-        #A =1e-11, J = 2a*A 
-        self.J=1e-20
-        self.Dx=0.005*self.J
-        
-        self.gamma=1.76e11
-        self.alpha=0.01
-        self.unit_length=1e-10
-    
-
 def relax_system(mesh):
-    mat = Material()
-    mesh.set_material(mat)
     
     sim=Sim(mesh,name='relax')
-    sim.alpha=0.5
+    sim.set_default_options(mu_s=1e-23, gamma=1.76e11)
+    sim.alpha=1.0
     
-    exch=UniformExchange(mat.J)
+    J =1e-22
+    exch=UniformExchange(J)
     sim.add(exch)
 
     demag = Demag()
@@ -48,7 +32,7 @@ def relax_system(mesh):
     
     sim.set_m(init_m)
     
-    ts=np.linspace(0, 1e-10, 101)
+    ts=np.linspace(0, 5e-10, 101)
     for t in ts:
         sim.run_until(t)
         print t
@@ -76,7 +60,7 @@ def save_plot():
 
 if __name__=='__main__':
     
-    mesh=FDMesh(nx=300)
+    mesh=FDMesh(nx=300, dx=0.5, dy=1, dz=1, unit_length=1e-9)
     
     relax_system(mesh)
     print 'relax system done'
