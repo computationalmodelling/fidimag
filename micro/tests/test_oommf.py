@@ -231,7 +231,7 @@ def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
     
     print demag_energy, exch_energy
     
-    assert abs(exch_energy - exch_energy_oommf)/exch_energy_oommf<1e-15
+    assert abs(exch_energy - exch_energy_oommf)/exch_energy_oommf<3e-15
     assert abs(demag_energy - demag_energy_oommf)/demag_energy_oommf <1e-10
 
 def test_energy_dmi(Ms=8e5, D=1.32e-3):
