@@ -54,6 +54,39 @@ find our ``oommf.tcl`` file, and add the path to it to ``.bashrc`` in this way::
   export OOMMF_PATH=/opt/oommf/oommf-1.2a5bis
 
 
+Installing on Iridis
+====================
+
+Few additional notes for installing on iridis.
+
+Loading Modules
+---------------
+
+Need to load the hg and numpy modules. This can be done by ::
+
+    module load hg numpy
+
+These modules will only be loaded for your current session on iridis. To have the modules automatically loaded at login, you can add them to the module initlist by ::
+
+    module initadd hg numpy 
+
+
+Installing PyTest and PyVTK
+---------------------------
+
+py.test and PyVTK need to be installed locally (at /home/$USER/.local/bin/) by ::
+
+    pip install --user pytest pyvtk
+
+The following path needs to be added to the .bashrc file ::
+
+    export PATH=~/.local/bin:$PATH
+
+Cloning Repository
+------------------
+ 
+Can only be done with ssh keys.
+
 
 Quick test
 ===============
