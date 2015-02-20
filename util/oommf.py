@@ -1,12 +1,32 @@
 import os
-import sys
-import os
-import numpy as np
+import logging
 import subprocess
+import sys
+import numpy as np
+
 import omf
 
 from micro import FDMesh
 
+
+def setup_logger():
+
+    logger = logging.getLogger("oommf")
+
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    # create formatter
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    # add formatter to ch
+    ch.setFormatter(formatter)
+    # add ch to logger
+    logger.addHandler(ch)
+    logger.setLevel(logging.INFO)
+
+    return logger
+
+logger = setup_logger()
 
 if os.environ.has_key('OOMMF_PATH'):
     OOMMF_PATH=os.environ['OOMMF_PATH']
@@ -123,6 +143,8 @@ def run_oommf(field='Demag'):
            field+".mif")
     
     cmd = ' '.join(command)
+    logger.info("About to execute '{}'".format(cmd))
+    print("About to execute '{}'".format(cmd))
    
     save_path=os.getcwd()
     new_path=os.path.join(MODULE_DIR, field)
