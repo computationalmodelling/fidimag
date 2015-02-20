@@ -1,0 +1,3 @@
+[matplotlib_text_output]
+regex: \<matplotlib\.figure\.Figure at.*> 
+replace: MATPLOTLIB-FIGURE
