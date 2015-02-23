@@ -26,14 +26,14 @@ def relax_system(mesh):
     
     sim = Sim(mesh,name='relax')
     
-    sim.set_tols(rtol=1e-10,atol=1e-14)
+    sim.set_tols(rtol=1e-10,atol=1e-10)
     sim.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.0e5
     sim.do_procession = False
     
-    #sim.set_m((1,0.25,0.1))
-    sim.set_m(np.load('m0.npy'))
+    sim.set_m((1,0.25,0.1))
+    #sim.set_m(np.load('m0.npy'))
     
     A = 1.3e-11
     exch = UniformExchange(A=A)
@@ -42,11 +42,7 @@ def relax_system(mesh):
     demag = Demag()
     sim.add(demag)
     
-    mT = 795.7747154594767
-            
-    ONE_DEGREE_PER_NS = 17453292.52
-    
-    sim.relax(dt=1e-13, stopping_dmdt=0.00001*ONE_DEGREE_PER_NS, max_steps=5000, save_m_steps=100, save_vtk_steps=50)
+    sim.relax(dt=1e-13, stopping_dmdt=0.01, max_steps=5000, save_m_steps=100, save_vtk_steps=50)
     
     np.save('m0.npy',sim.spin)
     
@@ -55,7 +51,7 @@ def apply_field1(mesh):
     
     sim = Sim(mesh,name='dyn')
     
-    sim.set_tols(rtol=1e-10,atol=1e-14)
+    sim.set_tols(rtol=1e-10,atol=1e-10)
     sim.alpha = 0.02
     sim.gamma = 2.211e5
     sim.Ms = 8.0e5
@@ -94,10 +90,10 @@ def deal_plot():
     my2 = data2[:,2]
     mz2 = data2[:,3]
     
-    plt.plot(ts, mx, '--', label='mx_pccp',dashes=(2,2))
+    plt.plot(ts, mx, '--', label='m_fidimag',dashes=(2,2))
     plt.plot(ts, my, '--', label='',dashes=(2,2))
     plt.plot(ts, mz, '--', label='',dashes=(2,2))
-    plt.plot(ts2, mx2, '--', label='mx_oommf')
+    plt.plot(ts2, mx2, '--', label='m_oommf')
     plt.plot(ts2, my2, '--', label='')
     plt.plot(ts2, mz2, '--', label='')
 
@@ -107,14 +103,14 @@ def deal_plot():
     #plt.ylim([-5, 100])
     plt.xlabel(r'Ts (ns)')
     #plt.ylabel('Susceptibility')
-    plt.savefig('res.pdf')
+    plt.savefig('cmp.pdf')
     
                         
 if __name__=='__main__':
     
     mesh = FDMesh(nx=200, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     
-    #relax_system(mesh)
+    relax_system(mesh)
     
     apply_field1(mesh)
     deal_plot()

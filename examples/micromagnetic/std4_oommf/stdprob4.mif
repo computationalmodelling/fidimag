@@ -10,7 +10,7 @@ Parameter solver rkf54  ;# One of rk2, rk2heun, rk4,
 
 Parameter subproblem  1  ;# Should be either 1 or 2
 
-Parameter initproblem 0  ;# Use 1 to generate initial state,
+Parameter initproblem 1  ;# Use 1 to generate initial state,
             ## or 0 to run using previously generated state.
 
 if {1 == $subproblem} {
@@ -38,9 +38,9 @@ Specify Oxs_RectangularMesh:mesh {
   atlas Oxs_BoxAtlas:atlas
 }
 
-#Specify Oxs_UniformExchange {
-#  A  13E-12
-#}
+Specify Oxs_UniformExchange {
+  A  13E-12
+}
 
 Specify Oxs_Demag {}
 
@@ -82,4 +82,4 @@ if {$initproblem} {
 
 Destination archive mmArchive Stage 1
 Schedule DataTable archive Stage 1
-Schedule Oxs_TimeDriver::Magnetization archive Stage 100
+#Schedule Oxs_TimeDriver::Magnetization archive Stage 100
