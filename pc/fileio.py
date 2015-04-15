@@ -6,7 +6,7 @@ class DataSaver(object):
     
     comment_symbol = '# '
 
-    def __init__(self, sim, filename):
+    def __init__(self, sim, filename, entities=None):
         
         self.sim = sim
         self.filename = filename
@@ -28,15 +28,23 @@ class DataSaver(object):
                   'header': ('m_x', 'm_y', 'm_z')}
             }
 
+        if entities is not None:
+            self.entities = entities
+
         self.save_head=False
         self.entity_order = self.default_entity_order()
         
     def default_entity_order(self):
         keys = self.entities.keys()
         # time needs to go first
-        keys.remove('step')
-        keys.remove('time')
-        return ['step'] + ['time'] + sorted(keys)
+        if 'time' in keys:
+            keys.remove('time')
+            return ['time'] + sorted(keys)
+        elif 'step' in keys:
+            keys.remove('step')
+            return ['step'] + sorted(keys)
+        else:
+            return keys
     
     def update_entity_order(self):
         self.entity_order = self.default_entity_order()
@@ -67,22 +75,26 @@ class DataSaver(object):
             f.close()
             self.save_head=True
         
+
         # open file
         with open(self.filename, 'a') as f:
-            f.write(' ' * len(self.comment_symbol))  # account for comment symbol width
+            f.write(' ' * len(self.comment_symbol))  # account for comment
+
             for entityname in self.entity_order:
                 value = self.entities[entityname]['get'](self.sim)
                 if isinstance(value, np.ndarray):
-                    if len(value) == 3:  # 3d vector
-                        for i in range(3):
-                            f.write(self.float_format % value[i])
-                    else:
-                        msg = "Can only deal with 3d-numpy arrays so far, but shape is %s" % value.shape
-                        raise NotImplementedError(msg)
+
+                    for v in value:
+                        f.write(self.float_format % v)
+
                 elif isinstance(value, float) or isinstance(value, int):
                     f.write(self.float_format % value)
+                elif isinstance(value, types.NoneType):
+                    #f.write(self.string_format % value)
+                    f.write(self.string_format % "nan")
                 else:
-                    msg = "Can only deal with numpy arrays, float and int so far, but type is %s" % type(value)
+                    msg = "Can only deal with numpy arrays, float and int " + \
+                        "so far, but type is %s" % type(value)
                     raise NotImplementedError(msg)
 
             f.write('\n')

@@ -4,7 +4,7 @@ from __future__ import division
 import matplotlib.pyplot as plt
 #import matplotlib.cm as cm
 #import matplotlib.colors as color
-
+import clib
 import numpy as np
 
 def normalise(a):
@@ -133,7 +133,11 @@ def plot_m(mesh, npy, comp='x', based=None):
     plt.xticks([])
     plt.yticks([])
     fig.savefig('%s_%s.png'%(npy[:-4],comp))
-    
+
+
+def compute_RxRy(mesh, spin):
+    res = clib.compute_RxRy(spin, mesh.nx, mesh.ny, mesh.nz)
+    return res
     
 
 if __name__=='__main__':

@@ -18,7 +18,7 @@ def sinc_fun(t):
 
 def excite_system(mesh):
     
-    sim=Sim(mesh,name='dyn',pbc='2d')
+    sim=Sim(mesh,name='dyn')
     
     #sim.set_options(rtol=1e-10,atol=1e-14)
     sim.alpha = 0.04
@@ -86,7 +86,7 @@ def deal_plot():
 if __name__=='__main__':
     
     #mesh = FDMesh(nx=288,ny=288,nz=1)
-    mesh = FDMesh(nx=166,ny=96*2,nz=1)
+    mesh = FDMesh(nx=166,ny=96*2,nz=1, pbc='2d')
     
     excite_system(mesh)
     

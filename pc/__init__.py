@@ -11,5 +11,6 @@ from constant import Constant
 from materials import UnitMaterial, Nickel
 from save_vtk import SaveVTK
 from batch_task import BatchTasks
+from neb_cartesian import NEB_Sundials
 
 #from show_vector import VisualSpin

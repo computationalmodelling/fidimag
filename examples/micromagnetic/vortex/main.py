@@ -98,6 +98,7 @@ def excite_system(mesh):
     
     for t in ts:
         print 'time', t
+        print 'length:',sim.spin_length()[0:200]
         sim.run_until(t)
         sim.save_vtk()
                         
@@ -105,9 +106,9 @@ if __name__=='__main__':
     
     mesh = FDMesh(nx=80, ny=80, nz=2, dx=2.5, dy=2.5, dz=5.0, unit_length=1e-9)
     
-    relax_system(mesh)
+    #relax_system(mesh)
     
-    #excite_system(mesh)
+    excite_system(mesh)
     
     #apply_field1(mesh)
     #deal_plot()

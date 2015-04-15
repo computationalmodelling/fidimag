@@ -30,7 +30,7 @@ def random_m(pos):
 
 def relax_system(mesh):
     
-    sim=Sim(mesh,name='relax',pbc='2d')
+    sim=Sim(mesh,name='relax')
     #sim.set_options(rtol=1e-10,atol=1e-14)
     sim.alpha = 1.0
     sim.gamma = 1.0
@@ -61,7 +61,7 @@ if __name__=='__main__':
     np.random.seed(11)
     
     #mesh = FDMesh(nx=288,ny=288,nz=1)
-    mesh = FDMesh(nx=166,ny=96*2,nz=1)
+    mesh = FDMesh(nx=166,ny=96*2,nz=1, pbc='2d')
     
     relax_system(mesh)
     

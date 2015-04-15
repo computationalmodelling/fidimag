@@ -62,6 +62,15 @@ for cf in cfiles:
         micro_sources.append(cf)
 
 
+neb_path = os.path.join(cp_path,'neb')
+neb_sources = []
+neb_sources.append(os.path.join(neb_path,'neb_clib.pyx'))
+cfiles = glob.glob(os.path.join(neb_path,'*.c'))
+for cf in cfiles:
+    if not cf.endswith("neb_clib.c"):
+        neb_sources.append(cf)
+
+
 libs_path = os.path.join(pccp_path,'libs')
 include_path = os.path.join(libs_path,'include')
 lib_path = os.path.join(libs_path,'lib')
@@ -79,7 +88,7 @@ ext_modules = [
               sources = cvode_sources,
               include_dirs = [numpy.get_include(),include_path],
               libraries=['m','fftw3','sundials_cvodes','sundials_nvecserial'],
-              extra_compile_args=["-fopenmp"],
+              extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s'%lib_path,'-fopenmp'],
               #extra_link_args=["-g"],
         ),
@@ -100,7 +109,14 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s'%lib_path,'-fopenmp'],
               #extra_link_args=["-g"],
-       )
+       ),
+    Extension("neb_clib",
+              sources = neb_sources,
+              include_dirs = [numpy.get_include(),include_path],
+              libraries=['m','fftw3_omp','fftw3','sundials_cvodes','sundials_nvecserial'],
+              extra_compile_args=["-fopenmp", '-std=c99'],
+              extra_link_args=['-L%s'%lib_path,'-fopenmp'],
+        ),
 
     ]
     
