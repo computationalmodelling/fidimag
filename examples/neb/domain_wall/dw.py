@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from micro import Sim, FDMesh, UniformExchange, Demag, UniaxialAnisotropy
 from pc import NEB_Sundials
+from util.helper import plot_energy_2d, plot_energy_3d
 #from finmag.sim.neb import plot_energy_2d, plot_energy_3d
 
 def init_dw(pos):
@@ -61,6 +62,6 @@ if __name__ == "__main__":
     sim = create_simulation(mesh)
     #relax_two_state(mesh)
     relax_system(sim)
-    #plot_energy_2d('neb')
-    #plot_energy_3d('neb')
+    plot_energy_2d('neb')
+    plot_energy_3d('neb')
 

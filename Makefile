@@ -23,7 +23,7 @@ test-basic:
 	cd tests && py.test -v
 
 test-ipynb: create-dirs
-	cd doc/ipynb && py.test -v --ipynb . --sanitize_file sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
+	cd doc/ipynb && py.test . -v --ipynb --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
 
 # Building documentation
 doc: doc-html doc-latexpdf doc-singlehtml
