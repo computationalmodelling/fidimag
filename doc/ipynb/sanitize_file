@@ -1,3 +1,7 @@
 [matplotlib_text_output]
-regex: \<matplotlib\.figure\.Figure at.*> 
+regex: \<matplotlib\.figure\.Figure at (\w)*> 
 replace: MATPLOTLIB-FIGURE
+
+[Memory addresses]
+regex: 0x[0-9a-fA-F]+
+replace: MEMORY_ADDRESS
