@@ -483,7 +483,7 @@ class NEB_Sundials(object):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D
         # (check the C++ code in finmag/native/src/)
-        neb_clib.compute_dm_dt(y, self.Heff, ydot, self.total_image_num, 3*self.nxyz)
+        neb_clib.compute_dm_dt(y, self.Heff, ydot, self.sim._pins, self.total_image_num, 3*self.nxyz)
 
         ydot[0, :] = 0
         ydot[-1, :] = 0

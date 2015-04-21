@@ -19,9 +19,13 @@ def compare_fields(v1, v2):
     v2.shape = (3,-1)
     
     f = (v1[0,:]**2+v1[1,:]**2+v1[2,:]**2)**0.5
+
+    zero_values = f[:] == 0
+    f[zero_values] = 1
+
     diff = abs(v1 - v2)
     
-    print 'max error',np.max(diff), np.argmax(diff),len(v1)
+    #print 'max error',np.max(diff), np.argmax(diff),len(v1)
     #print v1[0,:]-v2[0,:]
     
     #print v2[0,:]
@@ -72,6 +76,63 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     mx0,mx1,mx2 = compare_fields(field_oommf, field)
     assert max([mx0,mx1,mx2])< 1e-12
 
+def test_with_oommf_spatial_Ms(A=1e-11):
+
+    def spatial_Ms(pos):
+        x, y = pos[0], pos[1]
+
+        if x**2+y**2 < 5**2:
+            return 2e4
+        else:
+            return 0
+        
+
+    init_m0="""
+    return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
+    """
+
+    init_Ms="""
+
+    if { $x*$x + $y*$y < 5e-9*5e-9 } {
+        return 2e4
+    } else {
+        return 0
+    }
+
+    """
+    
+    mesh = FDMesh(nx=12, ny=10, nz=2, dx=0.5, unit_length=1e-9)
+    
+    sim = Sim(mesh)
+    sim.Ms = spatial_Ms
+    
+    exch = UniformExchange(A=A)
+    sim.add(exch)
+
+    demag = Demag()
+    sim.add(demag)
+    
+    def init_m(pos):
+        
+        x,y,z = pos
+        
+        return (np.sin(x)+y+2.3*z,np.cos(x)+y+1.3*z,0)
+    
+    sim.set_m(init_m)
+    
+    field = exch.compute_field()
+    field_oommf = compute_exch_field(mesh, init_m0=init_m0, A=A, spatial_Ms=init_Ms)
+    mx0,mx1,mx2 = compare_fields(field_oommf, field)
+    assert max([mx0,mx1,mx2])< 1e-12
+
+    field = demag.compute_field()
+    field_oommf = compute_demag_field(mesh, spatial_Ms=init_Ms, init_m0=init_m0)
+
+    mx0,mx1,mx2 = compare_fields(field_oommf, field)
+
+    assert max([mx0,mx1,mx2])< 1e-11
+
+
 
 def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
     
@@ -97,9 +158,6 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
         return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
         """
     field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=D)
-    
-    print field_oommf
-    print field
     
     mx0,mx1,mx2 = compare_fields(field_oommf, field)
     assert max([mx0,mx1,mx2])< 1e-12
@@ -279,8 +337,10 @@ if __name__=='__main__':
     
     #test_energy()
 
-    test_energy_dmi()
+    #test_energy_dmi()
 
     #test_dmi_field_oommf()
+
+    test_with_oommf_spatial_Ms()
     
     

@@ -91,13 +91,20 @@ void compute_tangents_c(double *ys, double *energy, double *tangents, int total_
 		}
 
 
-inline void compute_dmdt(double *m, double *h, double *dm_dt, int nodes){
+inline void compute_dmdt(double *m, double *h, double *dm_dt, int *pins, int nodes){
 
     int n = nodes/3;
 
     for(int i=0;i<n;i++){
        	int j=i+n;
         int k=j+n;
+
+        if (pins[i]>0){
+			 dm_dt[i] = 0;
+			 dm_dt[j] = 0;
+			 dm_dt[k] = 0;
+			 continue;
+		}
 
         double mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
        	double mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
@@ -116,13 +123,13 @@ inline void compute_dmdt(double *m, double *h, double *dm_dt, int nodes){
 
 }
 
-void compute_dm_dt_c(double *ys, double *heff, double *dm_dt, int image_num, int nodes) {
+void compute_dm_dt_c(double *ys, double *heff, double *dm_dt, int *pins, int image_num, int nodes) {
 
 	for(int i=1; i<image_num-1; i++){
 
 		int j = i*nodes;
 		
-		compute_dmdt(&ys[j], &heff[j], &dm_dt[j], nodes);
+		compute_dmdt(&ys[j], &heff[j], &dm_dt[j], pins, nodes);
 
         }
 
