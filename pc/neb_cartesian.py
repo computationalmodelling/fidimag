@@ -57,7 +57,7 @@ def spherical2cartesian(theta_phi):
     theta_phi.shape = (-1, )
     return mxyz
 
-def linear_interpolation_two(m0, m1, n):
+def linear_interpolation_two(m0, m1, n, pin_ids):
     """
     Define a linear interpolation between
     two states of the energy band (m0, m1) to get
@@ -67,13 +67,18 @@ def linear_interpolation_two(m0, m1, n):
     """
     theta_phi0 = cartesian2spherical(m0)
     theta_phi1 = cartesian2spherical(m1)
-
-
+    m0.shape=(3,-1)
+    
     dtheta = (theta_phi1 - theta_phi0) / (n + 1)
     coords = []
     for i in range(n):
         theta_phi = theta_phi0 + (i + 1) * dtheta
-        coords.append(spherical2cartesian(theta_phi))
+        new_m = spherical2cartesian(theta_phi)
+        new_m.shape=(3,-1)
+        new_m[:,pin_ids] = m0[:,pin_ids]
+        new_m.shape=(-1,)
+        coords.append(new_m)
+    m0.shape=(-1,)
     return coords
 
 
@@ -213,6 +218,8 @@ class NEB_Sundials(object):
 
         self.springs = np.zeros(self.image_num)
 
+        self.pin_ids = np.array([i for i,v in enumerate(self.sim.pins) if v>0])
+
         self.t = 0
         self.step = 0
         self.ode_count = 1
@@ -318,7 +325,7 @@ class NEB_Sundials(object):
             self.sim.set_m(self.initial_images[i + 1])
             m1 = self.sim.spin.copy()
             # Interpolations (arrays with magnetisation values)
-            coords = linear_interpolation_two(m0, m1, n)
+            coords = linear_interpolation_two(m0, m1, n, self.pin_ids)
 
             for coord in coords:
                 self.coords[image_id][:] = coord[:]
@@ -341,12 +348,12 @@ class NEB_Sundials(object):
         self.coords.shape = (-1,)
 
     def add_noise(self, T=0.1):
-        self.coords.shape = (self.total_image_num, -1)
-        noise = T*np.random.rand(self.total_image_num,3*self.nxyz)
-        noise[0,:] = 0
-        noise[-1,:] = 0
+        noise = T*np.random.rand(self.total_image_num,3,self.nxyz)
+        noise[:,:,self.pin_ids] = 0
+        noise[0,:,:] = 0
+        noise[-1,:,:] = 0
+        noise.shape=(-1,)
         self.coords += noise
-        self.coords.shape = (-1,)
 
 
     def save_vtks(self):
