@@ -40,6 +40,7 @@ else:
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 mif_demag = """# MIF 2.1
 
 Specify Oxs_MultiAtlas:atlas {
@@ -80,8 +81,9 @@ Specify Oxs_TimeDriver [subst {
  evolver :evolve
  total_iteration_limit 1
  mesh :mesh
- 
- Ms %(Ms)s
+    
+  Ms %(Ms)s
+
  
  m0 { Oxs_ScriptVectorField {
     atlas :atlas
@@ -91,10 +93,12 @@ Specify Oxs_TimeDriver [subst {
   } }
 }]
 
+proc init_Ms {x y z} {
+    %(spatial_Ms)s
+}
+
 proc init_m0 { x y z} {
-
     %(init_m0)s
-
 }
 
 Destination archive mmArchive
@@ -102,7 +106,7 @@ Schedule DataTable archive Stage 1
 Schedule Oxs_%(field)s::Field archive Stage 1
 """
 
-def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, field='Demag'):
+def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, spatial_Ms=None, field='Demag'):
 
     conf_path = os.path.join(MODULE_DIR, field)
     if not os.path.exists(conf_path):
@@ -111,7 +115,15 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, field='Demag'):
     dx = mesh.dx*mesh.unit_length
     dy = mesh.dy*mesh.unit_length
     dz = mesh.dz*mesh.unit_length
-    
+    if spatial_Ms is not None:
+        Ms = """{ Oxs_ScriptScalarField { 
+            atlas :atlas
+            script_args {rawpt}
+            script  init_Ms
+        } }"""
+    else:
+        Ms = "%0.16g"%Ms
+
     params = {
         'length_x': "%0.16g" %(dx*mesh.nx),
         'length_y': "%0.16g" %(dy*mesh.ny),
@@ -120,9 +132,10 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0, field='Demag'):
         'cellsize_y': "%0.16g" % dy,
         'cellsize_z': "%0.16g" % dz,
         'base_name': field.lower(),
-        'Ms': "%0.16g" % Ms,
         'A': "%0.16g" % A,
         'D': "%0.16g" % D,
+        'Ms': Ms,
+        'spatial_Ms': spatial_Ms,
         'init_m0': init_m0,
         'field': field
     }
@@ -182,8 +195,10 @@ def get_field(mesh,  field='Demag'):
     return extract_data(mesh, ovf_file)
 
 
-def compute_demag_field(mesh, init_m0, Ms=8e5, field='Demag'):
-    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, field=field)
+def compute_demag_field(mesh, init_m0, Ms=8e5,  spatial_Ms=None, field='Demag'):
+
+    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, spatial_Ms=spatial_Ms, field=field)
+    
     run_oommf(field)
     
     m = get_field(mesh,field=field)
@@ -198,9 +213,9 @@ def compute_demag_field(mesh, init_m0, Ms=8e5, field='Demag'):
     
     return m
 
-def compute_exch_field(mesh, init_m0, Ms=8e5, A=1.3e-11, field='UniformExchange'):
+def compute_exch_field(mesh, init_m0, Ms=8e5, A=1.3e-11, spatial_Ms=None, field='UniformExchange'):
     
-    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, A=A, field=field)
+    gen_oommf_conf(mesh, Ms=Ms, init_m0=init_m0, A=A, spatial_Ms=spatial_Ms,field=field)
     run_oommf(field)
     
     m = get_field(mesh,field=field)
