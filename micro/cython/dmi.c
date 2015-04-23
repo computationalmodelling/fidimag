@@ -130,9 +130,9 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
                         id += nyz;
                     }
                     //rij = (0,-1,0), rij \times z = (-1,0,0)
-                    fx += Dy * cross_x(1,0,0,m[id],m[id+n1],m[id+n2]);
-                    fy += Dy * cross_y(1,0,0,m[id],m[id+n1],m[id+n2]);
-                    fz += Dy * cross_z(1,0,0,m[id],m[id+n1],m[id+n2]);
+                    fx += Dy * cross_x(-1,0,0,m[id],m[id+n1],m[id+n2]);
+                    fy += Dy * cross_y(-1,0,0,m[id],m[id+n1],m[id+n2]);
+                    fz += Dy * cross_z(-1,0,0,m[id],m[id+n1],m[id+n2]);
                 }
                 
                 if (i > 0 || xperiodic) {
@@ -142,9 +142,9 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
                     }
                     //rij = (-1,0,0), rij \times z = (0,1,0)
 
-                    fx += Dx * cross_x(0,-1,0,m[id],m[id+n1],m[id+n2]);
-                    fy += Dx * cross_y(0,-1,0,m[id],m[id+n1],m[id+n2]);
-                    fz += Dx * cross_z(0,-1,0,m[id],m[id+n1],m[id+n2]);
+                    fx += Dx * cross_x(0,1,0,m[id],m[id+n1],m[id+n2]);
+                    fy += Dx * cross_y(0,1,0,m[id],m[id+n1],m[id+n2]);
+                    fz += Dx * cross_z(0,1,0,m[id],m[id+n1],m[id+n2]);
                 }
                 
                 if (i < nx - 1 || xperiodic) {
@@ -154,9 +154,9 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
                     }
                     //rij = (1,0,0), rij \times z = (0,-1,0)
                     
-                    fx += Dx * cross_x(0,1,0,m[id],m[id+n1],m[id+n2]);
-                    fy += Dx * cross_y(0,1,0,m[id],m[id+n1],m[id+n2]);
-                    fz += Dx * cross_z(0,1,0,m[id],m[id+n1],m[id+n2]);
+                    fx += Dx * cross_x(0,-1,0,m[id],m[id+n1],m[id+n2]);
+                    fy += Dx * cross_y(0,-1,0,m[id],m[id+n1],m[id+n2]);
+                    fz += Dx * cross_z(0,-1,0,m[id],m[id+n1],m[id+n2]);
                 }
                 
                 if (j < ny - 1 || yperiodic) {
@@ -165,9 +165,9 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
                         id -= nyz;
                     }
                     //rij = (0,1,0), rij \times z = (1,0,0)
-                    fx += Dy * cross_x(-1,0,0,m[id],m[id+n1],m[id+n2]);
-                    fy += Dy * cross_y(-1,0,0,m[id],m[id+n1],m[id+n2]);
-                    fz += Dy * cross_z(-1,0,0,m[id],m[id+n1],m[id+n2]);
+                    fx += Dy * cross_x(1,0,0,m[id],m[id+n1],m[id+n2]);
+                    fy += Dy * cross_y(1,0,0,m[id],m[id+n1],m[id+n2]);
+                    fz += Dy * cross_z(1,0,0,m[id],m[id+n1],m[id+n2]);
                 }
                 
                 energy[index] = -0.5*(fx*m[index]+fy*m[index+n1]+fz*m[index+n2]);

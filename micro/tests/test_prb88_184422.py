@@ -18,7 +18,7 @@ def run_fidimag(mesh):
 
     Ms = 8.6e5
     A = 16e-12
-    D = 3.6e-3
+    D = -3.6e-3
     K = 510e3
     
     sim = Sim(mesh)
@@ -44,6 +44,7 @@ def run_fidimag(mesh):
 def run_dolfin():
 
     import dolfin as df
+
     x_array = np.linspace(-49.5, 49.5, 100)
 
     mesh = df.IntervalMesh(100, -50, 50)

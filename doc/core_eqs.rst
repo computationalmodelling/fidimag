@@ -99,23 +99,39 @@ Note that :math:`\vec{a}\cdot(\vec{b}\times\vec{c})=(\vec{a}\times\vec{b})\cdot\
 
 For bulk materials :math:`\vec{D}_{ij} = D \vec{r}_{ij}` and for interfacial DMI one has :math:`\vec{D}_{ij} = D \vec{r}_{ij} \times \vec{e}_z`, in both cases the vector :math:`\vec{D}_{ij}` such that :math:`\vec{D}_{ij}=-\vec{D}_{ji}`.
 
-In the continuum limit the bulk dmi energy could be written, 
+
+In the continuum limit the bulk DMI energy could be written, 
 
 .. math::
-   E_{dmi} = \int_\Omega D \vec{m} \cdot (\nabla \times \vec{m}) dx
+   E_{dmi} = \int_\Omega D_a \vec{m} \cdot (\nabla \times \vec{m}) dx
 
-and the effective field is
-
-.. math::
-   \vec{H}=-\frac{2D}{\mu_0 M_s} (\nabla \times \vec{m})
-
-Similar to the exchange case, the effective field in the continuum case
-can be computed by the same codes with 
+where :math:`D_a = -D/a^2` and the effective field is
 
 .. math::
-  D_x = D \Delta y \Delta z
+   \vec{H}=-\frac{2 D_a}{\mu_0 M_s} (\nabla \times \vec{m})
 
-Also, note that we needs the factor of :math:`\mu_0` to convert the units from T to A/m.
+
+
+For the interfacial case, the effective field thus becomes,
+
+.. math::
+   \vec{H}=-\frac{2 D}{M_s a^2} (\vec{e}_x \times \frac{\vec{m}}{\partial y} - \vec{e}_y \times \frac{\vec{m}}{\partial x} )
+
+Compared with the effective field [PRB 88 184422]
+
+.. math::
+   \vec{H}=\frac{2 D_a}{\mu_0 M_s} ((\nabla \cdot \vec{m}) \vec{e}_z - \nabla m_z)
+
+we have :math:`D_a = D/a^2`, note that there is no negative sign for the interfacial case.
+
+
+.. Similar to the exchange case, the effective field in the continuum case
+.. can be computed by the same codes with 
+
+.. .. math::
+..  D_x = D \Delta y \Delta z
+
+.. Also, note that we needs the factor of :math:`\mu_0` to convert the units from T to A/m.
 
 Zeeman energy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

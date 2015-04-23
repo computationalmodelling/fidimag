@@ -157,9 +157,11 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
     init_m0="""
         return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
         """
-    field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=D)
+    #TODO: check the sign of DMI in OOMMF.
+    field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=-D)
     
     mx0,mx1,mx2 = compare_fields(field_oommf, field)
+
     assert max([mx0,mx1,mx2])< 1e-12
 
 def test_demag_field_oommf(Ms=6e5):
