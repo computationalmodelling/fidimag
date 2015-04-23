@@ -115,7 +115,7 @@ where :math:`D_a = -D/a^2` and the effective field is
 For the interfacial case, the effective field thus becomes,
 
 .. math::
-   \vec{H}=-\frac{2 D}{M_s a^2} (\vec{e}_x \times \frac{\vec{m}}{\partial y} - \vec{e}_y \times \frac{\vec{m}}{\partial x} )
+   \vec{H}=\frac{2 D}{M_s a^2} (\vec{e}_x \times \frac{\partial \vec{m}}{\partial y} - \vec{e}_y \times \frac{\partial \vec{m}}{\partial x} )
 
 Compared with the effective field [PRB 88 184422]
 

@@ -322,7 +322,7 @@ def test_energy_dmi(Ms=8e5, D=1.32e-3):
     
     #field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=D)
     
-    dmi_energy_oommf = 4.5665527749090378e-20
+    dmi_energy_oommf = -4.5665527749090378e-20
     
     print 'dmi energy',dmi_energy
     
