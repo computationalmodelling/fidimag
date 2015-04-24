@@ -6,10 +6,11 @@ class DMI(Energy):
     Hamiltonian = D*[S_i x S_j]
         ==> H = D x S_j
     """
-    def __init__(self,D,name='dmi'):
+    def __init__(self,D, name='dmi', dmi_type='bulk'):
         self.D = D
         
-        self.name=name
+        self.name = name
+        self.dmi_type = dmi_type
         
         self.Dx = D
         self.Dy = D
@@ -23,7 +24,8 @@ class DMI(Energy):
         else:
             m = self.spin
             
-        clib.compute_dmi_field(m,
+        if self.dmi_type == 'bulk':
+            clib.compute_dmi_field(m,
                                 self.field,
                                 self.energy,
                                 self.Dx,
@@ -34,6 +36,17 @@ class DMI(Energy):
                                 self.nz,
                                 self.xperiodic,
                                 self.yperiodic)
+
+        elif self.dmi_type == 'interfacial':
+            clib.compute_dmi_field_interfacial(m,
+                                                self.field,
+                                                self.energy,
+                                                self.D,
+                                                self.nx,
+                                                self.ny,
+                                                self.nz,
+                                                self.xperiodic,
+                                                self.yperiodic)
         
         return self.field*self.mu_s_inv
     
