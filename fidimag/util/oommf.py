@@ -6,7 +6,7 @@ import numpy as np
 
 import omf
 
-from micro import FDMesh
+from fidimag.micro import FDMesh
 
 
 def setup_logger():

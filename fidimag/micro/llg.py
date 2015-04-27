@@ -1,7 +1,7 @@
 from __future__ import division
 import os
-import fidimag.extensions.clib
-import fidimag.extensions.cvode
+import fidimag.extensions.clib as clib
+import fidimag.extensions.cvode as cvode
 import numpy as np
 from fidimag.pc.fileio import DataSaver, DataReader
 from fidimag.pc.save_vtk import SaveVTK

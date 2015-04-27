@@ -1,16 +1,13 @@
 import numpy as np
-
 from fidimag.micro import FDMesh
 from fidimag.micro import UniformExchange
 from fidimag.micro import Sim
 from fidimag.micro import Demag
 from fidimag.micro import DMI
-
 from fidimag.util.oommf import compute_demag_field
 from fidimag.util.oommf import compute_exch_field
 from fidimag.util.oommf import compute_dmi_field
-
-import fidimag.extensions.clib
+import fidimag.extensions.clib as clib
 
 def compare_fields(v1, v2):    
     

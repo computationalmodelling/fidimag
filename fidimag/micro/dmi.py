@@ -1,4 +1,4 @@
-import fidimag.extensions.micro_clib
+import fidimag.extensions.micro_clib as micro_clib
 import numpy as np
 from energy import Energy
 from fidimag.pc.constant import mu_0
