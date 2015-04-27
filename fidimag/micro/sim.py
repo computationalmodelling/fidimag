@@ -1,9 +1,11 @@
-import fidimag
+import llg
+import llg_stt
+import baryakhtar
 
-KNOWN_DRIVERS = {'llg': fidimag.micro.llg.LLG,
-                 'llg_stt': fidimag.micro.llg_stt.LLG_STT, 
-                 'llbar': fidimag.baryakhtar.LLBar,
-                 'llbar_full': fidimag.baryakhtar.LLBarFull}
+KNOWN_DRIVERS = {'llg': llg.LLG,
+                 'llg_stt': llg_stt.LLG_STT, 
+                 'llbar': baryakhtar.LLBar,
+                 'llbar_full': baryakhtar.LLBarFull}
 
 def Sim(*args, **kwargs):
     

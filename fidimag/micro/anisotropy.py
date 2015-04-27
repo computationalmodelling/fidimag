@@ -1,8 +1,8 @@
 import fidimag.extensions.clib
 import numpy as np
-from pc.constant import mu_0
+from fidimag.pc.constant import mu_0
 from energy import Energy
-import util.helper as helper
+import fidimag.util.helper as helper
 
 class UniaxialAnisotropy(Energy):
     """

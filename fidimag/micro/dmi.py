@@ -1,7 +1,7 @@
 import fidimag.extensions.micro_clib
 import numpy as np
 from energy import Energy
-from pc.constant import mu_0
+from fidimag.pc.constant import mu_0
 
 class DMI(Energy):
     """
