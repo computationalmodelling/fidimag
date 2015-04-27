@@ -10,6 +10,7 @@ extensions-directory:
 
 build: extensions-directory
 	python setup.py build_ext --build-lib ${EXTENSIONS_DIR}
+	touch ${EXTENSIONS_DIR}/__init__.py
 	rm -rf ${PROJECT_DIR}/build
 
 clean:
@@ -26,7 +27,7 @@ test: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-micro:
-	cd micro/tests && py.test -v
+	cd fidimag/micro/tests && py.test -v
 
 test-basic:
 	cd tests && py.test -v

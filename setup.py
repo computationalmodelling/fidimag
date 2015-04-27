@@ -1,6 +1,7 @@
 """
-Use this script with `python setup.py build_ext --inplace`
-or by using the Makefile.
+You shouldn't call this script directly but rather use the Makefile as in
+`make build`. If you decide to use this script directly, then create the
+file __init__.py in the fidimag/extensions directory.
 
 """
 from distutils.core import setup

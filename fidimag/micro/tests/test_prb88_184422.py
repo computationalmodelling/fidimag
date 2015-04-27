@@ -3,12 +3,12 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim
-from micro import FDMesh
-from micro import UniformExchange, DMI, UniaxialAnisotropy
-from micro import Zeeman, TimeZeeman
-from pc import DataReader
-from util.oommf import extract_data
+from fidimag.micro import Sim
+from fidimag.micro import FDMesh
+from fidimag.micro import UniformExchange, DMI, UniaxialAnisotropy
+from fidimag.micro import Zeeman, TimeZeeman
+from fidimag.pc import DataReader
+from fidimag.util.oommf import extract_data
 import os
 
 #def test_prb88_184422():

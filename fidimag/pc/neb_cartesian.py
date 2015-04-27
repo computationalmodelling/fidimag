@@ -1,9 +1,9 @@
 import os
-import cvode
+import fidimag.extensions.cvode
 import numpy as np
 from fileio import DataSaver, DataReader
 from save_vtk import SaveVTK
-import neb_clib
+import fidimag.extensions.neb_clib
 
 import logging
 logging.basicConfig(level=logging.DEBUG)

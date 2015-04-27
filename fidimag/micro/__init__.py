@@ -1,7 +1,7 @@
-from sim import Sim
-from mesh import FDMesh
-from demag import Demag
-from exchange import UniformExchange
-from zeeman import Zeeman, TimeZeeman
-from anisotropy import UniaxialAnisotropy
-from dmi import DMI
+from fidimag.micro.sim import Sim
+from fidimag.micro.mesh import FDMesh
+from fidimag.micro.demag import Demag
+from fidimag.micro.exchange import UniformExchange
+from fidimag.micro.zeeman import Zeeman, TimeZeeman
+from fidimag.micro.anisotropy import UniaxialAnisotropy
+from fidimag.micro.dmi import DMI

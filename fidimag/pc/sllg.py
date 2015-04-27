@@ -1,12 +1,12 @@
 from __future__ import division
 
-import clib
+import fidimag.extensions.clib
 import numpy as np
 
 from llg import LLG
-import util.helper as helper
+import fidimag.util.helper as helper
 
-from pc.constant import Constant
+from fidimag.pc.constant import Constant
 const = Constant()
 
 class SLLG(LLG):

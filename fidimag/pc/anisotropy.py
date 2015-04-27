@@ -1,7 +1,7 @@
-import clib 
+import fidimag.extensions.clib 
 import numpy as np
 from energy import Energy
-import util.helper as helper
+import fidimag.util.helper as helper
 
 class Anisotropy(Energy):
     """

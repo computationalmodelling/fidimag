@@ -1,5 +1,5 @@
 import numpy as np
-import util.helper as helper
+import fidimag.util.helper as helper
 
 class Zeeman(object):
     """

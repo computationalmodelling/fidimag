@@ -1,5 +1,5 @@
 import numpy as np
-import clib
+import fidimag.extensions.clib
 
 def test_sst_field_1d():
     #suppose the system is 1d with 4 spins.

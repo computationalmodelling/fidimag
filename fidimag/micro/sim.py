@@ -1,12 +1,9 @@
-from llg import LLG
-from llg_stt import LLG_STT
-from baryakhtar import LLBar
-from baryakhtar import LLBarFull
+import fidimag
 
-KNOWN_DRIVERS = {'llg': LLG,
-                 'llg_stt': LLG_STT, 
-                 'llbar': LLBar,
-                 'llbar_full': LLBarFull}
+KNOWN_DRIVERS = {'llg': fidimag.micro.llg.LLG,
+                 'llg_stt': fidimag.micro.llg_stt.LLG_STT, 
+                 'llbar': fidimag.baryakhtar.LLBar,
+                 'llbar_full': fidimag.baryakhtar.LLBarFull}
 
 def Sim(*args, **kwargs):
     
@@ -21,7 +18,3 @@ def Sim(*args, **kwargs):
                                   Valid choices: one of '{}'.""".format(driver, KNOWN_DRIVERS.keys()))
     
     return KNOWN_DRIVERS[driver](*args, **kwargs)
-
-
-if __name__=='__main__':
-    pass

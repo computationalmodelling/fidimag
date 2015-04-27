@@ -1,4 +1,4 @@
-import baryakhtar_clib as clib 
+import fidimag.extensions.baryakhtar_clib as clib 
 import numpy as np
 
 class Relaxation(object):

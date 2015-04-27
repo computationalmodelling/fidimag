@@ -1,10 +1,10 @@
 import numpy as np
 
-from micro import FDMesh
-from micro import Sim
-from micro import UniformExchange
-from micro import UniaxialAnisotropy
-from micro import DMI
+from fidimag.micro import FDMesh
+from fidimag.micro import Sim
+from fidimag.micro import UniformExchange
+from fidimag.micro import UniaxialAnisotropy
+from fidimag.micro import DMI
 
 import matplotlib.pyplot as plt
 

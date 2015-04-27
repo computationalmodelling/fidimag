@@ -1,4 +1,4 @@
-import clib 
+import fidimag.extensions.clib 
 import numpy as np
 
 mu_0 = 4*np.pi*1e-7

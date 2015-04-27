@@ -1,6 +1,6 @@
 import numpy as np
-import baryakhtar_clib as clib 
-from micro.llg import LLG
+import fidimag.extensions.baryakhtar_clib as clib 
+from fidimag.micro.llg import LLG
 from relax import Relaxation
 from relax import Laplace
 
@@ -80,6 +80,3 @@ class LLBar(LLG):
                                         #ydot[:] = self.dm_dt[:]
                                         
         return 0
-
-if __name__=='__main__':
-    pass

@@ -1,4 +1,4 @@
-import clib
+import fidimag.extensions.clib
 from energy import Energy
 
 class UniformExchange(Energy):
