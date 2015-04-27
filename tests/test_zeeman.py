@@ -1,6 +1,6 @@
-from pc import Zeeman
-from pc import FDMesh
-from pc import Sim
+from fidimag.pc import Zeeman
+from fidimag.pc import FDMesh
+from fidimag.pc import Sim
 import numpy as np
 
 def varying_field(pos):

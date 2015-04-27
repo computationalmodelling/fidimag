@@ -1,8 +1,8 @@
-from pc import Sim
-from pc import FDMesh
-from pc import DMI
-from pc import UniformExchange
-from pc import Zeeman
+from fidimag.pc import Sim
+from fidimag.pc import FDMesh
+from fidimag.pc import DMI
+from fidimag.pc import UniformExchange
+from fidimag.pc import Zeeman
 
 
 def init_m(pos):

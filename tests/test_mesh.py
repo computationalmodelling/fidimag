@@ -1,4 +1,4 @@
-from pc import FDMesh
+from fidimag.pc import FDMesh
 
 def test_mesh1():
     mesh=FDMesh(nx=5,ny=3,nz=2,dx=0.23,dy=0.41)

@@ -1,6 +1,6 @@
-from pc import DMI 
-from pc import FDMesh
-from pc import Sim
+from fidimag.pc import DMI 
+from fidimag.pc import FDMesh
+from fidimag.pc import Sim
 import numpy as np
 
 def test_dmi_1d():

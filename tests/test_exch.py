@@ -1,7 +1,7 @@
 import numpy as np
-from pc import Sim
-from pc import FDMesh
-from pc import UniformExchange
+from fidimag.pc import Sim
+from fidimag.pc import FDMesh
+from fidimag.pc import UniformExchange
 
 def init_m(pos):
     x,y,z = pos

@@ -1,6 +1,6 @@
-from pc import FDMesh
-from pc import Sim
-from pc import Demag
+from fidimag.pc import FDMesh
+from fidimag.pc import Sim
+from fidimag.pc import Demag
 import numpy as np
 
 def test_demag_fft_exact():

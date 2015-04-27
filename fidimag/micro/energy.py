@@ -1,6 +1,4 @@
 import numpy as np
-import fidimag.extensions.micro_clib
-#from constant import mu_0
 
 class Energy(object):
     """

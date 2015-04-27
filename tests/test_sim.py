@@ -2,10 +2,10 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from pc import Anisotropy
-from pc import FDMesh
-from pc import Sim
-from pc import Zeeman
+from fidimag.pc import Anisotropy
+from fidimag.pc import FDMesh
+from fidimag.pc import Sim
+from fidimag.pc import Zeeman
 import numpy as np
 
 def init_m(pos):

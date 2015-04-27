@@ -1,6 +1,6 @@
-from pc import Anisotropy
-from pc import FDMesh
-from pc import Sim
+from fidimag.pc import Anisotropy
+from fidimag.pc import FDMesh
+from fidimag.pc import Sim
 import numpy as np
 
 

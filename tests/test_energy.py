@@ -2,12 +2,12 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from pc import UniformExchange
-from pc import Anisotropy
-from pc import FDMesh
-from pc import Sim
-from pc import UnitMaterial
-from pc import DataReader
+from fidimag.pc import UniformExchange
+from fidimag.pc import Anisotropy
+from fidimag.pc import FDMesh
+from fidimag.pc import Sim
+from fidimag.pc import UnitMaterial
+from fidimag.pc import DataReader
 import numpy as np
 
 class UnitMaterial(object):

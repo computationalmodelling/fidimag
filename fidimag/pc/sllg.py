@@ -1,6 +1,6 @@
 from __future__ import division
 
-import fidimag.extensions.clib
+import fidimag.extensions.clib as clib
 import numpy as np
 
 from llg import LLG

@@ -1,7 +1,7 @@
 from __future__ import division
 #import matplotlib as mpl
 #mpl.use("Agg")
-import fidimag.extensions.clib
+import fidimag.extensions.clib as clib
 import numpy as np
 
 import matplotlib.pyplot as plt
