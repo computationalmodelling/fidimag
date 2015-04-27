@@ -26,9 +26,6 @@ create-dirs:
 test: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
-test-micro:
-	cd fidimag/micro/tests && py.test -v
-
 test-basic:
 	cd tests && py.test -v
 
@@ -48,4 +45,4 @@ doc-%:
 	@echo $*
 	make -C doc $*
 
-.PHONY: extensions-directory build clean create-dirs test test-micro test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml
+.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml
