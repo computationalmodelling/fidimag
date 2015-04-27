@@ -20,3 +20,6 @@ util/UniformExchange/UniformExchange.mif
 syntax: regexp
 ^libs/(?!install.sh$)
 tests/(?!.+\.py$)
+
+# Ignore the directory where we download and install SUNDIALS and FFTW.
+local/
