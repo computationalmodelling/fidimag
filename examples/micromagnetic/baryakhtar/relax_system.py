@@ -3,11 +3,11 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from micro import FDMesh
-from micro import Sim
-from micro import Demag
-from micro import Zeeman
-from micro import UniformExchange
+from fidimag.micro import FDMesh
+from fidimag.micro import Sim
+from fidimag.micro import Demag
+from fidimag.micro import Zeeman
+from fidimag.micro import UniformExchange
 
 
 def relax_system(mesh):
