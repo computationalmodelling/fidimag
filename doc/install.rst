@@ -5,43 +5,45 @@ How to install
 
 Install external libraries.
 ---------------------------------------
+
 Run the install.sh by using ::
 
    bash install.sh
 
-in the fidimag/libs folder.
+in the fidimag/bin folder.
 
 Install fidimag
 ---------------------------------------
+
 In the fidimag folder type ::
 
    make
 
-to install the fidimag.
+to build fidimag.
 
 Add the fidimag to python path
 ---------------------------------------
+
 Add the following to your .bashrc file::
 
-   export PYTHONPATH="path_of_fidimag_folder:$PYTHONPATH"
-   export PYTHONPATH="path_of_fidimag_parent_folder:$PYTHONPATH"
+   export PYTHONPATH=/path/to/fidimag:$PYTHONPATH
 
 for example, suppose fidimag is in the directory of ~/work, then::
 
-   export PYTHONPATH="~/work/fidimag:$PYTHONPATH"
-   export PYTHONPATH="~/work:$PYTHONPATH"
+   export PYTHONPATH=~/work/fidimag:$PYTHONPATH
 
 Add the library path to LD_LIBRARY_PATH
 ---------------------------------------
-In default, the libraries are installed in fidimag/libs, so in order
+
+By default, the libraries are installed in fidimag/local, so in order
 to run fidimag we need to include the libs path in LD_LIBRARY_PATH, so
 please add the following to your .bashrc file::
 
-   export LD_LIBRARY_PATH="path_of_fidimag_folder/libs:$LD_LIBRARY_PATH"
+   export LD_LIBRARY_PATH=/path/to/fidimag/$LD_LIBRARY_PATH
 
 for instance::
 
-  export LD_LIBRARY_PATH="~/work/fidimag/libs:$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH=~/work/fidimag/local:$LD_LIBRARY_PATH
 
 
 Adding OOMMF path to the system
@@ -86,7 +88,6 @@ Cloning Repository
 ------------------
 
 Can only be done with ssh keys.
-
 
 Quick test
 ===============
