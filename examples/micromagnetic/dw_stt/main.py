@@ -14,6 +14,8 @@ from micro import UniaxialAnisotropy
 mu0 = 4 * np.pi * 1e-7
 
 # Initial State, a rough DW ina 1D chain
+
+
 def init_m(pos):
 
     x = pos[0]

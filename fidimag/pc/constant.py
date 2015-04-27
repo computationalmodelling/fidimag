@@ -1,6 +1,7 @@
 import numpy as np
 
-mu_0 = 4*np.pi*1e-7
+mu_0 = 4 * np.pi * 1e-7
+
 
 class Constant(object):
     mu_0 = mu_0
@@ -12,9 +13,7 @@ class Constant(object):
     m_e = 9.10938291e-31
     g_e = 2.0023193043737
     h_bar = 1.05457172647e-34
-    h = h_bar*2.*np.pi
-    gamma = g_e*mu_B/h_bar
-    mu_s_1 = g_e*mu_B*1.0 #for S=1, 1.856952823077189e-23
-    h_bar_gamma = h_bar*gamma
-    
-    
+    h = h_bar * 2. * np.pi
+    gamma = g_e * mu_B / h_bar
+    mu_s_1 = g_e * mu_B * 1.0  # for S=1, 1.856952823077189e-23
+    h_bar_gamma = h_bar * gamma

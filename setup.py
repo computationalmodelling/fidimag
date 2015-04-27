@@ -44,7 +44,8 @@ cvode_sources += glob_cfiles(SUNDIALS_DIR, excludes=["cvode.c"])
 
 baryakhtar_sources = []
 baryakhtar_sources.append(os.path.join(BARYAKHTAR_DIR, 'baryakhtar_clib.pyx'))
-baryakhtar_sources += glob_cfiles(BARYAKHTAR_DIR, excludes=["baryakhtar_clib.c"])
+baryakhtar_sources += glob_cfiles(BARYAKHTAR_DIR,
+                                  excludes=["baryakhtar_clib.c"])
 
 micro_sources = []
 micro_sources.append(os.path.join(MICRO_DIR, 'micro_clib.pyx'))
@@ -58,35 +59,40 @@ ext_modules = [
     Extension("clib",
               sources=sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
+              libraries=['m', 'fftw3_omp', 'fftw3',
+                         'sundials_cvodes', 'sundials_nvecserial'],
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
     Extension("cvode",
               sources=cvode_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
+              libraries=[
+                  'm', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
     Extension("baryakhtar_clib",
               sources=baryakhtar_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
+              libraries=[
+                  'm', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
     Extension("micro_clib",
               sources=micro_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
+              libraries=[
+                  'm', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
     Extension("neb_clib",
               sources=neb_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
+              libraries=['m', 'fftw3_omp', 'fftw3',
+                         'sundials_cvodes', 'sundials_nvecserial'],
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),

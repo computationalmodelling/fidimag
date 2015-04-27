@@ -2,38 +2,39 @@ import os
 import numpy as np
 from types import TupleType, StringType
 
+
 class DataSaver(object):
-    
+
     comment_symbol = '# '
 
     def __init__(self, sim, filename, entities=None):
-        
+
         self.sim = sim
         self.filename = filename
-        
-        precision=12
+
+        precision = 12
         charwidth = 18
-        self.float_format = "%" + str(charwidth)+'.'+str(precision)+ "g "
+        self.float_format = "%" + str(charwidth) + '.' + str(precision) + "g "
         self.string_format = "%" + str(charwidth) + "s "
 
         self.entities = {
             'step': {'unit': '<>',
-                    'get': lambda sim: sim.step,
-                    'header': 'step'},
+                     'get': lambda sim: sim.step,
+                     'header': 'step'},
             'time': {'unit': '<s>',
-                        'get': lambda sim: sim.t,
-                        'header': 'time'},
+                     'get': lambda sim: sim.t,
+                     'header': 'time'},
             'm': {'unit': '<>',
                   'get': lambda sim: sim.compute_average(),
                   'header': ('m_x', 'm_y', 'm_z')}
-            }
+        }
 
         if entities is not None:
             self.entities = entities
 
-        self.save_head=False
+        self.save_head = False
         self.entity_order = self.default_entity_order()
-        
+
     def default_entity_order(self):
         keys = self.entities.keys()
         # time needs to go first
@@ -45,7 +46,7 @@ class DataSaver(object):
             return ['step'] + sorted(keys)
         else:
             return keys
-    
+
     def update_entity_order(self):
         self.entity_order = self.default_entity_order()
 
@@ -61,20 +62,19 @@ class DataSaver(object):
                 colheaders = [colheaders]
             for colhead in colheaders:
                 line1.append(self.string_format % colhead)
-                line2.append(self.string_format % \
-                    self.entities[entityname]['unit'])
+                line2.append(self.string_format %
+                             self.entities[entityname]['unit'])
         return "".join(line1) + "\n" + "".join(line2) + "\n"
 
     def save(self):
         """Append data (spatial averages of fields) for current configuration"""
-        
+
         if not self.save_head:
             f = open(self.filename, 'w')
             # Write header
             f.write(self.headers())
             f.close()
-            self.save_head=True
-        
+            self.save_head = True
 
         # open file
         with open(self.filename, 'a') as f:
@@ -130,15 +130,16 @@ class DataReader(object):
         try:
             self.data = np.loadtxt(self.f)
         except ValueError:
-            raise RuntimeError("Cannot load data from file '{0}'. Maybe the file was incompletely written?".format(self.f))
+            raise RuntimeError(
+                "Cannot load data from file '{0}'. Maybe the file was incompletely written?".format(self.f))
         self.f.close()
 
         # some consistency checks: must have as many columns as
         # headers (disregarding the comment symbol)
-        # for the case that only one line data 
+        # for the case that only one line data
         if len(self.data) == self.data.size:
             assert self.data.size == len(headers) - 1
-            self.data.shape=(1, self.data.size)
+            self.data.shape = (1, self.data.size)
         else:
             assert self.data.shape[1] == len(headers) - 1
 
@@ -152,7 +153,6 @@ class DataReader(object):
     def entities(self):
         """Returns list of available entities"""
         return self.datadic.keys()
-
 
     def __getitem__(self, entity):
         """
@@ -169,5 +169,3 @@ class DataReader(object):
             raise TypeError("'entity' must be a string or a tuple. "
                             "Got: {0} ({1})".format(entity, type(entity)))
         return res
-
-

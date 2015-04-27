@@ -9,56 +9,57 @@ from micro import UniformExchange, Demag, DMI, UniaxialAnisotropy
 from micro import Zeeman, TimeZeeman
 from pc import DataReader
 
-mu0 = 4*np.pi*1e-7
+mu0 = 4 * np.pi * 1e-7
+
 
 def init_m(pos):
-        
-    x,y = pos[0]-500, pos[1]-500
-    
-    if x**2+y**2<60**2:
-        return (0,0,-1)
+
+    x, y = pos[0] - 500, pos[1] - 500
+
+    if x**2 + y**2 < 60**2:
+        return (0, 0, -1)
     else:
-        return (0,0,1)
+        return (0, 0, 1)
+
 
 def relax_system(mesh):
-    
-    sim = Sim(mesh,name='relax')
-    
-    sim.set_tols(rtol=1e-6,atol=1e-6)
+
+    sim = Sim(mesh, name='relax')
+
+    sim.set_tols(rtol=1e-6, atol=1e-6)
     sim.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.6e5
     sim.do_procession = False
-    
+
     sim.set_m(init_m)
-    #sim.set_m(np.load('m0.npy'))
-    
+    # sim.set_m(np.load('m0.npy'))
+
     A = 1.3e-11
     exch = UniformExchange(A=A)
     sim.add(exch)
-    
+
     dmi = DMI(D=1.3e-3)
     sim.add(dmi)
-    
-    anis = UniaxialAnisotropy(-3.25e4,axis=(0,0,1))
+
+    anis = UniaxialAnisotropy(-3.25e4, axis=(0, 0, 1))
     sim.add(anis)
-    
-    zeeman = Zeeman((0,0,6.014576e4))
+
+    zeeman = Zeeman((0, 0, 6.014576e4))
     sim.add(zeeman, save_field=True)
-    
-    sim.relax(dt=1e-13, stopping_dmdt=1e-2, max_steps=5000, save_m_steps=None, save_vtk_steps=50)
-    
-    np.save('m0.npy',sim.spin)
-    
-                        
-if __name__=='__main__':
-    
-    mesh = FDMesh(nx=501, ny=501, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='xy')
-    
+
+    sim.relax(dt=1e-13, stopping_dmdt=1e-2, max_steps=5000,
+              save_m_steps=None, save_vtk_steps=50)
+
+    np.save('m0.npy', sim.spin)
+
+
+if __name__ == '__main__':
+
+    mesh = FDMesh(
+        nx=501, ny=501, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='xy')
+
     relax_system(mesh)
-    
-    
-    #apply_field1(mesh)
-    #deal_plot()
-    
-    
+
+    # apply_field1(mesh)
+    # deal_plot()

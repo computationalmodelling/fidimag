@@ -9,6 +9,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
+
 def cartesian2spherical(xyz):
     """
     Transform cartesian coordinates (x, y, z)
@@ -57,6 +58,7 @@ def spherical2cartesian(theta_phi):
     theta_phi.shape = (-1, )
     return mxyz
 
+
 def linear_interpolation_two(m0, m1, n, pin_ids):
     """
     Define a linear interpolation between
@@ -67,18 +69,18 @@ def linear_interpolation_two(m0, m1, n, pin_ids):
     """
     theta_phi0 = cartesian2spherical(m0)
     theta_phi1 = cartesian2spherical(m1)
-    m0.shape=(3,-1)
-    
+    m0.shape = (3, -1)
+
     dtheta = (theta_phi1 - theta_phi0) / (n + 1)
     coords = []
     for i in range(n):
         theta_phi = theta_phi0 + (i + 1) * dtheta
         new_m = spherical2cartesian(theta_phi)
-        new_m.shape=(3,-1)
-        new_m[:,pin_ids] = m0[:,pin_ids]
-        new_m.shape=(-1,)
+        new_m.shape = (3, -1)
+        new_m[:, pin_ids] = m0[:, pin_ids]
+        new_m.shape = (-1,)
         coords.append(new_m)
-    m0.shape=(-1,)
+    m0.shape = (-1,)
     return coords
 
 
@@ -218,7 +220,8 @@ class NEB_Sundials(object):
 
         self.springs = np.zeros(self.image_num)
 
-        self.pin_ids = np.array([i for i,v in enumerate(self.sim.pins) if v>0])
+        self.pin_ids = np.array(
+            [i for i, v in enumerate(self.sim.pins) if v > 0])
 
         self.t = 0
         self.step = 0
@@ -238,7 +241,8 @@ class NEB_Sundials(object):
                        'header': ['image_%d' % i for i in range(self.image_num + 2)]}
         }
 
-        self.tablewriter = DataSaver(self, '%s_energy.ndt'%(self.name),  entities=entities_energy)
+        self.tablewriter = DataSaver(
+            self, '%s_energy.ndt' % (self.name),  entities=entities_energy)
 
         entities_dm = {
             'step': {'unit': '<1>',
@@ -248,7 +252,8 @@ class NEB_Sundials(object):
                     'get': lambda sim: sim.distances,
                     'header': ['image_%d_%d' % (i, i + 1) for i in range(self.image_num + 1)]}
         }
-        self.tablewriter_dm = DataSaver(self, '%s_dms.ndt' % (self.name), entities=entities_dm)
+        self.tablewriter_dm = DataSaver(
+            self, '%s_dms.ndt' % (self.name), entities=entities_dm)
 
     def initial_image_coordinates(self):
         """
@@ -316,7 +321,7 @@ class NEB_Sundials(object):
             # Save on the first image of a pair (step 1, 6, ...)
             self.sim.set_m(self.initial_images[i])
             m0 = self.sim.spin.copy()
-            
+
             self.coords[image_id][:] = m0[:]
             image_id = image_id + 1
 
@@ -348,13 +353,12 @@ class NEB_Sundials(object):
         self.coords.shape = (-1,)
 
     def add_noise(self, T=0.1):
-        noise = T*np.random.rand(self.total_image_num,3,self.nxyz)
-        noise[:,:,self.pin_ids] = 0
-        noise[0,:,:] = 0
-        noise[-1,:,:] = 0
-        noise.shape=(-1,)
+        noise = T * np.random.rand(self.total_image_num, 3, self.nxyz)
+        noise[:, :, self.pin_ids] = 0
+        noise[0, :, :] = 0
+        noise[-1, :, :] = 0
+        noise.shape = (-1,)
         self.coords += noise
-
 
     def save_vtks(self):
         """
@@ -398,7 +402,7 @@ class NEB_Sundials(object):
 
     def create_integrator(self, rtol=1e-6, atol=1e-6, nsteps=10000):
 
-        self.integrator = cvode.CvodeSolver(self.coords,self.sundials_rhs)
+        self.integrator = cvode.CvodeSolver(self.coords, self.sundials_rhs)
 
         self.integrator.set_options(rtol, atol)
 
@@ -432,10 +436,10 @@ class NEB_Sundials(object):
         # at: Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
 
         #native_neb.compute_tangents(y, self.energy, self.tangents)
-        neb_clib.compute_tangents(y, self.energy, self.tangents, self.total_image_num, 3*self.nxyz)
+        neb_clib.compute_tangents(
+            y, self.energy, self.tangents, self.total_image_num, 3 * self.nxyz)
         # native_neb.compute_springs(y,self.springs,self.spring)
         y.shape = (-1, )
-        
 
     def sundials_rhs(self, time, y, ydot):
         """
@@ -490,7 +494,8 @@ class NEB_Sundials(object):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D
         # (check the C++ code in finmag/native/src/)
-        neb_clib.compute_dm_dt(y, self.Heff, ydot, self.sim._pins, self.total_image_num, 3*self.nxyz)
+        neb_clib.compute_dm_dt(
+            y, self.Heff, ydot, self.sim._pins, self.total_image_num, 3 * self.nxyz)
 
         ydot[0, :] = 0
         ydot[-1, :] = 0
@@ -593,4 +598,3 @@ class NEB_Sundials(object):
                                                 dmdt))
         self.save_vtks()
         self.save_npys()
-
