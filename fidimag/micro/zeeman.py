@@ -1,7 +1,7 @@
 import numpy as np
 
-from fidimag.pc.constant import mu_0
-import fidimag.util.helper as helper
+from fidimag.common.constant import mu_0
+import fidimag.common.helper as helper
 
 
 class Zeeman(object):

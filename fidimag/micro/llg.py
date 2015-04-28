@@ -3,10 +3,10 @@ import os
 import fidimag.extensions.clib as clib
 import fidimag.extensions.cvode as cvode
 import numpy as np
-from fidimag.pc.fileio import DataSaver, DataReader
-from fidimag.pc.save_vtk import SaveVTK
-from fidimag.pc.constant import Constant
-import fidimag.util.helper as helper
+from fidimag.common.fileio import DataSaver, DataReader
+from fidimag.common.save_vtk import SaveVTK
+from fidimag.common.constant import Constant
+import fidimag.common.helper as helper
 
 const = Constant()
 

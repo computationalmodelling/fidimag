@@ -9,6 +9,6 @@ except ImportError as e:
     os.system("make build")
     print "Building extensions done."
     os.chdir(cwd)
-from . import util
-from . import pc
+from . import common
+from . import atomistic
 from . import micro

@@ -4,9 +4,9 @@ import fidimag.extensions.clib as clib
 import numpy as np
 
 from llg import LLG
-import fidimag.util.helper as helper
+import fidimag.common.helper as helper
 
-from fidimag.pc.constant import Constant
+from fidimag.common.constant import Constant
 const = Constant()
 
 

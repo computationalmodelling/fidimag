@@ -1,13 +1,12 @@
 from __future__ import division
 import os
+import numpy as np
 import fidimag.extensions.clib as clib
 import fidimag.extensions.cvode as cvode
-import numpy as np
-from fileio import DataSaver
-from save_vtk import SaveVTK
+import fidimag.common.helper as helper
+from fidimag.common.fileio import DataSaver
+from fidimag.common.save_vtk import SaveVTK
 from constant import Constant
-
-import fidimag.util.helper as helper
 
 const = Constant()
 

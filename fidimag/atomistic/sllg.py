@@ -1,12 +1,10 @@
 from __future__ import division
-
-import fidimag.extensions.clib as clib
 import numpy as np
-
+import fidimag.extensions.clib as clib
+import fidimag.common.helper as helper
 from llg import LLG
-import fidimag.util.helper as helper
+from constant import Constant
 
-from fidimag.pc.constant import Constant
 const = Constant()
 
 
