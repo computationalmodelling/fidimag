@@ -221,7 +221,7 @@ class NEB_Sundials(object):
         self.springs = np.zeros(self.image_num)
 
         self.pin_ids = np.array(
-            [i for i, v in enumerate(self.sim.pins) if v > 0])
+            [i for i, v in enumerate(self.sim.pins) if v > 0], dtype=np.int32)
 
         self.t = 0
         self.step = 0
