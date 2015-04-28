@@ -1,6 +1,6 @@
 import numpy as np
-from fidimag.pc import Sim, FDMesh, DMI, UniformExchange, Anisotropy
-from fidimag.pc import NEB_Sundials
+from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Anisotropy
+from fidimag.atomistic import NEB_Sundials
 
 def mu_s(pos):
     x,y,z = pos

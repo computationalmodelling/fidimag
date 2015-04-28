@@ -7,7 +7,7 @@ from micro import Sim
 from micro import FDMesh
 from micro import UniformExchange, Demag, DMI
 from micro import Zeeman, TimeZeeman
-from pc import DataReader
+from fidimag.common.fileio import DataReader
 
 mu0 = 4 * np.pi * 1e-7
 

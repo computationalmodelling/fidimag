@@ -8,7 +8,7 @@ from micro import Sim
 from micro import FDMesh
 from micro import UniformExchange, DMI, UniaxialAnisotropy
 from micro import Zeeman, TimeZeeman
-from pc import DataReader
+from fidimag.common.fileio import DataReader
 
 
 def test_prb88_184422():

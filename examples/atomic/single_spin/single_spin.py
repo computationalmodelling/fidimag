@@ -2,7 +2,7 @@ import numpy as np
 from pc import Sim
 from pc import FDMesh
 from pc import Zeeman
-from pc import DataReader
+from fidimag.common.fileio import DataReader
 import matplotlib.pyplot as plt
 
 

@@ -2,12 +2,12 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from fidimag.pc import UniformExchange
-from fidimag.pc import Anisotropy
-from fidimag.pc import FDMesh
-from fidimag.pc import Sim
-from fidimag.pc import UnitMaterial
-from fidimag.pc import DataReader
+from fidimag.atomistic import UniformExchange
+from fidimag.atomistic import Anisotropy
+from fidimag.atomistic import FDMesh
+from fidimag.atomistic import Sim
+from fidimag.atomistic import UnitMaterial
+from fidimag.common.fileio import DataReader
 import numpy as np
 
 

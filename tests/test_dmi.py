@@ -1,6 +1,6 @@
-from fidimag.pc import DMI
-from fidimag.pc import FDMesh
-from fidimag.pc import Sim
+from fidimag.atomistic import DMI
+from fidimag.atomistic import FDMesh
+from fidimag.atomistic import Sim
 import numpy as np
 
 

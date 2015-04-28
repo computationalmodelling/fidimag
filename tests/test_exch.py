@@ -1,7 +1,7 @@
 import numpy as np
-from fidimag.pc import Sim
-from fidimag.pc import FDMesh
-from fidimag.pc import UniformExchange
+from fidimag.atomistic import Sim
+from fidimag.atomistic import FDMesh
+from fidimag.atomistic import UniformExchange
 
 
 def init_m(pos):

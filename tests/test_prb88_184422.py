@@ -7,8 +7,8 @@ from fidimag.micro import Sim
 from fidimag.micro import FDMesh
 from fidimag.micro import UniformExchange, DMI, UniaxialAnisotropy
 from fidimag.micro import Zeeman, TimeZeeman
-from fidimag.pc import DataReader
-from fidimag.util.oommf import extract_data
+from fidimag.common.fileio import DataReader
+from fidimag.micro.oommf import extract_data
 import os
 
 # def test_prb88_184422():

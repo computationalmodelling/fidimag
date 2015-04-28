@@ -1,8 +1,8 @@
-from fidimag.pc import Sim
-from fidimag.pc import FDMesh
-from fidimag.pc import DMI
-from fidimag.pc import UniformExchange
-from fidimag.pc import Zeeman
+from fidimag.atomistic import Sim
+from fidimag.atomistic import FDMesh
+from fidimag.atomistic import DMI
+from fidimag.atomistic import UniformExchange
+from fidimag.atomistic import Zeeman
 
 
 def init_m(pos):

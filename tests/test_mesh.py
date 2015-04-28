@@ -1,4 +1,4 @@
-from fidimag.pc import FDMesh
+from fidimag.atomistic import FDMesh
 
 
 def test_mesh1():
