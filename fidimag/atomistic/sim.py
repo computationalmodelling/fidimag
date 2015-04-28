@@ -15,10 +15,7 @@ def Sim(*args, **kwargs):
 
     if driver not in KNOWN_DRIVERS:
         raise NotImplementedError("""Driver '{}' is not implemented.
-                                  Valid choices: one of '{}'.""".format(driver, KNOWN_DRIVERS.keys()))
+                                  Valid choices: one of '{}'.""".format(
+                                      driver, KNOWN_DRIVERS.keys()))
 
     return KNOWN_DRIVERS[driver](*args, **kwargs)
-
-
-if __name__ == '__main__':
-    pass
