@@ -10,7 +10,7 @@ cimport numpy as np
 # _always_ do that, or you will have segfaults
 np.import_array()
 
-cdef extern from "../clib.h":
+cdef extern from "../../atomistic/lib/clib.h":
     void normalise(double *m, int nxyz)
 
 cdef struct cv_userdata:

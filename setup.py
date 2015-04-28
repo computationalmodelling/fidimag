@@ -17,11 +17,12 @@ os.environ["CC"] = "gcc"
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
-CP_DIR = os.path.join(SRC_DIR, "cp")
-SUNDIALS_DIR = os.path.join(CP_DIR, "sundials")
-MICRO_DIR = os.path.join(SRC_DIR, "micro", "cython")
+SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
+NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
+ATOM_DIR = os.path.join(SRC_DIR, "atomistic", "lib")
+MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
-NEB_DIR = os.path.join(CP_DIR, "neb")
+
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
@@ -35,8 +36,8 @@ def glob_cfiles(path, excludes):
     return cfiles
 
 sources = []
-sources.append(os.path.join(CP_DIR, 'clib.pyx'))
-sources += glob_cfiles(CP_DIR, excludes=["clib.c"])
+sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
+sources += glob_cfiles(ATOM_DIR, excludes=["clib.c"])
 
 cvode_sources = []
 cvode_sources.append(os.path.join(SUNDIALS_DIR, 'cvode.pyx'))
