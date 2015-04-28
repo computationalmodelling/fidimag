@@ -1,27 +1,26 @@
 syntax:glob
 *.pyc
 *~
-*.so
-*.tar.gz
+.*.swp  # VIM swap files
 
-cython/baryakhtar/baryakhtar_clib.c
-build/
-cp/clib.c
-cp/neb/neb_clib.c
-cp/sundials/cvode.c
-micro/cython/micro_clib.c
-util/Demag/Demag.mif
-util/DMExchange6Ngbr/DMExchange6Ngbr.mif
-util/UniformExchange/UniformExchange.mif
+# Weiwei: TODO: Add an ignore for compiled .c files. This could be done by
+# finding all .pyx files, and ignoring their corresponding .c files. Someone
+# better at regular expressions than me could have a go at this.
+# Marc-Antonio: So /(\w+)(?=\.pyx)/ would give you the `foo` in `foo.pyx`
+# without including the `.pyx` in the match (keyword: positive lookahead)
+# but I don't think you can then make it match to `foo.c` since the rules are
+# applied for one file at a time (so there is no knowledge about other files
+# when the regexp is evaluated against a file).
+baryakhtar_clib.c
+clib.c
+cvode.c
+micro_clib.c
+neb_clib.c
 
-# To do: Add an ignore for compiled .c files. This could be done by finding all
-# .pyx files, and ignoring their corresponding .c files. Someone better at
-# regular expressions than me could have a go at this.
+local/  # where SUNDIALS and FFTW are downloaded and installed
+fidimag/extensions/  # where our cython extension get built into
+
+doc/build
 
 syntax: regexp
 tests/(?!.+\.py$)
-
-# Ignore the directory where we download and install SUNDIALS and FFTW.
-local/
-# Ignore the directory where our cython extensions are built into.
-fidimag/extensions/
