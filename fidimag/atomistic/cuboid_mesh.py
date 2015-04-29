@@ -52,7 +52,6 @@ class CuboidMesh(object):
         self.n = nx * ny * nz  # total number of cells
         self.nxy = nx * ny  # number of cells in the x-y plane
 
-        self.cells = self.n
         self.coordinates = self.init_coordinates()
         self.neighbours = self.init_neighbours()
 
@@ -95,3 +94,13 @@ class CuboidMesh(object):
         if i < 0 or j < 0 or k < 0 or i >= self.nz or j >= self.ny or k >= self.nx:
             return False
         return i * self.nxy + j * self.nx + k
+
+    def cells(self):
+        """
+        Generator to iterate over the cell indices.
+
+        """
+        current = 0
+        while current < self.n:
+            yield current
+            current += 1

@@ -123,3 +123,17 @@ def test_neighbours_multiple():
                                {0, 3, 6}, {1, 2, 7},  # for cells 2, 3
                                {0, 5, 6}, {1, 4, 7},  # for cells 4, 5
                                {4, 2, 7}, {5, 6, 3}]  # for cells 6, 7
+
+
+def test_iterate_over_cells():
+    mesh = CuboidMesh(1, 1, 1, 2, 2, 2)
+    for c_i in mesh.cells():
+        print "This is cell #{}, I have neighbours {}.".format(c_i, mesh.neighbours[c_i])
+
+
+def _test_iterate_over_cells_and_neighbours():
+    mesh = CuboidMesh(1, 1, 1, 2, 2, 2)
+    for c_i in mesh.cells():
+        print "I am cell #{}.".format(c_i)
+        for c_j in mesh.neighbours[c_i]:
+            print "\tAnd I am its neighbour, cell #{}!".format(c_j)
