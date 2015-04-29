@@ -10,6 +10,11 @@ def allclose(a, b):
     return np.allclose(a, b, rtol=1e-14, atol=1e-14)
 
 
+def to_sets(arr):
+    """ make sets out of the entries of arr for easier comparison """
+    return [set(e) for e in arr]
+
+
 def test_coordinates_x():
     """
        .+---+---+
@@ -70,7 +75,37 @@ def test_neighbours_x():
 
     """
     mesh = CuboidMesh(1, 1, 1, 2, 1, 1)
-    assert mesh.neighbours == [{1}, {0}]
+    assert to_sets(mesh.neighbours) == [{1}, {0}]
+
+
+def test_neighbours_x_periodic():
+    """
+       .+---+---+
+     .'  .'   .'|
+    +---+---+'  |
+    |   |   |   |
+    | 0 | 1 |   +
+    |   |   | .'
+    +---+---+'
+
+    """
+    mesh = CuboidMesh(1, 1, 1, 2, 1, 1, periodicity=(True, False, False))
+    assert mesh.neighbours == [[1, 1], [0, 0]]
+
+
+def test_neighbours_x_periodic_all():
+    """
+       .+---+---+
+     .'  .'   .'|
+    +---+---+'  |
+    |   |   |   |
+    | 0 | 1 |   +
+    |   |   | .'
+    +---+---+'
+
+    """
+    mesh = CuboidMesh(1, 1, 1, 2, 1, 1, periodicity=(True, True, True))
+    assert mesh.neighbours == [[1, 1], [0, 0]]
 
 
 def test_neighbours_y():
@@ -78,14 +113,29 @@ def test_neighbours_y():
        .+-------+
      .+-------+'|
     +-------+'| |
-    |       | |1|  
+    |       | |1|
     |       |0| +
     |       | +'
     +-------+'
 
     """
     mesh = CuboidMesh(1, 1, 1, 1, 2, 1)
-    assert mesh.neighbours == [{1}, {0}]
+    assert to_sets(mesh.neighbours) == [{1}, {0}]
+
+
+def test_neighbours_y_periodic():
+    """
+       .+-------+
+     .+-------+'|
+    +-------+'| |
+    |       | |1|
+    |       |0| +
+    |       | +'
+    +-------+'
+
+    """
+    mesh = CuboidMesh(1, 1, 1, 1, 2, 1, periodicity=(False, True, False))
+    assert mesh.neighbours == [[1, 1], [0, 0]]
 
 
 def test_neighbours_z():
@@ -100,7 +150,22 @@ def test_neighbours_z():
 
     """
     mesh = CuboidMesh(1, 1, 1, 1, 1, 2)
-    assert mesh.neighbours == [{1}, {0}]
+    assert to_sets(mesh.neighbours) == [{1}, {0}]
+
+
+def test_neighbours_z_periodic():
+    """
+       .+---0---+
+     .'       .'|
+    +-------+'  +
+    |   1   | .'|
+    +-------+'  +
+    |   0   | .'
+    +-------+'
+
+    """
+    mesh = CuboidMesh(1, 1, 1, 1, 1, 2, periodicity=(False, False, True))
+    assert mesh.neighbours == [[1, 1], [0, 0]]
 
 
 def test_neighbours_multiple():
@@ -122,10 +187,10 @@ def test_neighbours_multiple():
     """
     mesh = CuboidMesh(2, 2, 2, 2, 2, 2)
     print mesh.neighbours
-    assert mesh.neighbours == [{1, 2, 4}, {0, 3, 5},  # for cells 0, 1
-                               {0, 3, 6}, {1, 2, 7},  # for cells 2, 3
-                               {0, 5, 6}, {1, 4, 7},  # for cells 4, 5
-                               {4, 2, 7}, {5, 6, 3}]  # for cells 6, 7
+    assert to_sets(mesh.neighbours) == [{1, 2, 4}, {0, 3, 5},  # for cells 0, 1
+                                        {0, 3, 6}, {1, 2, 7},  # for cells 2, 3
+                                        {0, 5, 6}, {1, 4, 7},  # for cells 4, 5
+                                        {4, 2, 7}, {5, 6, 3}]  # for cells 6, 7
 
 
 def test_iterate_over_cells():

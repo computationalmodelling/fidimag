@@ -56,12 +56,22 @@ def scalar_from_coordinates(f, mesh):
 
 
 class CuboidMesh(object):
-    def __init__(self, Lx, Ly, Lz, nx, ny, nz):
+    def __init__(self, Lx, Ly, Lz, nx, ny, nz,
+                 periodicity=(False, False, False)):
         """
         Create mesh with dimensions Lx, Ly, Lz.
 
         Divided into nx cells along the x-axis, ny cells along the y-axis
         and nz cells along the z-axis for a total of nx * ny * nz cells.
+
+        By default, the mesh is not periodic along any axis, so the periodicity
+        is set to (False, False, False). Passing a tuple with any combination
+        of entries set to True will enable periodicity along the given axes.
+
+        Usage:
+            mesh = CuboidMesh(500, 50, 4, 250, 25, 2, periodicity=(True, False, False))
+            # create a mesh of dimensions 500 x 50 x 4 nm, with cellsize
+            # of 2 nm in any direction and periodic along the x-axis.
 
         """
         self.Lx = Lx
@@ -70,6 +80,7 @@ class CuboidMesh(object):
         self.nx = nx
         self.ny = ny
         self.nz = nz
+        self.periodicity = periodicity
 
         self.dx = float(Lx) / nx  # size of one cell
         self.dy = float(Ly) / ny
@@ -100,18 +111,42 @@ class CuboidMesh(object):
         for i in xrange(self.nz):
             for j in xrange(self.ny):
                 for k in xrange(self.nx):
-                    neighbours = set([cell for cell in [
+                    cell = self._index(i, j, k)
+                    neighbours = [other for other in [
                         self.index(i + 1, j, k),  # over
                         self.index(i - 1, j, k),  # under
                         self.index(i, j + 1, k),  # behind
                         self.index(i, j - 1, k),  # in front
                         self.index(i, j, k + 1),  # right
                         self.index(i, j, k - 1),  # left
-                    ] if cell is not False])
+                    ] if other is not False and other != cell]
                     connectivity.append(neighbours)
         return connectivity
 
     def index(self, i, j, k):
+        """
+        Returns the index for the cell with ordinals i, j, k
+        or False if that cell would be out of bounds. Handles periodic meshes.
+
+        """
+        if self.periodicity[0]:  # if mesh is periodic in x-direction
+            if k == -1:          # then wrap the left side
+                k = self.nx - 1  # to the right
+            if k == self.nx:     # and wrap the right side
+                k = 0            # to the left
+        if self.periodicity[1]:
+            if j == -1:
+                j = self.ny - 1
+            if j == self.ny:
+                j = 0
+        if self.periodicity[2]:
+            if i == -1:
+                i = self.nz - 1
+            if i == self.nz:
+                i = 0
+        return self._index(i, j, k)
+
+    def _index(self, i, j, k):
         """
         Returns the index for the cell with ordinals i, j, k
         or False if that cell would be out of bounds.
