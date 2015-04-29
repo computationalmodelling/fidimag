@@ -1,5 +1,8 @@
 import numpy as np
-from cuboid_mesh import CuboidMesh
+from cuboid_mesh import \
+        CuboidMesh, \
+        vector_from_coordinates, \
+        scalar_from_coordinates
 
 
 def allclose(a, b):
@@ -137,3 +140,31 @@ def test_iterate_over_cells_and_neighbours():
         print "I am cell #{}.".format(c_i)
         for c_j in mesh.neighbours[c_i]:
             print "\tAnd I am its neighbour, cell #{}!".format(c_j)
+
+
+def test_scalar_field_shape():
+    mesh = CuboidMesh(1, 1, 1, 2, 3, 4)
+    expected_nb_cells = 2 * 3 * 4
+    expected_shape_for_scalar_field = (expected_nb_cells, 1)
+    assert mesh.scalar_shape() == expected_shape_for_scalar_field
+    f = np.zeros(mesh.scalar_shape())  # usage example
+
+
+def test_vector_field_shape():
+    mesh = CuboidMesh(1, 1, 1, 2, 3, 4)
+    expected_nb_cells = 2 * 3 * 4
+    expected_shape_for_vector_field = (expected_nb_cells, 3)
+    assert mesh.vector_shape() == expected_shape_for_vector_field
+    m = np.zeros(mesh.vector_shape())  # usage example
+
+
+def test_initialise_vector():
+    mesh = CuboidMesh(1, 1, 1, 1, 1, 1)
+    v = vector_from_coordinates(lambda r: 2 * r, mesh)
+    assert allclose(v, np.array((1, 1, 1)))
+
+
+def test_initialise_scalar():
+    mesh = CuboidMesh(1, 1, 1, 1, 1, 1)
+    f = scalar_from_coordinates(lambda r: r[0] + r[1] + r[2], mesh)
+    assert allclose(f, np.array((1.5)))
