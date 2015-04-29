@@ -131,7 +131,7 @@ def test_iterate_over_cells():
         print "This is cell #{}, I have neighbours {}.".format(c_i, mesh.neighbours[c_i])
 
 
-def _test_iterate_over_cells_and_neighbours():
+def test_iterate_over_cells_and_neighbours():
     mesh = CuboidMesh(1, 1, 1, 2, 2, 2)
     for c_i in mesh.cells():
         print "I am cell #{}.".format(c_i)
