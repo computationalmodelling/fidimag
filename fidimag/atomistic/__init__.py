@@ -5,5 +5,5 @@ from anisotropy import Anisotropy
 from zeeman import Zeeman, TimeZeeman
 from demag import Demag
 from dmi import DMI
-from constant import Constant
+from fidimag.common.constant import Constant
 from materials import UnitMaterial, Nickel
