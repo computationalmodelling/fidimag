@@ -1,3 +1,14 @@
+"""
+
+Script to generate a skyrmion pointing up in a 50 nm wide
+and 5 nm thick FeGe disk
+
+The skyrmion is stabilised due to the finite system (border
+effects) and without Demag, external magnetic fields or
+anisotropies
+
+"""
+
 # FIDIMAG:
 from micro import Sim, FDMesh, UniformExchange, Demag, DMI
 import numpy as np
@@ -8,10 +19,13 @@ A = 8.78e-12
 D = 1.58e-3
 Ms = 3.84e5
 
+# Radius of the nanodisk
 radius = 25
 
-
 # MESH
+# We pass this function to the Ms property
+# of the simulation, so spins outside the desired
+# radius will have Ms = 0
 def cylinder(pos):
 
     # Relative position
@@ -22,7 +36,9 @@ def cylinder(pos):
     else:
         return 0
 
-# We will generate a 50 nm wide and 5nm thick disk
+# We will generate a 50 nm wide and 5nm thick disk The finite difference
+# elements are 2nmx2nm cubes along the disk plane and they have a thickness of
+# 1 nm
 # Finite differences mesh
 mesh = FDMesh(nx=25, ny=25, nz=5,
               dx=2, dy=2, dz=1,
@@ -30,7 +46,8 @@ mesh = FDMesh(nx=25, ny=25, nz=5,
               )
 
 
-# Initial magnetisation
+# Initial magnetisation profile to get the skyrmion
+# We create a small core pointing in the +z direction
 def init_m(pos):
 
     x, y = pos[0] - radius, pos[1] - radius
@@ -41,17 +58,24 @@ def init_m(pos):
         return (0, 0, -1)
 
 # Prepare simulation
+
 # We define the cylinder with the Magnetisation function
 sim = Sim(mesh, name='skyrmion')
-sim.do_procession = False
-sim.alpha = 0.5
 sim.Ms = cylinder
 
+# To get a faster relaxation, we tune the LLG equation parameters
+sim.do_procession = False
+sim.alpha = 0.5
+
+# Initial magnetisation:
 sim.set_m(init_m)
 
+# Energies:
+
+# Exchange
 sim.add(UniformExchange(A=A))
 
-# DMI
+# Bulk DMI
 sim.add(DMI(D=D))
 
 # Relax the system
@@ -60,5 +84,6 @@ sim.relax(dt=1e-12, stopping_dmdt=0.0001, max_steps=5000,
           save_vtk_steps=None
           )
 
+# Save the final relaxed state and a vtk file
 np.save('sk_up.npy', sim.spin)
 sim.save_vtk()
