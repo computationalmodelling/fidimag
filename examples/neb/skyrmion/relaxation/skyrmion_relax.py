@@ -10,7 +10,7 @@ anisotropies
 """
 
 # FIDIMAG:
-from micro import Sim, FDMesh, UniformExchange, Demag, DMI
+from fidimag.micro import Sim, FDMesh, UniformExchange, Demag, DMI
 import numpy as np
 
 

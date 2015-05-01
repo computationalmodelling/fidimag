@@ -12,8 +12,8 @@ energies
 """
 
 # FIDIMAG:
-from micro import Sim, FDMesh, UniformExchange, Demag, DMI
-from pc import NEB_Sundials
+from fidimag.micro import Sim, FDMesh, UniformExchange, Demag, DMI
+from fidimag.pc import NEB_Sundials
 
 import numpy as np
 
