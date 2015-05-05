@@ -11,12 +11,9 @@ inline double cross_z(double a0, double a1, double a2, double b0, double b1, dou
 
 void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
-void compute_exch_field_c(double *spin, double *field, double *energy,
-						double A, double dx, double dy, double dz,
-						int nx, int ny, int nz, int xperiodic, int yperiodic);
 
-void compute_anis(double *spin, double *field, double *Ku, int nxyz);
-double compute_anis_energy(double *spin, double *Ku, int nxyz);
+void compute_anis(double *spin, double *field, double *energy,
+	double *Ku, double *axis, int nx, int ny, int nz);
 
 
 void dmi_field(double *spin, double *field, double *energy,double Dx, double Dy, double Dz, int nx, int ny, int nz, int xperiodic, int yperiodic);

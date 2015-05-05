@@ -77,7 +77,7 @@ void dmi_field(double *spin, double *field, double *energy, double Dx, double Dy
                 field[index + n1] = fy;
                 field[index + n2] = fz;
                 
-                energy[index] = -(fx*spin[index]+fy*spin[index+n1]+fz*spin[index+n2]);
+                energy[index] = -0.5*(fx*spin[index]+fy*spin[index+n1]+fz*spin[index+n2]);
 
             }
         }
@@ -151,7 +151,7 @@ void dmi_field_interfacial_atomistic(double *m, double *field, double *energy,
   	field[index + n2] = fz;
     
     //TODO: check whether the energy is correct or not. 
-  	energy[index] = -(fx*m[index]+fy*m[index+n1]+fz*m[index+n2]);
+  	energy[index] = -0.5*(fx*m[index]+fy*m[index+n1]+fz*m[index+n2]);
                                
   }
  }

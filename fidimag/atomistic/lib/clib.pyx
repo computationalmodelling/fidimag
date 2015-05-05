@@ -14,16 +14,12 @@ cdef extern from "clib.h":
 
     void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jx, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
-    void compute_exch_field_c(double *spin, double *field, double *energy,
-                        double A, double dx, double dy, double dz,
-                        int nx, int ny, int nz, int xperiodic, int yperiodic)
     
     void dmi_field(double *spin, double *field, double *energy, double Dx, double Dy, double Dz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
 
-    void compute_anis(double *spin, double *field, double *Ku, int nxyz)
-    double compute_anis_energy(double *spin, double *Ku, int nxyz)
+    void compute_anis(double *spin, double *field, double *energy, double *Ku, double *axis, int nx, int ny, int nz)
 
     void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins, 
                  double gamma, int nxyz, int do_procession, double default_c)
@@ -109,25 +105,14 @@ def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
     return compute_exch_energy(&spin[0], Jx, Jy, Jz, nx, ny, nz, xperiodic, yperiodic)
 
 
-def compute_exchange_field_c(np.ndarray[double, ndim=1, mode="c"] spin,
-                            np.ndarray[double, ndim=1, mode="c"] field,
-                            np.ndarray[double, ndim=1, mode="c"] energy,
-                            A,
-                            dx, dy, dz,
-                            nx, ny, nz,
-                            xperiodic,yperiodic):
-
-    compute_exch_field_c(&spin[0], &field[0], &energy[0], A, dx, dy, dz, nx, ny, nz, xperiodic, yperiodic)
-
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,
+                        np.ndarray[double, ndim=1, mode="c"] energy,
                         np.ndarray[double, ndim=1, mode="c"] Ku,
-                        nxyz):
-    compute_anis(&spin[0], &field[0], &Ku[0], nxyz)
+                        np.ndarray[double, ndim=1, mode="c"] axis,
+                        nx, ny, nz):
+    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0],  &axis[0], nx, ny, nz)
     
-def compute_anisotropy_energy(np.ndarray[double, ndim=1, mode="c"] spin,
-                              np.ndarray[double, ndim=1, mode="c"] Ku, nxyz):
-    return compute_anis_energy(&spin[0], &Ku[0], nxyz)
     
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] field,

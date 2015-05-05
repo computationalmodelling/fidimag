@@ -20,3 +20,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_inv,
                            double D, double dx, double dy, double dz,
                            int nx, int ny, int nz, int xperiodic, int yperiodic);
+
+
+void compute_uniaxial_anis(double *m, double *field, double *energy, double *Ms_inv, 
+	double *Ku, double *axis, int nx, int ny, int nz);

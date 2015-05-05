@@ -50,6 +50,6 @@ class Energy(object):
         # compute_field again
         self.compute_field()
 
-        self.total_energy = np.sum(self.energy) / 2.0
+        self.total_energy = np.sum(self.energy)
 
         return self.total_energy

@@ -73,6 +73,19 @@ and the corresponding field is
 .. math::
    \vec{H}_{i,an} = \frac{2 D}{\mu_s} S_{x,i} \vec{e}_x
 
+
+UniaxialAnisotropy 
+~~~~~~~~~~~~~~~~~~~
+The UniaxialAnisotropy energy of the magnetic system is defined as
+
+.. math::
+   E_{anis} = \int_\Omega K [ 1 - (\vec{m} \cdot \vec{u})^2 ] dx
+
+the the effective field is,
+
+.. math::
+   \vec{H}=\frac{2 K}{\mu_0 M_s} (\vec{m} \cdot \vec{u}) \vec{u}
+
 Dipolar interaction
 ~~~~~~~~~~~~~~~~~~~
 The Hamiltonian for dipolar interaction is,
