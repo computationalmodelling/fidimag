@@ -29,32 +29,6 @@ in the innermost loop, and the z-axis in the outermost loop!
 import numpy as np
 
 
-def vector_from_coordinates(f, mesh):
-    """
-    Returns a np.array with values specified by `f`, where `f` should
-    be a function that returns a vector when getting the coordinates of a
-    cell of `mesh`.
-
-    """
-    v = np.zeros(mesh.vector_shape())
-    for i, r in enumerate(mesh.coordinates):
-        v[i] = f(r)
-    return v
-
-
-def scalar_from_coordinates(f, mesh):
-    """
-    Returns a np.array with values specified by `f`, where `f` should
-    be a function that returns a number when getting the coordinates of a
-    cell of `mesh`.
-
-    """
-    v = np.zeros(mesh.scalar_shape())
-    for i, r in enumerate(mesh.coordinates):
-        v[i] = f(r)
-    return v
-
-
 class CuboidMesh(object):
     def __init__(self, Lx, Ly, Lz, nx, ny, nz,
                  periodicity=(False, False, False)):
