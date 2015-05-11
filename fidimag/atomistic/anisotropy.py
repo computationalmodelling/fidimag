@@ -41,4 +41,4 @@ class Anisotropy(Energy):
                                 self.ny,
                                 self.nz)
 
-        return self.field
+        return self.field * self.mu_s_inv
