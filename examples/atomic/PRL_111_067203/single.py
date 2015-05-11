@@ -2,12 +2,9 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Zeeman
-from pccp.pc import Constant
+from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman
+from fidimag.common import Constant
+
 
 const = Constant()
 
@@ -40,8 +37,8 @@ def init_m(pos):
 
 def relax_system(mesh):
 
-    sim = Sim(mesh, name='relax', pbc='2d')
-    sim.set_options(gamma=const.gamma, k_B=const.k_B)
+    sim = Sim(mesh, name='relax')
+    sim.set_default_options(gamma=const.gamma)
     sim.alpha = 0.5
     sim.mu_s = const.mu_s_1
 
@@ -76,7 +73,7 @@ def temperature_gradient(pos):
 
 def excite_system(mesh):
 
-    sim = Sim(mesh, name='dyn', pbc='2d', driver='sllg')
+    sim = Sim(mesh, name='dyn', driver='sllg')
     sim.set_options(dt=2e-14, gamma=const.gamma, k_B=const.k_B)
     sim.alpha = 0.1
     sim.mu_s = const.mu_s_1
@@ -106,6 +103,6 @@ def excite_system(mesh):
 
 
 if __name__ == '__main__':
-    mesh = FDMesh(nx=150, ny=50, nz=1)
-    # relax_system(mesh)
+    mesh = FDMesh(nx=150, ny=50, nz=1,  pbc='2d')
+    relax_system(mesh)
     excite_system(mesh)

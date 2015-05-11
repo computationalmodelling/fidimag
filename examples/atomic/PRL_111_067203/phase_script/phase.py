@@ -4,15 +4,9 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 import numpy as np
-from pccp.pc import Sim
-from pccp.pc import FDMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Zeeman
-from pccp.pc import Constant
-from pccp.pc.batch_task import BatchTasks
-from pccp.pc import DataReader
-from pccp.util.helper import plot_m
+from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman
+from fidimag.common import Constant, BatchTasks, DataReader
+from fidimag.common.helper import plot_m
 
 
 const = Constant()
@@ -43,9 +37,9 @@ def random_m(pos):
 
 def excite_system(T=0.1, H=0.15):
 
-    mesh = FDMesh(nx=28 * 3, ny=16 * 5, nz=1)
+    mesh = FDMesh(nx=28 * 3, ny=16 * 5, nz=1, pbc='2d')
 
-    sim = Sim(mesh, name='dyn', pbc='2d', driver='sllg')
+    sim = Sim(mesh, name='dyn', driver='sllg')
     sim.set_options(dt=1e-14, gamma=const.gamma, k_B=const.k_B)
     sim.alpha = 0.1
     sim.mu_s = const.mu_s_1
