@@ -31,12 +31,15 @@ def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
     mz = 1.0 / np.cosh(xs / delta) * np.sin(phi)
     return mx, my, mz
 
-def test_dw_dmi_atomistic(mesh, do_plot=False):
+def test_dw_dmi_atomistic(do_plot=False):
+
+    mesh = FDMesh(nx=300, ny=1, nz=1)
 
     sim = Sim(mesh, name='relax')
     sim.set_default_options(gamma=const.gamma)
     sim.alpha = 0.5
     sim.mu_s = const.mu_s_1
+    sim.do_procession = False
 
     sim.set_m(m_init_dw)
 
@@ -96,4 +99,4 @@ def save_plot(xs, mxyz, mx, my, mz):
 
 if __name__ == '__main__':
     mesh = FDMesh(nx=300, ny=1, nz=1)
-    test_dw_dmi_atomistic(mesh, True)
+    test_dw_dmi_atomistic(True)
