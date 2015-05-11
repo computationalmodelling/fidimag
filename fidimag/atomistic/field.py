@@ -24,7 +24,7 @@ def scalar_field(mesh, s):
 def field(mesh, val, dim):
     values = np.zeros(mesh.vector_shape()) if dim == 3 else np.zeros(mesh.scalar_shape())
 
-    if hasattr(val, __call__):
+    if hasattr(val, '__call__'):
         f = val
     else:
         f = lambda r: val
