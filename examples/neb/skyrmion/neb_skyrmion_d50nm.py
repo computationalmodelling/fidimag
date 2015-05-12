@@ -106,8 +106,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
     # Demagnetization energy
     # sim.add(Demag())
 
-    # Define many initial states close to one extreme. We want to check
-    # if the images in the last step, are placed mostly in equally positions
+    # Initial images (npy files or functions)
     init_images = init_im
 
     # Number of images between each state specified before (here we need only
