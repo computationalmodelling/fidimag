@@ -74,7 +74,7 @@ def temperature_gradient(pos):
 def excite_system(mesh):
 
     sim = Sim(mesh, name='dyn', driver='sllg')
-    sim.set_options(dt=2e-14, gamma=const.gamma, k_B=const.k_B)
+    sim.set_options(dt=1e-14, gamma=const.gamma, k_B=const.k_B)
     sim.alpha = 0.1
     sim.mu_s = const.mu_s_1
     sim.T = temperature_gradient
@@ -104,5 +104,5 @@ def excite_system(mesh):
 
 if __name__ == '__main__':
     mesh = FDMesh(nx=150, ny=50, nz=1,  pbc='2d')
-    relax_system(mesh)
+    #relax_system(mesh)
     excite_system(mesh)

@@ -2,10 +2,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from pc import Anisotropy
-from pc import FDMesh
-from pc import Sim
-from pc import Zeeman
+from fidimag.atomistic  import Anisotropy, FDMesh, Sim, Zeeman
 import numpy as np
 
 
