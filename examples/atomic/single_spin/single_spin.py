@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 def single_spin(alpha, gamma, H0, ts):
     """
-    compute single spin under the external field H
+    compute single spin under the external field H, 
+    analytical solution.
     """
 
     precession = gamma / (1 + alpha**2)
@@ -22,6 +23,7 @@ def single_spin(alpha, gamma, H0, ts):
 
 
 def relax_system(rtol=1e-10, atol=1e-12):
+    """numerical solution"""
     mesh = FDMesh(nx=1, ny=1, nz=1)
     sim = Sim(mesh, name='relax')
     sim.set_options(rtol=rtol, atol=atol)
@@ -88,6 +90,34 @@ def plot_all():
     plt.tight_layout()
     fig.savefig('m_ts.pdf')
 
+
+def test_single_moment_analytic():
+    import numpy as np
+
+    # create the data
+    relax_system()
+
+    # read the data from file
+    data = DataReader('relax.txt')
+    ts = data['time']
+
+    # compare with analytical result
+    mx, my, mz = single_spin(0.5, 2.21e5, 1e5, ts)
+
+    Mx = data['m_x']
+    My = data['m_y']
+    Mz = data['m_z']
+
+    # check absolute tolerance is < 1e-8
+    assert np.allclose(mx, Mx, rtol=0, atol=1e-8)
+    assert np.allclose(my, My, rtol=0, atol=1e-8)
+    assert np.allclose(mz, Mz, rtol=0, atol=1e-8)
+
+    # check absolute tolerance is < 1e-5 for x and y, 1e-9 for z
+    # (I checked the numbers just now, and this is what passes)
+    assert np.allclose(mx, Mx, rtol=1e-05, atol=0)
+    assert np.allclose(my, My, rtol=1e-05, atol=0)
+    assert np.allclose(mz, Mz, rtol=1e-09, atol=0)
 
 if __name__ == '__main__':
 
