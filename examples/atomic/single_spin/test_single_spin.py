@@ -1,7 +1,7 @@
 import numpy as np
-from pc import Sim
-from pc import FDMesh
-from pc import Zeeman
+from fidimag.atomistic import Sim
+from fidimag.atomistic import FDMesh
+from fidimag.atomistic import Zeeman
 from fidimag.common.fileio import DataReader
 import matplotlib.pyplot as plt
 
