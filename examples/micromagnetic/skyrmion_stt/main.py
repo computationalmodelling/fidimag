@@ -1,7 +1,7 @@
 import numpy as np
-from micro import Sim
-from micro import FDMesh
-from micro import UniformExchange, DMI, Zeeman
+from fidimag.micro import Sim
+from fidimag.micro import FDMesh
+from fidimag.micro import UniformExchange, DMI, Zeeman
 
 mu0 = 4 * np.pi * 1e-7
 
@@ -10,7 +10,7 @@ def init_m(pos):
 
     x, y = pos[0] - 100, pos[1] - 100
 
-    if x**2 + y**2 < 20**2:
+    if x**2 + y**2 > 20**2:
         return (0, 0, -1)
     else:
         return (0, 0, 1)
@@ -34,7 +34,7 @@ def relax_system(mesh):
     dmi = DMI(D=4e-3)
     sim.add(dmi)
 
-    zeeman = Zeeman((0, 0, 4e5))
+    zeeman = Zeeman((0, 0, -4e5))
     sim.add(zeeman, save_field=True)
 
     sim.relax(dt=1e-13, stopping_dmdt=1e-2,
@@ -56,24 +56,22 @@ def excite_system(mesh):
     sim.add(exch)
     dmi = DMI(D=4e-3)
     sim.add(dmi)
-    zeeman = Zeeman((0, 0, 4e5))
+    zeeman = Zeeman((0, 0, -4e5))
     sim.add(zeeman, save_field=True)
 
-    sim.jx = -1e11
+    sim.jx = -1e12
     sim.beta = 0.05
 
-    ts = np.linspace(0, 1e-9, 201)
+    ts = np.linspace(0, 0.5e-9, 101)
     for t in ts:
         print 'time', t
         sim.run_until(t)
         sim.save_vtk()
         # sim.save_m()
 
-
 if __name__ == '__main__':
 
-    mesh = FDMesh(
-        nx=101, ny=101, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='2d')
+    mesh = FDMesh(nx=101, ny=101, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='2d')
 
     relax_system(mesh)
 
