@@ -39,11 +39,11 @@ By default, the libraries are installed in fidimag/local, so in order
 to run fidimag we need to include the libs path in LD_LIBRARY_PATH, so
 please add the following to your .bashrc file::
 
-   export LD_LIBRARY_PATH=/path/to/fidimag/$LD_LIBRARY_PATH
+   export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
 
 for instance::
 
-  export LD_LIBRARY_PATH=~/work/fidimag/local:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=~/work/fidimag/local/lib:$LD_LIBRARY_PATH
 
 
 Adding OOMMF path to the system
