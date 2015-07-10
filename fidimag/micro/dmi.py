@@ -2,6 +2,7 @@ import fidimag.extensions.micro_clib as micro_clib
 import numpy as np
 from energy import Energy
 from fidimag.common.constant import mu_0
+import fidimag.common.helper as helper
 
 
 class DMI(Energy):
@@ -14,7 +15,8 @@ class DMI(Energy):
         """
         type could be 'interfacial' or 'bulk'
         """
-        self.D = D
+        self.D = np.zeros(self.nxyz, dtype=np.float)
+        self.D[:] = helper.init_scalar(D, self.mesh)
         self.name = name
         self.type = type
 

@@ -1,13 +1,11 @@
 #include "micro_clib.h"
 
 void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
-                              double D, double dx, double dy, double dz,
+                              double *D, double dx, double dy, double dz,
                               int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
-    
-    double Dx = -D/dx, Dy=-D/dy, Dz=-D/dz;
     
 	#pragma omp parallel for
 	for (int i = 0; i < nx; i++) {
@@ -15,6 +13,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
             for (int k = 0; k < nz; k++) {
                 
                 int index = nyz * i + nz * j + k;
+                double Dx = -D[index]/dx, Dy=-D[index]/dy, Dz=-D[index]/dz;
                 
                 double fx=0, fy=0, fz=0;
                 
@@ -97,13 +96,11 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 
 
 void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_inv,
-                    double D, double dx, double dy, double dz,
+                    double *D, double dx, double dy, double dz,
                     int nx, int ny, int nz, int xperiodic, int yperiodic) {
     
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;
-    
-    double Dx = D/dx, Dy=D/dy;
     
     #pragma omp parallel for
 	for (int i = 0; i < nx; i++) {
@@ -111,6 +108,7 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
             for (int k = 0; k < nz; k++) {
                 
                 int index = nyz * i + nz * j + k;
+                double Dx = D[index]/dx, Dy=D[index]/dy;
                 
                 double fx=0, fy=0, fz=0;
                 
