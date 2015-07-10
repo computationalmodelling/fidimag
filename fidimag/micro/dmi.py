@@ -15,10 +15,15 @@ class DMI(Energy):
         """
         type could be 'interfacial' or 'bulk'
         """
-        self.D = np.zeros(self.nxyz, dtype=np.float)
-        self.D[:] = helper.init_scalar(D, self.mesh)
+        self.D = D
         self.name = name
         self.type = type
+
+    def setup(self, mesh, spin, Ms):
+        super(DMI, self).setup(mesh, spin, Ms)
+        self.Ds = np.zeros(self.nxyz, dtype=np.float)
+        self.Ds[:] = helper.init_scalar(self.D, self.mesh)
+        
 
     def compute_field(self, t=0):
         if self.type == 'bulk':
@@ -26,7 +31,7 @@ class DMI(Energy):
                                               self.field,
                                               self.energy,
                                               self.Ms_inv,
-                                              self.D,
+                                              self.Ds,
                                               self.dx,
                                               self.dy,
                                               self.dz,
@@ -40,7 +45,7 @@ class DMI(Energy):
                                                      self.field,
                                                      self.energy,
                                                      self.Ms_inv,
-                                                     self.D,
+                                                     self.Ds,
                                                      self.dx,
                                                      self.dy,
                                                      self.dz,
