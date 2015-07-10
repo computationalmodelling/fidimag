@@ -31,6 +31,10 @@ class Zeeman(object):
         self.field[:] = helper.init_vector(self.H0, self.mesh)
         # print self.field
 
+    def update_field(H0):
+        self.H0 = H0
+        self.field[:] = helper.init_vector(self.H0, self.mesh)
+
     def compute_field(self, t=0):
         return self.field
 
