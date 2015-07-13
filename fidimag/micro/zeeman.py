@@ -11,6 +11,12 @@ class Zeeman(object):
     """
 
     def __init__(self, H0, name='Zeeman'):
+        # Raise an exception if H0 is not indexable or callable. This is
+        # because H0 represents a vector.
+        if hasattr(H0, "__getitem__") is False and\
+           hasattr(H0, "__call__") is False:
+            raise ValueError("H0 \"{}\" does not represent a vector"
+                             .format(H0))
         self.H0 = H0
         self.name = name
 
