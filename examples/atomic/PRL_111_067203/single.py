@@ -104,5 +104,5 @@ def excite_system(mesh):
 
 if __name__ == '__main__':
     mesh = FDMesh(nx=150, ny=50, nz=1,  pbc='2d')
-    #relax_system(mesh)
-    excite_system(mesh)
+    relax_system(mesh)
+    #excite_system(mesh)
