@@ -197,3 +197,15 @@ cdef class CvodeSolver(object):
     def __str__(self):
         return '%s%s' % (self.__class__.__name__, self.__repr__())
 
+    def __dealloc__(self):
+        
+        self.user_data.rhs_fun = NULL
+        self.user_data.y = NULL
+        self.user_data.jvn_fun = NULL
+        self.user_data.dm_dt = NULL
+        self.user_data.v = NULL
+        self.user_data.jv = NULL
+
+        N_VDestroy_Serial(self.u_y)
+        CVodeFree(&self.cvode_mem)
+
