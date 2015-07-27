@@ -201,8 +201,7 @@ class EigenProblem(object):
 		if self.J !=0:
 			self.add_H0_J()
 			self.add_h_J()
-			M = self.M.toarray()
-			print 'exchange:::', np.max(M.transpose()+M)
+			
 		if self.Kx!=0 or self.Kz !=0:
 			self.add_H0_K()
 			self.add_h_K()
