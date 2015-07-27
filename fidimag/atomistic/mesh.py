@@ -31,6 +31,8 @@ class FDMesh():
             raise Exception(
                 "Only options None, 'x' ('1d'), 'y' or 'xy' ('2d') are acceptable!")
 
+        self.init_neighbours()
+
     def compute_pos(self):
         self.pos = []
         for i in range(self.nx):
@@ -46,6 +48,50 @@ class FDMesh():
     def index(self, i, j, k):
         idx = i * self.nyz + j * self.nz + k
         return idx
+
+    def init_neighbours(self):
+        neighbours_x = []
+        neighbours_y = []
+        neighbours_xy = []
+        for i in xrange(self.nx):
+            for j in xrange(self.ny):
+                for k in xrange(self.nz):
+                    index = self.nyz * i + self.nz * j + k
+
+                    ngx = []
+                    if i > 0 or self.xperiodic:
+                        idx = index - self.nyz
+                        if i == 0:
+                            idx += self.nxyz
+                        ngx.append(idx)
+
+                    if i < self.nx - 1 or self.xperiodic:
+                        idx = index + self.nyz
+                        if i == self.nx-1:
+                            idx -= self.nxyz
+                        ngx.append(idx)
+
+                    neighbours_x.append(ngx)
+
+                    ngy = []
+                    if j > 0 or self.yperiodic:
+                        idy = index - self.nz
+                        if j == 0: 
+                            idy += self.nyz
+                        ngy.append(idy)
+
+                    if j < self.ny - 1 or self.yperiodic:
+                        idy = index + self.nz
+                        if j == self.ny-1:
+                            idy -= self.nyz
+                        ngy.append(idy)
+
+                    neighbours_y.append(ngy)
+                    neighbours_xy.append(ngx+ngy)
+
+        self.neighbours_x = neighbours_x
+        self.neighbours_y = neighbours_y
+        self.neighbours_xy = neighbours_xy
 
     # only used for tests
     def pos_at(self, i, j, k):
