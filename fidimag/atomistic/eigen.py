@@ -7,19 +7,22 @@ import scipy.sparse.linalg  as la
 
 class EigenProblem(object):
 
-	def __init__(self, mesh, m0, mu_s=1.0, J=1, D=0, K=0, H=None, gamma=1.0):
+	def __init__(self, mesh, m0, mu_s=1.0, J=1, D=0, Kz=0, Kx=0, H=None, gamma=1.0):
 		self.mesh = mesh
 		self.m0 = m0
 		self.mu_s = mu_s
 		self.nx = mesh.nx
 		self.ny = mesh.ny
 		self.nxyz = mesh.nxyz
+		
 		self.ngx = mesh.neighbours_x
 		self.ngy = mesh.neighbours_y
-		self.ngxy = mesh.neighbours_xy
+		self.ngz = mesh.neighbours_z
+		self.ngs = mesh.neighbours
 
 		self.H = H
-		self.K = K/self.mu_s
+		self.Kx = Kx/self.mu_s
+		self.Kz = Kz/self.mu_s
 		self.J = J/self.mu_s
 		self.D = D/self.mu_s
 
@@ -31,7 +34,7 @@ class EigenProblem(object):
 		self.compute_theta_phi()
 		self.build_matrix()
 
-		self.solve_eigen()
+		#self.solve_eigen()
 
 
 	def compute_theta_phi(self):
@@ -69,9 +72,9 @@ class EigenProblem(object):
 		cp = self.cp
 		for i in range(self.nxyz):
 			j = i+self.nxyz
-			tmp = 2*self.K*cp[i]*cp[i]*st[i]*st[i]
-			self.M[i,j] += tmp
-			self.M[j,i] -= tmp
+			total = 2*self.Kx*(cp[i]*st[i])**2+2*self.Kz*(ct[i])**2
+			self.M[i,j] += total
+			self.M[j,i] -= total
 
 
 	def add_H0_J(self):
@@ -85,7 +88,7 @@ class EigenProblem(object):
 		for i in range(self.nxyz):
 			
 			total = 0
-			for k in self.ngxy[i]:
+			for k in self.ngs[i]:
 				total += self.J*(ct[i]*ct[k]+st[i]*st[k]*np.cos(p[i]-p[k]))
 
 			j = i+self.nxyz
@@ -110,10 +113,29 @@ class EigenProblem(object):
 			for j in self.ngy[i]:
 				total += self.D*np.sign(i-j)*(-st[i]*cp[i]*ct[j]+st[j]*cp[j]*ct[i])
 
-			k = i+self.nxyz
+			for j in self.ngz[i]:
+				total += self.D*np.sign(i-j)*(-st[i]*st[j]*np.sin(p[i]-p[j]))
+
+			k = i + self.nxyz
 
 			self.M[i,k] += total
 			self.M[k,i] -= total
+
+	def add_h_K(self):
+		st = self.st
+		ct = self.ct
+		sp = self.sp
+		cp = self.cp
+		for i in range(self.nxyz):
+			j = i+self.nxyz
+
+			#hy
+			self.M[i,i] -= 2*self.Kx*sp[i]*cp[i]*ct[i]
+			self.M[i,j] -= 2*self.Kx*(cp[i]*ct[i])**2 + 2*self.Kz*st[i]**2
+			
+			#hx
+			self.M[j,i] += 2*self.Kx*sp[i]*sp[i]
+			self.M[j,j] += 2*self.Kx*sp[i]*cp[i]*ct[i]
 
 	def add_h_J(self):
 		st = self.st
@@ -126,10 +148,10 @@ class EigenProblem(object):
 
 			k = i+self.nxyz
 
-			for j in self.ngxy[i]:
+			for j in self.ngs[i]:
 				#hy
 				self.M[i,j] -= self.J*ct[i]*np.sin(p[i]-p[j])
-				self.M[i,k] -= self.J*(np.cos(p[i]-p[j])*ct[i]*ct[j]+st[i]*st[j])
+				self.M[i, j+self.nxyz] -= self.J*(np.cos(p[i]-p[j])*ct[i]*ct[j]+st[i]*st[j])
 
 				#hx
 				self.M[k, j] += np.cos(p[i]-p[j])
@@ -148,43 +170,77 @@ class EigenProblem(object):
 
 			for j in self.ngx[i]:
 				#hy
-				self.M[i,j] += self.D*np.sign(i-j)*st[i]*cp[j]
-				self.M[i,k] -= self.D*(st[i]*sp[j]*ct[j]-st[j]*sp[i]*ct[i])
+				self.M[i,j] -= -self.D*np.sign(i-j)*st[i]*cp[j]
+				self.M[i,j+self.nxyz] -= self.D*np.sign(i-j)*(st[i]*sp[j]*ct[j]-st[j]*sp[i]*ct[i])
 
 				#hx
 				self.M[k, j+self.nxyz] += self.D*np.sign(i-j)*st[j]*cp[i]
 
 			for j in self.ngy[i]:
 				#hy
-				self.M[i,j] += self.D*np.sign(i-j)*st[i]*sp[j]
-				self.M[i,k] -= self.D*(-st[i]*cp[j]*ct[j]+ct[j]*cp[i]*ct[i])
+				self.M[i,j] -= -self.D*np.sign(i-j)*st[i]*sp[j]
+				self.M[i, j+self.nxyz] -= self.D*np.sign(i-j)*(-st[i]*cp[j]*ct[j]+ct[j]*cp[i]*ct[i])
 
 				#hx
 				self.M[k, j+self.nxyz] += self.D*np.sign(i-j)*st[j]*sp[i]
+
+			for k in self.ngz[i]:
+				#hy
+				self.M[i,j] += self.D*np.sign(i-j)*ct[i]*np.cos(p[i]-p[j])
+				self.M[i,j+self.nxyz] += self.D*np.sign(i-j)*ct[i]*ct[j]*np.sin(p[i]-p[j])
+
+				#hx
+				self.M[k, j] -= self.D*np.sign(i-j)*np.sin(p[i]-p[j])
+				self.M[k, j+self.nxyz] += self.D*np.sign(i-j)*ct[j]*np.cos(p[i]-p[j])
+
 
 
 	def build_matrix(self):
 		if self.H is not None:
 			self.add_H0_H()
-		if self.K !=0:
-			self.add_H0_K()
 		if self.J !=0:
 			self.add_H0_J()
 			self.add_h_J()
+			M = self.M.toarray()
+			print 'exchange:::', np.max(M.transpose()+M)
+		if self.Kx!=0 or self.Kz !=0:
+			self.add_H0_K()
+			self.add_h_K()
+
 		if self.D !=0:
 			self.add_H0_D()
 			self.add_h_D()
 		print 'build_matrix: Done!'
 
-	def solve_eigen(self):
+	def solve_sparse(self, w0=1e-8, n=20):
 
-		vals, vecs = la.eigs(self.M, k=10, ncv=self.nxyz,  which='SI')
-		print vals
-		#print vecs[:,0]
-		#print self.M.toarray()
+		
+		w, v = la.eigs(self.M, k=n,  sigma = 0+1e-10*1j,  maxiter=10000, OPpart='r')
 
-		#w,v = np.linalg.eig(self.M.toarray())
-		#print w
+		freqs_all = np.imag(w)
+
+		freqs = np.array([f for f in freqs_all if f>0])
+
+		print freqs
+
+	def solve_dense(self):
+
+		M = self.M.toarray()
+
+		print 'max:::::',np.max(np.abs(M.transpose()+M))
+
+		w,v = np.linalg.eig(M)
+
+		freqs_all = np.imag(w)
+
+		freqs = [f for f in freqs_all if f>0]
+
+		freqs.sort()
+
+		freqs = np.array(freqs)
+
+		print freqs
+		
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ def relax_system(mesh):
 
     sim = Sim(mesh, chi=1e-3, name='relax', driver='llbar_full')
 
-    sim.set_tols(rtol=1e-6, atol=1e-6)
+    sim.set_tols(rtol=1e-7, atol=1e-7)
     sim.Ms = 8.0e5
     sim.alpha = 0.1
     sim.beta = 0
@@ -35,9 +35,8 @@ def relax_system(mesh):
     sim.add(demag)
 
     ONE_DEGREE_PER_NS = 17453292.52
-    # sim.run_until(1e-12)
 
-    sim.relax(dt=1e-12, stopping_dmdt=0.01 * ONE_DEGREE_PER_NS,
+    sim.relax(dt=1e-12, stopping_dmdt=0.01,
               max_steps=5000, save_m_steps=100, save_vtk_steps=50)
 
     np.save('m0.npy', sim.spin)

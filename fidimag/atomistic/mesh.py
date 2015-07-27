@@ -52,7 +52,8 @@ class FDMesh():
     def init_neighbours(self):
         neighbours_x = []
         neighbours_y = []
-        neighbours_xy = []
+        neighbours_z = []
+        neighbours = []
         for i in xrange(self.nx):
             for j in xrange(self.ny):
                 for k in xrange(self.nz):
@@ -85,13 +86,22 @@ class FDMesh():
                         if j == self.ny-1:
                             idy -= self.nyz
                         ngy.append(idy)
-
                     neighbours_y.append(ngy)
-                    neighbours_xy.append(ngx+ngy)
+
+                    ngz = []
+                    if k>0:
+                        ngz.append(k-1)
+                    if k< self.nz-1:
+                        ngz.append(k+1)
+
+                    neighbours_z.append(ngz)
+                    
+                    neighbours.append(ngx+ngy+ngz)
 
         self.neighbours_x = neighbours_x
         self.neighbours_y = neighbours_y
-        self.neighbours_xy = neighbours_xy
+        self.neighbours_z = neighbours_z
+        self.neighbours = neighbours
 
     # only used for tests
     def pos_at(self, i, j, k):
