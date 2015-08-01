@@ -61,9 +61,9 @@ class EigenProblem(object):
 		cp = self.cp
 		for i in range(self.nxyz):
 			j = i+self.nxyz
-			tmp = self.H[0]*cp[i]*st[i] + self.H[1]*sp[i]*st[i] + self.H[2]*ct[i]
-			self.M[i,j] += tmp
-			self.M[j,i] -= tmp
+			total = self.H[0]*cp[i]*st[i] + self.H[1]*sp[i]*st[i] + self.H[2]*ct[i]
+			self.M[i,j] -= total
+			self.M[j,i] += total
 
 	def add_H0_K(self):
 		st = self.st
@@ -73,8 +73,8 @@ class EigenProblem(object):
 		for i in range(self.nxyz):
 			j = i+self.nxyz
 			total = 2*self.Kx*(cp[i]*st[i])**2+2*self.Kz*(ct[i])**2
-			self.M[i,j] += total
-			self.M[j,i] -= total
+			self.M[i,j] -= total
+			self.M[j,i] += total
 
 
 	def add_H0_J(self):
@@ -88,13 +88,13 @@ class EigenProblem(object):
 		for i in range(self.nxyz):
 			
 			total = 0
-			for k in self.ngs[i]:
-				total += self.J*(ct[i]*ct[k]+st[i]*st[k]*np.cos(p[i]-p[k]))
+			for j in self.ngs[i]:
+				total += self.J*(ct[i]*ct[j]+st[i]*st[j]*np.cos(p[i]-p[j]))
 
-			j = i+self.nxyz
+			k = i+self.nxyz
 
-			self.M[i,j] += total
-			self.M[j,i] -= total
+			self.M[i,k] -= total
+			self.M[k,i] += total
 
 
 	def add_H0_D(self):
@@ -108,18 +108,18 @@ class EigenProblem(object):
 			total = 0
 
 			for j in self.ngx[i]:
-				total += self.D*np.sign(i-j)*(st[i]*sp[i]*ct[j]-st[j]*sp[j]*ct[i])
+				total += self.D*np.sign(j-i)*(st[j]*sp[j]*ct[i]-st[i]*sp[i]*ct[j])
 
 			for j in self.ngy[i]:
-				total += self.D*np.sign(i-j)*(-st[i]*cp[i]*ct[j]+st[j]*cp[j]*ct[i])
+				total += self.D*np.sign(j-i)*(st[i]*cp[i]*ct[j]-st[j]*cp[j]*ct[i])
 
 			for j in self.ngz[i]:
-				total += self.D*np.sign(i-j)*(-st[i]*st[j]*np.sin(p[i]-p[j]))
+				total += self.D*np.sign(j-i)*(st[i]*st[j]*np.sin(p[i]-p[j]))
 
 			k = i + self.nxyz
 
-			self.M[i,k] += total
-			self.M[k,i] -= total
+			self.M[i,k] -= total
+			self.M[k,i] += total
 
 	def add_h_K(self):
 		st = self.st
@@ -129,13 +129,14 @@ class EigenProblem(object):
 		for i in range(self.nxyz):
 			j = i+self.nxyz
 
-			#hy
-			self.M[i,i] -= 2*self.Kx*sp[i]*cp[i]*ct[i]
-			self.M[i,j] -= 2*self.Kx*(cp[i]*ct[i])**2 + 2*self.Kz*st[i]**2
-			
-			#hx
-			self.M[j,i] += 2*self.Kx*sp[i]*sp[i]
+			#hu
+			self.M[j,i] -= 2*self.Kx*(cp[i]*ct[i])**2 + 2*self.Kz*st[i]**2
 			self.M[j,j] += 2*self.Kx*sp[i]*cp[i]*ct[i]
+			
+			#hv
+			self.M[i,i] += -2*self.Kx*sp[i]*cp[i]*ct[i]
+			self.M[i,j] += 2*self.Kx*sp[i]*sp[i]
+			
 
 	def add_h_J(self):
 		st = self.st
@@ -149,13 +150,16 @@ class EigenProblem(object):
 			k = i+self.nxyz
 
 			for j in self.ngs[i]:
-				#hy
-				self.M[i,j] -= self.J*ct[i]*np.sin(p[i]-p[j])
-				self.M[i, j+self.nxyz] -= self.J*(np.cos(p[i]-p[j])*ct[i]*ct[j]+st[i]*st[j])
 
-				#hx
-				self.M[k, j] += np.cos(p[i]-p[j])
-				self.M[k, j+self.nxyz] += ct[j]*np.sin(p[i]-p[j])
+				#hu
+				self.M[k, j] -= self.J*(np.cos(p[i]-p[j])*ct[i]*ct[j]+st[i]*st[j])
+				self.M[k, j+self.nxyz] -= self.J*ct[i]*np.sin(p[i]-p[j])
+
+				#hv
+				self.M[i, j] -= self.J*ct[j]*np.sin(p[i]-p[j])
+				self.M[i, j+self.nxyz] += self.J*np.cos(p[i]-p[j])
+				
+
 
 	def add_h_D(self):
 		st = self.st
@@ -169,58 +173,64 @@ class EigenProblem(object):
 			k = i+self.nxyz
 
 			for j in self.ngx[i]:
-				#hy
-				self.M[i,j] -= -self.D*np.sign(i-j)*st[i]*cp[j]
-				self.M[i,j+self.nxyz] -= self.D*np.sign(i-j)*(st[i]*sp[j]*ct[j]-st[j]*sp[i]*ct[i])
+				#hu
+				self.M[k,j] -= self.D*np.sign(j-i)*(st[j]*sp[i]*ct[i]-st[i]*sp[j]*ct[j])
+				self.M[k,j+self.nxyz] += self.D*np.sign(j-i)*st[i]*cp[j]
 
-				#hx
-				self.M[k, j+self.nxyz] += self.D*np.sign(i-j)*st[j]*cp[i]
+				#hv
+				self.M[i, j] += self.D*np.sign(j-i)*st[j]*cp[i]
 
 			for j in self.ngy[i]:
-				#hy
-				self.M[i,j] -= -self.D*np.sign(i-j)*st[i]*sp[j]
-				self.M[i, j+self.nxyz] -= self.D*np.sign(i-j)*(-st[i]*cp[j]*ct[j]+ct[j]*cp[i]*ct[i])
+				#hu
+				self.M[k, j] -= self.D*np.sign(j-i)*(st[i]*cp[j]*ct[j]-st[j]*cp[i]*ct[i])
+				self.M[k,j+self.nxyz] += self.D*np.sign(j-i)*st[i]*sp[j]
+				
+				#hv
+				self.M[i, j+self.nxyz] += self.D*np.sign(j-i)*st[j]*sp[i]
 
-				#hx
-				self.M[k, j+self.nxyz] += self.D*np.sign(i-j)*st[j]*sp[i]
+			for j in self.ngz[i]:
+				#hu
+				self.M[k,j] -= self.D*np.sign(j-i)*ct[i]*ct[j]*np.sin(p[i]-p[j])
+				self.M[k,j+self.nxyz] += self.D*np.sign(j-i)*ct[i]*np.cos(p[i]-p[j])
 
-			for k in self.ngz[i]:
-				#hy
-				self.M[i,j] += self.D*np.sign(i-j)*ct[i]*np.cos(p[i]-p[j])
-				self.M[i,j+self.nxyz] += self.D*np.sign(i-j)*ct[i]*ct[j]*np.sin(p[i]-p[j])
-
-				#hx
-				self.M[k, j] -= self.D*np.sign(i-j)*np.sin(p[i]-p[j])
-				self.M[k, j+self.nxyz] += self.D*np.sign(i-j)*ct[j]*np.cos(p[i]-p[j])
-
+				#hv
+				self.M[i, j] += self.D*np.sign(j-i)*ct[j]*np.cos(p[i]-p[j])
+				self.M[i, j+self.nxyz] += self.D*np.sign(j-i)*np.sin(p[i]-p[j])
 
 
 	def build_matrix(self):
 		if self.H is not None:
 			self.add_H0_H()
+			print 'build_matrix for applied field: Done!'
 		if self.J !=0:
 			self.add_H0_J()
 			self.add_h_J()
+			print 'build_matrix for exchange: Done!'
 			
 		if self.Kx!=0 or self.Kz !=0:
 			self.add_H0_K()
 			self.add_h_K()
+			print 'build_matrix for anisotropy: Done!'
 
 		if self.D !=0:
 			self.add_H0_D()
 			self.add_h_D()
-		print 'build_matrix: Done!'
+			print 'build_matrix DMI: Done!'
 
 	def solve_sparse(self, w0=1e-8, n=20):
-
 		
-		w, v = la.eigs(self.M, k=n,  sigma = 0+1e-10*1j,  maxiter=10000, OPpart='r')
+		w, v = la.eigs(self.M, k=2*n,  sigma = 0+w0*1j,  maxiter=10000, OPpart='r')
 
 		freqs_all = np.imag(w)
 
-		freqs = np.array([f for f in freqs_all if f>0])
+		freqs = []
+		vs = []
+		for i, f in enumerate(freqs_all):
+			if f > 0:
+				freqs.append(f)
+				vs.append(v[:,i])
 
-		print freqs
+		return np.array(freqs), np.array(vs)
 
 	def solve_dense(self):
 
@@ -232,13 +242,13 @@ class EigenProblem(object):
 
 		freqs_all = np.imag(w)
 
-		freqs = [f for f in freqs_all if f>0]
+		idx = freqs_all.argsort()
+		ids = [i for i in idx if freqs_all[i]>0]
 
-		freqs.sort()
+		freqs = freqs_all[ids]
+		vectors = np.transpose(v[:,ids])
 
-		freqs = np.array(freqs)
-
-		print freqs
+		return freqs, vectors
 		
 
 
