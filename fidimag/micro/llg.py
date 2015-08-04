@@ -39,6 +39,7 @@ class LLG(object):
         self._skx_number = np.zeros(self.nxyz, dtype=np.float)
         self.interactions = []
         self.pin_fun = None
+        self.integrator_tolerances_set = False
 
         self.step = 0
 
@@ -79,8 +80,17 @@ class LLG(object):
         self.gamma = gamma
         self.do_procession = True
 
+
+    def reset_integrator(self, t=0):
+        self.vode.reset(self.spin, t)
+
+
     def set_tols(self, rtol=1e-8, atol=1e-10):
+        if self.integrator_tolerances_set is True:
+            self.reset_integrator(self.t)
         self.vode.set_options(rtol, atol)
+        self.integrator_tolerances_set = True
+
 
     def set_m(self, m0=(1, 0, 0), normalise=True):
 
@@ -195,6 +205,7 @@ class LLG(object):
         # update field before saving data
         self.compute_effective_field(t)
         self.saver.save()
+
 
     def compute_effective_field(self, t):
 
