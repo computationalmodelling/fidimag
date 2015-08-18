@@ -42,12 +42,13 @@ def test_dmi_1d_field():
     sim.add(dmi)
 
     field = dmi.compute_field()
-    expected = np.array([0, 0, -1, 0, 0, -1]) * 1.23
 
-    assert (field == expected).all()
+    expected = np.array([0, -1, 0, 0, 0, -1]) * 1.23
+
+    assert np.allclose(field,expected)
 
     energy = dmi.compute_energy()
-    print energy
+
     assert energy == 1.23
 
 if __name__ == '__main__':

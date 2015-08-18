@@ -1,6 +1,6 @@
 #include "clib.h"
 
-void dmi_field_bulk(double *spin, double *field, double *energy, double D, double *ngbs, int nxyz) {
+void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz) {
     
 	#pragma omp parallel for
 	for (int i = 0; i < nxyz; i++) {

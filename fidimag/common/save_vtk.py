@@ -22,12 +22,10 @@ class SaveVTK():
         # build a new index since we have used difference order
         ids = [self.mesh.index(i, j, k) for i in range(self.nx)
                for j in range(self.ny) for k in range(self.nz)]
+
         self.ids = np.array(ids)
 
-        self.pos = []
-        for i in range(len(ids)):
-            print self.ids[i]
-            self.pos.append(self.mesh.pos[self.ids[i]])
+        self.pos = [self.mesh.pos[self.ids[i]] for i in range(mesh.nxyz)]
 
     def save_vtk(self, m, step=0, vtkname='m'):
 

@@ -61,7 +61,7 @@ class FDMesh():
         """
         if i < 0 or j < 0 or k < 0 or i >= self.nx or j >= self.ny or k >= self.nz:
             return -1
-        return i * self.nxy + j * self.nx + k
+        return k * self.nxy + j * self.nx + i
 
     def index(self, i, j, k):
         """
@@ -106,7 +106,7 @@ class FDMesh():
                     ]
                     connectivity.append(ngbs)
 
-        self.connectivity = np.array(connectivity)
+        self.connectivity = np.array(connectivity, dtype=np.int32)
 
     # only used for tests
     def pos_at(self, i, j, k):
