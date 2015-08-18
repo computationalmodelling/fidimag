@@ -1,87 +1,63 @@
 #include "clib.h"
 
-void dmi_field(double *spin, double *field, double *energy, double Dx, double Dy, double Dz,
-		int nx, int ny, int nz, int xperiodic, int yperiodic) {
-
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
-	int i, j, k;
-	int index, id;
-	double fx,fy,fz;
+void dmi_field_bulk(double *spin, double *field, double *energy, double D, double *ngbs, int nxyz) {
     
-	#pragma omp parallel for private(i,j,k, index, id, fx, fy, fz)
-	for (i = 0; i < nx; i++) {
-        for (j = 0; j < ny; j++) {
-            for (k = 0; k < nz; k++) {
-                
-                index = nyz * i + nz * j + k;
-                fx = 0;
-                fy = 0;
-                fz = 0;
-                
-                if (k > 0) {
-                    id = index - 1;
-                    fx += Dz * cross_x(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += Dz * cross_y(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += Dz * cross_z(0,0,-1,spin[id],spin[id+n1],spin[id+n2]);
-                }
-                
-                if (j > 0 || yperiodic) {
-                    id = index - nz;
-                    if (j==0) {
-                        id += nyz;
-                    }
-                    fx += Dy * cross_x(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += Dy * cross_y(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += Dy * cross_z(0,-1,0,spin[id],spin[id+n1],spin[id+n2]);
-                }
-                
-                if (i > 0 || xperiodic) {
-                    id = index - nyz;
-                    if (i==0) {
-                        id += n1;
-                    }
-                    fx += Dx * cross_x(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += Dx * cross_y(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += Dx * cross_z(-1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                }
-                
-                if (i < nx - 1 || xperiodic) {
-                    id = index + nyz;
-                    if (i == nx-1){
-                        id -= n1;
-                    }
-                    fx += Dx * cross_x(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += Dx * cross_y(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += Dx * cross_z(1,0,0,spin[id],spin[id+n1],spin[id+n2]);
-                }
-                
-                if (j < ny - 1 || yperiodic) {
-                    id = index + nz;
-                    if (j == ny-1){
-                        id -= nyz;
-                    }
-                    fx += Dy * cross_x(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += Dy * cross_y(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += Dy * cross_z(0,1,0,spin[id],spin[id+n1],spin[id+n2]);
-                }
-                
-                if (k < nz - 1) {
-                    id = index + 1;
-                    fx += Dz * cross_x(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
-                    fy += Dz * cross_y(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
-                    fz += Dz * cross_z(0,0,1,spin[id],spin[id+n1],spin[id+n2]);
-                }
-                
-                field[index] = fx;
-                field[index + n1] = fy;
-                field[index + n2] = fz;
-                
-                energy[index] = -0.5*(fx*spin[index]+fy*spin[index+n1]+fz*spin[index+n2]);
+	#pragma omp parallel for
+	for (int i = 0; i < nxyz; i++) {
 
-            }
-        }
-	}
+		int id =0;
+		int idv = 6*i; //index for the neighbours
+		
+		double fx = 0, fy=0, fz=0;
+
+		if (ngbs[idv]>=0) { //x-1
+			id = 3*ngbs[idv]; 
+			fx += D*cross_x(-1,0,0,spin[id],spin[id+1],spin[id+2]);
+			fy += D*cross_y(-1,0,0,spin[id],spin[id+1],spin[id+2]);
+			fz += D*cross_z(-1,0,0,spin[id],spin[id+1],spin[id+2]);
+		}
+
+		if (ngbs[idv+1]>=0) { //x+1
+			id = 3*ngbs[idv+1]; 
+			fx += D*cross_x(1,0,0,spin[id],spin[id+1],spin[id+2]);
+			fy += D*cross_y(1,0,0,spin[id],spin[id+1],spin[id+2]);
+			fz += D*cross_z(1,0,0,spin[id],spin[id+1],spin[id+2]);
+		}
+
+		if (ngbs[idv+2]>=0) { //y-1
+			id = 3*ngbs[idv+2]; 
+			fx += D*cross_x(0,-1,0,spin[id],spin[id+1],spin[id+2]);
+			fy += D*cross_y(0,-1,0,spin[id],spin[id+1],spin[id+2]);
+			fz += D*cross_z(0,-1,0,spin[id],spin[id+1],spin[id+2]);
+		}
+
+		if (ngbs[idv+3]>=0) { //y+1
+			id = 3*ngbs[idv+3]; 
+			fx += D*cross_x(0,1,0,spin[id],spin[id+1],spin[id+2]);
+			fy += D*cross_y(0,1,0,spin[id],spin[id+1],spin[id+2]);
+			fz += D*cross_z(0,1,0,spin[id],spin[id+1],spin[id+2]);
+		}
+
+		if (ngbs[idv+4]>=0) { //z-1
+			id = 3*ngbs[idv+4]; 
+			fx += D*cross_x(0,0,-1,spin[id],spin[id+1],spin[id+2]);
+			fy += D*cross_y(0,0,-1,spin[id],spin[id+1],spin[id+2]);
+			fz += D*cross_z(0,0,-1,spin[id],spin[id+1],spin[id+2]);
+		}
+
+		if (ngbs[idv+5]>=0) { //z+1
+			id = 3*ngbs[idv+5]; 
+			fx += D*cross_x(0,0,1,spin[id],spin[id+1],spin[id+2]);
+			fy += D*cross_y(0,0,1,spin[id],spin[id+1],spin[id+2]);
+			fz += D*cross_z(0,0,1,spin[id],spin[id+1],spin[id+2]);
+		}
+
+		field[3*i] = fx;
+        field[3*i+1] = fy;
+        field[3*i+2] = fz;
+                
+        energy[i] = -0.5*(fx*spin[3*i]+fy*spin[3*i+1]+fz*spin[3*i+2]);
+    }
 
 }
 

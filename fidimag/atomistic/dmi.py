@@ -15,9 +15,6 @@ class DMI(Energy):
         self.name = name
         self.dmi_type = dmi_type
 
-        self.Dx = D
-        self.Dy = D
-        self.Dz = D
         self.jac = True
 
     def compute_field(self, t=0, spin=None):
@@ -31,14 +28,9 @@ class DMI(Energy):
             clib.compute_dmi_field(m,
                                    self.field,
                                    self.energy,
-                                   self.Dx,
-                                   self.Dy,
-                                   self.Dz,
-                                   self.nx,
-                                   self.ny,
-                                   self.nz,
-                                   self.xperiodic,
-                                   self.yperiodic)
+                                   self.D,
+                                   self.connectivity,
+                                   self.nxyz)
 
         elif self.dmi_type == 'interfacial':
             clib.compute_dmi_field_interfacial(m,
