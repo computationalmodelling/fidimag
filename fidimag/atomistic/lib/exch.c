@@ -14,88 +14,54 @@
  */
 void compute_exch_field(double *spin, double *field, double *energy,
 						double Jx, double Jy, double Jz,
-						int nx, int ny, int nz, int xperiodic, int yperiodic) {
+                        int *ngbs, int nxyz) {
+    
+    #pragma omp parallel for
+	for (int i = 0; i < nxyz; i++) {
 
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
-	int i, j, k;
-	int index, id;
-	double fx,fy,fz;
+		int id = 0;
+		int idv = 6 * i; // index for the neighbours
+		
+		double fx = 0, fy = 0, fz = 0;
 
-	#pragma omp parallel for private(i, j, k, index, id, fx, fy, fz)
-	for (i = 0; i < nx; i++) {
-        for (j = 0; j < ny; j++) {
-            for (k = 0; k < nz; k++) {
-                
-                index = nyz * i + nz * j + k;
-                
-                fx=0;
-                fy=0;
-                fz=0;
-                
-                if (k > 0) {
-                    id = index - 1;
-                    fx += Jz * spin[id];
-                    fy += Jz * spin[id + n1];
-                    fz += Jz * spin[id + n2];
-                }
-                
-                if (j > 0 || yperiodic) {
-                    id = index - nz;
-                    if (j==0) {
-                        id += nyz;
-                    }
-                    fx += Jy * spin[id];
-                    fy += Jy * spin[id + n1];
-                    fz += Jy * spin[id + n2];
-                }
-                
-                if (i > 0 || xperiodic) {
-                    id = index - nyz;
-                    if (i==0) {
-                        id += n1;
-                    }
-                    fx += Jx * spin[id];
-                    fy += Jx * spin[id + n1];
-                    fz += Jx * spin[id + n2];
-                }
-                
-                if (i < nx - 1 || xperiodic) {
-                    id = index + nyz;
-                    if (i == nx-1){
-                        id -= n1;
-                    }
-                    fx += Jx * spin[id];
-                    fy += Jx * spin[id + n1];
-                    fz += Jx * spin[id + n2];
-                }
-                
-                if (j < ny - 1 || yperiodic) {
-                    id = index + nz;
-                    if (j == ny-1){
-                        id -= nyz;
-                    }
-                    fx += Jy * spin[id];
-                    fy += Jy * spin[id + n1];
-                    fz += Jy * spin[id + n2];
-                }
-                
-                if (k < nz - 1) {
-                    id = index + 1;
-                    fx += Jz * spin[id];
-                    fy += Jz * spin[id + n1];
-                    fz += Jz * spin[id + n2];
-                }
-                
-                field[index] = fx;
-                field[index + n1] = fy;
-                field[index + n2] = fz;
-                
-                energy[index] = -0.5*(fx*spin[index]+fy*spin[index+n1]+fz*spin[index+n2]);
+        /* ngbs[] contains the indexes of the neighbours
+         * in the following order:
+         *      -x, +x, -y, +y, -z, +z
+         *  
+         * for every spin. It is -1 for boundaries.
+         * The array is like:
+         *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
+         *        i=0                           i=1                ...
+         *
+         * where  0-y  is the index of the neighbour of the 0th spin,
+         * in the -y direction, for example
+         * 
+         * Thus, for every neighbour ( ngbs[i + j], j=0,1,...5 )
+         * we compute the field contribution: Sum_j J_j S_j
+         * of the neighbours to the exchange interaction
+         *
+         * The ngbs array also gives the correct indexes for the spins
+         * at periodic boundaries
+         */
 
+        for (int j = 0; j < 6; j++) {
+
+            if (ngbs[idv + j] >= 0) {
+
+                id = 3 * ngbs[idv + j]; 
+                fx += Jx * spin[id];
+                fy += Jy * spin[id + 1];
+                fz += Jz * spin[id + 2];
             }
+
         }
-	}
+
+        field[3 * i] = fx;
+        field[3 * i + 1] = fy;
+        field[3 * i + 2] = fz;
+        energy[i] = -0.5 * (fx * spin[3 * i] + fy * spin[3 * i + 1] + 
+                            fz * spin[3 * i + 2]);
+    }
 }
 
 double compute_exch_energy(double *spin, double Jx,  double Jy, double Jz,

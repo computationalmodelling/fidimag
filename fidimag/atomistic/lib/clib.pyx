@@ -12,7 +12,9 @@ cdef extern from "clib.h":
     void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
     void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py)
 
-    void compute_exch_field(double *spin, double *field, double *energy, double Jx, double Jx, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
+    void compute_exch_field(double *spin, double *field, double *energy,
+                            double Jx, double Jy, double Jz,
+                            int *ngbs, int nxyz)
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     
     void dmi_field_bulk(double *spin, double *field, double *energy, double D, double *ngbs, int nxyz) 
@@ -94,10 +96,13 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
                             np.ndarray[double, ndim=1, mode="c"] energy,
                             Jx, Jy, Jz,
-                            nx, ny, nz,
-                            xperiodic,yperiodic):
+                            np.ndarray[int, ndim=2, mode="c"] ngbs,
+                            nxyz
+                            ):
 
-    compute_exch_field(&spin[0], &field[0], &energy[0], Jx, Jy, Jz, nx, ny, nz, xperiodic, yperiodic)
+    compute_exch_field(&spin[0], &field[0], &energy[0],
+		       Jx, Jy, Jz,
+                       &ngbs[0, 0], nxyz)
     
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                             Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):
