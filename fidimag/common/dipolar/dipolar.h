@@ -45,6 +45,64 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz);
 void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res);
 void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py);
 
+//==========================================
+//used for demag
+
+typedef struct {
+	int nx;
+	int ny;
+	int nz;
+	double dx;
+	double dy;
+	double dz;
+	int lenx;
+	int leny;
+	int lenz;
+
+	int total_length;
+
+	double *tensor_xx;
+	double *tensor_yy;
+	double *tensor_zz;
+	double *tensor_xy;
+	double *tensor_xz;
+	double *tensor_yz;
+
+	fftw_complex *Nxx;
+	fftw_complex *Nyy;
+	fftw_complex *Nzz;
+	fftw_complex *Nxy;
+	fftw_complex *Nxz;
+	fftw_complex *Nyz;
+
+	fftw_complex *Mx;
+	fftw_complex *My;
+	fftw_complex *Mz;
+	fftw_complex *Hx;
+	fftw_complex *Hy;
+	fftw_complex *Hz;
+
+	double *mx;
+	double *my;
+	double *mz;
+	double *hx;
+	double *hy;
+	double *hz;
+
+	//we need three plans
+	fftw_plan tensor_plan;
+	fftw_plan m_plan;
+	fftw_plan h_plan;
+
+} fft_demag_plan;
+
+fft_demag_plan *create_plan(void);
+void finalize_plan(fft_demag_plan *plan);
+void init_plan(fft_demag_plan *plan, double dx, double dy,
+		double dz, int nx, int ny, int nz, int oommf);
+void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
+void exact_compute(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
+double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
 
 //=========================================================
 //=========================================================
