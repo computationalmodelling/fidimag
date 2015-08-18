@@ -18,12 +18,16 @@ def test_exch_1d():
     sim.set_m(init_m, normalise=False)
 
     field = exch.compute_field()
+
+
     assert field[0] == 1
-    assert field[1] == 2
-    assert field[2] == 4
-    assert field[3] == 6
-    assert field[4] == 3
-    assert np.max(field[5:]) == 0
+    assert field[3] == 2
+    assert field[6] == 4
+    assert field[9] == 6
+    assert field[12] == 3
+
+    assert np.max(field[2::3]) == 0
+    assert np.max(field[1::3]) == 0
 
 
 def test_exch_1d_pbc():
@@ -36,11 +40,12 @@ def test_exch_1d_pbc():
 
     field = exch.compute_field()
     assert field[0] == 1 + 4
-    assert field[1] == 2
-    assert field[2] == 4
-    assert field[3] == 6
-    assert field[4] == 3 + 0
-    assert np.max(field[5:]) == 0
+    assert field[3] == 2
+    assert field[6] == 4
+    assert field[9] == 6
+    assert field[12] == 3 + 0
+    assert np.max(field[2::3]) == 0
+    assert np.max(field[1::3]) == 0
 
 
 def test_exch_2d():
@@ -52,12 +57,14 @@ def test_exch_2d():
     sim.set_m(init_m, normalise=False)
 
     field = exch.compute_field()
+
+    assert np.max(field[2::3]) == 0
+
     assert field[0] == 1
-    assert field[2] == 2 + 1
-    assert field[4] == 1 + 2 + 3
-    assert field[6] == 2 + 3 + 4
-    assert field[8] == 3 + 4
-    assert np.max(field[21:]) == 0
+    assert field[3] == 2 + 1
+    assert field[6] == 1 + 2 + 3
+    assert field[9] == 2 + 3 + 4
+    assert field[12] == 3 + 4
 
 
 def test_exch_2d_pbc2d():

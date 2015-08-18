@@ -45,7 +45,7 @@ void compute_exch_field(double *spin, double *field, double *energy,
          */
 
         for (int j = 0; j < 6; j++) {
-
+            
             if (ngbs[idv + j] >= 0) {
 
                 id = 3 * ngbs[idv + j]; 

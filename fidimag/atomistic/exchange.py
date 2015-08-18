@@ -40,11 +40,8 @@ class UniformExchange(Energy):
                                     self.Jx,
                                     self.Jy,
                                     self.Jz,
-                                    self.nx,
-                                    self.ny,
-                                    self.nz,
-                                    self.xperiodic,
-                                    self.yperiodic)
+                                    self.connectivity,
+                                    self.nxyz)
 
         return self.field * self.mu_s_inv
 
