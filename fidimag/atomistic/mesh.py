@@ -1,6 +1,9 @@
 
 
 class FDMesh():
+	"""
+	pbc should be a string contain 'x', 'y' or 'z'. '1d' and '2d' are also acceptable options.
+	"""
 
     def __init__(self, dx=1.0, dy=1.0, dz=1.0, nx=10, ny=1, nz=1, unit_length=1.0, pbc=None):
         self.dx = dx
@@ -9,6 +12,7 @@ class FDMesh():
         self.nx = nx
         self.ny = ny
         self.nz = nz
+        self.nxy = nx*ny
         self.nyz = ny * nz
         self.nxyz = nx * ny * nz
         self.unit_length = unit_length
@@ -17,27 +21,29 @@ class FDMesh():
         self.pbc = pbc
         self.xperiodic = 0
         self.yperiodic = 0
+        self.zperiodic = 0
 
         if pbc is None:
             pass
-        elif pbc == 'x' or pbc == '1d':
-            self.xperiodic = 1
-        elif pbc == 'y':
-            self.yperiodic = 1
-        elif pbc == 'xy' or pbc == '2d':
-            self.xperiodic = 1
-            self.yperiodic = 1
+        elif pbc == '1d':
+        	self.xperiodic = 1
+        elif pbc == '2d':
+        	self.yperiodic = 1
         else:
-            raise Exception(
-                "Only options None, 'x' ('1d'), 'y' or 'xy' ('2d') are acceptable!")
+        	if 'x' in pbc:
+        		self.xperiodic = 1
+        	if 'y' in pbc:
+        		self.yperiodic = 1
+        	if 'z' in pbc:
+        		self.zperiodic = 1
 
         self.init_neighbours()
 
     def compute_pos(self):
         self.pos = []
-        for i in range(self.nx):
-            for j in range(self.ny):
-                for k in range(self.nz):
+        for k in range(self.nz):
+        	for j in range(self.ny):
+        		for i in range(self.nx):
 
                     tp = ((i + 0.5) * self.dx,
                           (j + 0.5) * self.dy,
@@ -46,7 +52,9 @@ class FDMesh():
                     self.pos.append(tp)
 
     def index(self, i, j, k):
-        idx = i * self.nyz + j * self.nz + k
+
+    	idx = k * self.nxy + j * self.nx + i
+        
         return idx
 
     def init_neighbours(self):
@@ -57,7 +65,7 @@ class FDMesh():
         for i in xrange(self.nx):
             for j in xrange(self.ny):
                 for k in xrange(self.nz):
-                    index = self.nyz * i + self.nz * j + k
+                    index = k * self.nx*self.ny + j * self.nx + i
 
                     ngx = []
                     if i > 0 or self.xperiodic:
