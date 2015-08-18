@@ -9,11 +9,12 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
     double hpi,hpj,hpk;
 
 	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
-	for (i = 0; i < nxyz; i++) {
-		j = i + nxyz;
-		k = j + nxyz;
+	for (int id = 0; id < nxyz; id++) {
+        i = 3*id;
+		j = i+1;
+		k = i+2;
 
-		if (pins[i]>0){
+		if (pins[id]>0){
 			 dm_dt[i] = 0;
 			 dm_dt[j] = 0;
 			 dm_dt[k] = 0;

@@ -262,9 +262,10 @@ class LLG(object):
         return 0
 
     def compute_average(self):
-        self.spin.shape = (3, -1)
-        average = np.sum(self.spin, axis=1) / self.nxyz_nonzero
-        self.spin.shape = (3 * self.nxyz)
+        self.spin.shape = (-1, 3)
+        print self.spin
+        average = np.sum(self.spin, axis=0) / self.nxyz_nonzero
+        self.spin.shape = (-1,)
         return average
 
     def compute_energy(self):
@@ -287,14 +288,12 @@ class LLG(object):
     def spin_at(self, i, j, k):
         nxyz = self.mesh.nxyz
 
-        i1 = self.mesh.index(i, j, k)
-        i2 = i1 + nxyz
-        i3 = i2 + nxyz
+        index = 3*self.mesh.index(i, j, k)
 
         # print self.spin.shape,nxy,nx,i1,i2,i3
-        return np.array([self.spin[i1],
-                         self.spin[i2],
-                         self.spin[i3]])
+        return np.array([self.spin[index],
+                         self.spin[index+1],
+                         self.spin[index+2]])
 
     def add_monitor_at(self, i, j, k, name='p'):
         """
