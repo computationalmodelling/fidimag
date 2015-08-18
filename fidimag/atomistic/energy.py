@@ -28,12 +28,12 @@ class Energy(object):
         self.energy = np.zeros(3 * mesh.nxyz, dtype=np.float)
         self.mu_s_inv = np.zeros(3 * self.nxyz, dtype=np.float)
 
-        self.mu_s_inv.shape = (3, -1)
+        self.mu_s_inv.shape = (-1, 3)
         for i in range(mesh.nxyz):
             if self.mu_s[i] == 0.0:
-                self.mu_s_inv[:, i] = 0
+                self.mu_s_inv[i, :] = 0
             else:
-                self.mu_s_inv[:, i] = 1.0 / self.mu_s[i]
+                self.mu_s_inv[i, :] = 1.0 / self.mu_s[i]
 
         self.mu_s_inv.shape = (-1,)
 

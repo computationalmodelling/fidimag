@@ -18,7 +18,7 @@ void compute_anis(double *spin, double *field, double *energy,
 	double *Ku, double *axis, int nx, int ny, int nz);
 
 
-void dmi_field_bulk(double *spin, double *field, double *energy, double D, double *ngbs, int nxyz);
+void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz);
 void dmi_field_interfacial_atomistic(double *m, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic);
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
 

@@ -14,11 +14,13 @@ def normalise(a):
     """
     normalise the given array a
     """
-    a.shape = (3, -1)
-    b = np.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+    a.shape = (-1, 3)
+    b = np.sqrt(a[:,0]**2 + a[:,1]**2 + a[:,2]**2)
     ids = (b == 0)
     b[ids] = 1.0
-    a /= b
+    a[:,0] /= b
+    a[:,1] /= b
+    a[:,2] /= b
     a.shape = (-1,)
 
 
@@ -30,7 +32,7 @@ def init_vector(m0, mesh, norm=False):
 
     if isinstance(m0, list) or isinstance(m0, tuple):
         spin[:, :] = m0
-        spin = np.reshape(spin, 3 * nxyz, order='F')
+        spin = np.reshape(spin, 3 * nxyz, order='C')
     elif hasattr(m0, '__call__'):
         for i in range(nxyz):
             v = m0(mesh.pos[i])
@@ -38,7 +40,7 @@ def init_vector(m0, mesh, norm=False):
                 raise Exception(
                     'The length of the value in init_vector method must be 3.')
             spin[i, :] = v[:]
-        spin = np.reshape(spin, 3 * nxyz, order='F')
+        spin = np.reshape(spin, 3 * nxyz, order='C')
     elif isinstance(m0, np.ndarray):
         spin.shape = (-1,)
         if m0.shape == spin.shape:

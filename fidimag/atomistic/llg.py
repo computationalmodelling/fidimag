@@ -96,10 +96,10 @@ class LLG(object):
         self.spin[:] = helper.init_vector(m0, self.mesh, normalise)
 
         # TODO: carefully checking and requires to call set_mu first
-        self.spin.shape = (3, -1)
-        for i in range(self.spin.shape[1]):
+        self.spin.shape = (-1, 3)
+        for i in range(self.spin.shape[0]):
             if self._mu_s[i] == 0:
-                self.spin[:, i] = 0
+                self.spin[i, :] = 0
         self.spin.shape = (-1,)
 
         self.vode.set_initial_value(self.spin, self.t)
