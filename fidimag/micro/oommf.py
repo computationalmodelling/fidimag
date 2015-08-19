@@ -195,8 +195,9 @@ def get_field(mesh,  field='Demag'):
     new_path = os.path.join(MODULE_DIR, field)
     file_name = '%s-Oxs_%s-Field-00-0000001.ohf' % (field.lower(), field)
     ovf_file = os.path.join(new_path, file_name)
+    ovf = omf.OMF2(ovf_file)
 
-    return extract_data(mesh, ovf_file)
+    return ovf.get_all_mags()
 
 
 def compute_demag_field(mesh, init_m0, Ms=8e5,  spatial_Ms=None, field='Demag'):

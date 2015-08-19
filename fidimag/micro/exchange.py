@@ -27,6 +27,7 @@ class UniformExchange(Energy):
                                                 self.ny,
                                                 self.nz,
                                                 self.xperiodic,
+                                                self.yperiodic,
                                                 self.yperiodic)
 
         return self.field

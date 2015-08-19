@@ -6,10 +6,10 @@ from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute
 
 def compare_fields(v1, v2):
 
-    v1.shape = (3, -1)
-    v2.shape = (3, -1)
+    v1.shape = (-1, 3)
+    v2.shape = (-1, 3)
 
-    f = (v1[0, :]**2 + v1[1, :]**2 + v1[2, :]**2)**0.5
+    f = (v1[:, 0]**2 + v1[:, 1]**2 + v1[:, 2]**2)**0.5
 
     zero_values = f[:] == 0
     f[zero_values] = 1
@@ -21,9 +21,9 @@ def compare_fields(v1, v2):
 
     # print v2[0,:]
 
-    max0 = np.max(diff[0, :] / f)
-    max1 = np.max(diff[1, :] / f)
-    max2 = np.max(diff[2, :] / f)
+    max0 = np.max(diff[:, 0] / f)
+    max1 = np.max(diff[:, 1] / f)
+    max2 = np.max(diff[:, 2] / f)
 
     v1.shape = (-1,)
     v2.shape = (-1,)
@@ -325,7 +325,7 @@ if __name__ == '__main__':
 
     # test_demag_field_oommf()
 
-    # test_exch_field_oommf()
+    test_exch_field_oommf()
 
     # test_demag_field_oommf_large()
 
@@ -335,4 +335,4 @@ if __name__ == '__main__':
 
     # test_dmi_field_oommf()
 
-    test_with_oommf_spatial_Ms()
+    #test_with_oommf_spatial_Ms()

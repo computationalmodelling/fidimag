@@ -39,7 +39,8 @@ class DMI(Energy):
                                               self.ny,
                                               self.nz,
                                               self.xperiodic,
-                                              self.yperiodic)
+                                              self.yperiodic,
+                                              self.zperiodic)
         elif self.type == 'interfacial':
             micro_clib.compute_dmi_field_interfacial(self.spin,
                                                      self.field,

@@ -27,8 +27,8 @@ class FDMesh():
         self.dy_real = self.dy * unit_length
         self.dz_real = self.dz * unit_length
 
-        self.nyz = self.ny * self.nz
-        self.nxyz = self.nx * self.nyz
+        self.nxy = self.nx*self.ny
+        self.nxyz = self.nxy * self.nz
         self.unit_length = unit_length
 
         self.pbc = pbc
@@ -39,34 +39,38 @@ class FDMesh():
 
         self.xperiodic = 0
         self.yperiodic = 0
+        self.zperiodic = 0
 
         if pbc is None:
             pass
-        elif pbc == 'x' or pbc == '1d':
+        elif pbc == '1d':
             self.xperiodic = 1
-        elif pbc == 'y':
-            self.yperiodic = 1
-        elif pbc == 'xy' or pbc == '2d':
+        elif pbc == '2d':
             self.xperiodic = 1
             self.yperiodic = 1
         else:
-            raise Exception(
-                "Only options None, 'x' ('1d'), 'y' or 'xy' ('2d') are acceptable!")
+            if 'x' in pbc:
+                self.xperiodic = 1
+            if 'y' in pbc:
+                self.yperiodic = 1
+            if 'z' in pbc:
+                self.zperiodic = 1
 
     def compute_pos(self):
+        
         self.pos = []
-        for i in range(self.nx):
+        for k in range(self.nz):
             for j in range(self.ny):
-                for k in range(self.nz):
+                for i in range(self.nx):
 
-                    tp = ((i + 0.5) * self.dx + self.x0,
-                          (j + 0.5) * self.dy + self.y0,
-                          (k + 0.5) * self.dz + self.z0)
+                    tp = ((i + 0.5) * self.dx,
+                          (j + 0.5) * self.dy,
+                          (k + 0.5) * self.dz)
 
                     self.pos.append(tp)
 
     def index(self, i, j, k):
-        idx = i * self.nyz + j * self.nz + k
+        idx = k * self.nxy + j * self.nx + i
         return idx
 
     def index_z(self, k=0):

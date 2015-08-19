@@ -44,7 +44,7 @@ class OMF2:
         count = 3 * self.xnodes * self.ynodes * self.znodes
         data = f.read(8 * count)
         self.data = numpy.frombuffer(data)
-        self.data = numpy.reshape(self.data, (3, -1), order='F')
+        self.data = numpy.reshape(self.data, (-1, 3))
         f.close()
         return
 
@@ -57,11 +57,19 @@ class OMF2:
 
         id_comp = ord(comp) - ord('x')
 
-        return self.data[id_comp][index]
+        return self.data[index][id_comp]
 
     def get_all_mag(self, comp='x'):
         """
         return x, y or z component of magnetisation of all nodes 
         """
         index = ord(comp) - ord('x')
-        return self.data[index]
+        return self.data[:,index]
+	
+    def get_all_mags(self, order='xyz'):
+        if order=='xyz':
+            d = self.data.copy()
+            d.shape=(-1)
+            return d
+        elif order=='xxx':
+            return np.array([self.data[:,0], self.data[:,1], self.data[:,2]])
