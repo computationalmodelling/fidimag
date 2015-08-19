@@ -9,6 +9,14 @@ def varying_field(pos):
 
 
 def test_zeeman():
+    """
+    Test the x and y component of the zeeman field
+    for the 2nd spin
+
+        6  7  8  9  10 11
+        0  1  2  3  4  5
+              ^
+    """
 
     mesh = FDMesh(nx=5, ny=2, nz=1)
 
@@ -20,8 +28,8 @@ def test_zeeman():
 
     field = zeeman.compute_field()
 
-    assert field[4] == 1.2 * (2 + 0.5)
-    assert field[14] == 2.3 * 0.5
+    assert field[2 * 3] == 1.2 * (2 + 0.5)
+    assert field[2 * 3 + 1] == 2.3 * 0.5
 
 
 if __name__ == '__main__':
