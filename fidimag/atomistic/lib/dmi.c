@@ -2,139 +2,206 @@
 
 void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz) {
     
+    /* Bulk DMI field and energy computation
+     *
+     * ngbs[] contains the *indexes* of the neighbours
+     * in the following order:
+     *      -x, +x, -y, +y, -z, +z
+     *
+     * for every spin. It is -1 for boundaries.
+     * The array is like:
+     *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
+     *        i=0                           i=1                ...
+     *
+     * where  0-y  is the index of the neighbour of the 0th spin,
+     * in the -y direction, for example
+     *
+     * Thus, for every neighbour ( ngbs[i + j], j=0,1,...5 )
+     * we compute the field contribution.
+     *
+     * The value of ngbs[] at sites with Ms = 0, is negative 
+     * 
+     * The ngbs array also gives the correct indexes for the spins
+     * at periodic boundaries
+     *
+     * The Bulk DMI Dzyaloshinskii vectors are in the same direction than the
+     * r_ij vectors which connect two neighbouring sites, pointing from the
+     * lattice site *i* towards *j*
+     *
+     * The bulk DMI is defined in 3 dimensions
+     *
+     * Then the DMI field is computed as :  
+     *
+     *      Sum_j ( D_ij X S_j ) = Sum_j ( r_ij X S_j )
+     * 
+     * for every spin *i*
+     *
+     */
+
 	#pragma omp parallel for
 	for (int i = 0; i < nxyz; i++) {
 
-		int id =0;
-		int idv = 6*i; //index for the neighbours
-		
-		double fx = 0, fy=0, fz=0;
+		int id = 0;
+		int idv = 6 * i; // index for the neighbours
 
-		if (ngbs[idv]>=0) { //x-1
-			id = 3*ngbs[idv]; 
+		double fx = 0, fy = 0, fz = 0;
+
+		if (ngbs[idv]>=0) { // neighbour at x-1
+			id = 3*ngbs[idv];
 			fx += D*cross_x(-1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(-1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(-1,0,0,spin[id],spin[id+1],spin[id+2]);
 		}
 
-		if (ngbs[idv+1]>=0) { //x+1
-			id = 3*ngbs[idv+1]; 
+		if (ngbs[idv+1]>=0) { // neighbour x+1
+			id = 3*ngbs[idv+1];
 			fx += D*cross_x(1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(1,0,0,spin[id],spin[id+1],spin[id+2]);
 		}
 
-		if (ngbs[idv+2]>=0) { //y-1
-			id = 3*ngbs[idv+2]; 
+		if (ngbs[idv+2]>=0) { // neighbour at y-1
+			id = 3*ngbs[idv+2];
 			fx += D*cross_x(0,-1,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,-1,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,-1,0,spin[id],spin[id+1],spin[id+2]);
 		}
 
-		if (ngbs[idv+3]>=0) { //y+1
-			id = 3*ngbs[idv+3]; 
+		if (ngbs[idv+3]>=0) { // neighbour at y+1
+			id = 3*ngbs[idv+3];
 			fx += D*cross_x(0,1,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,1,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,1,0,spin[id],spin[id+1],spin[id+2]);
 		}
 
-		if (ngbs[idv+4]>=0) { //z-1
-			id = 3*ngbs[idv+4]; 
+		if (ngbs[idv+4]>=0) { // neighbour at z-1
+			id = 3*ngbs[idv+4];
 			fx += D*cross_x(0,0,-1,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,0,-1,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,0,-1,spin[id],spin[id+1],spin[id+2]);
 		}
 
-		if (ngbs[idv+5]>=0) { //z+1
-			id = 3*ngbs[idv+5]; 
+		if (ngbs[idv+5]>=0) { // neighbour at z+1
+			id = 3*ngbs[idv+5];
 			fx += D*cross_x(0,0,1,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,0,1,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,0,1,spin[id],spin[id+1],spin[id+2]);
 		}
 
-		field[3*i] = fx;
-        field[3*i+1] = fy;
-        field[3*i+2] = fz;
-                
-        energy[i] = -0.5*(fx*spin[3*i]+fy*spin[3*i+1]+fz*spin[3*i+2]);
+		field[3 * i] = fx;
+        field[3 * i + 1] = fy;
+        field[3 * i + 2] = fz;
+
+        energy[i] = -0.5 * (fx * spin[3 * i] + 
+                            fy * spin[3 * i + 1] + 
+                            fz * spin[3 * i + 2]
+                            );
     }
-
 }
 
-void dmi_field_interfacial_atomistic(double *m, double *field, double *energy,
-    double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
-    
-  	int nyz = ny * nz;
-  	int n1 = nx * nyz, n2 = 2 * n1;
-    
-  	double Dx = D, Dy = D;
-    
+void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy,
+    double D, int *ngbs, int nxyz) {
+
+    /* Interfacial DMI field and energy computation
+     *
+     * ngbs[] contains the *indexes* of the neighbours
+     * in the following order:
+     *      -x, +x, -y, +y, -z, +z
+     *
+     * for every spin. It is -1 for boundaries.
+     * The array is like:
+     *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
+     *        i=0                           i=1                ...
+     *
+     * where  0-y  is the index of the neighbour of the 0th spin,
+     * in the -y direction, for example
+     *
+     * Thus, for every neighbour ( ngbs[i + j], j=0,1,...5 )
+     * we compute the field contribution
+     * The value of ngbs[] at sites with Ms = 0, is negative 
+     *
+     * The ngbs array also gives the correct indexes for the spins
+     * at periodic boundaries
+     *
+     * The Interfacial DMI needs the direction of the Dzyaloshinskii vectors,
+     * which are obtained as
+     *
+     *      D_ij = r_ij  X  +z
+     *
+     * where r_ij is the vector connecting two neighbouring sites,
+     * which gives for a lattice site X (neighbrs O) :
+     *
+     *                    O
+     *                    .
+     *                   --->  D_ij
+     *                    .
+     *              ^     .                  ^ y
+     *          O . | . . X . . | . O        |
+     *                    .     v            |---> x
+     *                    .
+     *                   <---
+     *                    .
+     *                    O
+     *
+     * (this DMI is only defined in two dimensions--> interfaces, thin films)
+     * Then the DMI field is computed as :  Sum_j ( D_ij X S_j )
+     * for every spin *i*
+     *
+     */
+
+  	// double Dx = D, Dy = D;
+
   	#pragma omp parallel for
-  	for (int i = 0; i < nx; i++) {
-    	for (int j = 0; j < ny; j++) {
-      		for (int k = 0; k < nz; k++) {
-                
-      		int index = nyz * i + nz * j + k;
-                
-      		double fx=0, fy=0, fz=0;
-                
-      		int id=0;
-                
-   	if (j > 0 || yperiodic) {
-    	id = index - nz;
-     	if (j==0) {id += nyz;}
-     	//rij = (0,-1,0), rij \times z = (-1,0,0)
-     	fx += Dy * cross_x(-1,0,0,m[id],m[id+n1],m[id+n2]);
-     	fy += Dy * cross_y(-1,0,0,m[id],m[id+n1],m[id+n2]);
-     	fz += Dy * cross_z(-1,0,0,m[id],m[id+n1],m[id+n2]);
-  	}
-                
-  	if (i > 0 || xperiodic) {
-    	id = index - nyz;
-    	if (i==0) {id += n1;}
-    	//rij = (-1,0,0), rij \times z = (0,1,0)
-    	fx += Dx * cross_x(0,1,0,m[id],m[id+n1],m[id+n2]);
-    	fy += Dx * cross_y(0,1,0,m[id],m[id+n1],m[id+n2]);
-    	fz += Dx * cross_z(0,1,0,m[id],m[id+n1],m[id+n2]);
-  	}
-                
-  	if (i < nx - 1 || xperiodic) {
-  		id = index + nyz;
-  		if (i == nx-1){
-  			id -= n1;
-		}
-  		//rij = (1,0,0), rij \times z = (0,-1,0)
-                    
-  		fx += Dx * cross_x(0,-1,0,m[id],m[id+n1],m[id+n2]);
-  		fy += Dx * cross_y(0,-1,0,m[id],m[id+n1],m[id+n2]);
-  		fz += Dx * cross_z(0,-1,0,m[id],m[id+n1],m[id+n2]);
-	}
-                
-  	if (j < ny - 1 || yperiodic) {
-  		id = index + nz;
-  		if (j == ny-1){
-  			id -= nyz;
-		}
-  
-  		//rij = (0,1,0), rij \times z = (1,0,0)
-  		fx += Dy * cross_x(1,0,0,m[id],m[id+n1],m[id+n2]);
-  		fy += Dy * cross_y(1,0,0,m[id],m[id+n1],m[id+n2]);
-  		fz += Dy * cross_z(1,0,0,m[id],m[id+n1],m[id+n2]);
-	}
+	for (int i = 0; i < nxyz; i++) {
 
-	field[index] = fx;
-  	field[index + n1] = fy;
-  	field[index + n2] = fz;
-    
-    //TODO: check whether the energy is correct or not. 
-  	energy[index] = -0.5*(fx*m[index]+fy*m[index+n1]+fz*m[index+n2]);
-                               
-  }
- }
-}
-    
-}
+		int id = 0;
+		int idv = 6 * i; //index for the neighbours
 
+		double fx = 0, fy = 0, fz = 0;
+
+		if (ngbs[idv] >= 0) { // Neighbour at: x-1
+            // rij = (-1,0,0), rij \times z = (0,1,0)
+			id = 3 * ngbs[idv];
+			fx += D *cross_x(0, 1, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fy += D *cross_y(0, 1, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fz += D *cross_z(0, 1, 0, spin[id], spin[id + 1], spin[id + 2]);
+		}
+
+		if (ngbs[idv + 1] >= 0) { // Meighbour at x+1
+            // rij = (1,0,0), rij \times z = (0,-1,0)
+			id = 3 * ngbs[idv + 1];
+			fx += D * cross_x(0, -1, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fy += D * cross_y(0, -1, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fz += D * cross_z(0, -1, 0, spin[id], spin[id + 1], spin[id + 2]);
+		}
+
+		if (ngbs[idv + 2] >= 0) { // Neighbour at: y-1
+            // rij = (0,-1,0), rij \times z = (-1,0,0)
+			id = 3 * ngbs[idv + 2];
+			fx += D * cross_x(-1, 0, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fy += D * cross_y(-1, 0, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fz += D * cross_z(-1, 0, 0, spin[id], spin[id + 1], spin[id + 2]);
+		}
+
+		if (ngbs[idv + 3] >= 0) { // Neighbour at: y+1
+            // rij = (0,1,0), rij \times z = (1,0,0)
+			id = 3 * ngbs[idv + 3];
+			fx += D * cross_x(1, 0, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fy += D * cross_y(1, 0, 0, spin[id], spin[id + 1], spin[id + 2]);
+			fz += D * cross_z(1, 0, 0, spin[id], spin[id + 1], spin[id + 2]);
+		}
+
+        field[3 * i] = fx;
+  	    field[3 * i + 1] = fy;
+  	    field[3 * i + 2] = fz;
+
+        //TODO: check whether the energy is correct or not.
+  	    energy[i] = -0.5 * (fx * spin[3 * i] +
+                            fy * spin[3 * i + 1]+
+                            fz * spin[3 * i + 2]
+                            );
+    }
+}
 
 
 inline double single_energy_x(double D, double Si[3], double Sj[3]){
@@ -158,9 +225,9 @@ double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic,
 	int n1 = nx * nyz, n2 = 2 * n1;
 	int i, j, k;
 	int index, id;
-	
+
 	double energy = 0;
-    
+
     double S_i[3],S_j[3];
 
 	for (i = 0; i < nx; i++) {
