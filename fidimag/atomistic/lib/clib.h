@@ -15,7 +15,7 @@ void compute_exch_field(double *spin, double *field, double *energy,
 double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 
 void compute_anis(double *spin, double *field, double *energy,
-	double *Ku, double *axis, int nx, int ny, int nz);
+	double *Ku, double *axis, int nxyz);
 
 
 void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz);

@@ -21,7 +21,8 @@ cdef extern from "clib.h":
     void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
 
-    void compute_anis(double *spin, double *field, double *energy, double *Ku, double *axis, int nx, int ny, int nz)
+    void compute_anis(double *spin, double *field, double *energy,
+                      double *Ku, double *axis, int nxyz)
 
     void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins, 
                  double gamma, int nxyz, int do_procession, double default_c)
@@ -115,8 +116,9 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] energy,
                         np.ndarray[double, ndim=1, mode="c"] Ku,
                         np.ndarray[double, ndim=1, mode="c"] axis,
-                        nx, ny, nz):
-    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0],  &axis[0], nx, ny, nz)
+                        nxyz):
+    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0], 
+                 &axis[0], nxyz)
     
     
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
