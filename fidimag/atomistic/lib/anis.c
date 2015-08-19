@@ -2,23 +2,31 @@
 
 
 void compute_anis(double *spin, double *field, double *energy,
-	double *Ku, double *axis, int nx, int ny, int nz) {
+	double *Ku, double *axis, int nxyz) {
 	
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
+    /* Remember that the magnetisation order is 
+     *      mx1, my1, mz1, mx2, my2, mz2, mx3,...
+     * so we get the corresponding components multiplying
+     * by 3 in every iteration. The anisotropy *axis* has the
+     * same ordering than the magnetisation (it can vary
+     * in space) and the anisotropy constant can change on
+     * every lattice site
+     * Neighbouring sites are not relevant here
+     *
+     */
+    #pragma omp parallel for
+	for (int i = 0; i < nxyz; i++) {
 
-    	#pragma omp parallel for
-	for (int i = 0; i < n1; i++) {
-	    int j = i+n1;
-            int k = i+n2;
+        double m_u = (spin[3 * i] * axis[3 * i] +
+                      spin[3 * i + 1] * axis[3 * i + 1] +
+                      spin[3 * i + 2] * axis[3 * i + 2]);
+    
+    
+		field[3 * i]     = 2 * Ku[i] * m_u * axis[3 * i]    ;
+		field[3 * i + 1] = 2 * Ku[i] * m_u * axis[3 * i + 1];
+		field[3 * i + 2] = 2 * Ku[i] * m_u * axis[3 * i + 2];
 
-           double m_u = spin[i]*axis[i] + spin[j]*axis[j] + spin[k]*axis[k];
-
-		field[i] = 2*Ku[i]*m_u*axis[i];
-		field[j] = 2*Ku[i]*m_u*axis[j];
-		field[k] = 2*Ku[i]*m_u*axis[k];
-
-		energy[i] = -Ku[i]*(m_u*m_u);
+		energy[i] = -Ku[i] * (m_u * m_u);
 
 	}
 
