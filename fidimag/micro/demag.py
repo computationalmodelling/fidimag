@@ -1,4 +1,4 @@
-import fidimag.extensions.clib as clib
+import fidimag.extensions.dipolar as clib
 import numpy as np
 
 mu_0 = 4 * np.pi * 1e-7

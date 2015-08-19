@@ -65,13 +65,13 @@ def test_demag_two_spin_xx():
     field = demag.compute_field()
     print field
     assert(field[0] == 2e-7)
-    assert(field[1] == 2e-7)
+    assert(field[3] == 2e-7)
 
 
 if __name__ == '__main__':
-    # test_demag_fft_exact()
-    # test_demag_two_spin_xx()
+    test_demag_fft_exact()
+    #test_demag_two_spin_xx()
 
     # test_oommf_coefficient()
     # test_demag_fft_exact()
-    test_demag_fft_exact_oommf()
+    #test_demag_fft_exact_oommf()

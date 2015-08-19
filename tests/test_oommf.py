@@ -1,5 +1,5 @@
 import numpy as np
-import fidimag.extensions.clib as clib
+import fidimag.extensions.dipolar as dipolar
 from fidimag.micro import FDMesh, UniformExchange, Sim, Demag, DMI
 from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute_dmi_field
 
@@ -32,7 +32,7 @@ def compare_fields(v1, v2):
 
 def test_oommf_coefficient():
 
-    res = clib.compute_Nxx(10, 1, 1, 1, 2, 3)
+    res = dipolar.compute_Nxx(10, 1, 1, 1, 2, 3)
 
     assert abs(-0.000856757528962409449 - res) < 5e-15
 
