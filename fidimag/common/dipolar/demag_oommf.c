@@ -1,6 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
-#include "clib.h"
+#include "dipolar.h"
 
 
 /* FILE: demagcoef.cc            -*-Mode: c++-*-
