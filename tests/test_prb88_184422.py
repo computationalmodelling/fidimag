@@ -8,7 +8,7 @@ from fidimag.micro import FDMesh
 from fidimag.micro import UniformExchange, DMI, UniaxialAnisotropy
 from fidimag.micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
-from fidimag.micro.oommf import extract_data
+from fidimag.micro.omf import OMF2
 import os
 
 # def test_prb88_184422():
@@ -98,8 +98,10 @@ def test_prb88_184422():
     m = run_fidimag(mesh)
     omf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             'dmi-Oxs_TimeDriver-Magnetization-00-0000963.omf')
-    m_oommf = extract_data(mesh, omf_file)
-    print m_oommf / Ms
-    assert max(abs(m_oommf / Ms - m)) < 1e-7
 
-test_prb88_184422()
+    ovf = OMF2(omf_file)
+    m_oommf = ovf.get_all_mags()
+    assert max(abs(m_oommf / Ms - m)) < 5e-7
+
+if __name__ == '__main__':
+	test_prb88_184422()

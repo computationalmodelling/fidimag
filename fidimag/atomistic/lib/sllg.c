@@ -52,10 +52,10 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 	double hi,hj,hk;
 
 	#pragma omp parallel for private(i,j,k,q,coeff,hi,hj,hk,mth0,mth1,mth2)
-	for (i = 0; i < nxyz; i++) {
-
-		j = i + nxyz;
-		k = j + nxyz;
+	for (int id = 0; id < nxyz; id++) {
+		i = 3*id;
+		j = i+1;
+		k = j+1;
 		
 		if (pins[i]>0){
 			 dm[i] = 0;
@@ -65,8 +65,8 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 		}
 
 
-        coeff = -s->gamma/ (1.0 + alpha[i] * alpha[i]) ;
-		q = sqrt(Q * alpha[i] * T[i] * mu_s_inv[i]);
+        coeff = -s->gamma/ (1.0 + alpha[id] * alpha[id]) ;
+		q = sqrt(Q * alpha[i] * T[i] * mu_s_inv[id]);
 		
 		hi = h[i]*dt + eta[i]*q;
 		hj = h[j]*dt + eta[j]*q;
@@ -117,13 +117,16 @@ void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, d
 
 	double mm;
 	#pragma omp parallel for private(i,j,k,mm)
-	for (i = 0; i < s->nxyz; i++) {
-		if (pins[i]>0){
+	for (int id = 0; id < s->nxyz; id++) {
+
+		if (pins[id]>0){
 			continue;
 		}
 
-		j = i + nxyz;
-		k = j + nxyz;
+		i= 3*id;
+		j = i + 1;
+		k = j + 1;
+
 		mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
 		m[i] *= mm;
 		m[j] *= mm;
@@ -141,24 +144,13 @@ void finalize_ode_plan(ode_solver *plan) {
 }
 
 
-int check_array(double *a, double *b, int n){
-    int i;
-    for(i=0;i<n;i++){
-        if (fabs(a[i]-b[i])>0){
-            printf("a=%g   b=%g\n",a[i],b[i]);
-            return -1;
-        }
-    }
-    return 0;
-
-}
-
 void normalise(double *m, int nxyz){
 	int i, j, k;
 	double mm;
-	for (i = 0; i < nxyz; i++) {
-			j = i + nxyz;
-			k = j + nxyz;
+	for (int id = 0; id < nxyz; id++) {
+			i = 3*id;
+			j = i + 1;
+			k = j + 1;
 
 			mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
 			m[i] *= mm;

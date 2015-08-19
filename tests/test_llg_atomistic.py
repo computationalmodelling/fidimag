@@ -96,6 +96,23 @@ def single_spin(alpha, gamma, H0, ts):
     return mx, my, mz
 
 
+def plot(ts, mx, my, mz, a_mx, a_my, a_mz, name="single_spin.pdf", title="integrating a macrospin"):
+    fig = plt.figure()
+    ts_ns = np.array(ts) * 1e9
+    plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
+    plt.plot(ts_ns, my, ".", label="my", color='darkslateblue')
+    plt.plot(ts_ns, mz, ".", label="mz", color='m')
+    plt.plot(ts_ns, a_mx, "--", label="analytical", color='b')
+    plt.plot(ts_ns, a_my, "--",  color='b')
+    plt.plot(ts_ns, a_mz, "--",  color='b')
+    plt.xlabel("time (ns)")
+    plt.ylabel("m")
+    plt.title(title)
+    plt.legend()
+    fig.savefig(name)
+
+
+
 def test_sim_single_spin_vode(do_plot=False):
 
     mesh = FDMesh(nx=1, ny=1, nz=1)
@@ -122,30 +139,18 @@ def test_sim_single_spin_vode(do_plot=False):
     for t in ts:
         sim.run_until(t)
         real_ts.append(sim.t)
-        print sim.t, abs(sim.spin_length()[0] - 1)
+        #print sim.t, abs(sim.spin_length()[0] - 1)
         mx.append(sim.spin[0])
         my.append(sim.spin[1])
         mz.append(sim.spin[2])
 
     mz = np.array(mz)
-    # print mz
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
     print sim.stat()
 
     if do_plot:
-        ts_ns = np.array(real_ts) * 1e9
-        plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
-        plt.plot(ts_ns, my, ".", label="my", color='darkslateblue')
-        plt.plot(ts_ns, mz, ".", label="mz", color='m')
-        plt.plot(ts_ns, a_mx, "--", label="analytical", color='b')
-        plt.plot(ts_ns, a_my, "--",  color='b')
-        plt.plot(ts_ns, a_mz, "--",  color='b')
-        plt.xlabel("time (ns)")
-        plt.ylabel("m")
-        plt.title("integrating a macrospin")
-        plt.legend()
-        plt.savefig("single_spin.pdf")
+        plot(real_ts, mx, my, mz, a_mx, a_my, a_mz)
 
     print("Max Deviation = {0}".format(
         np.max(np.abs(mz - a_mz))))
@@ -153,7 +158,7 @@ def test_sim_single_spin_vode(do_plot=False):
     assert np.max(np.abs(mz - a_mz)) < 5e-7
 
 
-def test_sim_10_spins(do_plot=False):
+def test_sim_spins(do_plot=False):
 
     mesh = FDMesh(nx=10, ny=5, nz=1)
 
@@ -171,8 +176,6 @@ def test_sim_10_spins(do_plot=False):
     H0 = 1e5
     sim.add(Zeeman((0, 0, H0)))
 
-
-
     ts = np.linspace(0, 1e-9, 101)
 
     mx = []
@@ -189,10 +192,7 @@ def test_sim_10_spins(do_plot=False):
         my.append(av[1])
         mz.append(av[2])
 
-        sim.save_vtk()
-
-    print sim.pins
-    print sim.alpha
+        #sim.save_vtk()
 
     mz = np.array(mz)
     # print mz
@@ -201,18 +201,7 @@ def test_sim_10_spins(do_plot=False):
     print sim.stat()
 
     if do_plot:
-        ts_ns = np.array(real_ts) * 1e9
-        plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
-        plt.plot(ts_ns, my, ".", label="my", color='darkslateblue')
-        plt.plot(ts_ns, mz, ".", label="mz", color='m')
-        plt.plot(ts_ns, a_mx, "--", label="analytical", color='b')
-        plt.plot(ts_ns, a_my, "--",  color='b')
-        plt.plot(ts_ns, a_mz, "--",  color='b')
-        plt.xlabel("time (ns)")
-        plt.ylabel("m")
-        plt.title("integrating a macrospin")
-        plt.legend()
-        plt.savefig("10_spin.pdf")
+        plot(real_ts, mx, my, mz, a_mx, a_my, a_mz, name='spins.pdf', title='integrating spins')
 
     print("Max Deviation = {0}".format(
         np.max(np.abs(mz - a_mz))))
@@ -258,18 +247,7 @@ def test_sim_single_spin_sllg(do_plot=False):
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
     if do_plot:
-        ts_ns = np.array(real_ts) * 1e9
-        plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
-        plt.plot(ts_ns, my, ".", label="my", color='darkslateblue')
-        plt.plot(ts_ns, mz, ".", label="mz", color='m')
-        plt.plot(ts_ns, a_mx, "--", label="analytical", color='b')
-        plt.plot(ts_ns, a_my, "--",  color='b')
-        plt.plot(ts_ns, a_mz, "--",  color='b')
-        plt.xlabel("time (ns)")
-        plt.ylabel("m")
-        plt.title("integrating a macrospin")
-        plt.legend()
-        plt.savefig("single_spin_sllg.pdf")
+        plot(real_ts, mx, my, mz, a_mx, a_my, a_mz, name='spin_sllg.pdf', title='integrating a spin')
 
     print("Max Deviation = {0}".format(
         np.max(np.abs(mz - a_mz))))
@@ -334,4 +312,4 @@ if __name__ == '__main__':
     # test_sim_single_spin_llg_stt(do_plot=True)
     # test_sim_single_spin(do_plot=True)
 
-    test_sim_10_spins(do_plot=True)
+    test_sim_spins(do_plot=True)
