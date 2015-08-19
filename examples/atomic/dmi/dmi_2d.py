@@ -1,8 +1,6 @@
 import numpy as np
-from pc import Sim
-from pc import FDMesh
-from pc import DMI
-from pc import UniformExchange
+from fidimag.atomistic import Sim, FDMesh,  DMI, UniformExchange
+
 import time
 
 
@@ -20,8 +18,9 @@ def init_m(pos):
 def relax_system(mesh):
 
     sim = Sim(mesh, name='dmi_2d')
-    sim.set_default_options(gamma=1.76e11, mu_s=1e-22)
     sim.alpha = 0.1
+    sim.gamma=1.76e11
+    sim.mu_s = 1e-22
 
     J = 1e-20
     exch = UniformExchange(J)
@@ -30,14 +29,13 @@ def relax_system(mesh):
     dmi = DMI(0.1 * J)
     sim.add(dmi)
 
-    sim.set_m(init_m)
+    sim.set_m(init_m)    
 
     ts = np.linspace(0, 5e-10, 101)
     for t in ts:
         print t
         sim.run_until(t)
-
-        sim.save_vtk()
+        #sim.save_vtk()
 
     return sim.spin
 

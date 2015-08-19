@@ -242,12 +242,15 @@ class LLG(object):
                              self.default_c)
 
         #ydot[:] = self.dm_dt[:]
+        y=ydot.copy()
+        print y.reshape(-1,3)
 
         return 0
 
     def sundials_jtn(self, mp, Jmp, t, m, fy):
         # we can not copy mp to self.spin since m and self.spin is one object.
         #self.spin[:] = mp[:]
+        print 'NO jac...........'
         self.compute_effective_field_jac(t, mp)
         clib.compute_llg_jtimes(Jmp,
                                 m, fy,
@@ -263,7 +266,6 @@ class LLG(object):
 
     def compute_average(self):
         self.spin.shape = (-1, 3)
-        print self.spin
         average = np.sum(self.spin, axis=0) / self.nxyz_nonzero
         self.spin.shape = (-1,)
         return average
@@ -328,8 +330,8 @@ class LLG(object):
         return self.vode.stat()
 
     def spin_length(self):
-        self.spin.shape = (3, -1)
-        length = np.sqrt(np.sum(self.spin**2, axis=0))
+        self.spin.shape = (-1, 3)
+        length = np.sqrt(np.sum(self.spin**2, axis=1))
         self.spin.shape = (-1,)
         return length
 
@@ -341,8 +343,8 @@ class LLG(object):
     def compute_dmdt(self, dt):
         m0 = self.spin_last
         m1 = self.spin
-        dm = (m1 - m0).reshape((3, -1))
-        max_dm = np.max(np.sqrt(np.sum(dm**2, axis=0)))
+        dm = (m1 - m0).reshape((-1, 3))
+        max_dm = np.max(np.sqrt(np.sum(dm**2, axis=1)))
         max_dmdt = max_dm / dt
         return max_dmdt
 

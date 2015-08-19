@@ -21,9 +21,9 @@ class Zeeman(object):
         self.mu_s = mu_s
         self.mu_s_long = np.zeros(3 * mesh.nxyz)
 
-        self.mu_s_long.shape = (3, -1)
+        self.mu_s_long.shape = (-1, 3)
         for i in range(mesh.nxyz):
-            self.mu_s_long[:, i] = mu_s[i]
+            self.mu_s_long[i, :] = mu_s[i]
 
         self.mu_s_long.shape = (-1,)
 

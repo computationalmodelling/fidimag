@@ -153,6 +153,73 @@ def test_sim_single_spin_vode(do_plot=False):
     assert np.max(np.abs(mz - a_mz)) < 5e-7
 
 
+def test_sim_10_spins(do_plot=False):
+
+    mesh = FDMesh(nx=10, ny=5, nz=1)
+
+    sim = Sim(mesh, name='10spin')
+
+    alpha = 0.1
+    gamma = 2.21e5
+    sim.alpha = alpha
+    sim.gamma = gamma
+    sim.mu_s = 1.0
+
+    sim.set_m((1, 0, 0))
+    print sim.spin
+
+    H0 = 1e5
+    sim.add(Zeeman((0, 0, H0)))
+
+
+
+    ts = np.linspace(0, 1e-9, 101)
+
+    mx = []
+    my = []
+    mz = []
+    real_ts = []
+
+    for t in ts:
+        sim.run_until(t)
+        real_ts.append(sim.t)
+        #print sim.t, abs(sim.spin_length()[0] - 1)
+        av = sim.compute_average()
+        mx.append(av[0])
+        my.append(av[1])
+        mz.append(av[2])
+
+        sim.save_vtk()
+
+    print sim.pins
+    print sim.alpha
+
+    mz = np.array(mz)
+    # print mz
+    a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
+
+    print sim.stat()
+
+    if do_plot:
+        ts_ns = np.array(real_ts) * 1e9
+        plt.plot(ts_ns, mx, ".", label="mx", color='DarkGreen')
+        plt.plot(ts_ns, my, ".", label="my", color='darkslateblue')
+        plt.plot(ts_ns, mz, ".", label="mz", color='m')
+        plt.plot(ts_ns, a_mx, "--", label="analytical", color='b')
+        plt.plot(ts_ns, a_my, "--",  color='b')
+        plt.plot(ts_ns, a_mz, "--",  color='b')
+        plt.xlabel("time (ns)")
+        plt.ylabel("m")
+        plt.title("integrating a macrospin")
+        plt.legend()
+        plt.savefig("10_spin.pdf")
+
+    print("Max Deviation = {0}".format(
+        np.max(np.abs(mz - a_mz))))
+
+    assert np.max(np.abs(mz - a_mz)) < 5e-7
+
+
 def test_sim_single_spin_sllg(do_plot=False):
 
     mesh = FDMesh(nx=1, ny=1, nz=1)
@@ -263,6 +330,8 @@ if __name__ == '__main__':
     # test_sim_init_m_fun()
     # test_sim_T_fun()
     # test_sim_single_spin_vode(do_plot=True)
-    test_sim_single_spin_sllg(do_plot=True)
+    #test_sim_single_spin_sllg(do_plot=True)
     # test_sim_single_spin_llg_stt(do_plot=True)
     # test_sim_single_spin(do_plot=True)
+
+    test_sim_10_spins(do_plot=True)

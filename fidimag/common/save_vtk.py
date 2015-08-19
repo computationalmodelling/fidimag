@@ -20,22 +20,21 @@ class SaveVTK():
         self.z = np.array(xyz[:, 2], dtype='float32')
 
         # build a new index since we have used difference order
-        ids = [self.mesh.index(i, j, k) for i in range(self.nx)
-               for j in range(self.ny) for k in range(self.nz)]
+        ids = [self.mesh.index(i, j, k) for i in range(self.nx) for j in range(self.ny) for k in range(self.nz)]
 
         self.ids = np.array(ids)
 
         self.pos = [self.mesh.pos[self.ids[i]] for i in range(mesh.nxyz)]
 
-    def save_vtk(self, m, step=0, vtkname='m'):
+    def save_vtk(self, m1, step=0, vtkname='m'):
 
         if not os.path.exists(self.name):
             os.makedirs(self.name)
 
         pos = pyvtk.StructuredGrid([self.nx, self.ny, self.nz], self.pos)
-
-        m.shape = (3, -1)
-        data = pyvtk.PointData(pyvtk.Vectors(np.transpose(m)[self.ids], 'm'))
+        m = m1.copy()
+        m.shape = (-1, 3)
+        data = pyvtk.PointData(pyvtk.Vectors(m[self.ids], 'm'))
         m.shape = (-1,)
 
         vtk = pyvtk.VtkData(pos, data, 'spins')

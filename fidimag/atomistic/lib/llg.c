@@ -8,9 +8,9 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
     double coeff, mm, mh, c;
     double hpi,hpj,hpk;
 
-	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
+	//#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
 	for (int id = 0; id < nxyz; id++) {
-        i = 3*id;
+        	i = 3*id;
 		j = i+1;
 		k = i+2;
 
@@ -21,7 +21,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
 			 continue;
 		}
 
-		coeff = -gamma/(1.0+alpha[i]*alpha[i]);
+	coeff = -gamma/(1.0+alpha[i]*alpha[i]);
         
         mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
         mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
