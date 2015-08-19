@@ -82,15 +82,15 @@ def test_dw_dmi(mesh=mesh, do_plot=False):
     xs = np.array([p[0] for p in mesh.pos])
     mx, my, mz = analytical(xs, A=A, D=D, K=Kx)
     mxyz = sim.spin.copy()
-    mxyz.shape = (3, -1)
-    assert max(abs(mxyz[0, :] - mx)) < 0.002
-    assert max(abs(mxyz[1, :] - my)) < 0.002
-    assert max(abs(mxyz[2, :] - mz)) < 0.0006
+    mxyz = mxyz.reshape(-1, 3)
+
+    assert max(abs(mxyz[:, 0] - mx)) < 0.002
+    assert max(abs(mxyz[:, 1] - my)) < 0.002
+    assert max(abs(mxyz[:, 2] - mz)) < 0.0006
 
     if do_plot:
 
         save_plot(mxyz, mx, my, mz)
-
 
 if __name__ == '__main__':
 

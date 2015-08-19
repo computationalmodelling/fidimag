@@ -46,8 +46,8 @@ def test_zeeman():
 
     field = zeeman.compute_field()
 
-    assert field[4] == 1.2 * (2 + 0.5)
-    assert field[14] == 2.3 * 0.5
+    assert field[6] == 1.2 * (2 + 0.5)
+    assert field[7] == 2.3 * 0.5
 
 
 if __name__ == "__main__":

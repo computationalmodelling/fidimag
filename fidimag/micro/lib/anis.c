@@ -4,27 +4,25 @@
 void compute_uniaxial_anis(double *m, double *field, double *energy, double *Ms_inv, 
 	double *Ku, double *axis, int nx, int ny, int nz) {
 	
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
+	int nxyz = nx * ny * nz;
 
     #pragma omp parallel for
-	for (int i = 0; i < n1; i++) {
-		int j = i+n1;
-		int k = i+n2;
+	for (int i = 0; i < nxyz; i++) {
+		int j = 3 * i;
 
 		if (Ms_inv[i] == 0.0){
-			field[i] = 0;
-            field[j] = 0;
-            field[k] = 0;
+			field[j] = 0;
+            field[j + 1] = 0;
+            field[j + 2] = 0;
             energy[i] = 0;
             continue;
         }
 
-        double m_u = m[i]*axis[i] + m[j]*axis[j] + m[k]*axis[k];
+        double m_u = m[j] * axis[j] + m[j + 1] * axis[j + 1] + m[j + 2] * axis[j + 2];
 
-		field[i] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[i];
 		field[j] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[j];
-		field[k] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[k];
+		field[j + 1] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[j + 1];
+		field[j + 2] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[j + 2];
 
 		energy[i] = Ku[i]*(1-m_u*m_u);
 

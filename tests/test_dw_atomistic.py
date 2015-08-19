@@ -66,7 +66,7 @@ def test_dw_dmi_atomistic(do_plot=False):
 
     mx, my, mz = analytical(xs, A=J/2.0, D=-D, K=K)
     mxyz = sim.spin.copy()
-    mxyz.shape = (3, -1)
+    mxyz = mxyz.reshape(-1, 3).T
 
     assert max(abs(mxyz[0, :] - mx)) < 0.001
     assert max(abs(mxyz[1, :] - my)) < 0.001

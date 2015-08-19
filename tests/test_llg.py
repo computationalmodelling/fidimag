@@ -47,8 +47,8 @@ def test_sim_init_m():
     mesh = FDMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m((0, 1, 0))
-    sim.spin.shape = (3, -1)
-    spin_y = sim.spin[1]
+    sim.spin.shape = (-1, 3)
+    spin_y = sim.spin[:, 1]
     assert(spin_y.any() == 1)
 
 

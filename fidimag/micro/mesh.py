@@ -63,9 +63,9 @@ class FDMesh():
             for j in range(self.ny):
                 for i in range(self.nx):
 
-                    tp = ((i + 0.5) * self.dx,
-                          (j + 0.5) * self.dy,
-                          (k + 0.5) * self.dz)
+                    tp = ((i + 0.5) * self.dx + self.x0,
+                          (j + 0.5) * self.dy + self.y0,
+                          (k + 0.5) * self.dz + self.z0)
 
                     self.pos.append(tp)
 
