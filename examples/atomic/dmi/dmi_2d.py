@@ -42,7 +42,7 @@ def relax_system(mesh):
 if __name__ == '__main__':
 
     mesh = FDMesh(
-        nx=20, ny=20, nz=1, dx=0.5, dy=0.5, dz=0.5, unit_length=1e-10)
+        nx=1000, ny=1000, nz=1, dx=0.5, dy=0.5, dz=0.5, unit_length=1e-10)
 
     m0 = relax_system(mesh)
     print 'relax system done'

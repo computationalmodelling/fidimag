@@ -242,8 +242,6 @@ class LLG(object):
                              self.default_c)
 
         #ydot[:] = self.dm_dt[:]
-        y=ydot.copy()
-        print y.reshape(-1,3)
 
         return 0
 

@@ -8,7 +8,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
     double coeff, mm, mh, c;
     double hpi,hpj,hpk;
 
-	//#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
+	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
 	for (int id = 0; id < nxyz; id++) {
         	i = 3*id;
 		j = i+1;
@@ -21,7 +21,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
 			 continue;
 		}
 
-	coeff = -gamma/(1.0+alpha[i]*alpha[i]);
+	coeff = -gamma/(1.0+alpha[id]*alpha[id]);
         
         mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
         mh = m[i]*h[i] + m[j]*h[j] + m[k]*h[k];
@@ -44,9 +44,9 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
             mth2 = cross_z(m[i],m[j],m[k],hpi,hpj,hpk);
         }
         
-        dm_dt[i] = coeff*(mth0 - hpi * alpha[i]);
-        dm_dt[j] = coeff*(mth1 - hpj * alpha[i]);
-        dm_dt[k] = coeff*(mth2 - hpk * alpha[i]);
+        dm_dt[i] = coeff*(mth0 - hpi * alpha[id]);
+        dm_dt[j] = coeff*(mth1 - hpj * alpha[id]);
+        dm_dt[k] = coeff*(mth2 - hpk * alpha[id]);
         
         // in future, we will try the new method to integrate the LLG equation,
         // A mixed mid-point Runge-Kutta like scheme for the integration of Landau-Lifshitz equation
