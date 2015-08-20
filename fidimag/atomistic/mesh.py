@@ -1,10 +1,14 @@
 import numpy as np
 
+
 class FDMesh():
     """
-    pbc should be a string contain 'x', 'y' or 'z'. '1d' and '2d' are also acceptable options.
+    pbc should be a string contain 'x', 'y' or 'z'.
+    '1d' and '2d' are also acceptable options.
     """
-    def __init__(self, dx=1.0, dy=1.0, dz=1.0, nx=10, ny=1, nz=1, unit_length=1.0, pbc=None):
+    def __init__(self, dx=1.0, dy=1.0, dz=1.0,
+                 nx=10, ny=1, nz=1,
+                 unit_length=1.0, pbc=None):
         self.dx = dx
         self.dy = dy
         self.dz = dz
@@ -15,7 +19,7 @@ class FDMesh():
         self.nyz = ny * nz
         self.nxyz = nx * ny * nz
         self.unit_length = unit_length
-        
+
         self.compute_pos()
 
         self.pbc = pbc
@@ -41,7 +45,7 @@ class FDMesh():
         self.init_neighbours()
 
     def compute_pos(self):
-        
+
         self.pos = []
         for k in range(self.nz):
             for j in range(self.ny):
@@ -73,23 +77,36 @@ class FDMesh():
                 i = self.nx - 1  # to the right
             if i >= self.nx:     # and wrap the right side
                 i = 0            # to the left
-        
-        if self.yperiodic:  
-            if j <= -1:          
-                j = self.ny - 1  
-            if j >= self.ny:    
+
+        if self.yperiodic:
+            if j <= -1:
+                j = self.ny - 1
+            if j >= self.ny:
                 j = 0
 
-        if self.zperiodic:  
-            if k <= -1:          
+        if self.zperiodic:
+            if k <= -1:
                 k = self.nz - 1
-            if k >= self.nz:    
-                k = 0   
+            if k >= self.nz:
+                k = 0
 
         return self._index(i, j, k)
 
-
     def init_neighbours(self):
+        """
+
+        Creates a *connectivity* array with the index of the neighbours for
+        every lattice site in the order:
+
+               | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
+                 i=0                           i=1                ...
+
+        where  0-y  is the index of the neighbour of the 0th spin,
+        in the -y direction, for example. So we can access the -x neighbour
+        of the ith spin using 6*i, the +x neighbour with 6*i+1,
+        the -y neighbour with 6*i+2, and so on
+
+        """
 
         connectivity = []
 

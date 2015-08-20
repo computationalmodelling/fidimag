@@ -259,7 +259,7 @@ class LLG(object):
         ny = self.mesh.ny
         nz = self.mesh.nz
         number = clib.compute_skymrion_number(
-            self.spin, self._skx_number, nx, ny, nz)
+            self.spin, self._skx_number, nx, ny, nz, self.mesh.connectivity)
         return number
 
     def spin_at(self, i, j, k):

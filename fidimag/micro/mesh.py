@@ -56,8 +56,10 @@ class FDMesh():
             if 'z' in pbc:
                 self.zperiodic = 1
 
+        self.init_neighbours()
+
     def compute_pos(self):
-        
+
         self.pos = []
         for k in range(self.nz):
             for j in range(self.ny):
@@ -72,6 +74,38 @@ class FDMesh():
     def index(self, i, j, k):
         idx = k * self.nxy + j * self.nx + i
         return idx
+
+    def init_neighbours(self):
+        """
+
+        Creates a *connectivity* array with the index of the neighbours for
+        every lattice site in the order:
+
+               | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
+                 i=0                           i=1                ...
+
+        where  0-y  is the index of the neighbour of the 0th spin,
+        in the -y direction, for example. So we can access the -x neighbour
+        of the ith spin using 6*i, the +x neighbour with 6*i+1,
+        the -y neighbour with 6*i+2, and so on
+
+        """
+        connectivity = []
+
+        for k in xrange(self.nz):
+            for j in xrange(self.ny):
+                for i in xrange(self.nx):
+                    ngbs = [
+                        self.index(i - 1, j, k),  # x-1
+                        self.index(i + 1, j, k),  # x+1
+                        self.index(i, j - 1, k),  # y-1
+                        self.index(i, j + 1, k),  # y+1
+                        self.index(i, j, k - 1),  # z-1
+                        self.index(i, j, k + 1),  # z+1
+                    ]
+                    connectivity.append(ngbs)
+
+        self.connectivity = np.array(connectivity, dtype=np.int32)
 
     def index_z(self, k=0):
         ids = [self.index(i, j, k) for i in range(self.nx)

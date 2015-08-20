@@ -7,7 +7,8 @@ cdef extern from "clib.h":
     
     void gauss_random_vec_with_init(double *x, int n)
     
-    double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz)
+    double skyrmion_number(double *spin, double *charge,
+                           int nx, int ny, int nz, int *ngbs)
     void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
     void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py)
 
@@ -58,9 +59,11 @@ def random_number(np.ndarray[double, ndim=1, mode="c"] v):
 
 def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] charge,
-                            nx, ny, nz):
+                            nx, ny, nz,
+                            np.ndarray[int, ndim=2, mode="c"] ngbs
+                            ):
 
-    return skyrmion_number(&spin[0], &charge[0], nx, ny, nz)
+    return skyrmion_number(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0])
 
 def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
                             nx, ny, nz):
