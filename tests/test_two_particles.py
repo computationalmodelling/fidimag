@@ -4,27 +4,7 @@ from fidimag.micro import UniformExchange, UniaxialAnisotropy, Demag
 from fidimag.common.neb_cartesian import NEB_Sundials
 import numpy as np
 
-# For timing purposes --------------------------------
-import time
-
-class Timer:
-
-    def __init__(self):
-        self.t1 = 0
-        self.t2 = 0
-
-    def start(self):
-        self.t1 = time.clock()
-
-    def end(self):
-        self.t2 = time.clock()
-
-    def interval(self):
-        return self.t2 - self.t1
-
-# ----------------------------------------------------
-
-# CrCo Material Parameters
+# Material Parameters
 # Parameters
 A = 1e-12
 Kx = 1e5
@@ -132,6 +112,16 @@ def test_energy_barrier_2particles():
     data = np.loadtxt('neb_2particles_k1e10_10-10int_energy.ndt')[-1][1:]
 
     ebarrier = np.abs(np.max(data) - np.min(data)) / (1.602e-19)
+
+    # Analitically, the energy when a single particle rotates is:
+    #   K V cos^2 theta
+    # where theta is the angle of the direction of one particle with respect
+    # to the anisotropy axis. For this case, the MEP is the rotation
+    # of a single particle and then followed by the rotation of
+    # the other one (asynchronous). Thus, the barrier for the
+    # parameters is: (27e-27) * 1e5 / (1.602e-19) ~ 0.01685 eV
+    # since the volume is 3x3x3 nm^3 and theta is 1 for the maximum value
+    # of a single rotated particle
 
     assert ebarrier < 0.017
     assert ebarrier > 0.005
