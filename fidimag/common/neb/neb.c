@@ -126,7 +126,7 @@ void compute_dm_dt_c(double *ys, double *heff, double *dm_dt,
 
 	for(int i = 1; i < image_num-1; i++){
 
-		int j = i*nodes;
+		int j = 3*i*nodes;
 		
 		compute_dmdt(&ys[j], &heff[j], &dm_dt[j], pins, nodes);
 

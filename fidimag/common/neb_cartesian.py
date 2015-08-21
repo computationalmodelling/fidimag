@@ -116,9 +116,9 @@ def normalise_m(a):
     lengths = np.sqrt(a[:, 0] * a[:, 0] + a[:, 1] * a[:, 1] + a[:, 2] * a[:, 2])
     # Normalise all the entries
     # a[:] /= lengths
-    a.T[:, 0] /= lengths[0]
-    a.T[:, 1] /= lengths[1]
-    a.T[:, 2] /= lengths[2]
+    a.T[:, 0] /= lengths
+    a.T[:, 1] /= lengths
+    a.T[:, 2] /= lengths
     # Return to original shape
     a.shape = (-1, )
 
