@@ -20,13 +20,13 @@ def cartesian2spherical(xyz):
     fully characterised by two degrees of freedom.
     (We use this to specifically transform M coordinates)
     Are we asuming? that xyz is:
-    [x1, x2, .... , y1, y2, ... , z1, z2 ...]
+     [x1, y1, z1, x2, y2, z2, x3 ... ]
     """
-    # Transform to a 3 x -- array
-    xyz.shape = (3, -1)
-    r_xy = np.sqrt(xyz[0, :] ** 2 + xyz[1, :] ** 2)
-    theta = np.arctan2(r_xy, xyz[2, :])
-    phi = np.arctan2(xyz[1, :], xyz[0, :])
+    # Transform to a -- x 3 array
+    xyz.shape = (-1, 3)
+    r_xy = np.sqrt(xyz[:, 0] ** 2 + xyz[:, 1] ** 2)
+    theta = np.arctan2(r_xy, xyz[:, 2])
+    phi = np.arctan2(xyz[:, 1], xyz[:, 0])
     xyz.shape = (-1,)
 
     theta_phi = np.concatenate((theta, phi))
@@ -49,12 +49,15 @@ def spherical2cartesian(theta_phi):
     theta_phi.shape = (2, -1)
     theta = theta_phi[0]
     phi = theta_phi[1]
+    # print 't=', theta
+    # print 'phi=', phi
     mxyz = np.zeros(3 * len(theta))
-    mxyz.shape = (3, -1)
-    mxyz[0, :] = np.sin(theta) * np.cos(phi)
-    mxyz[1, :] = np.sin(theta) * np.sin(phi)
-    mxyz[2, :] = np.cos(theta)
+    mxyz.shape = (-1, 3)
+    mxyz[:, 0] = np.sin(theta) * np.cos(phi)
+    mxyz[:, 1] = np.sin(theta) * np.sin(phi)
+    mxyz[:, 2] = np.cos(theta)
     mxyz.shape = (-1, )
+    # Return [mx1, my1, mz1, mx2, ...]
     theta_phi.shape = (-1, )
     return mxyz
 
@@ -66,18 +69,23 @@ def linear_interpolation_two(m0, m1, n, pin_ids):
     an initial state. The interpolation is
     done in the magnetic moments that constitute the
     magnetic system.
+
+    ** The interpolation has phi undefined when x=y=0 and
+    the spin direction is in a pole (theta=0 or pi), thus it
+    is suggested to give a very small deviation
+
     """
     theta_phi0 = cartesian2spherical(m0)
     theta_phi1 = cartesian2spherical(m1)
-    m0.shape = (3, -1)
+    m0.shape = (-1, 3)
 
     dtheta = (theta_phi1 - theta_phi0) / (n + 1)
     coords = []
     for i in range(n):
         theta_phi = theta_phi0 + (i + 1) * dtheta
         new_m = spherical2cartesian(theta_phi)
-        new_m.shape = (3, -1)
-        new_m[:, pin_ids] = m0[:, pin_ids]
+        new_m.shape = (-1, 3)
+        new_m[pin_ids, :] = m0[pin_ids, :]
         new_m.shape = (-1,)
         coords.append(new_m)
     m0.shape = (-1,)
@@ -88,6 +96,8 @@ def normalise_m(a):
     """
     Normalise the magnetisation array.
     We asume:
+
+    ******* FIX
     a = [mx1, mx2, ..., my1, my2, ..., mz1, mz2, ...]
     to transform this into
 
@@ -95,14 +105,20 @@ def normalise_m(a):
       [my1, my2, ...],
       [mz1, mz2, ...]
     ]
+
+    *******
+
     normalise the matrix, and return again a  1 x -- array
     """
     # Transform to matrix
-    a.shape = (3, -1)
+    a.shape = (-1, 3)
     # Compute the array 'a' length
-    lengths = np.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+    lengths = np.sqrt(a[:, 0] * a[:, 0] + a[:, 1] * a[:, 1] + a[:, 2] * a[:, 2])
     # Normalise all the entries
-    a[:] /= lengths
+    # a[:] /= lengths
+    a.T[:, 0] /= lengths[0]
+    a.T[:, 1] /= lengths[1]
+    a.T[:, 2] /= lengths[2]
     # Return to original shape
     a.shape = (-1, )
 
@@ -495,7 +511,7 @@ class NEB_Sundials(object):
         # case we use: dY /dt = Y x Y x D
         # (check the C++ code in finmag/native/src/)
         neb_clib.compute_dm_dt(
-            y, self.Heff, ydot, self.sim._pins, self.total_image_num, 3 * self.nxyz)
+            y, self.Heff, ydot, self.sim._pins, self.total_image_num, self.nxyz)
 
         ydot[0, :] = 0
         ydot[-1, :] = 0
