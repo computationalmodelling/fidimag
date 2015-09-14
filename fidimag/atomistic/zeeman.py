@@ -35,10 +35,7 @@ class Zeeman(object):
 
     # Todo: update it later
     def average_field(self):
-        hx = self.field[0]
-        hy = self.field[self.nxyz]
-        hz = self.field[2 * self.nxyz]
-        return np.array([hx, hy, hz])
+        return self.field[0:3]
 
     def compute_energy(self):
 
