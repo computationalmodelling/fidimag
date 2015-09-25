@@ -8,7 +8,8 @@ install:
         - pip install pyvtk  
 
 before_script:
-        - bash bin/install.sh
+#        - bash bin/install.sh
+	- sudo apt-get install libsundials-serial-dev fftw3
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
         - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
