@@ -5,6 +5,7 @@ python:
 install: 
         - pip install cython
         - pip install matplotlib
+        - pip install pyvtk  
 
 before_script:
         - bash bin/install.sh
