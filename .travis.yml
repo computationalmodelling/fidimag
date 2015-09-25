@@ -3,12 +3,16 @@ python:
         - "2.7"
 # command to install dependencies
 install: 
-        "pip install cython"
+        - pip install cython
+        - pip install matplotlib
 
 before_script:
         - bash bin/install.sh
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
+        - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
+        - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
+
 # command to run tests
 script: 
         - make test
