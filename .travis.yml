@@ -2,8 +2,8 @@ language: python
 python:
         - "2.7"
 # command to install dependencies
-#install: 
-#        "pip install matplotlib"
+install: 
+        "pip install cython"
 
 # Solve the matplotlib DISPLAY error when trying
 # to use a headless machine
