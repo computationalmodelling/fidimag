@@ -8,7 +8,7 @@ install:
 before_script:
         - bash bin/install.sh
         - make build
-        - export PYTHONPATH="$HOME/fidimag:$PYTHONPATH"
+        - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
 # command to run tests
 script: 
         - make test
