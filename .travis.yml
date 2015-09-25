@@ -5,9 +5,7 @@ python:
 install: 
         "pip install cython"
 
-# Solve the matplotlib DISPLAY error when trying
-# to use a headless machine
-before_install:
+before_script:
         - bash bin/install.sh
         - make build
         - export PYTHONPATH="$HOME/fidimag:$PYTHONPATH"
