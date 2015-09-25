@@ -8,7 +8,7 @@ python:
 # Solve the matplotlib DISPLAY error when trying
 # to use a headless machine
 before_install:
-	- bash bin/install.sh
+        - bash bin/install.sh
         - make build
         - export PYTHONPATH="$HOME/fidimag:$PYTHONPATH"
 # command to run tests
