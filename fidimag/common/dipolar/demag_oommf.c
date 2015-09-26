@@ -1,6 +1,7 @@
-/* This file demag_oommf.c is taken from the OOMMF project 
-(http://math.nist.gov/oommf/) and distributed under this license 
-shown below. */
+/* This file demag_oommf.c is taken from the OOMMF project (oommf/app/oxs/ext/demagcoef.cc 
+downloaded from http://math.nist.gov/oommf/dist/oommf12a5rc_20120928.tar.gz)
+with slightly modifications (change OC_REALWIDE to double) 
+and distributed under this license shown below. */
 
 /* License 
 
