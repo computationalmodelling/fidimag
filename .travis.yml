@@ -8,12 +8,13 @@ install:
         - pip install pyvtk
 
 before_script:
-        - sudo apt-get install libsundials-serial-dev libfftw3-dev
-        - export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH"
+        - bash bin/install.sh
+        # libfftw in ubuntu 12.04 is a bit older for fidimag.
+        #- sudo apt-get install libsundials-serial-dev libfftw3-dev
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
-        #- export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
-        #- export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
+        - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
+        - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
 
 # command to run tests
 script:
