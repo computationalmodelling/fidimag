@@ -96,7 +96,7 @@ def test_prb88_184422():
     mesh = FDMesh(nx=100, dx=1, unit_length=1e-9)
     Ms = 8.6e5
     m = run_fidimag(mesh)
-    omf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+    omf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),'omfs',
                             'dmi-Oxs_TimeDriver-Magnetization-00-0000963.omf')
 
     ovf = OMF2(omf_file)
