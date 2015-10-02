@@ -5,13 +5,14 @@ EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 # Cython Extensions #
 #####################
 
-extensions-directory:
-	mkdir -p ${EXTENSIONS_DIR}
 
 build: extensions-directory
 	python setup.py build_ext --build-lib ${EXTENSIONS_DIR}
 	touch ${EXTENSIONS_DIR}/__init__.py
 	rm -rf ${PROJECT_DIR}/build
+
+extensions-directory:
+	mkdir -p ${EXTENSIONS_DIR}
 
 clean:
 	rm -rf ${EXTENSIONS_DIR}
