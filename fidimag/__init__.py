@@ -12,3 +12,6 @@ except ImportError as e:
 from . import common
 from . import atomistic
 from . import micro
+
+
+citation = common.citation
