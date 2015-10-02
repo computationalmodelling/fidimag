@@ -380,7 +380,7 @@ class NEB_Sundials(object):
         """
         Save vtk files in different folders, according to the
         simulation name and step.
-        Files are saved as simname_simstep/image_00000x.vtu
+        Files are saved as vtks/simname_simstep_vtk/image_00000x.vtk
         """
 
         # Create the directory
@@ -399,7 +399,7 @@ class NEB_Sundials(object):
         """
         Save npy files in different folders according to
         the simulation name and step
-        Files are saved as: simname_simstep/image_x.npy
+        Files are saved as: npys/simname_simstep/image_x.npy
         """
         # Create directory as simname_simstep
         directory = 'npys/%s_%d' % (self.name, self.step)
@@ -447,11 +447,11 @@ class NEB_Sundials(object):
             dm2 = compute_dm(y[i + 1], y[i + 2])
             self.springs[i] = self.spring * (dm2 - dm1)
 
-        # Use the native NEB (C++ code) to compute the tangents according
+        # Use the native NEB (C code) to compute the tangents according
         # to the improved NEB method, developed by Henkelman and Jonsson
         # at: Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
 
-        #native_neb.compute_tangents(y, self.energy, self.tangents)
+        # native_neb.compute_tangents(y, self.energy, self.tangents)
         neb_clib.compute_tangents(
             y, self.energy, self.tangents, self.total_image_num, 3 * self.nxyz)
         # native_neb.compute_springs(y,self.springs,self.spring)
@@ -504,8 +504,6 @@ class NEB_Sundials(object):
                 h3 = h - 2 * np.dot(h, t) * t
 
             h[:] = h3[:]
-
-            #ydot[i+1, :] = h3[:]
 
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D
