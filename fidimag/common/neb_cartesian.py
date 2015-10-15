@@ -94,11 +94,12 @@ def linear_interpolation_two(m0, m1, n, pin_ids):
 
 def normalise_m(a):
     """
+    (This is not being used)
     Normalise the magnetisation array.
     We asume:
 
     ******* FIX
-    a = [mx1, mx2, ..., my1, my2, ..., mz1, mz2, ...]
+    a = [mx1, my1, mz1, mx2, my2, ..., mxN, myN, mzN]
     to transform this into
 
     [ [mx1, mx2, ...],
@@ -116,9 +117,9 @@ def normalise_m(a):
     lengths = np.sqrt(a[:, 0] * a[:, 0] + a[:, 1] * a[:, 1] + a[:, 2] * a[:, 2])
     # Normalise all the entries
     # a[:] /= lengths
-    a.T[:, 0] /= lengths
-    a.T[:, 1] /= lengths
-    a.T[:, 2] /= lengths
+    a.T[0, :] /= lengths
+    a.T[1, :] /= lengths
+    a.T[2, :] /= lengths
     # Return to original shape
     a.shape = (-1, )
 
