@@ -1,5 +1,5 @@
 #include "neb.h"
-#define M_PI 3.14159265358979323846
+#define PI 3.14159265358979323846
 
 //normalise the given array
 inline void normalise(double *res, int n){
@@ -15,14 +15,12 @@ inline void normalise(double *res, int n){
     double length=0;
 
     for(int i=0;i<n;i++){
-
-			if (res[i] > M_PI){
-                res[i] = 2 * M_PI - res[i];
-			} else if(res[i] < -M_PI){
-                res[i] += 2 * M_PI;
-            }
-
-            length += res[i] * res[i];
+        if (res[i] > PI){
+            res[i] = 2 * PI - res[i];
+        } else if(res[i] < -PI){
+            res[i] += 2 * PI;
+        }
+        length += res[i] * res[i];
     }
 
     if (length > 0){

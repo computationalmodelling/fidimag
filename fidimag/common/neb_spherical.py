@@ -54,16 +54,16 @@ def spherical2cartesian(theta_phi):
     theta_phi.shape = (-1, 2)
     theta = theta_phi[:, 0]
     phi = theta_phi[:, 1]
-    # print 't=', theta
-    # print 'phi=', phi
+
     mxyz = np.zeros(3 * len(theta))
     mxyz.shape = (-1, 3)
     mxyz[:, 0] = np.sin(theta) * np.cos(phi)
     mxyz[:, 1] = np.sin(theta) * np.sin(phi)
     mxyz[:, 2] = np.cos(theta)
     mxyz.shape = (-1, )
-    # Return [mx1, my1, mz1, mx2, ...]
+
     theta_phi.shape = (-1, )
+    # Return [mx1, my1, mz1, mx2, ...]
     return mxyz
 
 
@@ -330,9 +330,6 @@ class NEB_Sundials(object):
             self.climbing_image = climbing_image - 1
         else:
             self.climbing_image = climbing_image
-
-        # Dolfin function of the new _m_field (instead of _m)
-        #self.effective_field = sim.llg.effective_field
 
         if interpolations is None:
             interpolations = [0 for i in range(len(initial_images) - 1)]
@@ -679,8 +676,6 @@ class NEB_Sundials(object):
                 h3 = h - np.dot(h, t) * t + sf * t
             else:
                 h3 = h - 2 * np.dot(h, t) * t
-
-            h[:] = h3[:]
 
             # D vector for the i-th image (no extreme images)
             ydot[i + 1, :] = h3[:]

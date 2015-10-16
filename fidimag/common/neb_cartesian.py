@@ -200,9 +200,6 @@ class NEB_Sundials(object):
         else:
             self.climbing_image = climbing_image
 
-        # Dolfin function of the new _m_field (instead of _m)
-        #self.effective_field = sim.llg.effective_field
-
         if interpolations is None:
             interpolations = [0 for i in range(len(initial_images) - 1)]
 
