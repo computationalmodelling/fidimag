@@ -80,7 +80,7 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
 	#pragma omp parallel for
 	for (int i = 0; i < nxyz; i++) {
 	    double fx = 0, fy = 0, fz = 0;
-	    int idm = 0;     // Index for the magnetisation matrix
+	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours
 
         /* Set a zero field for sites without magnetic material */
@@ -127,7 +127,6 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
                     fz += az * (m[idnm + 2] - m[3 * i + 2]);
                 }
                 else {
-                    printf("Passing");
                     continue; }
                 //}
             }
