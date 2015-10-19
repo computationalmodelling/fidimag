@@ -44,7 +44,7 @@ def test_exch_1d(do_plot=False):
     epy = -0.02*np.sin(0.1*xs)
     epz = -0.02*np.cos(0.1*xs)
 
-    assert max(abs(epy[1:-1] - field[1:-1,1]))<3e-5
+    assert max(abs(epy[1:-1] - field[1, 1:-1]))<3e-5
 
     if do_plot:
         plt.plot(xs, field[:,1], "-.", label="my", color='DarkGreen')
