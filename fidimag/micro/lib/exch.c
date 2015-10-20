@@ -98,37 +98,44 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
                 /* Magnetisation of the neighbouring spin since ngbs gives
                  * the neighbour's index */
 	            idnm = 3 * ngbs[idn + j];
-                // if (Ms_inv[i] > 0){
+
+                /* Check that the magnetisation of the neighbouring spin
+                 * is larger than zero */
+                if (Ms_inv[ngbs[idn + j]] > 0){
                 
-                /* Neighbours in the -x and +x directions 
-                 * giving: ( m[i-x] - m[i] ) + ( m[i+x] - m[i] )
-                 * when ngbs[idn + j] > 0 for j = 0 and j=1
-                 * but there is a problem if, for example, there is no
-                 * neighbour at -x (j=0) in the 0th node (no PBCs),
-                 * thus, the second derivative would only be avaluated as:
-                 *      (1 / dx * dx) * ( m[i+x] - m[i] )
-                 * which is a wrong approximation (!) --> ASK about this
-                 */
-                if (j == 0 || j == 1) {
-                    fx += ax * (m[idnm]     - m[3 * i]);
-                    fy += ax * (m[idnm + 1] - m[3 * i + 1]);
-                    fz += ax * (m[idnm + 2] - m[3 * i + 2]);
+                    /* Neighbours in the -x and +x directions 
+                     * giving: ( m[i-x] - m[i] ) + ( m[i+x] - m[i] )
+                     * when ngbs[idn + j] > 0 for j = 0 and j=1
+                     * If, for example, there is no
+                     * neighbour at -x (j=0) in the 0th node (no PBCs),
+                     * the second derivative would only be avaluated as:
+                     *      (1 / dx * dx) * ( m[i+x] - m[i] )
+                     * which, according to 
+                     * [M.J. Donahue and D.G. Porter; Physica B, 343, 177-183 (2004)]
+                     * when performing the integration of the energy, we still
+                     * have error of the order O(dx^2)
+                     * This same applies for the other directions
+                     */
+                    if (j == 0 || j == 1) {
+                        fx += ax * (m[idnm]     - m[3 * i]);
+                        fy += ax * (m[idnm + 1] - m[3 * i + 1]);
+                        fz += ax * (m[idnm + 2] - m[3 * i + 2]);
+                    }
+                    /* Neighbours in the -y and +y directions */
+                    else if (j == 2 || j == 3) {
+                        fx += ay * (m[idnm]     - m[3  * i]);
+                        fy += ay * (m[idnm + 1] - m[3 * i + 1]);
+                        fz += ay * (m[idnm + 2] - m[3 * i + 2]);
+                    }
+                    /* Neighbours in the -z and +z directions */
+                    else if (j == 4 || j == 5) {
+                        fx += az * (m[idnm]     - m[3 * i]);
+                        fy += az * (m[idnm + 1] - m[3 * i + 1]);
+                        fz += az * (m[idnm + 2] - m[3 * i + 2]);
+                    }
+                    else {
+                        continue; }
                 }
-                /* Neighbours in the -y and +y directions */
-                else if (j == 2 || j == 3) {
-                    fx += ay * (m[idnm]     - m[3  * i]);
-                    fy += ay * (m[idnm + 1] - m[3 * i + 1]);
-                    fz += ay * (m[idnm + 2] - m[3 * i + 2]);
-                }
-                /* Neighbours in the -z and +z directions */
-                else if (j == 4 || j == 5) {
-                    fx += az * (m[idnm]     - m[3 * i]);
-                    fy += az * (m[idnm + 1] - m[3 * i + 1]);
-                    fz += az * (m[idnm + 2] - m[3 * i + 2]);
-                }
-                else {
-                    continue; }
-                //}
             }
         }
 

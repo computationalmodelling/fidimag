@@ -146,6 +146,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
     field_oommf = compute_exch_field(
         mesh, init_m0=init_m0, A=A, spatial_Ms=init_Ms)
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
+
     assert max([mx0, mx1, mx2]) < 1e-12
 
     field = demag.compute_field()
@@ -264,16 +265,17 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
 
     #exact = demag.compute_exact()
 
-    init_m0 = """
-    return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
-    """
+    init_m0 = (r'return [list [expr {sin($x * 1e9) + $y * 1e9 + $z * 2.3e9}] '
+               + r' [expr {cos($x * 1e9) + $y * 1e9 + $z * 1.3e9}] '
+               + r'0 '
+               + r'] ')
 
     demag_oommf = compute_demag_field(mesh, Ms=Ms, init_m0=init_m0)
     exch_oommf = compute_exch_field(mesh, Ms=Ms, init_m0=init_m0, A=A)
 
     mx0, mx1, mx2 = compare_fields(demag_oommf, demag_field)
     #print mx0, mx1, mx2
-    assert max([mx0,mx1,mx2])< 5e-10
+    assert max([mx0, mx1, mx2]) < 5e-10
 
     mx0, mx1, mx2 = compare_fields(exch_oommf, exch_field)
     #print mx0, mx1, mx2
