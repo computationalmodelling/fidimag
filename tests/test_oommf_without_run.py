@@ -56,7 +56,10 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     init_m0 = """
     return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
     """
-    omf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),'omfs','test_exch_field_oommf.ohf')
+    omf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'omfs',
+                            'test_exch_field_oommf.ohf'
+                            )
     ovf = OMF2(omf_file)
     field_oommf = ovf.get_all_mags()
 

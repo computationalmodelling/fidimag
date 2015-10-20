@@ -71,9 +71,41 @@ class FDMesh():
 
                     self.pos.append(tp)
 
+
     def index(self, i, j, k):
-        idx = k * self.nxy + j * self.nx + i
-        return idx
+        """
+        Returns the index for the cell with ordinals i, j, k
+        or False if that cell would be out of bounds. Handles periodic meshes.
+        """
+        if self.xperiodic:  # if mesh is periodic in x-direction
+            if i <= -1:          # then wrap the left side
+                i = self.nx - 1  # to the right
+            if i >= self.nx:     # and wrap the right side
+                i = 0            # to the left
+
+        if self.yperiodic:
+            if j <= -1:
+                j = self.ny - 1
+            if j >= self.ny:
+                j = 0
+
+        if self.zperiodic:
+            if k <= -1:
+                k = self.nz - 1
+            if k >= self.nz:
+                k = 0
+
+        return self._index(i, j, k)
+
+    def _index(self, i, j, k):
+        """
+        Returns the index for the cell with ordinals i, j, k
+        or False if that cell would be out of bounds.
+
+        """
+        if i < 0 or j < 0 or k < 0 or i >= self.nx or j >= self.ny or k >= self.nz:
+            return -1
+        return k * self.nxy + j * self.nx + i
 
     def init_neighbours(self):
         """

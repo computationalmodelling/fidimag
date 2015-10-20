@@ -34,7 +34,8 @@ class Energy(object):
         self.xperiodic = mesh.xperiodic
         self.yperiodic = mesh.yperiodic
         self.zperiodic = mesh.zperiodic
-
+        
+        self.connectivity = mesh.connectivity
     def compute_field(self, t=0):
 
         return 0

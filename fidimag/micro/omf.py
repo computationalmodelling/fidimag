@@ -3,7 +3,7 @@
 import math
 import os
 import sys
-import numpy
+import numpy as np
 import struct
 
 
@@ -43,8 +43,8 @@ class OMF2:
 
         count = 3 * self.xnodes * self.ynodes * self.znodes
         data = f.read(8 * count)
-        self.data = numpy.frombuffer(data)
-        self.data = numpy.reshape(self.data, (-1, 3))
+        self.data = np.frombuffer(data)
+        self.data = np.reshape(self.data, (-1, 3))
         f.close()
         return
 
@@ -61,15 +61,22 @@ class OMF2:
 
     def get_all_mag(self, comp='x'):
         """
-        return x, y or z component of magnetisation of all nodes 
+        return x, y or z component of magnetisation of all nodes
         """
         index = ord(comp) - ord('x')
-        return self.data[:,index]
-	
+        return self.data[:, index]
+
     def get_all_mags(self, order='xyz'):
-        if order=='xyz':
+        """
+        Return the x, y AND z components of the magnetisation
+        field for every node as a numpy array
+        """
+        if order == 'xyz':
             d = self.data.copy()
-            d.shape=(-1)
+            d.shape = (-1)
             return d
-        elif order=='xxx':
-            return np.array([self.data[:,0], self.data[:,1], self.data[:,2]])
+
+        elif order == 'xxx':
+            return np.array([self.data[:, 0],
+                             self.data[:, 1],
+                             self.data[:, 2]])
