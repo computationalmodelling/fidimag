@@ -5,16 +5,34 @@ from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute
 
 import pytest
 
-def compare_fields(v1, v2):
 
+def compare_fields(v1, v2):
+    """
+
+    Compare two different fields in the array form:
+        [ fx0, fy0, fz0, fx1, fy1, fz1, fx2, ... ]
+
+    where 0, 1, 2... are the mesh nodes (spins)
+
+    The function return the maximum relative error between
+    v1 and v2 (using v1's norm) for every component: x, y or z
+    as a tuple (err_x, err_y, err_z)
+
+    """
+
+    # Reshape to get the arrays as matrices with [fxi, fyi, fzi]
+    # as rows
     v1.shape = (-1, 3)
     v2.shape = (-1, 3)
 
-    f = (v1[:, 0]**2 + v1[:, 1]**2 + v1[:, 2]**2)**0.5
+    # Get the norm of the v1 field
+    f = (v1[:, 0] ** 2 + v1[:, 1] ** 2 + v1[:, 2] ** 2) ** 0.5
 
+    # Set the norm values as 1 where: fx^2 + fy^2 + fz^2 = 0
     zero_values = f[:] == 0
     f[zero_values] = 1
 
+    # Set the difference between fields
     diff = abs(v1 - v2)
 
     # print 'max error',np.max(diff), np.argmax(diff),len(v1)
@@ -22,12 +40,15 @@ def compare_fields(v1, v2):
 
     # print v2[0,:]
 
+    # Get the maximum relative errors of the x, y and z
+    # components of the fields, dividing by the v1 field norm
     max0 = np.max(diff[:, 0] / f)
     max1 = np.max(diff[:, 1] / f)
     max2 = np.max(diff[:, 2] / f)
 
     v1.shape = (-1,)
     v2.shape = (-1,)
+
     return max0, max1, max2
 
 
@@ -39,9 +60,13 @@ def test_oommf_coefficient():
 
     # print clib.compute_Nxx_asy(10,1,1,1,2,3)
 
+
 @pytest.mark.run_oommf
 def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
-
+    """
+    Compare the exchange field from Fidimag with an equivalent
+    OOMMF simulation. OOMMF field data is taken from an OVF file.
+    """
     mesh = FDMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
@@ -51,22 +76,28 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     sim.add(exch)
 
     def init_m(pos):
-
         x, y, z = pos
-
         return (np.sin(x) + y + 2.3 * z, np.cos(x) + y + 1.3 * z, 0)
 
     sim.set_m(init_m)
 
     field = exch.compute_field()
 
-    init_m0 = """
-    return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
-    """
+    # An equivalent initial magnetisation for OOMMF
+    # The spatial variables are rescale since they are in nm
+    init_m0 = (r'return [list [expr {sin($x * 1e9) + $y * 1e9 + $z * 2.3e9}] '
+               + r' [expr {cos($x * 1e9) + $y * 1e9 + $z * 1.3e9}] '
+               + r'0 '
+               + r'] ')
+
     field_oommf = compute_exch_field(mesh, Ms=Ms, init_m0=init_m0, A=A)
 
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
+
+    # Test if the maximum relative errors between both simulations
+    # is small enough, for every field component
     assert max([mx0, mx1, mx2]) < 1e-12
+
 
 @pytest.mark.run_oommf
 def test_with_oommf_spatial_Ms(A=1e-11):
@@ -74,18 +105,19 @@ def test_with_oommf_spatial_Ms(A=1e-11):
     def spatial_Ms(pos):
         x, y = pos[0], pos[1]
 
-        if x**2 + y**2 < 5**2:
+        if x ** 2 + y ** 2 < 5 ** 2:
             return 2e4
         else:
             return 0
 
-    init_m0 = """
-    return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
-    """
+    init_m0 = (r'return [list [expr {sin($x * 1e9) + $y * 1e9 + $z * 2.3e9}] '
+               + r' [expr {cos($x * 1e9) + $y * 1e9 + $z * 1.3e9}] '
+               + r'0 '
+               + r'] ')
 
     init_Ms = """
 
-    if { $x*$x + $y*$y < 5e-9*5e-9 } {
+    if { ($x * $x + $y * $y) < 5e-9 * 5e-9 } {
         return 2e4
     } else {
         return 0
@@ -98,19 +130,17 @@ def test_with_oommf_spatial_Ms(A=1e-11):
     sim = Sim(mesh)
     sim.Ms = spatial_Ms
 
+    def init_m(pos):
+        x, y, z = pos
+        return (np.sin(x) + y + 2.3 * z, np.cos(x) + y + 1.3 * z, 0)
+
+    sim.set_m(init_m)
+
     exch = UniformExchange(A=A)
     sim.add(exch)
 
     demag = Demag()
     sim.add(demag)
-
-    def init_m(pos):
-
-        x, y, z = pos
-
-        return (np.sin(x) + y + 2.3 * z, np.cos(x) + y + 1.3 * z, 0)
-
-    sim.set_m(init_m)
 
     field = exch.compute_field()
     field_oommf = compute_exch_field(
@@ -125,6 +155,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
 
     assert max([mx0, mx1, mx2]) < 1e-11
+
 
 @pytest.mark.run_oommf
 def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
@@ -147,15 +178,18 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
     field = dmi.compute_field()
 
-    init_m0 = """
-        return [list [expr {sin($x*1e9)+$y*1e9+$z*2.3e9}] [expr {cos($x*1e9)+$y*1e9+$z*1.3e9}] 0]
-        """
+    init_m0 = (r'return [list [expr {sin($x * 1e9) + $y * 1e9 + $z * 2.3e9}] '
+               + r' [expr {cos($x * 1e9) + $y * 1e9 + $z * 1.3e9}] '
+               + r'0 '
+               + r'] ')
+
     # TODO: check the sign of DMI in OOMMF.
     field_oommf = compute_dmi_field(mesh, Ms=Ms, init_m0=init_m0, D=-D)
 
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
 
     assert max([mx0, mx1, mx2]) < 1e-12
+
 
 @pytest.mark.run_oommf
 def test_demag_field_oommf(Ms=6e5):
@@ -183,7 +217,7 @@ def test_demag_field_oommf(Ms=6e5):
     exact = demag.compute_exact()
 
     init_m0 = """
-    
+
     if { $x <=2e-9 } {
         return "1 0 0"
     } elseif { $x >= 4e-9 } {
@@ -203,6 +237,7 @@ def test_demag_field_oommf(Ms=6e5):
     print mx0, mx1, mx2
 
     assert np.max(abs(field - field_oommf)) < 2e-9
+
 
 @pytest.mark.run_oommf
 def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
