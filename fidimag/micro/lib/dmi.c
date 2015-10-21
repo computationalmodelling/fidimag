@@ -128,6 +128,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 	        field[3 * i] = 0;
 	        field[3 * i + 1] = 0;
 	        field[3 * i + 2] = 0;
+            energy[i] = 0;
 	        continue;
 	    }
 
@@ -266,6 +267,7 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
 	        field[3 * i] = 0;
 	        field[3 * i + 1] = 0;
 	        field[3 * i + 2] = 0;
+            energy[i] = 0;
 	        continue;
 	    }
 
