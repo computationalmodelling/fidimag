@@ -23,7 +23,6 @@ class DMI(Energy):
         super(DMI, self).setup(mesh, spin, Ms)
         self.Ds = np.zeros(self.nxyz, dtype=np.float)
         self.Ds[:] = helper.init_scalar(self.D, self.mesh)
-        
 
     def compute_field(self, t=0):
         if self.type == 'bulk':
@@ -35,12 +34,9 @@ class DMI(Energy):
                                               self.dx,
                                               self.dy,
                                               self.dz,
-                                              self.nx,
-                                              self.ny,
-                                              self.nz,
-                                              self.xperiodic,
-                                              self.yperiodic,
-                                              self.zperiodic)
+                                              self.nxyz,
+                                              self.connectivity
+                                              )
         elif self.type == 'interfacial':
             micro_clib.compute_dmi_field_interfacial(self.spin,
                                                      self.field,
@@ -50,11 +46,9 @@ class DMI(Energy):
                                                      self.dx,
                                                      self.dy,
                                                      self.dz,
-                                                     self.nx,
-                                                     self.ny,
-                                                     self.nz,
-                                                     self.xperiodic,
-                                                     self.yperiodic)
+                                                     self.nxyz,
+                                                     self.connectivity
+                                                     )
         else:
             raise Exception(
                 "Unsppourted dmi type:{}, avaiable type: 'bulk','interfacial'.".format(self.type))

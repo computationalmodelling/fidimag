@@ -14,7 +14,11 @@ def extract_mesh_info(dx, nx, x0, x1):
 
 class FDMesh():
 
-    def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0, x1=None, y1=None, z1=None, unit_length=1.0, pbc=None):
+    def __init__(self, dx=1, dy=1, dz=1,
+                 nx=1, ny=1, nz=1,
+                 x0=0, y0=0, z0=0,
+                 x1=None, y1=None, z1=None,
+                 unit_length=1.0, pbc=None):
         """
         pbc could be None, 'x', 'y' or 'xy'.
         """
@@ -110,16 +114,20 @@ class FDMesh():
     def init_neighbours(self):
         """
 
-        Creates a *connectivity* array with the index of the neighbours for
-        every lattice site in the order:
+        Creates a *connectivity* matrix where every row contains the indexes of
+        the neighbours for every lattice site in the order:
 
-               | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
-                 i=0                           i=1                ...
+            | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z  |   i=0
+            | 1-x, 1+x, 1-y, 1+y, 1-z, 1+z  |   i=1
+              ...
 
-        where  0-y  is the index of the neighbour of the 0th spin,
-        in the -y direction, for example. So we can access the -x neighbour
-        of the ith spin using 6*i, the +x neighbour with 6*i+1,
+        where  0-y  is the index of the neighbour of the 0th spin, in the -y
+        direction, for example. So, if we flatten the matrix, we can access the
+        -x neighbour of the ith spin using 6*i, the +x neighbour with 6*i+1,
         the -y neighbour with 6*i+2, and so on
+
+        The matrix gives the correct indexes when using PBCs and a value
+        of -1 where Ms=0 or outside the mesh boundaries (no PBC)
 
         """
         connectivity = []

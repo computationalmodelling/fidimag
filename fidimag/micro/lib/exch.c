@@ -69,6 +69,17 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
      *  i-th spin, we only have to do (3 * i) for mx, (3 * i + 1) for my
      *  and (3 * i + 2) for mz
      *
+     *
+     *  IMPORTANT: The ex field usually has the structure:
+     *                   2 * A / (mu0 Ms ) * (Second derivative of M)
+     *       When discretising the derivative, it carries a "2" in the
+     *       denominator which we "cancel" with the "2" in the prefactor,
+     *       hence we do not put it explicitly in the calculations
+     *
+     *       So, when computing the energy: (-1/2) * mu * Ms * H_ex
+     *       we only put the 0.5 factor and don't worry about the "2"s in the
+     *       field
+     *
      */
 
     /* Define the coefficients */
@@ -139,7 +150,7 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
             }
         }
 
-        /* Energy as: (A * mu0 * Ms / 2) * [ H_ex * m ]   */
+        /* Energy as: (-mu0 * Ms / 2) * [ H_ex * m ]   */
         energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
                             + fz * m[3 * i + 2]);
 
