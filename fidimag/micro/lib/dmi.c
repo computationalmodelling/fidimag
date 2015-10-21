@@ -176,15 +176,15 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 
                     /* The x component of the cross product of +-x
                      * times anything is zero (similar for the other comps */
-                    if (j != 0 || j != 1) {
+                    if (j != 0 && j != 1) {
                         fx += DMIc * cross_x(dmivector[0], dmivector[1], dmivector[2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
-                    if (j != 2 || j != 3) {
+                    if (j != 2 && j != 3) {
                         fy += DMIc * cross_y(dmivector[0], dmivector[1], dmivector[2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
-                    if (j != 4 || j != 5) {
+                    if (j != 4 && j != 5) {
                         fz += DMIc * cross_z(dmivector[0], dmivector[1], dmivector[2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
@@ -235,15 +235,15 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      * 
      * So, our Dzyaloshinskii vectors can be depicted in a square lattice as
      *
-     *                      o  +y
-     *                      |
+     *                     o  +y
+     *                     |
      *                     --> D
      *                ^    | 
      *       -x  o __ | __ o __  | _ o  +x
      *                    |      v
-     *                   <--
-     *                   |
-     *                   o  -y
+     *                    <--
+     *                    |
+     *                    o  -y
      *
      * If we start with this picture in the atomic model, we can get the
      * continuum expression when doing the limit  a_x a_y a_z  --> 0
