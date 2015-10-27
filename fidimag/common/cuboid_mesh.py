@@ -99,7 +99,7 @@ class CuboidMesh(object):
                         self.index(i, j - 1, k),  # in front
                         self.index(i, j, k + 1),  # right
                         self.index(i, j, k - 1),  # left
-                    ] if other is not False and other != cell]
+                    ] and other != cell]
                     connectivity.append(neighbours)
         return connectivity
 
@@ -133,7 +133,7 @@ class CuboidMesh(object):
 
         """
         if i < 0 or j < 0 or k < 0 or i >= self.nz or j >= self.ny or k >= self.nx:
-            return False
+            return -1
         return i * self.nxy + j * self.nx + k
 
     def cells(self):
