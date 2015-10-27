@@ -30,7 +30,7 @@ import numpy as np
 
 
 class CuboidMesh(object):
-    def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1,
+    def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0,
                  periodicity=(False, False, False), unit_length=1.0):
         """
         Create mesh with cells of size dx * dy * dz.
@@ -54,6 +54,9 @@ class CuboidMesh(object):
         self.nx = nx
         self.ny = ny
         self.nz = nz
+        self.x0 = x0
+        self.y0 = y0
+        self.z0 = z0
         self.periodicity = periodicity
 
         self.Lx = dx * nx  # total size of mesh
@@ -75,9 +78,9 @@ class CuboidMesh(object):
             for j in xrange(self.ny):
                 for k in xrange(self.nx):
                     index = self.index(i, j, k)
-                    r = (k * self.dx + self.dx / 2.0,
-                         j * self.dy + self.dy / 2.0,
-                         i * self.dz + self.dz / 2.0)
+                    r = (self.x0 + k * self.dx + self.dx / 2.0,
+                         self.y0 + j * self.dy + self.dy / 2.0,
+                         self.z0 + i * self.dz + self.dz / 2.0)
                     coordinates[index] = r
         return coordinates
 
@@ -96,7 +99,7 @@ class CuboidMesh(object):
                         self.index(i, j - 1, k),  # in front
                         self.index(i, j, k + 1),  # right
                         self.index(i, j, k - 1),  # left
-                    ] if other is not False and other != cell]
+                    ] and other != cell]
                     connectivity.append(neighbours)
         return connectivity
 
@@ -130,7 +133,7 @@ class CuboidMesh(object):
 
         """
         if i < 0 or j < 0 or k < 0 or i >= self.nz or j >= self.ny or k >= self.nx:
-            return False
+            return -1
         return i * self.nxy + j * self.nx + k
 
     def cells(self):
