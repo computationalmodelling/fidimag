@@ -1,7 +1,8 @@
 #same as test oommf, the difference is that a working version of oommf is not necessary.
 import os
 import numpy as np
-from fidimag.common import CuboidMesh, UniformExchange, Sim, Demag, DMI
+from fidimag.common import CuboidMesh
+from fidimag.micro import UniformExchange, Sim, Demag, DMI
 from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute_dmi_field
 from fidimag.micro.omf import OMF2
 
