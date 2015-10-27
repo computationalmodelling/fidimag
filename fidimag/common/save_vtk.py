@@ -14,7 +14,7 @@ class SaveVTK():
         self.dy = mesh.dy
         self.dz = mesh.dz
         self.name = '%s_vtks' % name
-        xyz = np.array(mesh.pos)
+        xyz = mesh.coordinates
         self.x = np.array(xyz[:, 0], dtype='float32')
         self.y = np.array(xyz[:, 1], dtype='float32')
         self.z = np.array(xyz[:, 2], dtype='float32')
@@ -27,7 +27,7 @@ class SaveVTK():
 
         self.ids = np.array(ids)
 
-        self.pos = [self.mesh.pos[self.ids[i]] for i in range(mesh.nxyz)]
+        self.pos = [self.mesh.coordinates[self.ids[i]] for i in range(mesh.n)]
 
     def save_vtk(self, m1, step=0, vtkname='m'):
 
@@ -90,7 +90,7 @@ class SaveVTK_unstructured():
 
         self.name = '%s_vtks' % name
 
-        xyz = np.array(self.mesh.pos)
+        xyz = np.array(self.mesh.coordinates)
 
         self.x = np.array(xyz[:, 0], dtype='float32')
         self.y = np.array(xyz[:, 1], dtype='float32')
@@ -106,7 +106,7 @@ class SaveVTK_unstructured():
 
         self.pos = []
         for i in range(len(ids)):
-            self.pos.append(self.mesh.pos[self.ids[i]])
+            self.pos.append(self.mesh.coordinates[self.ids[i]])
 
         # Reorder the saturation magnetisation values
         self.mask = sim.Ms[self.ids]

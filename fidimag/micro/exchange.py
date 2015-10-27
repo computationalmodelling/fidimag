@@ -24,6 +24,6 @@ class UniformExchange(Energy):
                                                 self.dy,
                                                 self.dz,
                                                 self.n,
-                                                self.connectivity)
+                                                self.neighbours)
 
         return self.field

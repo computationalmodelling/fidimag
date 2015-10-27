@@ -21,7 +21,6 @@ class Energy(object):
         self.field = np.zeros(3 * mesh.n)
         self.energy = np.zeros(mesh.n)
         self.total_energy = 0
-        self.pbc = mesh.pbc
         self.Ms = Ms
         self.Ms_inv = np.zeros(mesh.n)
 
@@ -31,11 +30,11 @@ class Energy(object):
             else:
                 self.Ms_inv[i] = 1.0 / self.Ms[i]
 
-        self.xperiodic = mesh.xperiodic
-        self.yperiodic = mesh.yperiodic
-        self.zperiodic = mesh.zperiodic
-        
-        self.connectivity = mesh.connectivity
+        # For old code compatibility
+        self.xperiodic, self.yperiodic, mesh.zperiodic = mesh.periodicity
+
+        self.neighbours = mesh.neighbours
+
     def compute_field(self, t=0):
 
         return 0

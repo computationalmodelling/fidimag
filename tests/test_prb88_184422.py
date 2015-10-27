@@ -104,4 +104,4 @@ def test_prb88_184422():
     assert max(abs(m_oommf / Ms - m)) < 5e-7
 
 if __name__ == '__main__':
-	test_prb88_184422()
+    test_prb88_184422()

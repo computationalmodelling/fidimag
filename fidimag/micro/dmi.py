@@ -35,7 +35,7 @@ class DMI(Energy):
                                               self.dy,
                                               self.dz,
                                               self.n,
-                                              self.connectivity
+                                              self.neighbours
                                               )
         elif self.type == 'interfacial':
             micro_clib.compute_dmi_field_interfacial(self.spin,
@@ -47,7 +47,7 @@ class DMI(Energy):
                                                      self.dy,
                                                      self.dz,
                                                      self.n,
-                                                     self.connectivity
+                                                     self.neighbours
                                                      )
         else:
             raise Exception(
