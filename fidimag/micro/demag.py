@@ -19,7 +19,7 @@ class Demag(object):
         self.ny = mesh.ny
         self.nz = mesh.nz
         self.spin = spin
-        self.field = np.zeros(3 * mesh.nxyz, dtype=np.float)
+        self.field = np.zeros(3 * mesh.n, dtype=np.float)
 
         self.Ms = Ms
 
@@ -34,7 +34,7 @@ class Demag(object):
         return self.field
 
     def compute_exact(self):
-        field = np.zeros(3 * self.mesh.nxyz)
+        field = np.zeros(3 * self.mesh.n)
         self.demag.compute_exact(self.spin, self.Ms, field)
         return field
 

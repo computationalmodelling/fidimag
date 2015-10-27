@@ -4,10 +4,10 @@
 void compute_uniaxial_anis(double *m, double *field, double *energy, double *Ms_inv, 
 	double *Ku, double *axis, int nx, int ny, int nz) {
 	
-	int nxyz = nx * ny * nz;
+	int n = nx * ny * nz;
 
     #pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
+	for (int i = 0; i < n; i++) {
 		int j = 3 * i;
 
 		if (Ms_inv[i] == 0.0){

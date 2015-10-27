@@ -15,9 +15,9 @@
 *
 * dx, dy, dz :: Mesh spacings in the corresponding directions
 *
-* nxyz       :: Number of mesh nodes
+* n       :: Number of mesh nodes
 *
-* ngbs       :: The array of neighbouring spins, which has (6 * nxyz)
+* ngbs       :: The array of neighbouring spins, which has (6 * n)
 *               entries. Specifically, it contains the indexes of
 *               the neighbours of every mesh node, in the following order:
 *                      -x, +x, -y, +y, -z, +z
@@ -77,7 +77,7 @@
 
 void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
                     double *D, double dx, double dy, double dz,
-                    int nxyz, int *ngbs) {
+                    int n, int *ngbs) {
 
     /* In the atomic model, the effective field in the i-th spin site has the
      * summation: D_{ij} x S_{ij}
@@ -114,7 +114,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 
     /* Here we iterate through every mesh node */
 	#pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
+	for (int i = 0; i < n; i++) {
         double sign;
         double * dmivector = malloc(3 * sizeof(double));
         double DMIc;
@@ -208,7 +208,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 
 void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_inv,
                     double *D, double dx, double dy, double dz,
-                    int nxyz, int *ngbs) {
+                    int n, int *ngbs) {
 
     /* In the atomic model, the effective field in the i-th spin site has the
      * summation: D_{ij} x S_{ij}
@@ -253,7 +253,7 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
 
     /* Here we iterate through every mesh node */
 	#pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
+	for (int i = 0; i < n; i++) {
         double sign;
         double DMIc;
         double * dmivector = malloc(3 * sizeof(double));
