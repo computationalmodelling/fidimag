@@ -1,5 +1,6 @@
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh,  DMI, UniformExchange
+from fidimag.atomistic import Sim, DMI, UniformExchange
+from fidimag.common import CuboidMesh
 
 import time
 
@@ -41,7 +42,7 @@ def relax_system(mesh):
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(
+    mesh = CuboidMesh(
         nx=1000, ny=1000, nz=1, dx=0.5, dy=0.5, dz=0.5, unit_length=1e-10)
 
     m0 = relax_system(mesh)

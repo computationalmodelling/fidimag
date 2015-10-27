@@ -1,6 +1,6 @@
 import numpy as np
 from pccp.pc import Sim
-from pccp.pc import FDMesh
+from fidimag.common import CuboidMesh
 from pccp.pc import DMI
 from pccp.pc import UniformExchange
 from pccp.pc import Zeeman
@@ -62,8 +62,8 @@ if __name__ == '__main__':
 
     np.random.seed(11)
 
-    #mesh = FDMesh(nx=288,ny=288,nz=1)
-    mesh = FDMesh(nx=166, ny=96 * 2, nz=1, pbc='2d')
+    #mesh = CuboidMesh(nx=288,ny=288,nz=1)
+    mesh = CuboidMesh(nx=166, ny=96 * 2, nz=1, pbc='2d')
 
     relax_system(mesh)
 

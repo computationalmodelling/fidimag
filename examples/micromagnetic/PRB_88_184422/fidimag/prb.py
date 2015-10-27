@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import dolfin as df
 import numpy as np
 from micro import Sim
-from micro import FDMesh
+from common import CuboidMesh
 from micro import UniformExchange, DMI, UniaxialAnisotropy
 from micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
@@ -19,7 +19,7 @@ def test_prb88_184422():
     D = 3.6e-3
     K = 510e3
 
-    mesh = FDMesh(nx=100, dx=1, unit_length=1e-9)
+    mesh = CuboidMesh(nx=100, dx=1, unit_length=1e-9)
 
     sim = Sim(mesh)
 

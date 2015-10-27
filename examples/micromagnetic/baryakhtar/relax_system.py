@@ -3,7 +3,7 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import Sim
 from fidimag.micro import Demag
 from fidimag.micro import Zeeman
@@ -43,5 +43,5 @@ def relax_system(mesh):
 
 if __name__ == "__main__":
 
-    mesh = FDMesh(nx=20, ny=20, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    mesh = CuboidMesh(nx=20, ny=20, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     relax_system(mesh)

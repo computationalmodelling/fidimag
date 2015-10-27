@@ -25,7 +25,7 @@ def dmi_variance(pos):
     return D if pos[0] < 0 else -D
 
 # Create a mesh that looks like this: ------------------
-mesh = fidimag.micro.FDMesh(nx=100, dx=1, x0=-50, unit_length=1e-9)
+mesh = fidimag.micro.CuboidMesh(nx=100, dx=1, x0=-50, unit_length=1e-9)
 sim = fidimag.micro.Sim(mesh)
 
 # Dynamics parameters.

@@ -2,8 +2,8 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Anisotropy
-from fidimag.common import Constant
+from fidimag.atomistic import Sim, DMI, UniformExchange, Anisotropy
+from fidimag.common import Constant, CuboidMesh
 
 
 const = Constant()
@@ -33,7 +33,7 @@ def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
 
 def test_dw_dmi_atomistic(do_plot=False):
 
-    mesh = FDMesh(nx=300, ny=1, nz=1)
+    mesh = CuboidMesh(nx=300, ny=1, nz=1)
 
     sim = Sim(mesh, name='relax')
     sim.set_default_options(gamma=const.gamma)
@@ -98,5 +98,5 @@ def save_plot(xs, mxyz, mx, my, mz):
 
 
 if __name__ == '__main__':
-    mesh = FDMesh(nx=300, ny=1, nz=1)
+    mesh = CuboidMesh(nx=300, ny=1, nz=1)
     test_dw_dmi_atomistic(True)

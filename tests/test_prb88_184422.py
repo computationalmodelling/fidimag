@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from fidimag.micro import Sim
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, DMI, UniaxialAnisotropy
 from fidimag.micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
@@ -93,7 +93,7 @@ def run_dolfin():
 
 
 def test_prb88_184422():
-    mesh = FDMesh(nx=100, dx=1, unit_length=1e-9)
+    mesh = CuboidMesh(nx=100, dx=1, unit_length=1e-9)
     Ms = 8.6e5
     m = run_fidimag(mesh)
     omf_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),'omfs',

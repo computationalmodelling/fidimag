@@ -33,7 +33,7 @@ which can be adjusted as desired
 
 # FIDIMAG:
 from fidimag.atomistic import Sim
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import DMI
 from fidimag.atomistic import UniformExchange
 from fidimag.atomistic import Zeeman
@@ -70,7 +70,7 @@ class Timer:
 # ----------------------------------------------------
 
 # 1D chain of 50 spins with a lattice constant of 0.27 A
-mesh = FDMesh(nx=50,
+mesh = CuboidMesh(nx=50,
               dx=0.27,
               unit_length=1e-9,
               )

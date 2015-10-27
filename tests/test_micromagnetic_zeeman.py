@@ -1,5 +1,5 @@
 from fidimag.micro import Zeeman
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import Sim
 import numpy as np
 
@@ -36,7 +36,7 @@ def test_H0_is_indexable_or_callable():
 
 def test_zeeman():
 
-    mesh = FDMesh(nx=5, ny=2, nz=1)
+    mesh = CuboidMesh(nx=5, ny=2, nz=1)
 
     sim = Sim(mesh)
     sim.set_m((1, 0, 0))

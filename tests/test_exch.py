@@ -1,6 +1,6 @@
 import numpy as np
 from fidimag.atomistic import Sim
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import UniformExchange
 
 
@@ -17,7 +17,7 @@ def test_exch_1d():
     0 1 2 3 4 5
 
     """
-    mesh = FDMesh(nx=5, ny=1, nz=1)
+    mesh = CuboidMesh(nx=5, ny=1, nz=1)
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -37,7 +37,7 @@ def test_exch_1d():
 
 
 def test_exch_1d_pbc():
-    mesh = FDMesh(nx=5, ny=1, nz=1, pbc='x')
+    mesh = CuboidMesh(nx=5, ny=1, nz=1, pbc='x')
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -55,7 +55,7 @@ def test_exch_1d_pbc():
 
 
 def test_exch_2d():
-    mesh = FDMesh(nx=5, ny=2, nz=1)
+    mesh = CuboidMesh(nx=5, ny=2, nz=1)
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -87,7 +87,7 @@ def test_exch_2d_pbc2d():
 
     """
 
-    mesh = FDMesh(nx=3, ny=2, nz=1, pbc='xy')
+    mesh = CuboidMesh(nx=3, ny=2, nz=1, pbc='xy')
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -124,7 +124,7 @@ def test_exch_3d():
     Remember the new new ordering: fx1, fy1, fz1, fx2, ...
 
     """
-    mesh = FDMesh(nx=4, ny=3, nz=2)
+    mesh = CuboidMesh(nx=4, ny=3, nz=2)
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -145,7 +145,7 @@ def test_exch_3d():
 
 
 def test_exch_energy_1d():
-    mesh = FDMesh(nx=2, ny=1, nz=1)
+    mesh = CuboidMesh(nx=2, ny=1, nz=1)
     sim = Sim(mesh)
     exch = UniformExchange(1.23)
     sim.add(exch)

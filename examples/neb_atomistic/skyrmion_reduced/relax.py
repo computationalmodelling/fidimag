@@ -1,5 +1,6 @@
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Anisotropy
+from fidimag.atomistic import Sim, DMI, UniformExchange, Anisotropy
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import NEB_Sundials
 
 def mu_s(pos):
@@ -39,7 +40,7 @@ def init_m_down(pos):
 
 def create_sim():
 
-    mesh = FDMesh(nx=121,ny=121,nz=1)
+    mesh = CuboidMesh(nx=121,ny=121,nz=1)
     sim=Sim(mesh,name='relax')
     
     sim.alpha = 1.0

@@ -2,7 +2,8 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from fidimag.atomistic  import Anisotropy, FDMesh, Sim, Zeeman
+from fidimag.atomistic  import Anisotropy, Sim, Zeeman
+from fidimag.common import CuboidMesh
 import numpy as np
 
 
@@ -20,7 +21,7 @@ def single_spin(alpha=0.01):
 
     mat = Material()
 
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
 
     sim = Sim(mesh, driver='sllg')
     sim.alpha = alpha

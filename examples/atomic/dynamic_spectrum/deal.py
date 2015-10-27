@@ -3,8 +3,8 @@ import matplotlib as mpl
 mpl.use("Agg")
 
 import matplotlib.pyplot as plt
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman, TimeZeeman
-from fidimag.common import DataReader, BatchTasks
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, TimeZeeman
+from fidimag.common import DataReader, BatchTasks, CuboidMesh
     
 def deal_plot(Hy=0):
 

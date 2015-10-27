@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman
-from fidimag.common import Constant, BatchTasks, DataReader
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman
+from fidimag.common import Constant, BatchTasks, DataReader, CuboidMesh
 from fidimag.common.helper import plot_m
 
 
@@ -37,7 +37,7 @@ def random_m(pos):
 
 def excite_system(T=0.1, H=0.15):
 
-    mesh = FDMesh(nx=28 * 3, ny=16 * 5, nz=1, pbc='2d')
+    mesh = CuboidMesh(nx=28 * 3, ny=16 * 5, nz=1, pbc='2d')
 
     sim = Sim(mesh, name='dyn', driver='sllg')
     sim.set_options(dt=1e-14, gamma=const.gamma, k_B=const.k_B)

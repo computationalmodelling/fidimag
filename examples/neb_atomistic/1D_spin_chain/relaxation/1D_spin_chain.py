@@ -1,7 +1,7 @@
 
 import numpy as np
 from fidimag.atomistic import Sim
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import DMI
 from fidimag.atomistic import UniformExchange
 from fidimag.atomistic import Zeeman
@@ -36,7 +36,7 @@ sim_name = 'relax_spin_chain'
 def relax_system():
 
     # 1D chain of 50 spins with a lattice constant of 0.27 A
-    mesh = FDMesh(nx=nx,
+    mesh = CuboidMesh(nx=nx,
                   dx=dx,
                   unit_length=1e-9,
                   # pbc='1d'

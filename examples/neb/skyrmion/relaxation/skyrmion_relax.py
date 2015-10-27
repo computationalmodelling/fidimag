@@ -10,7 +10,8 @@ anisotropies
 """
 
 # FIDIMAG:
-from fidimag.micro import Sim, FDMesh, UniformExchange, Demag, DMI
+from fidimag.micro import Sim, UniformExchange, Demag, DMI
+from fidimag.common import CuboidMesh
 import numpy as np
 
 
@@ -40,7 +41,7 @@ def cylinder(pos):
 # elements are 2nmx2nm cubes along the disk plane and they have a thickness of
 # 1 nm
 # Finite differences mesh
-mesh = FDMesh(nx=25, ny=25, nz=5,
+mesh = CuboidMesh(nx=25, ny=25, nz=5,
               dx=2, dy=2, dz=1,
               unit_length=1e-9
               )

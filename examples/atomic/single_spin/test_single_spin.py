@@ -1,6 +1,6 @@
 import numpy as np
 from fidimag.atomistic import Sim
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Zeeman
 from fidimag.common.fileio import DataReader
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ def single_spin(alpha, gamma, H0, ts):
 
 def relax_system(rtol=1e-10, atol=1e-12):
     """numerical solution"""
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
     sim = Sim(mesh, name='relax')
     sim.set_options(rtol=rtol, atol=atol)
     sim.alpha = 0.5

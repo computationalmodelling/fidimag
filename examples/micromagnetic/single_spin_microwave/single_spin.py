@@ -1,6 +1,6 @@
 import numpy as np
 from micro import Sim
-from micro import FDMesh
+from common import CuboidMesh
 from micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ def single_spin(alpha, gamma, H0, ts):
 
 
 def relax_system():
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
     sim = Sim(mesh, name='relax')
     sim.set_tols(rtol=1e-10, atol=1e-10)
     sim.alpha = 0.1

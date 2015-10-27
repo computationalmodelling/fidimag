@@ -1,5 +1,5 @@
 from fidimag.atomistic import Sim
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import DMI
 from fidimag.atomistic import UniformExchange
 from fidimag.atomistic import Zeeman
@@ -22,7 +22,7 @@ def init_m(pos):
 
 def test_skx_num():
 
-    mesh = FDMesh(nx=120, ny=120, nz=1, pbc='xy')
+    mesh = CuboidMesh(nx=120, ny=120, nz=1, pbc='xy')
 
     sim = Sim(mesh, name='skx_num')
     sim.set_tols(rtol=1e-6, atol=1e-6)

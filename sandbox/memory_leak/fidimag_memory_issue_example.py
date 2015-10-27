@@ -10,7 +10,7 @@ import sys
 
 
 def create_simulation():
-    return fidimag.micro.Sim(fidimag.micro.FDMesh(x0=-200, dx=1, nx=400,
+    return fidimag.micro.Sim(fidimag.micro.CuboidMesh(x0=-200, dx=1, nx=400,
                                                   y0=-200, dy=1, ny=400,
                                                   unit_length=1e-9, pbc="xy"),
                              name="resource_test")

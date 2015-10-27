@@ -2,7 +2,7 @@
 Test of the micromagnetic exchange field using an analytical
 expression.
 
-The system is a 1D mesh of 100 spins: FDMesh(nx=100, ny=1, nz=1)
+The system is a 1D mesh of 100 spins: CuboidMesh(nx=100, ny=1, nz=1)
 which are located at positions starting at 0.5 since the default
 mesh spacing is dx=1, thus we have something like:
 
@@ -40,7 +40,7 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from fidimag.micro import FDMesh, UniformExchange, Sim
+from fidimag.common import CuboidMesh, UniformExchange, Sim
 
 
 def init_m(pos):
@@ -60,7 +60,7 @@ def test_init():
     """
     This tests (mx, my, mx) for the first 2 spins
     """
-    mesh = FDMesh(nx=100, ny=1, nz=1)
+    mesh = CuboidMesh(nx=100, ny=1, nz=1)
     sim = Sim(mesh)
     sim.set_m(init_m)
 
@@ -72,7 +72,7 @@ def test_init():
 
 def test_exch_1d(do_plot=False):
     # Initiate the 1D mesh and magnetisation as before
-    mesh = FDMesh(nx=100, ny=1, nz=1)
+    mesh = CuboidMesh(nx=100, ny=1, nz=1)
     sim = Sim(mesh)
     sim.set_m(init_m)
 

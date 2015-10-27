@@ -1,11 +1,11 @@
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 from fidimag.atomistic import Demag
 import numpy as np
 
 
 def test_demag_fft_exact():
-    mesh = FDMesh(nx=5, ny=3, nz=4)
+    mesh = CuboidMesh(nx=5, ny=3, nz=4)
     sim = Sim(mesh)
 
     demag = Demag()
@@ -30,7 +30,7 @@ def test_demag_fft_exact():
 
 
 def test_demag_fft_exact_oommf():
-    mesh = FDMesh(nx=5, ny=3, nz=2)
+    mesh = CuboidMesh(nx=5, ny=3, nz=2)
     sim = Sim(mesh)
 
     demag = Demag()
@@ -55,7 +55,7 @@ def test_demag_fft_exact_oommf():
 
 
 def test_demag_two_spin_xx():
-    mesh = FDMesh(nx=2, ny=1, nz=1)
+    mesh = CuboidMesh(nx=2, ny=1, nz=1)
     sim = Sim(mesh)
 
     demag = Demag()

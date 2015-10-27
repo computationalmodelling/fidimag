@@ -1,5 +1,6 @@
 # FIDIMAG:
-from fidimag.micro import Sim, FDMesh
+from fidimag.micro import Sim
+from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, UniaxialAnisotropy, Demag
 from fidimag.common.neb_cartesian import NEB_Sundials
 import numpy as np
@@ -29,7 +30,7 @@ def two_part(pos):
         return 0
 
 # Finite differences mesh
-mesh = FDMesh(nx=10,
+mesh = CuboidMesh(nx=10,
               ny=3,
               nz=3,
               dx=1, dy=1, dz=1,

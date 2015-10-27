@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from fidimag.atomistic import UniformExchange
 from fidimag.atomistic import Anisotropy
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 from fidimag.atomistic import UnitMaterial
 from fidimag.common.fileio import DataReader
@@ -85,7 +85,7 @@ def save_plot():
 
 
 def test_energy(do_plot=False):
-    mesh = FDMesh(nx=30)
+    mesh = CuboidMesh(nx=30)
     relax_system(mesh)
 
     if do_plot:

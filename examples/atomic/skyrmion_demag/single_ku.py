@@ -1,6 +1,6 @@
 import numpy as np
 from pccp.pc import Sim
-from pccp.pc import FDMesh
+from fidimag.common import CuboidMesh
 from pccp.pc import DMI
 from pccp.pc import UniformExchange
 from pccp.pc import Demag
@@ -42,7 +42,7 @@ def random_m(pos):
 
 def relax_system():
 
-    mesh = FDMesh(nx=121, ny=121, dx=0.5, dy=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=121, ny=121, dx=0.5, dy=0.5, unit_length=1e-9)
 
     sim = Sim(mesh, name='relax_skx')
     sim.set_options(gamma=const.gamma, k_B=const.k_B)

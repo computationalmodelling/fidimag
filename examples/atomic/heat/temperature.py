@@ -27,7 +27,7 @@ def temperature_test(T):
 
     (nx, ny, nz) = (24, 24, 24)
 
-    mesh = FDMesh(nx=nx, ny=ny, nz=nz)
+    mesh = CuboidMesh(nx=nx, ny=ny, nz=nz)
 
     sim = Sim(mesh, T=T, driver='sllg')
     sim.set_options(dt=1e-15, gamma=ni.gamma, k_B=ni.k_B)

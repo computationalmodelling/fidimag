@@ -1,11 +1,11 @@
 from fidimag.atomistic import Anisotropy
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 import numpy as np
 
 
 def test_anis():
-    mesh = FDMesh(nx=5, ny=3, nz=2)
+    mesh = CuboidMesh(nx=5, ny=3, nz=2)
     spin = np.zeros(90)
     anis = Anisotropy(Ku=1, axis=[1, 0, 0])
     mu_s = np.ones(90)

@@ -11,7 +11,7 @@ import numpy as np
 
 import omf
 
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 
 
 def setup_logger():
@@ -352,6 +352,6 @@ def compute_dmi_field(mesh, init_m0, Ms=8e5, D=4e-3, field='DMExchange6Ngbr'):
 
 if __name__ == "__main__":
 
-    mesh = FDMesh(nx=5, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
+    mesh = CuboidMesh(nx=5, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
     m = compute_demag_field(mesh, init_m0='return "1 0 0"')
     print m

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from micro import Sim
-from micro import FDMesh
+from common import CuboidMesh
 from micro import UniformExchange, Demag
 from micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
@@ -108,7 +108,7 @@ def excite_system(mesh):
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(nx=80, ny=80, nz=2, dx=2.5, dy=2.5, dz=5.0, unit_length=1e-9)
+    mesh = CuboidMesh(nx=80, ny=80, nz=2, dx=2.5, dy=2.5, dz=5.0, unit_length=1e-9)
 
     # relax_system(mesh)
 

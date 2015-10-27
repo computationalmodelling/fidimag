@@ -1,5 +1,4 @@
 from sim import Sim
-from mesh import FDMesh
 from exchange import UniformExchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman, TimeZeeman

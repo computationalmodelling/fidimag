@@ -1,5 +1,5 @@
 from fidimag.atomistic import Zeeman
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 import numpy as np
 
@@ -18,7 +18,7 @@ def test_zeeman():
               ^
     """
 
-    mesh = FDMesh(nx=5, ny=2, nz=1)
+    mesh = CuboidMesh(nx=5, ny=2, nz=1)
 
     sim = Sim(mesh)
     sim.set_m((1, 0, 0))

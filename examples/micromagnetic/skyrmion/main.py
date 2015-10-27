@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from fidimag.micro import Sim
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, Demag, DMI
 from fidimag.micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
@@ -53,7 +53,7 @@ def relax_system(mesh):
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(
+    mesh = CuboidMesh(
         nx=1001, ny=1001, nz=1, dx=1, dy=1, dz=2.0, unit_length=1e-9, pbc='xy')
 
     relax_system(mesh)

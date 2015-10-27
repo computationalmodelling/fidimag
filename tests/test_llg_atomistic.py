@@ -3,7 +3,7 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 from fidimag.atomistic import Anisotropy
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 from fidimag.atomistic import Zeeman
 import numpy as np
@@ -31,7 +31,7 @@ def pin_fun(pos):
 
 
 def test_sim_pin():
-    mesh = FDMesh(nx=3, ny=2, nz=1)
+    mesh = CuboidMesh(nx=3, ny=2, nz=1)
     sim = Sim(mesh)
     sim.set_m((0, 0.8, 0.6))
     sim.alpha = 0.1
@@ -48,7 +48,7 @@ def test_sim_pin():
 
 
 def test_sim_init_m():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m((0, 1, 0))
     sim.spin.shape = (3, -1)
@@ -57,7 +57,7 @@ def test_sim_init_m():
 
 
 def test_sim_init_m_fun():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m(init_m, normalise=False)
     assert(sim.spin_at(1, 2, 3)[0] == 1)
@@ -66,7 +66,7 @@ def test_sim_init_m_fun():
 
 
 def skip_test_sim_T_fun():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_T(init_T)
     assert(sim.T[0] == 1.5)
@@ -74,7 +74,7 @@ def skip_test_sim_T_fun():
 
 
 def test_m_average():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m((0, 0, 1))
     a = sim.compute_average()
@@ -115,7 +115,7 @@ def plot(ts, mx, my, mz, a_mx, a_my, a_mz, name="single_spin.pdf", title="integr
 
 def test_sim_single_spin_vode(do_plot=False):
 
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
 
     sim = Sim(mesh, name='spin')
 
@@ -160,7 +160,7 @@ def test_sim_single_spin_vode(do_plot=False):
 
 def test_sim_spins(do_plot=False):
 
-    mesh = FDMesh(nx=10, ny=5, nz=1)
+    mesh = CuboidMesh(nx=10, ny=5, nz=1)
 
     sim = Sim(mesh, name='10spin')
 
@@ -211,7 +211,7 @@ def test_sim_spins(do_plot=False):
 
 def test_sim_single_spin_sllg(do_plot=False):
 
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
 
     sim = Sim(mesh, name='spin', driver='sllg')
 
@@ -257,7 +257,7 @@ def test_sim_single_spin_sllg(do_plot=False):
 
 def disable_test_sim_single_spin_llg_stt(do_plot=False):
     ni = Nickel()
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
     mesh.set_material(ni)
 
     ni.alpha = 0.1

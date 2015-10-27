@@ -3,7 +3,8 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim, FDMesh, UniformExchange, Demag, UniaxialAnisotropy
+from micro import Sim, UniformExchange, Demag, UniaxialAnisotropy
+from common import CuboidMesh
 from pc import NEB_Sundials
 from util.helper import plot_energy_2d, plot_energy_3d
 #from finmag.sim.neb import plot_energy_2d, plot_energy_3d
@@ -61,7 +62,7 @@ def relax_system(sim):
 
 if __name__ == "__main__":
 
-    mesh = FDMesh(nx=160, ny=1, nz=1, dx=4.0, dy=4.0, dz=4.0, unit_length=1e-9)
+    mesh = CuboidMesh(nx=160, ny=1, nz=1, dx=4.0, dy=4.0, dz=4.0, unit_length=1e-9)
 
     sim = create_simulation(mesh)
     # relax_two_state(mesh)

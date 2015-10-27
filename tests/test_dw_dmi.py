@@ -1,6 +1,6 @@
 import numpy as np
 
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import Sim
 from fidimag.micro import UniformExchange
 from fidimag.micro import UniaxialAnisotropy
@@ -8,7 +8,7 @@ from fidimag.micro import DMI
 
 import matplotlib.pyplot as plt
 
-mesh = FDMesh(dx=2, nx=150, x0=-150, unit_length=1e-9)
+mesh = CuboidMesh(dx=2, nx=150, x0=-150, unit_length=1e-9)
 
 
 def m_init_dw(pos):

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from micro import Sim
-from micro import FDMesh
+from common import CuboidMesh
 
 # The energies, we can use DMI in a future simulation
 from micro import UniformExchange
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     # We will crate a mesh with 1000 elements of elements
     # in the x direction, and 1 along y and z
     # (so we have a 1D system)
-    mesh = FDMesh(nx=1000, ny=1, nz=1,
+    mesh = CuboidMesh(nx=1000, ny=1, nz=1,
                   dx=2, dy=2, dz=2.0,
                   unit_length=1e-9)
 

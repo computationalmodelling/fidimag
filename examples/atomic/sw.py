@@ -84,7 +84,7 @@ def spin_wave(mesh, m0, H0=10):
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(nx=20)
+    mesh = CuboidMesh(nx=20)
 
     m0 = relax_system(mesh)
     print 'relax system done'

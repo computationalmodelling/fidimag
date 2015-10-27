@@ -1,6 +1,6 @@
 import numpy as np
 import fidimag.extensions.dipolar as dipolar
-from fidimag.micro import FDMesh, UniformExchange, Sim, Demag, DMI
+from fidimag.common import CuboidMesh, UniformExchange, Sim, Demag, DMI
 from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute_dmi_field
 
 import pytest
@@ -67,7 +67,7 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     Compare the exchange field from Fidimag with an equivalent
     OOMMF simulation. OOMMF field data is taken from an OVF file.
     """
-    mesh = FDMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
     sim.Ms = Ms
@@ -125,7 +125,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
 
     """
 
-    mesh = FDMesh(nx=12, ny=10, nz=2, dx=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=12, ny=10, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
     sim.Ms = spatial_Ms
@@ -161,7 +161,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
 @pytest.mark.run_oommf
 def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
-    mesh = FDMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
     sim.Ms = Ms
@@ -194,7 +194,7 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
 @pytest.mark.run_oommf
 def test_demag_field_oommf(Ms=6e5):
-    mesh = FDMesh(nx=5, ny=2, nz=3, unit_length=1e-9)
+    mesh = CuboidMesh(nx=5, ny=2, nz=3, unit_length=1e-9)
     sim = Sim(mesh)
 
     sim.Ms = Ms
@@ -242,7 +242,7 @@ def test_demag_field_oommf(Ms=6e5):
 
 @pytest.mark.run_oommf
 def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
-    mesh = FDMesh(nx=150, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    mesh = CuboidMesh(nx=150, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     sim = Sim(mesh)
 
     sim.Ms = Ms
@@ -287,7 +287,7 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
 
 def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
 
-    mesh = FDMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    mesh = CuboidMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     sim = Sim(mesh)
 
     sim.Ms = Ms
@@ -327,7 +327,7 @@ def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
 
 def test_energy_dmi(Ms=8e5, D=1.32e-3):
 
-    mesh = FDMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    mesh = CuboidMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     sim = Sim(mesh)
 
     sim.Ms = Ms

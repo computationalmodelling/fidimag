@@ -3,7 +3,7 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from fidimag.micro import FDMesh, Sim, Zeeman, TimeZeeman, UniformExchange, UniaxialAnisotropy, SimpleDemag
+from fidimag.common import CuboidMesh, Sim, Zeeman, TimeZeeman, UniformExchange, UniaxialAnisotropy, SimpleDemag
 from fidimag.common import BatchTasks, DataReader
 
 def init_dw(pos):
@@ -147,7 +147,7 @@ def save_plot():
 
 if __name__=="__main__":
 
-    mesh = FDMesh(nx = 1000, ny=1, nz=1, dx=2, dy=2, dz=2, unit_length=1e-9)
+    mesh = CuboidMesh(nx = 1000, ny=1, nz=1, dx=2, dy=2, dz=2, unit_length=1e-9)
     relax_system(mesh)
 
     excite_system_D(mesh)

@@ -3,12 +3,13 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman, TimeZeeman
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, TimeZeeman
+from fidimag.common import CuboidMesh
 
 
 global_nx = 174
 global_ny = 150
-global_mesh = FDMesh(nx=global_nx,ny=global_ny, pbc='2d')
+global_mesh = CuboidMesh(nx=global_nx,ny=global_ny, pbc='2d')
 
 def init_m(pos):
     x,y,z = pos

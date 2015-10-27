@@ -1,7 +1,7 @@
 #same as test oommf, the difference is that a working version of oommf is not necessary.
 import os
 import numpy as np
-from fidimag.micro import FDMesh, UniformExchange, Sim, Demag, DMI
+from fidimag.common import CuboidMesh, UniformExchange, Sim, Demag, DMI
 from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute_dmi_field
 from fidimag.micro.omf import OMF2
 
@@ -35,7 +35,7 @@ def compare_fields(v1, v2):
 
 def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
 
-    mesh = FDMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
     sim.Ms = Ms
@@ -93,7 +93,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
 
     """
 
-    mesh = FDMesh(nx=12, ny=10, nz=2, dx=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=12, ny=10, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
     sim.Ms = spatial_Ms
@@ -135,7 +135,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
 
 def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
-    mesh = FDMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
 
     sim = Sim(mesh)
     sim.Ms = Ms
@@ -169,7 +169,7 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
 
 def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
-    mesh = FDMesh(nx=150, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
+    mesh = CuboidMesh(nx=150, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     sim = Sim(mesh)
 
     sim.Ms = Ms

@@ -1,6 +1,6 @@
 import numpy as np
 from fidimag.micro import Sim
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, DMI, Zeeman
 
 mu0 = 4 * np.pi * 1e-7
@@ -71,7 +71,7 @@ def excite_system(mesh):
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(nx=101, ny=101, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='2d')
+    mesh = CuboidMesh(nx=101, ny=101, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='2d')
 
     relax_system(mesh)
 

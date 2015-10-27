@@ -70,7 +70,7 @@ if __name__ == '__main__':
     ni.J = 2
     ni.gamma = 1
 
-    mesh = FDMesh(nx=20, ny=5, nz=2)
+    mesh = CuboidMesh(nx=20, ny=5, nz=2)
     mesh.set_material(ni)
 
     m0 = relax_system(mesh, ni)

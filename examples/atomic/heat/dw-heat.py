@@ -65,7 +65,7 @@ if __name__ == '__main__':
     ni = Nickel()
     ni.J *= 0.05
 
-    mesh = FDMesh(nx=200, ny=1, nz=1)
+    mesh = CuboidMesh(nx=200, ny=1, nz=1)
     mesh.set_material(ni)
 
     m0 = relax_system(mesh, ni)

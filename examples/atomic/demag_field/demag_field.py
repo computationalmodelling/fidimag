@@ -3,7 +3,8 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from pc import Sim, FDMesh, Demag
+from pc import Sim, Demag
+from fidimag.common import CuboidMesh
 from pc import Constant
 from pc.save_vtk import SaveVTK
 
@@ -50,7 +51,7 @@ def plot_f(mesh, field, mu_s_inv):
 
 def relax_system():
 
-    mesh = FDMesh(nx=121, ny=121, nz=1, dx=0.5, dy=0.5, unit_length=1e-9)
+    mesh = CuboidMesh(nx=121, ny=121, nz=1, dx=0.5, dy=0.5, unit_length=1e-9)
 
     sim = Sim(mesh, name='relax_skx')
     sim.set_default_options(gamma=const.gamma)

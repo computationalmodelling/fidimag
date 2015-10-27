@@ -2,8 +2,8 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman
-from fidimag.common import Constant
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman
+from fidimag.common import Constant, CuboidMesh
 
 
 const = Constant()
@@ -103,6 +103,6 @@ def excite_system(mesh):
 
 
 if __name__ == '__main__':
-    mesh = FDMesh(nx=150, ny=50, nz=1,  pbc='2d')
+    mesh = CuboidMesh(nx=150, ny=50, nz=1,  pbc='2d')
     relax_system(mesh)
     #excite_system(mesh)

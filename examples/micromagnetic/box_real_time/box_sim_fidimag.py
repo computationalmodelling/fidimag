@@ -172,7 +172,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 
 from fidimag.micro import Sim
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, Demag, DMI, UniaxialAnisotropy
 from fidimag.micro import Zeeman
 
@@ -257,7 +257,7 @@ dy = args.fd_max_plane
 dz = args.fd_max_thick
 
 if not args.PBC_2D:
-    mesh = FDMesh(nx=nx,
+    mesh = CuboidMesh(nx=nx,
                   ny=ny,
                   nz=nz,
                   dx=dx,
@@ -267,7 +267,7 @@ if not args.PBC_2D:
                   )
 else:
     print 'Using Periodic Boundary Conditions!'
-    mesh = FDMesh(nx=nx,
+    mesh = CuboidMesh(nx=nx,
                   ny=ny,
                   nz=nz,
                   dx=dx,

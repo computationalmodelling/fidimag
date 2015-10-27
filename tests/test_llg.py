@@ -2,7 +2,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-from fidimag.micro import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.micro import Sim
 from fidimag.micro import Zeeman
 from fidimag.micro import UniaxialAnisotropy
@@ -27,7 +27,7 @@ def pin_fun(pos):
 
 
 def test_sim_pin():
-    mesh = FDMesh(nx=3, ny=2, nz=1)
+    mesh = CuboidMesh(nx=3, ny=2, nz=1)
     sim = Sim(mesh)
     sim.set_m((0, 0.8, 0.6))
     sim.alpha = 0.1
@@ -44,7 +44,7 @@ def test_sim_pin():
 
 
 def test_sim_init_m():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m((0, 1, 0))
     sim.spin.shape = (-1, 3)
@@ -53,7 +53,7 @@ def test_sim_init_m():
 
 
 def test_sim_init_m_fun():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m(init_m, normalise=False)
     assert(sim.spin_at(1, 2, 3)[0] == 1)
@@ -62,7 +62,7 @@ def test_sim_init_m_fun():
 
 
 def test_m_average():
-    mesh = FDMesh(nx=3, ny=4, nz=5)
+    mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m((0, 0, 1))
     a = sim.compute_average()
@@ -86,7 +86,7 @@ def single_spin(alpha, gamma, H0, ts):
 
 def test_sim_single_spin(do_plot=False):
 
-    mesh = FDMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=1, ny=1, nz=1)
 
     sim = Sim(mesh, name='spin')
 

@@ -1,12 +1,12 @@
 from fidimag.atomistic import DMI
-from fidimag.atomistic import FDMesh
+from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 import numpy as np
 
 
 def test_dmi_1d():
 
-    mesh = FDMesh(nx=2, ny=1, nz=1)
+    mesh = CuboidMesh(nx=2, ny=1, nz=1)
 
     sim = Sim(mesh)
     sim.set_m((1, 0, 0))
@@ -33,7 +33,7 @@ def init_m(pos):
 
 def test_dmi_1d_field():
 
-    mesh = FDMesh(nx=2, ny=1, nz=1)
+    mesh = CuboidMesh(nx=2, ny=1, nz=1)
 
     sim = Sim(mesh)
     sim.set_m(init_m)

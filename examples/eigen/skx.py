@@ -2,8 +2,8 @@ import matplotlib as mpl
 mpl.use("Agg")
 
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange, Zeeman, TimeZeeman
-from fidimag.common import DataReader
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, TimeZeeman
+from fidimag.common import DataReader, CuboidMesh
 
 from fidimag.atomistic.eigen import EigenProblem
 
@@ -69,8 +69,8 @@ def eigen(mesh):
               
 if __name__=='__main__':
     
-    #mesh = FDMesh(nx=174,ny=150, nz=1, pbc='2d')
-    mesh = FDMesh(nx=87,ny=100, nz=1, pbc='2d')
+    #mesh = CuboidMesh(nx=174,ny=150, nz=1, pbc='2d')
+    mesh = CuboidMesh(nx=87,ny=100, nz=1, pbc='2d')
     
     relax_system(mesh)
     

@@ -1,6 +1,6 @@
 import numpy as np
-from fidimag.atomistic import Sim, FDMesh, DMI, UniformExchange
-
+from fidimag.atomistic import Sim, DMI, UniformExchange
+from fidimag.common import CuboidMesh
 
 def init_m(pos):
     x, y, z = pos
@@ -38,7 +38,7 @@ def relax_system(mesh):
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(nx=20, ny=1, nz=1, pbc=None)
+    mesh = CuboidMesh(nx=20, ny=1, nz=1, pbc=None)
 
     m0 = relax_system(mesh)
     print 'relax system done'

@@ -85,6 +85,6 @@ def dynamic(mesh):
 
 
 if __name__ == '__main__':
-    mesh = FDMesh(nx=500, ny=1, nz=1)
+    mesh = CuboidMesh(nx=500, ny=1, nz=1)
     relax_system(mesh)
     dynamic(mesh)

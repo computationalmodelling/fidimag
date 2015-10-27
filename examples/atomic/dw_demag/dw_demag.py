@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from pc import Sim
-from pc import FDMesh
 from pc import DMI, Demag, UniformExchange
+from fidimag.common import CuboidMesh
 
 
 def init_m(pos):
@@ -61,7 +61,7 @@ def save_plot():
 
 if __name__ == '__main__':
 
-    mesh = FDMesh(nx=300, dx=0.5, dy=1, dz=1, unit_length=1e-9)
+    mesh = CuboidMesh(nx=300, dx=0.5, dy=1, dz=1, unit_length=1e-9)
 
     relax_system(mesh)
     print 'relax system done'
