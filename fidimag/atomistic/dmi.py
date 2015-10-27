@@ -30,13 +30,13 @@ class DMI(Energy):
                                    self.energy,
                                    self.D,
                                    self.connectivity,
-                                   self.nxyz)
+                                   self.n)
 
         elif self.dmi_type == 'interfacial':
             if self.mesh_type == 'hexagonal':
                 nneighbours = 6
                 rdim = 2
-            elif self.mesh_type == 'simple_cubic':
+            elif self.mesh_type == 'cuboid':
                 nneighbours = 4
                 rdim = 3
 
@@ -45,7 +45,7 @@ class DMI(Energy):
                                                self.energy,
                                                self.D,
                                                self.connectivity,
-                                               self.nxyz,
+                                               self.n,
                                                nneighbours,
                                                self.coordinates,
                                                rdim

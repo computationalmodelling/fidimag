@@ -38,7 +38,7 @@ class SLLG(LLG):
         self.k_B = k_B
 
         self.vode = clib.RK2S(dt,
-                              self.nxyz,
+                              self.n,
                               self.gamma,
                               self.k_B,
                               theta,

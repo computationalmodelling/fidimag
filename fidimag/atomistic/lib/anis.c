@@ -2,7 +2,7 @@
 
 
 void compute_anis(double *spin, double *field, double *energy,
-	double *Ku, double *axis, int nxyz) {
+	double *Ku, double *axis, int n) {
 	
     /* Remember that the magnetisation order is 
      *      mx1, my1, mz1, mx2, my2, mz2, mx3,...
@@ -15,7 +15,7 @@ void compute_anis(double *spin, double *field, double *energy,
      *
      */
     #pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
+	for (int i = 0; i < n; i++) {
 
         double m_u = (spin[3 * i] * axis[3 * i] +
                       spin[3 * i + 1] * axis[3 * i + 1] +

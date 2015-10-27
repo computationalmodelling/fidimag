@@ -37,7 +37,7 @@ class Anisotropy(Energy):
                                 self.energy,
                                 self._Ku,
                                 self._axis,
-                                self.nxyz
+                                self.n
                                 )
 
         return self.field * self.mu_s_inv

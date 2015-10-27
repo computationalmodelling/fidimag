@@ -16,18 +16,18 @@ class Zeeman(object):
     def setup(self, mesh, spin, mu_s):
         self.mesh = mesh
         self.spin = spin
-        self.nxyz = mesh.nxyz
+        self.n = mesh.n
 
         self.mu_s = mu_s
-        self.mu_s_long = np.zeros(3 * mesh.nxyz)
+        self.mu_s_long = np.zeros(3 * mesh.n)
 
         self.mu_s_long.shape = (-1, 3)
-        for i in range(mesh.nxyz):
+        for i in range(mesh.n):
             self.mu_s_long[i, :] = mu_s[i]
 
         self.mu_s_long.shape = (-1,)
 
-        self.field = np.zeros(3 * self.nxyz)
+        self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.H0, self.mesh)
 
     def compute_field(self, t=0):

@@ -196,12 +196,12 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 }
 
 void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
-		double *alpha, double beta, double u0, double gamma, int nxyz) {
+		double *alpha, double beta, double u0, double gamma, int n) {
 
 	#pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
-		int j = i + nxyz;
-		int k = j + nxyz;
+	for (int i = 0; i < n; i++) {
+		int j = i + n;
+		int k = j + n;
 
 		double coeff = -gamma / (1 + alpha[i] * alpha[i]);
 

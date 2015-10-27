@@ -14,10 +14,10 @@
  */
 void compute_exch_field(double *spin, double *field, double *energy,
 						double Jx, double Jy, double Jz,
-                        int *ngbs, int nxyz) {
+                        int *ngbs, int n) {
     
     #pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
+	for (int i = 0; i < n; i++) {
 
 		int id = 0;
 		int idv = 6 * i; // index for the neighbours
