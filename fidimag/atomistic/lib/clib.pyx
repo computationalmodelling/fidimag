@@ -18,7 +18,11 @@ cdef extern from "clib.h":
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     
     void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz) 
-    void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz)
+    void dmi_field_interfacial_atomistic(double *spin, double *field,
+                                         double *energy, double D, int *ngbs,
+                                         int nxyz, int nneighbours,
+                                         double *r, int rdim)
+
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
 
     void compute_anis(double *spin, double *field, double *energy,
@@ -125,9 +129,15 @@ def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] energy,
                       D,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
-                      nxyz):
+                      nxyz, nneighbours,
+                      np.ndarray[double, ndim=2, mode="c"] r,
+                      rdim
+                      ):
     dmi_field_interfacial_atomistic(&spin[0], &field[0], &energy[0],
-                                    D, &ngbs[0, 0], nxyz)
+                                    D, &ngbs[0, 0], nxyz, 
+                                    nneighbours,
+                                    &r[0, 0], rdim
+                                    )
     
 def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                         D, nx, ny, nz,

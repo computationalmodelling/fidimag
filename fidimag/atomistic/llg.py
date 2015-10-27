@@ -15,11 +15,8 @@ class LLG(object):
 
     def __init__(self, mesh, name='unnamed', use_jac=False):
         """Simulation object.
-
         *Arguments*
-
           name : the Simulation name (used for writing data files, for examples)
-
         """
 
         self.t = 0
@@ -63,8 +60,11 @@ class LLG(object):
 
         self.saver.update_entity_order()
 
-        self.xperiodic = mesh.xperiodic
-        self.yperiodic = mesh.yperiodic
+        try:
+            self.xperiodic = mesh.xperiodic
+            self.yperiodic = mesh.yperiodic
+        except:
+            xperiodic, yperiodic = mesh.periodicity
 
         self.vtk = SaveVTK(self.mesh, name=name)
 

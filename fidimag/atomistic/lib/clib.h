@@ -5,22 +5,34 @@
 
 #define WIDE_PI 3.1415926535897932384626433832795L
 
-inline double cross_x(double a0, double a1, double a2, double b0, double b1, double b2) { return a1*b2 - a2*b1; }
-inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
-inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
+inline double cross_x(double a0, double a1, double a2,
+                      double b0, double b1, double b2) { return a1*b2 - a2*b1; }
+inline double cross_y(double a0, double a1, double a2,
+                      double b0, double b1, double b2) { return a2*b0 - a0*b2; }
+inline double cross_z(double a0, double a1, double a2,
+                      double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
 void compute_exch_field(double *spin, double *field, double *energy,
 						double Jx, double Jy, double Jz,
                         int *ngbs, int nxyz);
-double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
+double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
+                           int nx, int ny, int nz,
+                           int xperiodic, int yperiodic);
 
 void compute_anis(double *spin, double *field, double *energy,
-	double *Ku, double *axis, int nxyz);
+	              double *Ku, double *axis, int nxyz);
 
 
-void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz);
-void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz);
-double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
+void dmi_field_bulk(double *spin, double *field, double *energy,
+                    double D, int *ngbs, int nxyz);
+
+void dmi_field_interfacial_atomistic(double *spin, double *field,
+                                     double *energy, double D, int *ngbs,
+                                     int nxyz, int nneighbours,
+                                     double *r, int rdim);
+
+double dmi_energy(double *spin, double D, int nx, int ny, int nz,
+                  int xperiodic, int yperiodic);
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 		int *pins, double gamma, int nxyz, int do_procession, double default_c);

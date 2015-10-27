@@ -9,6 +9,9 @@ class FDMesh():
     def __init__(self, dx=1.0, dy=1.0, dz=1.0,
                  nx=10, ny=1, nz=1,
                  unit_length=1.0, pbc=None):
+
+        self.mesh_type = 'simple_cubic'
+
         self.dx = dx
         self.dy = dy
         self.dz = dz

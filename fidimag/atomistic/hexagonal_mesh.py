@@ -12,7 +12,8 @@ from math import sqrt
 
 
 class HexagonalMesh(object):
-    def __init__(self, radius, nx, ny, periodicity=(False, False)):
+    def __init__(self, radius, nx, ny,
+                 periodicity=(False, False), unit_length=1.0):
         """
         Create mesh with nx cells in x-direction and ny cells in the
         y-direction. The size of a hexagon is given by
@@ -39,6 +40,10 @@ class HexagonalMesh(object):
 
         self.coordinates = self.init_coordinates()
         self.neighbours = self.init_neighbours()
+
+        self.mesh_type = 'hexagonal'
+        self.unit_length = unit_length
+        self.nxyz = 0
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 2))

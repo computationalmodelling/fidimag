@@ -448,8 +448,6 @@ class NEB_Sundials(object):
         # Use the native NEB (C code) to compute the tangents according
         # to the improved NEB method, developed by Henkelman and Jonsson
         # at: Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
-
-        # native_neb.compute_tangents(y, self.energy, self.tangents)
         neb_clib.compute_tangents(
             y, self.energy, self.tangents, self.total_image_num, 3 * self.nxyz)
         # native_neb.compute_springs(y,self.springs,self.spring)
@@ -501,11 +499,12 @@ class NEB_Sundials(object):
             else:
                 h3 = h - 2 * np.dot(h, t) * t
 
+            # Update H_eff[i + 1] with the new h3
             h[:] = h3[:]
 
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D
-        # (check the C++ code in finmag/native/src/)
+        # (check the C code in common/)
         neb_clib.compute_dm_dt(
             y, self.Heff, ydot, self.sim._pins, self.total_image_num, self.nxyz)
 

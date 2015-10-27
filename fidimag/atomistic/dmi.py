@@ -33,12 +33,23 @@ class DMI(Energy):
                                    self.nxyz)
 
         elif self.dmi_type == 'interfacial':
+            if self.mesh_type == 'hexagonal':
+                nneighbours = 6
+                rdim = 2
+            elif self.mesh_type == 'simple_cubic':
+                nneighbours = 4
+                rdim = 3
+
             clib.compute_dmi_field_interfacial(m,
                                                self.field,
                                                self.energy,
                                                self.D,
                                                self.connectivity,
-                                               self.nxyz)
+                                               self.nxyz,
+                                               nneighbours,
+                                               self.coordinates,
+                                               rdim
+                                               )
 
         return self.field * self.mu_s_inv
 

@@ -4,7 +4,7 @@
 //normalise the given array
 inline void normalise(double *res, int n){
     /* Normalise the *res array, whose length is n
-     * (3 * number of node sin cartesian, and
+     * (3 * number of nodes in cartesian, and
      *  2 * number of nodes in spherical)
      * To do this we compute the length of res:
      *
@@ -14,7 +14,8 @@ inline void normalise(double *res, int n){
      */
     double length=0;
 
-    for(int i=0;i<n;i++){
+    for(int i = 0; i < n; i++){
+        
         if (res[i] > PI){
             res[i] = 2 * PI - res[i];
         } else if(res[i] < -PI){
@@ -32,7 +33,7 @@ inline void normalise(double *res, int n){
     }
 }
 
-//compute b-a and store it to res with normalised length 1
+// compute b-a and store it to res with normalised length 1
 inline void difference(double *res, double *a, double *b, int n){
 
     for(int i = 0; i < n; i++){
@@ -55,7 +56,7 @@ void compute_tangents_c(double *ys, double *energy, double *tangents,
      * is the same for every image, i.e. we can use
      *   [mx1, my1, mz1, mx2 ...]  OR
      *   [mx1, mx2, ... my1, my2... , mz1, mz2 ,... ]
-    */
+     */
 
 
 	double t1[nodes];
@@ -175,9 +176,9 @@ inline void compute_dmdt(double *m, double *h, double *dm_dt,
        	dm_dt[j + 1] = mm * h[j + 1] - mh * m[j + 1];
        	dm_dt[j + 2] = mm * h[j + 2] - mh * m[j + 2];
 
-       	double c = 6 * sqrt(dm_dt[j] * dm_dt[j] +
+       	double c = 6 * sqrt(dm_dt[j]     * dm_dt[j]     +
                             dm_dt[j + 1] * dm_dt[j + 1] +
-                            dm_dt[j + 2]*dm_dt[j + 2]);
+                            dm_dt[j + 2] * dm_dt[j + 2]);
 
        	dm_dt[j]     += c * (1 - mm) * m[j];
         dm_dt[j + 1] += c * (1 - mm) * m[j + 1];

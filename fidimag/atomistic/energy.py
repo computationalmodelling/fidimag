@@ -19,6 +19,7 @@ class Energy(object):
         self.nz = mesh.nz
         self.spin = spin
         self.nxyz = mesh.nxyz
+        self.mesh_type = mesh.mesh_type
 
         self.total_energy = 0
         self.pbc = mesh.pbc
@@ -40,6 +41,10 @@ class Energy(object):
         self.xperiodic = mesh.xperiodic
         self.yperiodic = mesh.yperiodic
         self.connectivity = mesh.connectivity
+        try:
+            self.coordinates = self.mesh.coordinates
+        except:
+            self.coordinates = np.array(self.mesh.pos)
 
     def compute_field(self, t=0):
 
