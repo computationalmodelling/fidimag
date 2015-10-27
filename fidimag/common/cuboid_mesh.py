@@ -30,7 +30,7 @@ import numpy as np
 
 
 class CuboidMesh(object):
-    def __init__(self, dx, dy, dz, nx, ny, nz,
+    def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1,
                  periodicity=(False, False, False), unit_length=1.0):
         """
         Create mesh with cells of size dx * dy * dz.
