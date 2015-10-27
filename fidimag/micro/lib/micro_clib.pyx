@@ -6,17 +6,17 @@ cdef extern from "micro_clib.h":
     void compute_exch_field_micro(double *m, double *field,
                                   double *energy, double *Ms_inv,
                                   double A, double dx, double dy, double dz,
-                                  int nxyz, int *ngbs)
+                                  int n, int *ngbs)
 
     void dmi_field_bulk(double *m, double *field, double *energy, 
                         double *Ms_inv, double *D,
                         double dx, double dy, double dz, 
-                        int nxyz, int *ngbs)
+                        int n, int *ngbs)
 
     void dmi_field_interfacial(double *m, double *field,
                                double *energy, double *Ms_inv,
                                double *D, double dx, double dy, double dz,
-                               int nxyz, int *ngbs)
+                               int n, int *ngbs)
 
     void compute_uniaxial_anis(double *m, double *field,
                                double *energy, double *Ms_inv, 
@@ -29,11 +29,11 @@ def compute_exchange_field_micro(np.ndarray[double, ndim=1, mode="c"] m,
                             np.ndarray[double, ndim=1, mode="c"] field,
                             np.ndarray[double, ndim=1, mode="c"] energy,
                             np.ndarray[double, ndim=1, mode="c"] Ms_inv,
-                            A, dx, dy, dz, nxyz,
+                            A, dx, dy, dz, n,
             		    np.ndarray[int, ndim=2, mode="c"] ngbs):
 
     compute_exch_field_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], A,
-                             dx, dy, dz, nxyz, &ngbs[0, 0])
+                             dx, dy, dz, n, &ngbs[0, 0])
     
 
 def compute_dmi_field_bulk(np.ndarray[double, ndim=1, mode="c"] m,
@@ -42,11 +42,11 @@ def compute_dmi_field_bulk(np.ndarray[double, ndim=1, mode="c"] m,
                             np.ndarray[double, ndim=1, mode="c"] Ms_inv,
                             np.ndarray[double, ndim=1, mode="c"] D,
                             dx, dy, dz,
-                            nxyz, np.ndarray[int, ndim=2, mode="c"] ngbs
+                            n, np.ndarray[int, ndim=2, mode="c"] ngbs
                             ):
 
     dmi_field_bulk(&m[0], &field[0], &energy[0], &Ms_inv[0], &D[0],
-                   dx, dy, dz, nxyz, &ngbs[0, 0])
+                   dx, dy, dz, n, &ngbs[0, 0])
     
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] m,
                             np.ndarray[double, ndim=1, mode="c"] field,
@@ -54,11 +54,11 @@ def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] m,
                             np.ndarray[double, ndim=1, mode="c"] Ms_inv,
                             np.ndarray[double, ndim=1, mode="c"] D,
                             dx, dy, dz, 
-                            nxyz, np.ndarray[int, ndim=2, mode="c"] ngbs
+                            n, np.ndarray[int, ndim=2, mode="c"] ngbs
                             ):
 
     dmi_field_interfacial(&m[0], &field[0], &energy[0], &Ms_inv[0], &D[0],
-                          dx, dy, dz, nxyz, &ngbs[0, 0])
+                          dx, dy, dz, n, &ngbs[0, 0])
 
 def compute_anisotropy_micro(np.ndarray[double, ndim=1, mode="c"] m,
                             np.ndarray[double, ndim=1, mode="c"] field,

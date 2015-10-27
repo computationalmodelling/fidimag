@@ -22,10 +22,10 @@ class LLG_STT(LLG):
         """
         super(LLG_STT, self).__init__(mesh, name=name)
 
-        self.field_stt = np.zeros(3 * self.nxyz)
+        self.field_stt = np.zeros(3 * self.n)
 
-        self._jx = np.zeros(self.nxyz, dtype=np.float)
-        self._jy = np.zeros(self.nxyz, dtype=np.float)
+        self._jx = np.zeros(self.n, dtype=np.float)
+        self._jy = np.zeros(self.n, dtype=np.float)
 
         self.p = 0.5
         self.beta = 0
@@ -92,4 +92,4 @@ class LLG_STT(LLG):
                                  self.beta,
                                  self.u0 * self.p / self.Ms_const,
                                  self.gamma,
-                                 self.nxyz)
+                                 self.n)

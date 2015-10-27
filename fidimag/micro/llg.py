@@ -25,18 +25,18 @@ class LLG(object):
         self.t = 0
         self.name = name
         self.mesh = mesh
-        self.nxyz = mesh.nxyz
-        self.nxyz_nonzero = mesh.nxyz
+        self.n = mesh.n
+        self.n_nonzero = mesh.n
         self.unit_length = mesh.unit_length
-        self._alpha = np.zeros(self.nxyz, dtype=np.float)
-        self._Ms = np.zeros(self.nxyz, dtype=np.float)
-        self._Ms_inv = np.zeros(self.nxyz, dtype=np.float)
-        self.spin = np.ones(3 * self.nxyz, dtype=np.float)
-        self.spin_last = np.ones(3 * self.nxyz, dtype=np.float)
-        self._pins = np.zeros(self.nxyz, dtype=np.int32)
-        self.field = np.zeros(3 * self.nxyz, dtype=np.float)
-        self.dm_dt = np.zeros(3 * self.nxyz, dtype=np.float)
-        self._skx_number = np.zeros(self.nxyz, dtype=np.float)
+        self._alpha = np.zeros(self.n, dtype=np.float)
+        self._Ms = np.zeros(self.n, dtype=np.float)
+        self._Ms_inv = np.zeros(self.n, dtype=np.float)
+        self.spin = np.ones(3 * self.n, dtype=np.float)
+        self.spin_last = np.ones(3 * self.n, dtype=np.float)
+        self._pins = np.zeros(self.n, dtype=np.int32)
+        self.field = np.zeros(3 * self.n, dtype=np.float)
+        self.dm_dt = np.zeros(3 * self.n, dtype=np.float)
+        self._skx_number = np.zeros(self.n, dtype=np.float)
         self.interactions = []
         self.pin_fun = None
         self.integrator_tolerances_set = False
@@ -131,12 +131,12 @@ class LLG(object):
     def set_Ms(self, value):
         self._Ms[:] = helper.init_scalar(value, self.mesh)
         nonzero = 0
-        for i in range(self.nxyz):
+        for i in range(self.n):
             if self._Ms[i] > 0.0:
                 self._Ms_inv = 1.0 / self._Ms[i]
                 nonzero += 1
 
-        self.nxyz_nonzero = nonzero
+        self.n_nonzero = nonzero
 
         for i in range(len(self._Ms)):
             if self._Ms[i] == 0.0:
@@ -231,7 +231,7 @@ class LLG(object):
                              self.alpha,
                              self._pins,
                              self.gamma,
-                             self.nxyz,
+                             self.n,
                              self.do_procession,
                              self.default_c)
 
@@ -241,8 +241,8 @@ class LLG(object):
 
     def compute_average(self):
         self.spin.shape = (-1, 3)
-        average = np.sum(self.spin, axis=0) / self.nxyz_nonzero
-        self.spin.shape = (3 * self.nxyz)
+        average = np.sum(self.spin, axis=0) / self.n_nonzero
+        self.spin.shape = (3 * self.n)
         return average
 
     def compute_energy(self):

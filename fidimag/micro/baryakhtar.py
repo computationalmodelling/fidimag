@@ -34,7 +34,7 @@ class LLBarFull(LLG):
                                         self.beta,
                                         self._pins,
                                         self.gamma,
-                                        self.nxyz,
+                                        self.n,
                                         self.do_procession)
 
         #ydot[:] = self.dm_dt[:]
@@ -49,7 +49,7 @@ class LLBar(LLG):
         super(LLBar, self).__init__(mesh, name=name)
         self.lap = Laplace(mesh)
 
-        self.field_perp = np.zeros(3 * self.nxyz, dtype=np.float)
+        self.field_perp = np.zeros(3 * self.n, dtype=np.float)
 
         self.beta = 0
 
@@ -62,7 +62,7 @@ class LLBar(LLG):
 
         self.compute_effective_field(t)
         clib.compute_perp_field(
-            self.spin, self.field, self.field_perp, self.nxyz)
+            self.spin, self.field, self.field_perp, self.n)
         delta_h = self.lap.compute_laplace_field(self.field_perp, self._Ms)
 
         clib.compute_llg_rhs_baryakhtar_reduced(ydot,
@@ -73,7 +73,7 @@ class LLBar(LLG):
                                                 self.beta,
                                                 self._pins,
                                                 self.gamma,
-                                                self.nxyz,
+                                                self.n,
                                                 self.do_procession,
                                                 self.default_c)
 

@@ -2,7 +2,7 @@
 
 void compute_exch_field_micro(double *m, double *field, double *energy,
 			      double *Ms_inv, double A, double dx, double dy, double dz,
-                  int nxyz, int *ngbs) {
+                  int n, int *ngbs) {
 
     /* Compute the micromagnetic exchange field and energy using the
      * matrix of neighbouring spins and a second order approximation
@@ -15,9 +15,9 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
      * 
      * dx, dy, dz :: Mesh spacings in the corresponding directions
      * 
-     * nxyz       :: Number of mesh nodes
+     * n          :: Number of mesh nodes
      *
-     * ngbs       :: The array of neighbouring spins, which has (6 * nxyz)
+     * ngbs       :: The array of neighbouring spins, which has (6 * n)
      *               entries. Specifically, it contains the indexes of 
      *               the neighbours of every mesh node, in the following order:
      *                      -x, +x, -y, +y, -z, +z
@@ -89,7 +89,7 @@ void compute_exch_field_micro(double *m, double *field, double *energy,
 
     /* Here we iterate through every mesh node */
 	#pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
+	for (int i = 0; i < n; i++) {
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours

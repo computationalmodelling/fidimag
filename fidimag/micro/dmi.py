@@ -21,7 +21,7 @@ class DMI(Energy):
 
     def setup(self, mesh, spin, Ms):
         super(DMI, self).setup(mesh, spin, Ms)
-        self.Ds = np.zeros(self.nxyz, dtype=np.float)
+        self.Ds = np.zeros(self.n, dtype=np.float)
         self.Ds[:] = helper.init_scalar(self.D, self.mesh)
 
     def compute_field(self, t=0):
@@ -34,7 +34,7 @@ class DMI(Energy):
                                               self.dx,
                                               self.dy,
                                               self.dz,
-                                              self.nxyz,
+                                              self.n,
                                               self.connectivity
                                               )
         elif self.type == 'interfacial':
@@ -46,7 +46,7 @@ class DMI(Energy):
                                                      self.dx,
                                                      self.dy,
                                                      self.dz,
-                                                     self.nxyz,
+                                                     self.n,
                                                      self.connectivity
                                                      )
         else:

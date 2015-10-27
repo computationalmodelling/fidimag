@@ -22,7 +22,7 @@ class Relaxation(object):
         self.nz = mesh.nz
         self.spin = m
         self.Ms = Ms
-        self.field = np.zeros(3 * mesh.nxyz)
+        self.field = np.zeros(3 * mesh.n)
 
         if self.chi == 0.0:
             self.chi_inv = 0
@@ -35,7 +35,7 @@ class Relaxation(object):
                                       self.field,
                                       self.Ms,
                                       self.chi_inv,
-                                      self.mesh.nxyz)
+                                      self.mesh.n)
 
         return self.field
 
@@ -57,7 +57,7 @@ class Laplace(object):
         self.nx = mesh.nx
         self.ny = mesh.ny
         self.nz = mesh.nz
-        self.field = np.zeros(3 * mesh.nxyz)
+        self.field = np.zeros(3 * mesh.n)
 
     def compute_laplace_field(self, h, Ms):
 

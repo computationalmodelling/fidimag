@@ -23,7 +23,7 @@ class UniformExchange(Energy):
                                                 self.dx,
                                                 self.dy,
                                                 self.dz,
-                                                self.nxyz,
+                                                self.n,
                                                 self.connectivity)
 
         return self.field

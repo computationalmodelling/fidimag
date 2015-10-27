@@ -259,9 +259,9 @@ def extract_data(mesh, ovf_file):
 
     ovf = omf.OMF2(ovf_file)
 
-    mx = np.zeros(mesh.nxyz)
-    my = np.zeros(mesh.nxyz)
-    mz = np.zeros(mesh.nxyz)
+    mx = np.zeros(mesh.n)
+    my = np.zeros(mesh.n)
+    mz = np.zeros(mesh.n)
 
     for i in range(mesh.nx):
         for j in range(mesh.ny):

@@ -16,16 +16,16 @@ class Energy(object):
         self.ny = mesh.ny
         self.nz = mesh.nz
         self.spin = spin
-        self.nxyz = mesh.nxyz
+        self.n = mesh.n
 
-        self.field = np.zeros(3 * mesh.nxyz)
-        self.energy = np.zeros(mesh.nxyz)
+        self.field = np.zeros(3 * mesh.n)
+        self.energy = np.zeros(mesh.n)
         self.total_energy = 0
         self.pbc = mesh.pbc
         self.Ms = Ms
-        self.Ms_inv = np.zeros(mesh.nxyz)
+        self.Ms_inv = np.zeros(mesh.n)
 
-        for i in range(mesh.nxyz):
+        for i in range(mesh.n):
             if self.Ms[i] == 0.0:
                 self.Ms_inv[i] = 0
             else:
