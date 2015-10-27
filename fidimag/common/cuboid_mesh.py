@@ -105,7 +105,7 @@ class CuboidMesh(object):
                     neighbours = [other if other != cell
                                   else -1 for other in neighbours]
                     connectivity.append(neighbours)
-        return np.array(connectivity)
+        return np.array(connectivity, dtype=np.int32)
 
     def index(self, i, j, k):
         """
