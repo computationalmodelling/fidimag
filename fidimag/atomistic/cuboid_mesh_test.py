@@ -16,7 +16,7 @@ def test_coordinates_x():
     """
        .+---+---+
      .'  .'   .'|
-    +---+---+'  |        Dimensions 1 x 1 x 1.
+    +---+---+'  |        Dimensions 2 x 1 x 1.
     |   |   |   |        Cells 2 x 1 x 1.
     |   |   |   +
     |   |   | .'
@@ -25,14 +25,14 @@ def test_coordinates_x():
     """
     mesh = CuboidMesh(1, 1, 1, 2, 1, 1)
     assert allclose(mesh.coordinates,
-                    np.array(((0.25, 0.5, 0.5), (0.75, 0.5, 0.5))))
+                    np.array(((0.5, 0.5, 0.5), (1.5, 0.5, 0.5))))
 
 
 def test_coordinates_y():
     """
        .+-------+
      .+-------+'|
-    +-------+'| |        Dimensions 1 x 1 x 1.
+    +-------+'| |        Dimensions 1 x 2 x 1.
     |       | | |        Cells 1 x 2 x 1.
     |       | | +
     |       | +'
@@ -41,14 +41,14 @@ def test_coordinates_y():
     """
     mesh = CuboidMesh(1, 1, 1, 1, 2, 1)
     assert allclose(mesh.coordinates,
-                    np.array(((0.5, 0.25, 0.5), (0.5, 0.75, 0.5))))
+                    np.array(((0.5, 0.5, 0.5), (0.5, 1.5, 0.5))))
 
 
 def test_coordinates_z():
     """
        .+-------+
      .'       .'|
-    +-------+'  +        Dimensions 1 x 1 x 1.
+    +-------+'  +        Dimensions 1 x 1 x 2.
     |       | .'|        Cells 1 x 1 x 2.
     +-------+'  +
     |       | .'
@@ -57,7 +57,7 @@ def test_coordinates_z():
     """
     mesh = CuboidMesh(1, 1, 1, 1, 1, 2)
     assert allclose(mesh.coordinates,
-                    np.array(((0.5, 0.5, 0.25), (0.5, 0.5, 0.75))))
+                    np.array(((0.5, 0.5, 0.5), (0.5, 0.5, 1.5))))
 
 
 def test_neighbours_x():

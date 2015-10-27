@@ -30,12 +30,12 @@ import numpy as np
 
 
 class CuboidMesh(object):
-    def __init__(self, Lx, Ly, Lz, nx, ny, nz,
+    def __init__(self, dx, dy, dz, nx, ny, nz,
                  periodicity=(False, False, False)):
         """
-        Create mesh with dimensions Lx, Ly, Lz.
+        Create mesh with cells of size dx * dy * dz.
 
-        Divided into nx cells along the x-axis, ny cells along the y-axis
+        There will be nx cells along the x-axis, ny cells along the y-axis
         and nz cells along the z-axis for a total of nx * ny * nz cells.
 
         By default, the mesh is not periodic along any axis, so the periodicity
@@ -43,22 +43,22 @@ class CuboidMesh(object):
         of entries set to True will enable periodicity along the given axes.
 
         Usage:
-            mesh = CuboidMesh(500, 50, 4, 250, 25, 2, periodicity=(True, False, False))
+            mesh = CuboidMesh(2, 2, 2, 250, 25, 2, periodicity=(True, False, False))
             # create a mesh of dimensions 500 x 50 x 4 nm, with cellsize
             # of 2 nm in any direction and periodic along the x-axis.
 
         """
-        self.Lx = Lx
-        self.Ly = Ly
-        self.Lz = Lz
+        self.dx = dx
+        self.dy = dy
+        self.dz = dz
         self.nx = nx
         self.ny = ny
         self.nz = nz
         self.periodicity = periodicity
 
-        self.dx = float(Lx) / nx  # size of one cell
-        self.dy = float(Ly) / ny
-        self.dz = float(Lz) / nz
+        self.Lx = dx * nx  # total size of mesh
+        self.Ly = dy * ny
+        self.Lz = dz * nz
 
         self.n = nx * ny * nz  # total number of cells
         self.nxy = nx * ny  # number of cells in the x-y plane
