@@ -219,15 +219,15 @@ class NEB_Sundials(object):
         self.total_image_num = len(initial_images) + sum(interpolations)
         self.image_num = self.total_image_num - 2
 
-        self.nxyz = sim.nxyz
+        self.n = sim.n
 
-        self.coords = np.zeros(3 * self.nxyz * self.total_image_num)
+        self.coords = np.zeros(3 * self.n * self.total_image_num)
         self.last_m = np.zeros(self.coords.shape)
 
         self.Heff = np.zeros(self.coords.shape)
         self.Heff.shape = (self.total_image_num, -1)
 
-        self.tangents = np.zeros(3 * self.nxyz * self.image_num)
+        self.tangents = np.zeros(3 * self.n * self.image_num)
         self.tangents.shape = (self.image_num, -1)
 
         self.energy = np.zeros(self.total_image_num)
@@ -367,7 +367,7 @@ class NEB_Sundials(object):
         self.coords.shape = (-1,)
 
     def add_noise(self, T=0.1):
-        noise = T * np.random.rand(self.total_image_num, 3, self.nxyz)
+        noise = T * np.random.rand(self.total_image_num, 3, self.n)
         noise[:, :, self.pin_ids] = 0
         noise[0, :, :] = 0
         noise[-1, :, :] = 0
@@ -449,7 +449,7 @@ class NEB_Sundials(object):
         # to the improved NEB method, developed by Henkelman and Jonsson
         # at: Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
         neb_clib.compute_tangents(
-            y, self.energy, self.tangents, self.total_image_num, 3 * self.nxyz)
+            y, self.energy, self.tangents, self.total_image_num, 3 * self.n)
         # native_neb.compute_springs(y,self.springs,self.spring)
         y.shape = (-1, )
 
@@ -506,7 +506,7 @@ class NEB_Sundials(object):
         # case we use: dY /dt = Y x Y x D
         # (check the C code in common/)
         neb_clib.compute_dm_dt(
-            y, self.Heff, ydot, self.sim._pins, self.total_image_num, self.nxyz)
+            y, self.Heff, ydot, self.sim._pins, self.total_image_num, self.n)
 
         ydot[0, :] = 0
         ydot[-1, :] = 0

@@ -29,7 +29,7 @@ class DMI(Energy):
                                    self.field,
                                    self.energy,
                                    self.D,
-                                   self.connectivity,
+                                   self.neighbours,
                                    self.n)
 
         elif self.dmi_type == 'interfacial':
@@ -44,7 +44,7 @@ class DMI(Energy):
                                                self.field,
                                                self.energy,
                                                self.D,
-                                               self.connectivity,
+                                               self.neighbours,
                                                self.n,
                                                nneighbours,
                                                self.coordinates,

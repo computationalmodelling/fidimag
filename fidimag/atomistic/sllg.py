@@ -20,7 +20,7 @@ class SLLG(LLG):
         """
         super(SLLG, self).__init__(mesh, name=name)
 
-        self._T = np.zeros(self.nxyz, dtype=np.float)
+        self._T = np.zeros(self.n, dtype=np.float)
 
         self.set_options()
 

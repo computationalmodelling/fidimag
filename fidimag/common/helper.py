@@ -26,21 +26,21 @@ def normalise(a):
 
 def init_vector(m0, mesh, norm=False):
 
-    nxyz = mesh.nxyz
+    n = mesh.n
 
-    spin = np.zeros((nxyz, 3))
+    spin = np.zeros((n, 3))
 
     if isinstance(m0, list) or isinstance(m0, tuple):
         spin[:, :] = m0
-        spin = np.reshape(spin, 3 * nxyz, order='C')
+        spin = np.reshape(spin, 3 * n, order='C')
     elif hasattr(m0, '__call__'):
-        for i in range(nxyz):
-            v = m0(mesh.pos[i])
+        for i in range(n):
+            v = m0(mesh.coordinates[i])
             if len(v) != 3:
                 raise Exception(
                     'The length of the value in init_vector method must be 3.')
             spin[i, :] = v[:]
-        spin = np.reshape(spin, 3 * nxyz, order='C')
+        spin = np.reshape(spin, 3 * n, order='C')
     elif isinstance(m0, np.ndarray):
         spin.shape = (-1,)
         if m0.shape == spin.shape:
@@ -56,15 +56,15 @@ def init_vector(m0, mesh, norm=False):
 
 def init_scalar(value, mesh):
 
-    nxyz = mesh.nxyz
+    n = mesh.n
 
-    mesh_v = np.zeros(nxyz)
+    mesh_v = np.zeros(n)
 
     if isinstance(value, (int, float)):
         mesh_v[:] = value
     elif hasattr(value, '__call__'):
-        for i in range(nxyz):
-            mesh_v[i] = value(mesh.pos[i])
+        for i in range(n):
+            mesh_v[i] = value(mesh.coordinates[i])
 
     elif isinstance(value, np.ndarray):
 
@@ -99,7 +99,7 @@ def extract_data(mesh, npys, pos, comp='x'):
     else:
         raise Exception('Seems given component is wrong!!!')
 
-    ids += cmpi * mesh.nxyz
+    ids += cmpi * mesh.n
 
     all_data = []
 

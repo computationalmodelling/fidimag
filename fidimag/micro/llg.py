@@ -62,8 +62,8 @@ class LLG(object):
 
         self.saver.update_entity_order()
 
-        self.xperiodic = mesh.xperiodic
-        self.yperiodic = mesh.yperiodic
+        # This is for old C files codes using the xperiodic variables
+        self.xperiodic, self.yperiodic, self.zperiodic = mesh.periodicity
 
         self.vtk = SaveVTK(self.mesh, name=name)
 
@@ -259,7 +259,7 @@ class LLG(object):
         ny = self.mesh.ny
         nz = self.mesh.nz
         number = clib.compute_skymrion_number(
-            self.spin, self._skx_number, nx, ny, nz, self.mesh.connectivity)
+            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
     def spin_at(self, i, j, k):

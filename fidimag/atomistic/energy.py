@@ -40,7 +40,8 @@ class Energy(object):
 
         self.xperiodic = mesh.xperiodic
         self.yperiodic = mesh.yperiodic
-        self.connectivity = mesh.connectivity
+        self.neighbours = mesh.neighbours
+
         try:
             self.coordinates = self.mesh.coordinates
         except:
