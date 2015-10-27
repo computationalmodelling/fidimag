@@ -28,6 +28,7 @@ class HexagonalMesh(object):
         """
         self.nx = nx
         self.ny = ny
+        self.nz = 1  # time will tell if 0 is a better value here
         self.periodicity = periodicity
 
         self.dx = sqrt(3) * radius
@@ -43,7 +44,6 @@ class HexagonalMesh(object):
 
         self.mesh_type = 'hexagonal'
         self.unit_length = unit_length
-        self.nxyz = 0
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 2))
