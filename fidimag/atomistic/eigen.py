@@ -13,7 +13,7 @@ class EigenProblem(object):
 		self.mu_s = mu_s
 		self.nx = mesh.nx
 		self.ny = mesh.ny
-		self.nxyz = mesh.nxyz
+		self.n = mesh.n
 		
 		self.ngx = mesh.neighbours_x
 		self.ngy = mesh.neighbours_y
@@ -26,10 +26,10 @@ class EigenProblem(object):
 		self.J = J/self.mu_s
 		self.D = D/self.mu_s
 
-		assert len(m0)/3 == mesh.nxyz
+		assert len(m0)/3 == mesh.n
 
-		#self.M = sp.csr_matrix((2*self.nxyz, 2*self.nxyz), dtype=np.float)
-		self.M = sp.lil_matrix((2*self.nxyz, 2*self.nxyz), dtype=np.float)
+		#self.M = sp.csr_matrix((2*self.n, 2*self.n), dtype=np.float)
+		self.M = sp.lil_matrix((2*self.n, 2*self.n), dtype=np.float)
 
 		self.compute_theta_phi()
 		self.build_matrix()
@@ -59,8 +59,8 @@ class EigenProblem(object):
 		ct = self.ct
 		sp = self.sp
 		cp = self.cp
-		for i in range(self.nxyz):
-			j = i+self.nxyz
+		for i in range(self.n):
+			j = i+self.n
 			total = self.H[0]*cp[i]*st[i] + self.H[1]*sp[i]*st[i] + self.H[2]*ct[i]
 			self.M[i,j] -= total
 			self.M[j,i] += total
@@ -70,8 +70,8 @@ class EigenProblem(object):
 		ct = self.ct
 		sp = self.sp
 		cp = self.cp
-		for i in range(self.nxyz):
-			j = i+self.nxyz
+		for i in range(self.n):
+			j = i+self.n
 			total = 2*self.Kx*(cp[i]*st[i])**2+2*self.Kz*(ct[i])**2
 			self.M[i,j] -= total
 			self.M[j,i] += total
@@ -85,13 +85,13 @@ class EigenProblem(object):
 		t = self.theta
 		p = self.phi
 
-		for i in range(self.nxyz):
+		for i in range(self.n):
 			
 			total = 0
 			for j in self.ngs[i]:
 				total += self.J*(ct[i]*ct[j]+st[i]*st[j]*np.cos(p[i]-p[j]))
 
-			k = i+self.nxyz
+			k = i+self.n
 
 			self.M[i,k] -= total
 			self.M[k,i] += total
@@ -104,7 +104,7 @@ class EigenProblem(object):
 		cp = self.cp
 		p = self.phi
 
-		for i in range(self.nxyz):
+		for i in range(self.n):
 			total = 0
 
 			for j in self.ngx[i]:
@@ -116,7 +116,7 @@ class EigenProblem(object):
 			for j in self.ngz[i]:
 				total += self.D*np.sign(j-i)*(st[i]*st[j]*np.sin(p[i]-p[j]))
 
-			k = i + self.nxyz
+			k = i + self.n
 
 			self.M[i,k] -= total
 			self.M[k,i] += total
@@ -126,8 +126,8 @@ class EigenProblem(object):
 		ct = self.ct
 		sp = self.sp
 		cp = self.cp
-		for i in range(self.nxyz):
-			j = i+self.nxyz
+		for i in range(self.n):
+			j = i+self.n
 
 			#hu
 			self.M[j,i] -= 2*self.Kx*(cp[i]*ct[i])**2 + 2*self.Kz*st[i]**2
@@ -145,19 +145,19 @@ class EigenProblem(object):
 		cp = self.cp
 		p = self.phi
 
-		for i in range(self.nxyz):
+		for i in range(self.n):
 
-			k = i+self.nxyz
+			k = i+self.n
 
 			for j in self.ngs[i]:
 
 				#hu
 				self.M[k, j] -= self.J*(np.cos(p[i]-p[j])*ct[i]*ct[j]+st[i]*st[j])
-				self.M[k, j+self.nxyz] -= self.J*ct[i]*np.sin(p[i]-p[j])
+				self.M[k, j+self.n] -= self.J*ct[i]*np.sin(p[i]-p[j])
 
 				#hv
 				self.M[i, j] -= self.J*ct[j]*np.sin(p[i]-p[j])
-				self.M[i, j+self.nxyz] += self.J*np.cos(p[i]-p[j])
+				self.M[i, j+self.n] += self.J*np.cos(p[i]-p[j])
 				
 
 
@@ -168,14 +168,14 @@ class EigenProblem(object):
 		cp = self.cp
 		p = self.phi
 
-		for i in range(self.nxyz):
+		for i in range(self.n):
 
-			k = i+self.nxyz
+			k = i+self.n
 
 			for j in self.ngx[i]:
 				#hu
 				self.M[k,j] -= self.D*np.sign(j-i)*(st[j]*sp[i]*ct[i]-st[i]*sp[j]*ct[j])
-				self.M[k,j+self.nxyz] += self.D*np.sign(j-i)*st[i]*cp[j]
+				self.M[k,j+self.n] += self.D*np.sign(j-i)*st[i]*cp[j]
 
 				#hv
 				self.M[i, j] += self.D*np.sign(j-i)*st[j]*cp[i]
@@ -183,19 +183,19 @@ class EigenProblem(object):
 			for j in self.ngy[i]:
 				#hu
 				self.M[k, j] -= self.D*np.sign(j-i)*(st[i]*cp[j]*ct[j]-st[j]*cp[i]*ct[i])
-				self.M[k,j+self.nxyz] += self.D*np.sign(j-i)*st[i]*sp[j]
+				self.M[k,j+self.n] += self.D*np.sign(j-i)*st[i]*sp[j]
 				
 				#hv
-				self.M[i, j+self.nxyz] += self.D*np.sign(j-i)*st[j]*sp[i]
+				self.M[i, j+self.n] += self.D*np.sign(j-i)*st[j]*sp[i]
 
 			for j in self.ngz[i]:
 				#hu
 				self.M[k,j] -= self.D*np.sign(j-i)*ct[i]*ct[j]*np.sin(p[i]-p[j])
-				self.M[k,j+self.nxyz] += self.D*np.sign(j-i)*ct[i]*np.cos(p[i]-p[j])
+				self.M[k,j+self.n] += self.D*np.sign(j-i)*ct[i]*np.cos(p[i]-p[j])
 
 				#hv
 				self.M[i, j] += self.D*np.sign(j-i)*ct[j]*np.cos(p[i]-p[j])
-				self.M[i, j+self.nxyz] += self.D*np.sign(j-i)*np.sin(p[i]-p[j])
+				self.M[i, j+self.n] += self.D*np.sign(j-i)*np.sin(p[i]-p[j])
 
 
 	def build_matrix(self):

@@ -14,31 +14,31 @@ cdef extern from "clib.h":
 
     void compute_exch_field(double *spin, double *field, double *energy,
                             double Jx, double Jy, double Jz,
-                            int *ngbs, int nxyz)
+                            int *ngbs, int n)
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
     
-    void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz) 
+    void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int n) 
     void dmi_field_interfacial_atomistic(double *spin, double *field,
                                          double *energy, double D, int *ngbs,
-                                         int nxyz, int nneighbours,
+                                         int n, int nneighbours,
                                          double *r, int rdim)
 
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
 
     void compute_anis(double *spin, double *field, double *energy,
-                      double *Ku, double *axis, int nxyz)
+                      double *Ku, double *axis, int n)
 
     void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins, 
-                 double gamma, int nxyz, int do_procession, double default_c)
-    void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int nxyz)
+                 double gamma, int n, int do_procession, double default_c)
+    void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int n)
     void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, double *alpha, int *pins,
-                double gamma, int nxyz, int do_procession, double default_c)
+                double gamma, int n, int do_procession, double default_c)
 
-    void normalise(double *m, int nxyz)
+    void normalise(double *m, int n)
     void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
         double dx, double dy, int nx, int ny, int nz, int xperiodic,
         int yperiodic)
-    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,double beta, double u0, double gamma, int nxyz)
+    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,double beta, double u0, double gamma, int n)
 
 
     # used for sllg
@@ -46,7 +46,7 @@ cdef extern from "clib.h":
         pass
 
     ode_solver *create_ode_plan()
-    void init_solver(ode_solver *s, double k_B, double theta, int nxyz, double dt, double gamma)
+    void init_solver(ode_solver *s, double k_B, double theta, int n, double dt, double gamma)
     void finalize_ode_plan(ode_solver *plan)
     void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha, double *mu_s_inv, int *pins)
     void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha, double *mu_s_inv, int *pins)
@@ -92,12 +92,12 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] energy,
                             Jx, Jy, Jz,
                             np.ndarray[int, ndim=2, mode="c"] ngbs,
-                            nxyz
+                            n
                             ):
 
     compute_exch_field(&spin[0], &field[0], &energy[0],
 		       Jx, Jy, Jz,
-                       &ngbs[0, 0], nxyz)
+                       &ngbs[0, 0], n)
     
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                             Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):
@@ -110,9 +110,9 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] energy,
                         np.ndarray[double, ndim=1, mode="c"] Ku,
                         np.ndarray[double, ndim=1, mode="c"] axis,
-                        nxyz):
+                        n):
     compute_anis(&spin[0], &field[0], &energy[0], &Ku[0], 
-                 &axis[0], nxyz)
+                 &axis[0], n)
     
     
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -120,8 +120,8 @@ def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] energy,
                       D,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
-                      nxyz):
-    dmi_field_bulk(&spin[0], &field[0], &energy[0], D, &ngbs[0,0], nxyz)
+                      n):
+    dmi_field_bulk(&spin[0], &field[0], &energy[0], D, &ngbs[0,0], n)
     
 
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -129,12 +129,12 @@ def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] energy,
                       D,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
-                      nxyz, nneighbours,
+                      n, nneighbours,
                       np.ndarray[double, ndim=2, mode="c"] r,
                       rdim
                       ):
     dmi_field_interfacial_atomistic(&spin[0], &field[0], &energy[0],
-                                    D, &ngbs[0, 0], nxyz, 
+                                    D, &ngbs[0, 0], n, 
                                     nneighbours,
                                     &r[0, 0], rdim
                                     )
@@ -151,8 +151,8 @@ def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 np.ndarray[int, ndim=1, mode="c"] pins,
-                gamma, nxyz, do_procession, default_c):
-    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, nxyz, do_procession, default_c)
+                gamma, n, do_procession, default_c):
+    llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0], gamma, n, do_procession, default_c)
 
 def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
                 np.ndarray[double, ndim=1, mode="c"] m,
@@ -161,16 +161,16 @@ def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
                 np.ndarray[double, ndim=1, mode="c"] field_p,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 np.ndarray[int, ndim=1, mode="c"] pins,
-                gamma, nxyz, do_procession, default_c):
-    llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0], &alpha[0], &pins[0], gamma, nxyz, do_procession, default_c)
+                gamma, n, do_procession, default_c):
+    llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0], &alpha[0], &pins[0], gamma, n, do_procession, default_c)
     
 def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 np.ndarray[double, ndim=1, mode="c"] chi,
-                gamma, nxyz):
-    llg_s_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &chi[0], gamma, nxyz)
+                gamma, n):
+    llg_s_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &chi[0], gamma, n)
 
 
 def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -185,12 +185,12 @@ def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] field_stt,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
-                beta, u0, gamma, nxyz):
-    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0] ,&alpha[0], beta, u0, gamma, nxyz)
+                beta, u0, gamma, n):
+    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0] ,&alpha[0], beta, u0, gamma, n)
 
 
-def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, nxyz):
-    normalise(&spin[0], nxyz)
+def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, n):
+    normalise(&spin[0], n)
 
 cdef class RK2S(object):
     cdef ode_solver * _c_plan
@@ -207,7 +207,7 @@ cdef class RK2S(object):
     cdef public int step
     cdef public np.ndarray y
 
-    def __cinit__(self,dt,nxyz,gamma,k_B,theta,
+    def __cinit__(self,dt,n,gamma,k_B,theta,
                             np.ndarray[double, ndim=1, mode="c"] mu_s_inv,
                             np.ndarray[double, ndim=1, mode="c"] alpha,
                             np.ndarray[double, ndim=1, mode="c"] spin,
@@ -226,15 +226,15 @@ cdef class RK2S(object):
         self.T = T
         self.alpha = alpha
         self.pins = pins
-        self.pred_m = numpy.zeros(3*nxyz,dtype=numpy.float)
-        self.y = numpy.zeros(3*nxyz,dtype=numpy.float)
+        self.pred_m = numpy.zeros(3*n,dtype=numpy.float)
+        self.y = numpy.zeros(3*n,dtype=numpy.float)
         
 
         self._c_plan = create_ode_plan()
         if self._c_plan is NULL:
             raise MemoryError()
 
-        init_solver(self._c_plan,k_B,theta,nxyz,dt,gamma)
+        init_solver(self._c_plan,k_B,theta,n,dt,gamma)
 
     def __dealloc__(self):
         if self._c_plan is not NULL:

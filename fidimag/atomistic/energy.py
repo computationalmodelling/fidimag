@@ -18,19 +18,19 @@ class Energy(object):
         self.ny = mesh.ny
         self.nz = mesh.nz
         self.spin = spin
-        self.nxyz = mesh.nxyz
+        self.n = mesh.n
         self.mesh_type = mesh.mesh_type
 
         self.total_energy = 0
         self.pbc = mesh.pbc
         self.mu_s = mu_s
 
-        self.field = np.zeros(3 * self.nxyz, dtype=np.float)
-        self.energy = np.zeros(3 * mesh.nxyz, dtype=np.float)
-        self.mu_s_inv = np.zeros(3 * self.nxyz, dtype=np.float)
+        self.field = np.zeros(3 * self.n, dtype=np.float)
+        self.energy = np.zeros(3 * mesh.n, dtype=np.float)
+        self.mu_s_inv = np.zeros(3 * self.n, dtype=np.float)
 
         self.mu_s_inv.shape = (-1, 3)
-        for i in range(mesh.nxyz):
+        for i in range(mesh.n):
             if self.mu_s[i] == 0.0:
                 self.mu_s_inv[i, :] = 0
             else:

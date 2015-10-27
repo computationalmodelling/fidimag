@@ -41,7 +41,7 @@ class UniformExchange(Energy):
                                     self.Jy,
                                     self.Jz,
                                     self.connectivity,
-                                    self.nxyz)
+                                    self.n)
 
         return self.field * self.mu_s_inv
 

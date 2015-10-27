@@ -17,10 +17,10 @@ class Demag(object):
         self.ny = mesh.ny
         self.nz = mesh.nz
         self.spin = spin
-        self.n = mesh.nxyz
+        self.n = mesh.n
         self.field = np.zeros(3 * self.n, dtype=np.float)
         unit_length = mesh.unit_length
-        self.mu_s_scale = np.zeros(mesh.nxyz, dtype=np.float)
+        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
 
         # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
         self.scale = 1e-7 / unit_length**3

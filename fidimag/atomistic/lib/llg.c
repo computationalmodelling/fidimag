@@ -1,7 +1,7 @@
 #include "clib.h"
 
 void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
-		double gamma, int nxyz, int do_procession, double default_c) {
+		double gamma, int n, int do_procession, double default_c) {
 
 	int i, j, k;
 
@@ -9,7 +9,7 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
     double hpi,hpj,hpk;
 
 	#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
-	for (int id = 0; id < nxyz; id++) {
+	for (int id = 0; id < n; id++) {
         	i = 3*id;
 		j = i+1;
 		k = i+2;
@@ -70,12 +70,12 @@ void llg_rhs(double *dm_dt, double *m, double *h, double *alpha, int *pins,
 
 
 void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, double *alpha, int *pins,
-        double gamma, int nxyz, int do_procession, double default_c) {
+        double gamma, int n, int do_procession, double default_c) {
 
     //#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)
-    for (int i = 0; i < nxyz; i++) {
-        int j = i + nxyz;
-        int k = j + nxyz;
+    for (int i = 0; i < n; i++) {
+        int j = i + n;
+        int k = j + n;
 
 
         if (pins[i]>0){
@@ -116,7 +116,7 @@ void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, d
 }
 
 
-void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double *chi, double gamma, int nxyz) {
+void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double *chi, double gamma, int n) {
     
 	int i, j, k;
     
@@ -125,9 +125,9 @@ void llg_s_rhs(double *dm_dt, double *m, double *h, double *alpha, double *chi, 
     double mm, c;
     double hpi,hpj,hpk,mh;
     
-	for (i = 0; i < nxyz; i++) {
-		j = i + nxyz;
-		k = j + nxyz;
+	for (i = 0; i < n; i++) {
+		j = i + n;
+		k = j + n;
         
         if (chi[i] > 0.0){
             mth0 = coeff * (m[j] * h[k] - m[k] * h[j]);
