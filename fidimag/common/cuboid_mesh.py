@@ -85,8 +85,9 @@ class CuboidMesh(object):
         return coordinates
 
     def init_neighbours(self):
-        # can't use numpy array because not all cells have the same
-        # number of neighbours (the cells on the boundaries have less)
+        # array will have entry set to -1 for nonexisting neighbours
+        # this way we get to use a 2d array which is convenient to use
+        # in our C code instead of a list of lists
         connectivity = []
         for i in xrange(self.nz):
             for j in xrange(self.ny):
@@ -99,9 +100,12 @@ class CuboidMesh(object):
                         self.index(i, j - 1, k),  # in front
                         self.index(i, j, k + 1),  # right
                         self.index(i, j, k - 1),  # left
-                    ] and other != cell]
+                    ]]
+                    # no cell should be its own neighbour
+                    neighbours = [other if other != cell
+                                  else -1 for other in neighbours]
                     connectivity.append(neighbours)
-        return connectivity
+        return np.array(connectivity)
 
     def index(self, i, j, k):
         """
