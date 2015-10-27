@@ -1,6 +1,7 @@
 import numpy as np
 import fidimag.extensions.dipolar as dipolar
-from fidimag.common import CuboidMesh, UniformExchange, Sim, Demag, DMI
+from fidimag.common import CuboidMesh
+from fidimag.micro import UniformExchange, Sim, Demag, DMI
 from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute_dmi_field
 
 import pytest

@@ -40,7 +40,8 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from fidimag.common import CuboidMesh, UniformExchange, Sim
+from fidimag.common import CuboidMesh
+from fidimag.micro import UniformExchange, Sim
 
 
 def init_m(pos):
