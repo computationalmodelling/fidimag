@@ -82,7 +82,7 @@ def test_exch_2d_pbc2d():
      y ^    0     1     2           (0,0,0)  (1,0,0)  (2,0,0)
        |
        x -->
-  
+
     The expected components are in increasing order along x
 
     """
