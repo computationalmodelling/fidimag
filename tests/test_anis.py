@@ -11,7 +11,7 @@ def test_anis():
     mu_s = np.ones(90)
     anis.setup(mesh, spin, mu_s)
     field = anis.compute_field()
-    assert len(mesh.pos) == 5 * 3 * 2
+    assert len(mesh.coordinates) == 5 * 3 * 2
     assert np.max(field) == 0
     spin[0] = 99
     field = anis.compute_field()

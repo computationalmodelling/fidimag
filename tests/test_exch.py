@@ -37,7 +37,7 @@ def test_exch_1d():
 
 
 def test_exch_1d_pbc():
-    mesh = CuboidMesh(nx=5, ny=1, nz=1, pbc='x')
+    mesh = CuboidMesh(nx=5, ny=1, nz=1, periodicity=(True, False, False))
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -87,7 +87,8 @@ def test_exch_2d_pbc2d():
 
     """
 
-    mesh = CuboidMesh(nx=3, ny=2, nz=1, pbc='xy')
+    mesh = CuboidMesh(nx=3, ny=2, nz=1, periodicity=(True, True, False))
+    print mesh.neighbours
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)

@@ -22,7 +22,6 @@ class Energy(object):
         self.mesh_type = mesh.mesh_type
 
         self.total_energy = 0
-        self.pbc = mesh.pbc
         self.mu_s = mu_s
 
         self.field = np.zeros(3 * self.n, dtype=np.float)
@@ -38,8 +37,7 @@ class Energy(object):
 
         self.mu_s_inv.shape = (-1,)
 
-        self.xperiodic = mesh.xperiodic
-        self.yperiodic = mesh.yperiodic
+        self.xperiodic, self.yperiodic = mesh.periodicity[0], mesh.periodicity[1]
         self.neighbours = mesh.neighbours
 
         try:

@@ -77,7 +77,7 @@ class CuboidMesh(object):
         for i in xrange(self.nz):
             for j in xrange(self.ny):
                 for k in xrange(self.nx):
-                    index = self.index(i, j, k)
+                    index = self.index(k, j, i)
                     r = (self.x0 + k * self.dx + self.dx / 2.0,
                          self.y0 + j * self.dy + self.dy / 2.0,
                          self.z0 + i * self.dz + self.dz / 2.0)
@@ -92,14 +92,14 @@ class CuboidMesh(object):
         for i in xrange(self.nz):
             for j in xrange(self.ny):
                 for k in xrange(self.nx):
-                    cell = self._index(i, j, k)
+                    cell = self._index(k, j, i)
                     neighbours = [other for other in [
-                        self.index(i + 1, j, k),  # over
-                        self.index(i - 1, j, k),  # under
-                        self.index(i, j + 1, k),  # behind
-                        self.index(i, j - 1, k),  # in front
-                        self.index(i, j, k + 1),  # right
-                        self.index(i, j, k - 1),  # left
+                        self.index(k - 1, j, i),  # left
+                        self.index(k + 1, j, i),  # right
+                        self.index(k, j - 1, i),  # behind
+                        self.index(k, j + 1, i),  # in front
+                        self.index(k, j, i - 1),  # under
+                        self.index(k, j, i + 1),  # over
                     ]]
                     # no cell should be its own neighbour
                     neighbours = [other if other != cell
@@ -112,22 +112,24 @@ class CuboidMesh(object):
         Returns the index for the cell with ordinals i, j, k
         or False if that cell would be out of bounds. Handles periodic meshes.
 
+        i, j, k are the positions in the x, y and z directions, respectively
+
         """
         if self.periodicity[0]:  # if mesh is periodic in x-direction
-            if k == -1:          # then wrap the left side
-                k = self.nx - 1  # to the right
-            if k == self.nx:     # and wrap the right side
-                k = 0            # to the left
+            if i == -1:          # then wrap the left side
+                i = self.nx - 1  # to the right
+            if i == self.nx:     # and wrap the right side
+                i = 0            # to the left
         if self.periodicity[1]:
             if j == -1:
                 j = self.ny - 1
-            if j == self.ny:
+            elif j == self.ny:
                 j = 0
         if self.periodicity[2]:
-            if i == -1:
-                i = self.nz - 1
-            if i == self.nz:
-                i = 0
+            if k == -1:
+                k = self.nz - 1
+            if k == self.nz:
+                k = 0
         return self._index(i, j, k)
 
     def _index(self, i, j, k):
@@ -136,9 +138,9 @@ class CuboidMesh(object):
         or False if that cell would be out of bounds.
 
         """
-        if i < 0 or j < 0 or k < 0 or i >= self.nz or j >= self.ny or k >= self.nx:
+        if i < 0 or j < 0 or k < 0 or k >= self.nz or j >= self.ny or i >= self.nx:
             return -1
-        return i * self.nxy + j * self.nx + k
+        return k * self.nxy + j * self.nx + i
 
     def cells(self):
         """
