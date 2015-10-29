@@ -1,5 +1,6 @@
 import fidimag.extensions.clib as clib
 from energy import Energy
+import numpy as np
 
 
 class DMI(Energy):
@@ -33,12 +34,18 @@ class DMI(Energy):
                                    self.n)
 
         elif self.dmi_type == 'interfacial':
+
+            # We will generate the Dzyaloshinskii vectors according
+            # to the lattice, for the Interfacial DMI
             if self.mesh_type == 'hexagonal':
-                nneighbours = 6
-                rdim = 2
+                self.nneighbours = 6
+                # rdim = 3
+
             elif self.mesh_type == 'cuboid':
-                nneighbours = 4
-                rdim = 3
+                self.nneighbours = 4
+                # rdim = 3
+
+            self.DMI_vector = self.compute_DMI_vectors(self.nneighbours)
 
             clib.compute_dmi_field_interfacial(m,
                                                self.field,
@@ -46,9 +53,8 @@ class DMI(Energy):
                                                self.D,
                                                self.neighbours,
                                                self.n,
-                                               nneighbours,
-                                               self.coordinates,
-                                               rdim
+                                               self.nneighbours,
+                                               self.DMI_vector
                                                )
 
         return self.field * self.mu_s_inv
@@ -66,3 +72,30 @@ class DMI(Energy):
                                          self.yperiodic)
 
         return energy
+
+    def compute_DMI_vectors(self, nneighbours):
+
+        dmi_vec = np.zeros(nneighbours * 3).reshape(-1, 3)
+        r_vec = np.zeros_like(dmi_vec)
+        z_vec = np.array([0, 0, 1])
+
+        rij = lambda i, j: np.array([i * self.mesh.dx * 0.5,
+                                     j * self.mesh.dy * 3.0 / 4.0,
+                                     0])
+
+        if self.mesh_type == 'hexagonal':
+            r_vec = np.array([rij(2, 0), -rij(2, 0),   # right and left
+                              rij(1, 1), -rij(1, 1),   # top right and btm left
+                              rij(-1, 1), -rij(-1, 1)  # top left and btm right
+                              ])
+
+        elif self.mesh_type == 'cuboid':
+            r_vec = np.array([[-1, 0, 0], [1, 0, 0],
+                              [0, -1, 0], [0, 1, 0]
+                              ])
+
+        for j in range(nneighbours):
+            dmi_vec[j] = np.cross(r_vec[j], z_vec)
+            dmi_vec[j] /= np.linalg.norm(dmi_vec[j])
+
+        return dmi_vec.flatten()
