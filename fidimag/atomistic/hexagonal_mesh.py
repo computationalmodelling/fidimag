@@ -34,6 +34,9 @@ class HexagonalMesh(object):
         self.dx = sqrt(3) * radius
         self.dy = 2.0 * radius
 
+        # To avoid moodifying the other classes that assume a 3D sample
+        self.dz = 1
+
         self.Lx = self.nx * self.dx
         self.Ly = self.ny * self.dy * 3.0 / 4.0 + self.dy / 4.0
 
@@ -46,12 +49,14 @@ class HexagonalMesh(object):
         self.unit_length = unit_length
 
     def init_coordinates(self):
-        coordinates = np.zeros((self.n, 2))
+        coordinates = np.zeros((self.n, 3))
         for j in xrange(self.ny):
             for i in xrange(self.nx):
                 index = self.index(i, j)
                 r = (j * self.dx / 2.0 + i * self.dx + self.dx / 2.0,
-                     j * self.dy * 3.0 / 4.0 + self.dy / 2.0)
+                     j * self.dy * 3.0 / 4.0 + self.dy / 2.0,
+                     0
+                     )
                 coordinates[index] = r
         return coordinates
 
@@ -72,9 +77,11 @@ class HexagonalMesh(object):
                     self.index(i, j - 1),       # down   south-west
                     self._index(i - 1, j + 1),  #        north-west
                     self._index(i + 1, j - 1),  #        south-east
-                ] if other is not False and other != cell]
+                ]]
+                neighbours = [other if other != cell
+                              else -1 for other in neighbours]
                 connectivity.append(neighbours)
-        return connectivity
+        return np.array(connectivity, dtype=np.int32)
 
     def index(self, i, j):
         """
@@ -101,7 +108,7 @@ class HexagonalMesh(object):
 
         """
         if i < 0 or j < 0 or i >= self.nx or j >= self.ny:
-            return False
+            return -1
         return i + j * self.nx
 
     def cells(self):

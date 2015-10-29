@@ -5,8 +5,8 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 		double dx, double dy, int nx, int ny, int nz, int xperiodic,
 		int yperiodic) {
 
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
+	int nxy = nx * ny;
+	int n1 = nz * nxy, n2 = 2 * n1;
 	int i, j, k;
 	int id, id1, id2;
 
@@ -16,14 +16,14 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 
 	if (nx > 1) {
 
-		for (i = 1; i < nx - 1; i++) {
+        for (k = 0; k < nz; k++) {
 			for (j = 0; j < ny; j++) {
-				for (k = 0; k < nz; k++) {
+                for (i = 1; i < nx - 1; i++) {
 
-					id = nyz * i + nz * j + k;
+					id = nxy * k + nx * j + i;
 
-					id1 = id - nyz;
-					id2 = id + nyz;
+					id1 = id - 1;
+					id2 = id + 1;
 
 					field[id] += jx[id] * (spin[id2] - spin[id1]) / (2 * dx);
 					field[id + n1] += jx[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dx);
@@ -35,14 +35,14 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 
 		// i == 0
 		if (xperiodic) {
-			for (j = 0; j < ny; j++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (j = 0; j < ny; j++) {
 
 					//id = nyz * i + nz * j + k;
-					id = nz * j + k;
+					id = nxy * k + nx * j;
 
-					id1 = id - nyz + n1;
-					id2 = id + nyz;
+					id1 = id + (nx - 1);
+					id2 = id + 1;
 
 					field[id] += jx[id] * (spin[id2] - spin[id1]) / (2 * dx);
 					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (2 * dx);
@@ -52,14 +52,14 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 			}
 
 		}else{
-			for (j = 0; j < ny; j++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (j = 0; j < ny; j++) {
 
 					//id = nyz * i + nz * j + k;
-					id = nz * j + k;
+					id = nxy * k + nx * j;
 
 					id1 = id;
-					id2 = id + nyz;
+					id2 = id + 1;
 
 					field[id] += jx[id] * (spin[id2] - spin[id1]) / (dx);
 					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (dx);
@@ -72,13 +72,13 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 
 		// i == nx-1
 		if (xperiodic) {
-			for (j = 0; j < ny; j++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (j = 0; j < ny; j++) {
 
-					id = nyz*(nx-1) + nz * j + k;
+					id = (nx - 1) + nxy * k + nx * j;
 
-					id1 = id - nyz;
-					id2 = id + nyz - n1;
+					id1 = id - 1;
+					id2 = id - (nx - 1);
 
 					field[id] += jx[id] * (spin[id2] - spin[id1]) / (2 * dx);
 					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (2 * dx);
@@ -88,12 +88,12 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 			}
 
 		}else{
-			for (j = 0; j < ny; j++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (j = 0; j < ny; j++) {
 
-					id = nyz*(nx-1) + nz * j + k;
+					id = (nx - 1) + nxy * k + nx * j;
 
-					id1 = id - nyz;
+					id1 = id - 1;
 					id2 = id;
 
 					field[id] += jx[id] * (spin[id2] - spin[id1]) / (dx);
@@ -109,13 +109,14 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 
 	if (ny > 1) {
 
-		for (i = 0; i < nx; i++) {
+        for (k = 0; k < nz; k++) {
 			for (j = 1; j < ny-1; j++) {
-				for (k = 0; k < nz; k++) {
-					id = nyz * i + nz * j + k;
+                for (i = 0; i < nx; i++) {
 
-					id1 = id - nz;
-					id2 = id + nz;
+                    id = nxy * k + nx * j + i;
+
+					id1 = id - nx;
+					id2 = id + nx;
 
 					field[id] += jy[id] * (spin[id2] - spin[id1]) / (2 * dy);
 					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dy);
@@ -126,13 +127,13 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 
 		// j == 0
 		if (yperiodic) {
-			for (i = 0; i < nx; i++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (i = 0; i < nx; i++) {
 
-					id = nyz * i + k;
+                    id = nxy * k + i;
 
-					id1 = id - nz + nyz;
-					id2 = id + nz;
+					id1 = id + nx * (ny - 1);
+					id2 = id + nx;
 
 					field[id] += jy[id] * (spin[id2] - spin[id1]) / (2 * dy);
 					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dy);
@@ -140,13 +141,13 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 				}
 			}
 		}else{
-			for (i = 0; i < nx; i++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (i = 0; i < nx; i++) {
 
-					id = nyz * i + k;
+                    id = nxy * k + i;
 
 					id1 = id;
-					id2 = id + nz;
+					id2 = id + nx;
 
 					field[id] += jy[id] * (spin[id2] - spin[id1]) / (dy);
 					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (dy);
@@ -159,13 +160,13 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 
 		// j == ny - 1
 		if (yperiodic) {
-			for (i = 0; i < nx; i++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (i = 0; i < nx; i++) {
 
-					id = nyz * i + nz * (ny - 1) + k;
+                    id = nxy * k + nx * (ny - 1) + i;
 
-					id1 = id - nz;
-					id2 = id + nz - nyz;
+					id1 = id - nx;
+					id2 = id - nx * (ny - 1);
 
 					field[id] += jy[id] * (spin[id2] - spin[id1]) / (2 * dy);
 					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dy);
@@ -173,12 +174,12 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 				}
 			}
 		}else{
-			for (i = 0; i < nx; i++) {
-				for (k = 0; k < nz; k++) {
+            for (k = 0; k < nz; k++) {
+                for (i = 0; i < nx; i++) {
 
-					id = nyz * i + nz * (ny - 1) + k;
+                    id = nxy * k + nx * (ny - 1) + i;
 
-					id1 = id - nz;
+					id1 = id - nx;
 					id2 = id;
 
 					field[id] += jy[id] * (spin[id2] - spin[id1]) / (dy);

@@ -1,6 +1,6 @@
 import numpy as np
 from field import scalar_field, vector_field
-from cuboid_mesh import CuboidMesh
+from fidimag.common.cuboid_mesh import CuboidMesh
 
 
 def test_initialise_scalar():

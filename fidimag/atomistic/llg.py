@@ -349,7 +349,8 @@ class LLG(object):
         max_dmdt = max_dm / dt
         return max_dmdt
 
-    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
+    def relax(self, dt=1e-11, stopping_dmdt=0.01,
+              max_steps=1000, save_m_steps=100, save_vtk_steps=100):
 
         for i in range(0, max_steps + 1):
 
