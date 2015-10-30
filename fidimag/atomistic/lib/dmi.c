@@ -123,7 +123,7 @@ void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy
      *
      * Thus, for every neighbour of the i-th spin ( ngbs[i + j], j=0,1,...5 )
      * we compute the field contribution
-     * The value of ngbs[] at sites with Ms = 0, is negative
+     * The value of ngbs[] at sites with Ms = 0, is negative (-1)
      *
      * The ngbs array also gives the correct indexes for the spins
      * at periodic boundaries
@@ -134,11 +134,14 @@ void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy
      *      D_ij = r_ij  X  +z
      *
      * where r_ij is the vector connecting two neighbouring sites.
-     * The r_ij vectors will be computed using the position vectors stored
-     * in the *r array, which is rdim-dimensional (hexagonal lattice is
-     * 2D and SC lattice is 3D)
+     * This vectors are computed in Python and passed here as the DMI_vec array,
+     * whose entries are according to the neighbours matrix order, i.e.
+     * the (DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2]) vector
+     * are the Dij vector components between the i-th site and the j-th neighbour
+     * (we assume the vectors are the same between NNs for every lattice site)
+     *
      * 
-     * For instance, in a SC 2D lattice:
+     * For instance, in a SC 2D lattice, the X -th spin has the DMI vectors:
      * [ lattice site X,  neighbours O ]
      *
      *                    O
@@ -153,7 +156,10 @@ void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy
      *                    .
      *                    O
      *
-     * (this DMI is only defined in two dimensions--> interfaces, thin films)
+     * so DMI_vec = {0, 1, 0, 0, -1, 0, -1, 0, 0, 1, 0, 0}
+     * NN:          j=0      j=1        j=2      j=3
+     *
+     * This DMI is only defined in two dimensions--> interfaces, thin films
      * Then the DMI field is computed as :  Sum_j ( D_ij X S_j )
      * for every spin *i*
      *
@@ -162,28 +168,22 @@ void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy
      * We assume a constant DMI vector magnitude
      */
     
-    /* Generate the direction of the Dzyaloshinskii vectors for the
-     * 6 nearest neighbours
-     * Since we have 3 directions for every vector, we have in total
-     * 18 entries
-     */
-    
   	#pragma omp parallel for
 	for (int i = 0; i < n; i++) {
         
 		int idn = 6 * i; // index for the NNs
-		int idnm = 0; // index for the magnetisation components of the NNs
+		int idnm = 0;    // index for the magnetisation components of the NNs
 
 		double fx = 0, fy = 0, fz = 0;
 
-        /* Now we compute for every neighbour */
+        /* Now we compute the field contribution from every neighbour */
         for(int j = 0; j < nneighbours; j++){
             /* Check that Ms != 0 */
             if (ngbs[idn + j] >= 0) {
 
                 /* Now we add the field contribution of the j-th
                  * neighbour for the i-th spin: D_ij X S_j */
-                idnm = 3 * ngbs[idn];
+                idnm = 3 * ngbs[idn + j];  // Magnetisation component index of the j-th NN
                 fx += D * cross_x(DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2],
                                   spin[idnm], spin[idnm + 1], spin[idnm + 2]);
                 fy += D * cross_y(DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2],

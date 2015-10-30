@@ -37,6 +37,8 @@ class DMI(Energy):
 
             # We will generate the Dzyaloshinskii vectors according
             # to the lattice, for the Interfacial DMI
+            # TODO: Move this at the beginning so we don't compute the vectors
+            # every time we update the field
             if self.mesh_type == 'hexagonal':
                 self.nneighbours = 6
                 # rdim = 3
@@ -74,6 +76,23 @@ class DMI(Energy):
         return energy
 
     def compute_DMI_vectors(self, nneighbours):
+        """
+
+        Returns a DMI vectors array, according to the order of the nearest
+        neighbours. So far we have a cubic and a hexagonal lattice, whose DMI
+        are computed in 2D. The NNs arrays are in the order:
+
+        Cubic       :: 4 NNs --> [-x, +x, -y, +y]
+        Hexagonal   :: 6 NNs --> [right, left,
+                                  top right, bottom left,
+                                  top left, bottom right]
+
+        Then, the DMI vectors array has (3 * nneighbours) entries, 3 for every
+        neighbouring site The vectors are normalised and computed according to:
+        D_ij = r_ij X z where r_ij is the vector connecting a lattice site with
+        the j-th neighbour
+
+        """
 
         dmi_vec = np.zeros(nneighbours * 3).reshape(-1, 3)
         r_vec = np.zeros_like(dmi_vec)
@@ -94,6 +113,8 @@ class DMI(Energy):
                               [0, -1, 0], [0, 1, 0]
                               ])
 
+        # Here we compute the cross product with the unitary z vector
+        # and normalise
         for j in range(nneighbours):
             dmi_vec[j] = np.cross(r_vec[j], z_vec)
             dmi_vec[j] /= np.linalg.norm(dmi_vec[j])

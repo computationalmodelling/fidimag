@@ -1,6 +1,6 @@
 import os
 from fidimag.common import CuboidMesh
-from fidimag.atomistic import HexagonalMesh
+from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 from fidimag.common.field import scalar_field, vector_field
 from fidimag.common.vtk import VTK
 

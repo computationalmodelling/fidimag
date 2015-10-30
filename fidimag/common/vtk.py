@@ -1,7 +1,7 @@
 import os
 from tvtk.api import tvtk, write_data  # distributed with enthought/mayavi2
 from fidimag.common import CuboidMesh
-from fidimag.atomistic import HexagonalMesh
+from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 
 
 class VTK(object):
