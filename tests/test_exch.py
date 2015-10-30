@@ -37,7 +37,7 @@ def test_exch_1d():
 
 
 def test_exch_1d_pbc():
-    mesh = CuboidMesh(nx=5, ny=1, nz=1, pbc='x')
+    mesh = CuboidMesh(nx=5, ny=1, nz=1, periodicity=(True, False, False))
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)
@@ -82,12 +82,13 @@ def test_exch_2d_pbc2d():
      y ^    0     1     2           (0,0,0)  (1,0,0)  (2,0,0)
        |
        x -->
-  
+
     The expected components are in increasing order along x
 
     """
 
-    mesh = CuboidMesh(nx=3, ny=2, nz=1, pbc='xy')
+    mesh = CuboidMesh(nx=3, ny=2, nz=1, periodicity=(True, True, False))
+    print mesh.neighbours
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)

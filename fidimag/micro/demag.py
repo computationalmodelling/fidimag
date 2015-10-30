@@ -43,4 +43,7 @@ class Demag(object):
         self.compute_field()
         energy = self.demag.compute_energy(self.spin, self.Ms, self.field)
 
-        return energy * self.mesh.cellsize * mu_0
+        return energy * mu_0 * (self.mesh.dx *
+                                self.mesh.dy *
+                                self.mesh.dz *
+                                self.mesh.unit_length ** 3.)

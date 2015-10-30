@@ -42,7 +42,6 @@ def test_sim_pin():
     sim.add(anis)
 
     sim.run_until(1.0)
-    print sim.spin
     assert sim.spin[0] == 0
     assert sim.spin[2] != 0
 

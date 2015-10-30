@@ -22,7 +22,7 @@ def init_m(pos):
 
 def test_skx_num():
 
-    mesh = CuboidMesh(nx=120, ny=120, nz=1, pbc='xy')
+    mesh = CuboidMesh(nx=120, ny=120, nz=1, periodicity=(True, True, False))
 
     sim = Sim(mesh, name='skx_num')
     sim.set_tols(rtol=1e-6, atol=1e-6)

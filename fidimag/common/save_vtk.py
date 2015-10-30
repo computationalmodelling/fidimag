@@ -12,18 +12,30 @@ class SaveVTK():
         self.nz = mesh.nz
         self.dx = mesh.dx
         self.dy = mesh.dy
-        self.dz = mesh.dz
+        try:
+            self.dz = mesh.dz
+        except:
+            self.dz = 0
         self.name = '%s_vtks' % name
         xyz = mesh.coordinates
         self.x = np.array(xyz[:, 0], dtype='float32')
         self.y = np.array(xyz[:, 1], dtype='float32')
-        self.z = np.array(xyz[:, 2], dtype='float32')
+        try:
+            self.z = np.array(xyz[:, 2], dtype='float32')
+        except:
+            self.z = np.zeros_like(xyz[:, 0], dtype='float32')
 
         # build a new index since we have used difference order
-        ids = [self.mesh.index(i, j, k)
-               for i in range(self.nx)
-               for j in range(self.ny)
-               for k in range(self.nz)]
+        try:
+            ids = [self.mesh.index(i, j, k)
+                   for i in range(self.nx)
+                   for j in range(self.ny)
+                   for k in range(self.nz)]
+        except:
+            ids = [self.mesh.index(i, j)
+                   for i in range(self.nx)
+                   for j in range(self.ny)
+                   ]
 
         self.ids = np.array(ids)
 
@@ -86,7 +98,10 @@ class SaveVTK_unstructured():
         # Corresponding finite differences sizes
         self.dx = self.mesh.dx
         self.dy = self.mesh.dy
-        self.dz = self.mesh.dz
+        try:
+            self.dz = self.mesh.dz
+        except:
+            self.dz = 0
 
         self.name = '%s_vtks' % name
 

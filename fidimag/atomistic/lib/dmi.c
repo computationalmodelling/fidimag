@@ -2,32 +2,6 @@
 #include "math.h"
 #include "stdlib.h"
 
-inline void normalised_cross_product(double *a, int ai, double *b, int bi,
-                                     double *c, int ci) {
-    /* Compute the cross product: a X b
-     * and generate the result in the array c
-     *
-     * using three array components starting at
-     * the ai, bi or ci-th position for a, b and c respectively,
-     * e.g. a[ai], a[ai + 1], a[ai + 2],
-     * for the x, y and z components
-     */
-    double norm;
-
-    c[ci]     = a[ai + 1] * b[bi + 2] - a[ai + 2] * b[bi + 1];
-    c[ci + 1] = a[ai + 2] * b[bi]     - a[ai]     * b[bi + 2];
-    c[ci + 2] = a[ai]     * b[bi + 1] - a[ai + 1] * b[bi];
-
-    norm = sqrt(c[ci] * c[ci] + c[ci + 1] * c[ci + 1] + c[ci + 2] * c[ci + 2]);
-
-    if (abs(norm) < 1 - 1e-6 || abs(norm) > 1 + 1e-6){
-        /* We will assume the norm is not zero */
-        c[ci] = c[ci] / norm;
-        c[ci + 1] = c[ci + 1] / norm;
-        c[ci + 2] = c[ci + 2] / norm;
-    }
-}
-
 void dmi_field_bulk(double *spin, double *field,
                     double *energy, double D, int *ngbs, int nxyz) {
 
@@ -130,10 +104,9 @@ void dmi_field_bulk(double *spin, double *field,
     }
 }
 
-void dmi_field_interfacial_atomistic(double *spin,
-    double *field, double *energy,
-    double D, int *ngbs, int nxyz, int nneighbours, double *r, int rdim) {
-
+void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy,
+    double D, int *ngbs, int n, int nneighbours, double *DMI_vec) {
+    
     /* Interfacial DMI field and energy computation
      *
      * ngbs[] contains the *indexes* of the neighbours
@@ -188,27 +161,16 @@ void dmi_field_interfacial_atomistic(double *spin,
      *
      * We assume a constant DMI vector magnitude
      */
-
-
+    
+    /* Generate the direction of the Dzyaloshinskii vectors for the
+     * 6 nearest neighbours
+     * Since we have 3 directions for every vector, we have in total
+     * 18 entries
+     */
+    
   	#pragma omp parallel for
-	for (int i = 0; i < nxyz; i++) {
-
-        /* Generate the direction of the Dzyaloshinskii vectors for the
-         * 6 nearest neighbours
-         * Since we have 3 directions for every vector, we have in total
-         * 18 entries
-         */
-        double * DMI_vec = malloc(6 * 3 * sizeof(double));
-        for(int j; j < 6; i++) DMI_vec[j] = 0;
+	for (int i = 0; i < n; i++) {
         
-        /* Normalised z vector */
-        double * z_vec = malloc(3 * sizeof(double));
-        z_vec[0] = 0, z_vec[1] = 0, z_vec[2] = 1;
-        
-        /* Array to compute the position vector fromt the i-th site 
-         * to the j-th site */
-        double * rij = malloc(3 * sizeof(double));
-
 		int idn = 6 * i; // index for the NNs
 		int idnm = 0; // index for the magnetisation components of the NNs
 
@@ -218,23 +180,6 @@ void dmi_field_interfacial_atomistic(double *spin,
         for(int j = 0; j < nneighbours; j++){
             /* Check that Ms != 0 */
             if (ngbs[idn + j] >= 0) {
-
-                /* We are assuming the Dzyaloshinskii vectors are the same in
-                 * equivalent directions for every lattice site, so we only
-                 * update their values when necessary  */
-                if (DMI_vec[j] != 0 && DMI_vec[j + 1] != 0 && DMI_vec[j + 2] != 0){
-                    /* Position vectors. Since we assume a 2D lattice, we set 
-                     * the z component as zero */
-                    rij[0] = r[ngbs[idn + j]]     - r[rdim * i];
-                    rij[1] = r[ngbs[idn + j] + 1] - r[rdim * i + 1];
-                    /* rij[2] = r[ngbs[idn + j] + 2] - r[rdim * i + 2]; */
-                    rij[2] = 0;
-
-                    /* Now we compute: r_ij X z We save the results in the j-th
-                     * neighbour of the DMI vectors array */
-                    normalised_cross_product(rij, 0, z_vec, 0, 
-                                             DMI_vec, 3 * j);
-                }
 
                 /* Now we add the field contribution of the j-th
                  * neighbour for the i-th spin: D_ij X S_j */
@@ -258,10 +203,6 @@ void dmi_field_interfacial_atomistic(double *spin,
                             fy * spin[3 * i + 1]+
                             fz * spin[3 * i + 2]
                             );
-
-        free(DMI_vec);
-        free(z_vec);
-        free(rij);
     }
 }
 

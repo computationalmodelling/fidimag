@@ -79,7 +79,7 @@ def test_dw_dmi(mesh=mesh, do_plot=False):
 
     sim.relax(stopping_dmdt=0.01)
 
-    xs = np.array([p[0] for p in mesh.pos])
+    xs = np.array([p[0] for p in mesh.coordinates])
     mx, my, mz = analytical(xs, A=A, D=D, K=Kx)
     mxyz = sim.spin.copy()
     mxyz = mxyz.reshape(-1, 3)

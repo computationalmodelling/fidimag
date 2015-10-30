@@ -14,7 +14,7 @@ def to_sets(arr):
         if -1 in s:
             s.remove(-1)
     return list_of_sets
-    
+
 
 def test_coordinates_x():
     """
@@ -92,7 +92,7 @@ def test_neighbours_x_periodic():
     """
     mesh = CuboidMesh(1, 1, 1, 2, 1, 1, periodicity=(True, False, False))
     # over under behind in-front right left
-    assert allclose(mesh.neighbours, np.array(((-1, -1, -1, -1, 1, 1), (-1, -1, -1, -1, 0, 0))))
+    assert allclose(mesh.neighbours, np.array(((1, 1, -1, -1, -1, -1), (0, 0, -1, -1, -1, -1))))
 
 
 def test_neighbours_x_periodic_all():
@@ -107,7 +107,7 @@ def test_neighbours_x_periodic_all():
 
     """
     mesh = CuboidMesh(1, 1, 1, 2, 1, 1, periodicity=(True, True, True))
-    assert allclose(mesh.neighbours, np.array(((-1, -1, -1, -1, 1, 1), (-1, -1, -1, -1, 0, 0))))
+    assert allclose(mesh.neighbours, np.array(((1, 1, -1, -1, -1, -1), (0, 0, -1, -1, -1, -1))))
 
 
 def test_neighbours_y():
@@ -167,7 +167,7 @@ def test_neighbours_z_periodic():
 
     """
     mesh = CuboidMesh(1, 1, 1, 1, 1, 2, periodicity=(False, False, True))
-    assert allclose(mesh.neighbours, np.array(((1, 1, -1, -1, -1, -1), (0, 0, -1, -1, -1, -1))))
+    assert allclose(mesh.neighbours, np.array(((-1, -1, -1, -1, 1, 1), (-1, -1, -1, -1, 0, 0))))
 
 
 def test_neighbours_multiple():

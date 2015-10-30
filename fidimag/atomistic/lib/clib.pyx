@@ -4,9 +4,9 @@ np.import_array()
 
 
 cdef extern from "clib.h":
-    
+
     void gauss_random_vec_with_init(double *x, int n)
-    
+
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
     void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
@@ -16,19 +16,19 @@ cdef extern from "clib.h":
                             double Jx, double Jy, double Jz,
                             int *ngbs, int n)
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic)
-    
-    void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int n) 
+
+    void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int n)
     void dmi_field_interfacial_atomistic(double *spin, double *field,
                                          double *energy, double D, int *ngbs,
                                          int n, int nneighbours,
-                                         double *r, int rdim)
+                                         double *DMI_vec)
 
     double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic)
 
     void compute_anis(double *spin, double *field, double *energy,
                       double *Ku, double *axis, int n)
 
-    void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins, 
+    void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins,
                  double gamma, int n, int do_procession, double default_c)
     void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha, double *chi, double gamma, int n)
     void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, double *alpha, int *pins,
@@ -53,12 +53,12 @@ cdef extern from "clib.h":
 
 def random_number(np.ndarray[double, ndim=1, mode="c"] v):
     cdef int n = len(v)
-    
-    
+
+
     print n
-    
+
     gauss_random_vec_with_init(&v[0], n)
-    
+
 
 
 def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -71,13 +71,13 @@ def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
 
 def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
                             nx, ny, nz):
-    
+
     res = numpy.array([0.0,0.0])
-    
+
     cdef np.ndarray[double, ndim=1, mode="c"] R = res
 
     compute_guiding_center(&spin[0], nx, ny, nz, &R[0])
-    
+
     return res[0], res[1]
 
 def compute_px_py(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -98,7 +98,7 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
     compute_exch_field(&spin[0], &field[0], &energy[0],
 		       Jx, Jy, Jz,
                        &ngbs[0, 0], n)
-    
+
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                             Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):
 
@@ -111,10 +111,10 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] Ku,
                         np.ndarray[double, ndim=1, mode="c"] axis,
                         n):
-    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0], 
+    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0],
                  &axis[0], n)
-    
-    
+
+
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] field,
                       np.ndarray[double, ndim=1, mode="c"] energy,
@@ -122,28 +122,27 @@ def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
                       n):
     dmi_field_bulk(&spin[0], &field[0], &energy[0], D, &ngbs[0,0], n)
-    
+
 
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
-                      np.ndarray[double, ndim=1, mode="c"] field,
-                      np.ndarray[double, ndim=1, mode="c"] energy,
-                      D,
-                      np.ndarray[int, ndim=2, mode="c"] ngbs,
-                      n, nneighbours,
-                      np.ndarray[double, ndim=2, mode="c"] r,
-                      rdim
-                      ):
+                                  np.ndarray[double, ndim=1, mode="c"] field,
+                                  np.ndarray[double, ndim=1, mode="c"] energy,
+                                  D,
+                                  np.ndarray[int, ndim=2, mode="c"] ngbs,
+                                  n, nneighbours,
+                                  np.ndarray[double, ndim=1, mode="c"] DMI_vec,
+                                  ):
     dmi_field_interfacial_atomistic(&spin[0], &field[0], &energy[0],
-                                    D, &ngbs[0, 0], n, 
+                                    D, &ngbs[0, 0], n,
                                     nneighbours,
-                                    &r[0, 0], rdim
+                                    &DMI_vec[0]
                                     )
-    
+
 def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                         D, nx, ny, nz,
                         xperiodic,yperiodic):
     return dmi_energy(&spin[0], D, nx, ny, nz, xperiodic,yperiodic)
-    
+
 
 
 def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
@@ -163,7 +162,7 @@ def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
                 np.ndarray[int, ndim=1, mode="c"] pins,
                 gamma, n, do_procession, default_c):
     llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0], &alpha[0], &pins[0], gamma, n, do_procession, default_c)
-    
+
 def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
@@ -228,7 +227,7 @@ cdef class RK2S(object):
         self.pins = pins
         self.pred_m = numpy.zeros(3*n,dtype=numpy.float)
         self.y = numpy.zeros(3*n,dtype=numpy.float)
-        
+
 
         self._c_plan = create_ode_plan()
         if self._c_plan is NULL:
@@ -262,13 +261,13 @@ cdef class RK2S(object):
         #print "from cython1", self.spin,self.field,self.pred_m
         self.update_fun(self.y, self.t)
         run_step1(self._c_plan,&y[0],&field[0],&pred_m[0],&T[0],&alpha[0], &mu_s_inv[0], &pins[0])
-        
+
         self.step += 1
         self.t = self.step*self.dt
-        
+
         self.update_fun(self.pred_m, self.t)
         run_step2(self._c_plan,&pred_m[0],&field[0],&y[0],&T[0],&alpha[0], &mu_s_inv[0], &pins[0])
-        
+
 
     def run_until(self, t):
         while (self.t<t):

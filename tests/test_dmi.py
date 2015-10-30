@@ -45,7 +45,7 @@ def test_dmi_1d_field():
 
     expected = np.array([0, -1, 0, 0, 0, -1]) * 1.23
 
-    assert np.allclose(field,expected)
+    assert np.allclose(field, expected)
 
     energy = dmi.compute_energy()
 

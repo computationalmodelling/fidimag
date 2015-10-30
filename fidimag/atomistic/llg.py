@@ -283,14 +283,20 @@ class LLG(object):
         return number
 
     def spin_at(self, i, j, k):
-        nxyz = self.mesh.nxyz
+        """
+        Returns the spin components of the spin at
+        i-th position in the z direction, j-th position in the
+        y direction and k-th position in x direction
+        """
 
-        index = 3*self.mesh.index(i, j, k)
+        nxyz = self.mesh.n
+
+        index = 3 * self.mesh.index(i, j, k)
 
         # print self.spin.shape,nxy,nx,i1,i2,i3
         return np.array([self.spin[index],
-                         self.spin[index+1],
-                         self.spin[index+2]])
+                         self.spin[index + 1],
+                         self.spin[index + 2]])
 
     def add_monitor_at(self, i, j, k, name='p'):
         """
@@ -343,7 +349,8 @@ class LLG(object):
         max_dmdt = max_dm / dt
         return max_dmdt
 
-    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
+    def relax(self, dt=1e-11, stopping_dmdt=0.01,
+              max_steps=1000, save_m_steps=100, save_vtk_steps=100):
 
         for i in range(0, max_steps + 1):
 

@@ -29,7 +29,7 @@ void dmi_field_bulk(double *spin, double *field, double *energy,
 void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *energy, double D, int *ngbs,
                                      int n, int nneighbours,
-                                     double *r, int rdim);
+                                     double *DMI_vec);
 
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,
                   int xperiodic, int yperiodic);

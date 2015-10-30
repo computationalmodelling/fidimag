@@ -56,6 +56,10 @@ def test_sim_init_m_fun():
     mesh = CuboidMesh(nx=3, ny=4, nz=5)
     sim = Sim(mesh)
     sim.set_m(init_m, normalise=False)
+
+    print sim.spin.reshape(-1, 3).shape
+    print sim.mesh.index(1, 2, 3)
+
     assert(sim.spin_at(1, 2, 3)[0] == 1)
     assert(sim.spin_at(1, 2, 3)[1] == 2)
     assert(sim.spin_at(1, 2, 3)[2] == 3)

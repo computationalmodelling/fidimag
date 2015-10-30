@@ -28,8 +28,8 @@ def test_coordinates_x():
     height = size * 2.0
     width = sqrt(3) / 2.0 * height
     assert allclose(mesh.coordinates,
-                    np.array(((width / 2.0, height / 2.0),
-                              (width * 3.0 / 2.0, height / 2.0))))
+                    np.array(((width / 2.0, height / 2.0, 0),
+                              (width * 3.0 / 2.0, height / 2.0, 0))))
 
 
 def test_coordinates_y():
@@ -49,10 +49,10 @@ def test_coordinates_y():
     width = sqrt(3) / 2.0 * height
     mesh = HexagonalMesh(size, 2, 2)
     assert allclose(mesh.coordinates, np.array((
-        (width / 2.0, height / 2.0),
-        (width * 3.0 / 2.0, height / 2.0),
-        (width, height * 5.0 / 4.0),
-        (width * 2, height * 5.0 / 4.0))))
+        (width / 2.0, height / 2.0, 0),
+        (width * 3.0 / 2.0, height / 2.0, 0),
+        (width, height * 5.0 / 4.0, 0),
+        (width * 2, height * 5.0 / 4.0, 0))))
 
 
 def test_neighbours_x():
@@ -65,12 +65,14 @@ def test_neighbours_x():
 
     """
     mesh = HexagonalMesh(1, 2, 1)
-    assert to_sets(mesh.neighbours) == [{1}, {0}]
+    # assert to_sets(mesh.neighbours) == [{1}, {0}]
+    assert (mesh.neighbours == [[1, -1, -1, -1, -1, -1],
+                                [-1, 0, -1, -1, -1, -1]]).all()
 
 
 def test_neighbours_x_periodic():
     """
- 
+
      /\ /\
     |  |  |  Hexagon size 1.
     | 0| 1|  Cells 2 x 1.
@@ -78,12 +80,13 @@ def test_neighbours_x_periodic():
 
     """
     mesh = HexagonalMesh(1, 2, 1, periodicity=(True, False))
-    assert mesh.neighbours == [[1, 1], [0, 0]]
+    assert (mesh.neighbours == [[1, 1, -1, -1, -1, -1],
+                                [0, 0, -1, -1, -1, -1]]).all()
 
 
 def test_neighbours_x_periodic_all():
     """
- 
+
      /\ /\
     |  |  |  Hexagon size 1.
     | 0| 1|  Cells 2 x 1.
@@ -92,37 +95,41 @@ def test_neighbours_x_periodic_all():
     """
     print ""
     mesh = HexagonalMesh(1, 2, 1, periodicity=(True, True))
-    assert mesh.neighbours == [[1, 1], [0, 0]]
+    assert (mesh.neighbours == [[1, 1, -1, -1, -1, -1],
+                                [0, 0, -1, -1, -1, -1]]).all()
 
 
 def test_neighbours_y():
     """
-       /\ 
+       /\
       |  |
       | 1|
      /\ /
     |  |    Hexagon size 1.
     | 0|    Cells 1 x 2.
-     \/ 
+     \/
 
     """
     mesh = HexagonalMesh(1, 1, 2)
-    assert to_sets(mesh.neighbours) == [{1}, {0}]
+    # assert to_sets(mesh.neighbours) == [{1}, {0}]
+    assert (mesh.neighbours == [[-1, -1, 1, -1, -1, -1],
+                                [-1, -1, -1, 0, -1, -1]]).all()
 
 
 def test_neighbours_y_periodic():
     """
-       /\ 
+       /\
       |  |
       | 1|
      /\ /
     |  |    Hexagon size 1.
     | 0|    Cells 1 x 2.
-     \/ 
+     \/
 
     """
     mesh = HexagonalMesh(1, 1, 2, periodicity=(False, True))
-    assert mesh.neighbours == [[1, 1], [0, 0]]
+    assert (mesh.neighbours == [[-1, -1, 1, 1, -1, -1],
+                                [-1, -1, 0, 0, -1, -1]]).all()
 
 
 def test_neighbours_multiple():
@@ -142,11 +149,22 @@ def test_neighbours_multiple():
     """
     mesh = HexagonalMesh(1, 3, 3)
     print mesh.neighbours
-    assert to_sets(mesh.neighbours) == [{1, 3}, {0, 2, 3, 4},  # cells 0, 1
-                                        {1, 4, 5}, {0, 1, 4, 6},  # cells 2, 3
-                                        {1, 2, 3, 5, 6, 7}, {2, 4, 7, 8},  # cells 4, 5
-                                        {3, 4, 7}, {4, 5, 6, 8},  # cells 6, 7
-                                        {5, 7}]  # cell 8
+    # assert to_sets(mesh.neighbours) == [{1, 3}, {0, 2, 3, 4},  # cells 0, 1
+    #                                     {1, 4, 5}, {0, 1, 4, 6},  # cells 2, 3
+    #                                     {1, 2, 3, 5, 6, 7}, {2, 4, 7, 8},  # cells 4, 5
+    #                                     {3, 4, 7}, {4, 5, 6, 8},  # cells 6, 7
+    #                                     {5, 7}]  # cell 8
+    assert (mesh.neighbours == [[1, -1, 3, -1, -1, -1],  # cell 0
+                                [2, 0, 4, -1, 3, -1],    # cell 1
+                                [-1, 1, 5, -1, 4, -1],   # cell 2
+                                [4, -1, 6, 0, -1, 1],    # cell 3
+                                [5, 3, 7, 1, 6, 2],      # cell 4
+                                [-1, 4, 8, 2, 7, -1],    # cell 5
+                                [7, -1, -1, 3, -1, 4],   # ...
+                                [8, 6, -1, 4, -1, 5],
+                                [-1, 7, -1, 5, -1, -1]
+                                ]
+            ).all()
 
 
 def test_iterate_over_cells():

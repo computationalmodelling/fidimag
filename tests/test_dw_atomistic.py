@@ -62,7 +62,7 @@ def test_dw_dmi_atomistic(do_plot=False):
 
     np.save('m0.npy', sim.spin)
 
-    xs = np.array([p[0] for p in mesh.pos]) - 150
+    xs = np.array([p[0] for p in mesh.coordinates]) - 150
 
     mx, my, mz = analytical(xs, A=J/2.0, D=-D, K=K)
     mxyz = sim.spin.copy()

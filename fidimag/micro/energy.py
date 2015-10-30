@@ -31,7 +31,7 @@ class Energy(object):
                 self.Ms_inv[i] = 1.0 / self.Ms[i]
 
         # For old code compatibility
-        self.xperiodic, self.yperiodic, mesh.zperiodic = mesh.periodicity
+        self.xperiodic, self.yperiodic, self.zperiodic = mesh.periodicity
 
         self.neighbours = mesh.neighbours
 
@@ -45,6 +45,9 @@ class Energy(object):
         # compute_field again
         self.compute_field()
 
-        self.total_energy = np.sum(self.energy) * self.mesh.cellsize
+        self.total_energy = np.sum(self.energy) * (self.mesh.dx *
+                                                   self.mesh.dy *
+                                                   self.mesh.dz *
+                                                   self.mesh.unit_length ** 3.)
 
         return self.total_energy
