@@ -42,9 +42,10 @@ class HexagonalMesh(object):
 
         self.n = nx * ny  # total number of cells
 
+        self.size = (self.nx, self.ny, 1)  # number of cells in all directions
         self.coordinates = self.init_coordinates()
         self.neighbours = self.init_neighbours()
-
+        self.vertices, self.hexagons = self.init_grid()
         self.mesh_type = 'hexagonal'
         self.unit_length = unit_length
 
@@ -82,6 +83,67 @@ class HexagonalMesh(object):
                               else -1 for other in neighbours]
                 connectivity.append(neighbours)
         return np.array(connectivity, dtype=np.int32)
+
+    def init_grid(self):
+        """
+        Compute the coordinates of the vertices that make up the hexagonal
+        grid and how the vertices must be assembled to form hexagons.
+
+        """
+        vertex_counter = 0
+        vertices = []  # list of tuples of coordinates
+        hexagons = []  # list of tuples of vertices
+        for j in xrange(self.ny):
+            for i in xrange(self.nx):
+                index = self._index(i, j)
+                x, y = self.coordinates[index]
+                corners = hexagon_corners(x, y, self.radius)
+                hexagon = []
+                # We'll go through the corners in a counter-clockwise direction.
+                # For each corner, we think about if it's a "new" vertex, or
+                # if it has been created by a neighbouring hexagon before.
+                # NE (0) and N (1) corners will always be "new" vertices
+                for c in (0, 1):
+                    vertices.append(corners[c])
+                    hexagon.append(vertex_counter)
+                    vertex_counter += 1
+                # NW (2) corner could have been created by western neighbour
+                # where it will have been the the NE (0) corner
+                W = self._index(i - 1, j)
+                if W is not False:  # can't replace by if W because 0 == False
+                    hexagon.append(hexagons[W][0])  # our NW (2) is west's NE (0)
+                else:
+                    vertices.append(corners[2])
+                    hexagon.append(vertex_counter)
+                    vertex_counter += 1
+                # SW (3) corner could have been created either by western
+                # or south-western neighbour
+                SW = self._index(i, j - 1)
+                if W is not False:
+                    hexagon.append(hexagons[W][5])  # our SW is west's SE (5)
+                elif SW:
+                    hexagon.append(hexagons[SW][1])  # or south-west's N (1)
+                else:
+                    vertices.append(corners[3])
+                    hexagon.append(vertex_counter)
+                    vertex_counter += 1
+                # S (4) corner could have been created by south-western neighbour
+                if SW is not False:
+                    hexagon.append(hexagons[SW][0])  # our S is south-west's NE (0)
+                else:
+                    vertices.append(corners[4])
+                    hexagon.append(vertex_counter)
+                    vertex_counter += 1
+                # SE (5) corner could have been created by south-eastern neighbour
+                SE = self._index(i + 1, j - 1)
+                if SE is not False:
+                    hexagon.append(hexagons[SE][1])  # our SE is south-east's N (1)
+                else:
+                    vertices.append(corners[5])
+                    hexagon.append(vertex_counter)
+                    vertex_counter += 1
+                hexagons.append(hexagon)
+        return np.array(vertices), np.array(hexagons)
 
     def index(self, i, j):
         """
