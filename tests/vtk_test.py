@@ -1,7 +1,8 @@
 import os
-from magpy.meshes import CuboidMesh, HexagonalMesh
-from magpy.field import scalar_field, vector_field
-from magpy.vtk import VTK
+from fidimag.common import CuboidMesh
+from fidimag.atomistic import HexagonalMesh
+from fidimag.common.field import scalar_field, vector_field
+from fidimag.common.vtk import VTK
 
 MODULE_DIR = os.path.realpath(os.path.dirname(__file__))
 OUTPUT_DIR = os.path.join(MODULE_DIR, "temp")
