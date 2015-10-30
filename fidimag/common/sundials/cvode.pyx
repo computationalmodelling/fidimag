@@ -48,7 +48,6 @@ cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data) except
     cdef np.ndarray ydot_arr= <np.ndarray[realtype, ndim=1, mode='c']>ud.dm_dt
 
     copy_nv2arr(yv,y_arr)
-
     (<object>ud.rhs_fun)(t,y_arr,ydot_arr)
 
     copy_arr2nv(ydot_arr,yvdot)
@@ -162,6 +161,7 @@ cdef class CvodeSolver(object):
 
         # Set maximum number of iteration steps (?)
         flag = CVodeSetMaxNumSteps(self.cvode_mem, max_num_steps)
+        CVodeReInit(self.cvode_mem, self.t, self.u_y)
 
     cpdef int run_until(self, double tf) except -1:
         cdef int flag
@@ -169,7 +169,7 @@ cdef class CvodeSolver(object):
 
         flag = CVodeStep(self.cvode_mem, tf, self.u_y, &tret, CV_NORMAL)
         self.check_flag(flag,"CVodeStep")
-
+        self.t = tret  # FIXME: or should this be tf?
         return 0
 
 
@@ -203,7 +203,6 @@ cdef class CvodeSolver(object):
         return '%s%s' % (self.__class__.__name__, self.__repr__())
 
     def __dealloc__(self):
-
         self.user_data.rhs_fun = NULL
         self.user_data.y = NULL
         self.user_data.jvn_fun = NULL
