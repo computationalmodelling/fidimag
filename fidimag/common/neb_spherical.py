@@ -75,7 +75,14 @@ def cartesian2spherical_field(field_c, theta_phi):
 
     | sin t cos p  | sin t sin p | cos t  | | hx |   | h_r |
     | cos t cos p  | cos t sin p | -sin t | | hy | = | h_t |
-    | -sin p       | cos p       |   0    | | hz |   | h_p |
+    | -sin p sin t | cos p sin t |   0    | | hz |   | h_p |
+
+    This formula can be derived from the energy derivative to
+    obtain the effective field: d E / d M,
+    with M = M_s (sin t cos p, sin t sin p, cos t)
+
+    (see Suss et al., Magnetics, IEEE Transactions 36 (5)
+     pp.3282-3284, 2000)
 
     The function only returns the (t, p) = (theta, phi)
     coordinates of h since we asume that the r component
@@ -351,22 +358,22 @@ class NEB_Sundials(object):
         self.image_num = self.total_image_num - 2
 
         # Number of nodes (spins)
-        self.nxyz = sim.nxyz
+        self.n = sim.n
 
         # Total number of spherical coordinates
         # (2 components per spin for every image)
-        self.coords = np.zeros(2 * self.nxyz * self.total_image_num)
+        self.coords = np.zeros(2 * self.n * self.total_image_num)
         self.last_m = np.zeros(self.coords.shape)
 
         # For the effective field we use the extremes (to fit the energies
         # array length). We could save some memory if we don't consider them
         # (CHECK this in the future)
         self.Heff = np.zeros(self.coords.shape)
-        # self.Heff = np.zeros(2 * self.nxyz * self.total_image_num)
+        # self.Heff = np.zeros(2 * self.n * self.total_image_num)
         self.Heff.shape = (self.total_image_num, -1)
 
         # Tangent components in spherical coordinates
-        self.tangents = np.zeros(2 * self.nxyz * self.image_num)
+        self.tangents = np.zeros(2 * self.n * self.image_num)
         self.tangents.shape = (self.image_num, -1)
 
         self.energy = np.zeros(self.total_image_num)
@@ -520,7 +527,7 @@ class NEB_Sundials(object):
         self.coords.shape = (-1,)
 
     def add_noise(self, T=0.1):
-        noise = T * np.random.rand(self.total_image_num, 3, self.nxyz)
+        noise = T * np.random.rand(self.total_image_num, 3, self.n)
         noise[:, :, self.pin_ids] = 0
         noise[0, :, :] = 0
         noise[-1, :, :] = 0
@@ -599,7 +606,7 @@ class NEB_Sundials(object):
 
             # Set the simulation magnetisation to the (i+1)-th image
             # spin components
-            self.sim.spin[:] = spherical2cartesian(y[i + 1])
+            self.sim.spin = spherical2cartesian(y[i + 1])
 
             # Compute the effective field using Fidimag's methods.
             # (we use the time=0 since we are only using the simulation
@@ -625,7 +632,7 @@ class NEB_Sundials(object):
         # cartesian coordinates, we set here the total number of spin
         # components for spherical coords)
         neb_clib.compute_tangents(
-            y, self.energy, self.tangents, self.total_image_num, 2 * self.nxyz)
+            y, self.energy, self.tangents, self.total_image_num, 2 * self.n)
         # Flatten y
         y.shape = (-1, )
 

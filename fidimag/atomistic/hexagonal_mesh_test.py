@@ -116,6 +116,22 @@ def test_neighbours_y():
                                 [-1, -1, -1, 0, -1, -1]]).all()
 
 
+def test_neighbours_y_square():
+    """
+    /\
+   |  |
+   | 1|
+    \/\
+    |  |    Hexagon size 1.
+    | 0|    Cells 1 x 2.
+     \/
+
+    """
+    mesh = HexagonalMesh(1, 1, 2, alignment='square')
+    assert (mesh.neighbours == [[-1, -1, -1, -1, 1, -1],
+                                [-1, -1, -1, -1, -1, 0]]).all()
+
+
 def test_neighbours_y_periodic():
     """
        /\
@@ -132,6 +148,25 @@ def test_neighbours_y_periodic():
                                 [-1, -1, 0, 0, -1, -1]]).all()
 
 
+# We need to CHECK the validity of the periodicity for this
+# particular arrangement
+# def test_neighbours_y_periodic_square():
+#     """
+#     /\
+#    |  |
+#    | 1|
+#     \/\
+#     |  |    Hexagon size 1.
+#     | 0|    Cells 1 x 2.
+#      \/
+#
+#     """
+#     mesh = HexagonalMesh(1, 1, 2, periodicity=(False, True),
+#                          alignment='square')
+#     assert (mesh.neighbours == [[-1, -1, -1, -1, 1, 1],
+#                                 [-1, -1, -1, -1, 0, 0]]).all()
+
+
 def test_neighbours_multiple():
     """
          /\ /\ /\
@@ -144,7 +179,6 @@ def test_neighbours_multiple():
     |  |  |  |    Hexagon size 1.
     | 0| 1| 2|    Cells 3 x 3.
      \/ \/ \/
-
 
     """
     mesh = HexagonalMesh(1, 3, 3)
@@ -166,6 +200,35 @@ def test_neighbours_multiple():
                                 ]
             ).all()
 
+
+def test_neighbours_multiple_square():
+    """
+
+       /\ /\ /\
+      |  |  |  |
+      | 6| 7| 8|
+     /\ /\ /\ /
+    |  |  |  |
+    | 3| 4| 5|
+     \ /\ /\ /\
+      |  |  |  |
+      | 0| 1| 2|   Hexagon size 1.
+       \/ \/ \/    Cells 3 x 3.
+
+    """
+    mesh = HexagonalMesh(1, 3, 3, alignment='square')
+    print mesh.neighbours
+    assert (mesh.neighbours == [[1, -1, 4, -1, 3, -1],   # cell 0
+                                [2, 0, 5, -1, 4, -1],    # cell 1
+                                [-1, 1, -1, -1, 5, -1],  # cell 2
+                                [4, -1, 6, -1, -1, 0],   # ...
+                                [5, 3, 7, 0, 6, 1],
+                                [-1, 4, 8, 1, 7, 2],
+                                [7, -1, -1, 3, -1, 4],
+                                [8, 6, -1, 4, -1, 5],
+                                [-1, 7, -1, 5, -1, -1]
+                                ]
+            ).all()
 
 def test_iterate_over_cells():
     mesh = HexagonalMesh(1, 2, 2)

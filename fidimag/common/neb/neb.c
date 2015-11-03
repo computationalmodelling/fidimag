@@ -1,5 +1,4 @@
 #include "neb.h"
-#define PI 3.14159265358979323846
 
 //normalise the given array
 inline void normalise(double *res, int n){
@@ -16,10 +15,10 @@ inline void normalise(double *res, int n){
 
     for(int i = 0; i < n; i++){
         
-        if (res[i] > PI){
-            res[i] = 2 * PI - res[i];
-        } else if(res[i] < -PI){
-            res[i] += 2 * PI;
+        if (res[i] > WIDE_PI){
+            res[i] = 2 * WIDE_PI - res[i];
+        } else if(res[i] < -WIDE_PI){
+            res[i] += 2 * WIDE_PI;
         }
         length += res[i] * res[i];
     }
