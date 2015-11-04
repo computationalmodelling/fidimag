@@ -60,6 +60,11 @@ class LLG(object):
             'get': lambda sim: sim.skyrmion_number(),
             'header': 'skx_num'}
 
+        self.saver.entities['rhs_evals'] = {
+            'unit': '<>',
+            'get': lambda sim: sim.vode.stat()[0],
+            'header': 'rhs_evals'}
+
         self.saver.update_entity_order()
 
         # This is for old C files codes using the xperiodic variables
