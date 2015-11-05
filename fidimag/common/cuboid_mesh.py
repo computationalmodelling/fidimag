@@ -65,12 +65,14 @@ class CuboidMesh(object):
 
         self.n = nx * ny * nz  # total number of cells
         self.nxy = nx * ny  # number of cells in the x-y plane
+        self.size = (nx, ny, nz)
 
         self.mesh_type = "cuboid"
         self.unit_length = unit_length
 
         self.coordinates = self.init_coordinates()
         self.neighbours = self.init_neighbours()
+        self.grid = self.init_grid()  # for vtk export
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
@@ -83,6 +85,20 @@ class CuboidMesh(object):
                          self.z0 + i * self.dz + self.dz / 2.0)
                     coordinates[index] = r
         return coordinates
+
+    def init_grid(self, origin=(0, 0, 0)):
+        """
+        Compute the coordinates of the points which make up the grid.
+
+        """
+        grid = np.zeros(((self.nx + 1) * (self.ny + 1) * (self.nz + 1), 3))
+        i = 0
+        for z in origin[2] + np.linspace(0, self.Lz, self.nz + 1):
+            for y in origin[1] + np.linspace(0, self.Ly, self.ny + 1):
+                for x in origin[0] + np.linspace(0, self.Lx, self.nx + 1):
+                    grid[i] = (x, y, z)
+                    i += 1
+        return grid
 
     def init_neighbours(self):
         # array will have entry set to -1 for nonexisting neighbours

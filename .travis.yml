@@ -6,6 +6,7 @@ install:
         - pip install cython
         - pip install matplotlib
         - pip install pyvtk
+        - pip install Mayavi[app]
 
 before_script:
         - bash bin/install.sh

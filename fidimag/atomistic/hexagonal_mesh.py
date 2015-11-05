@@ -69,6 +69,7 @@ class HexagonalMesh(object):
 
         self.dx = sqrt(3) * radius
         self.dy = 2.0 * radius
+        self.radius = radius
 
         # To avoid moodifying the other classes that assume a 3D sample
         self.dz = 1
@@ -86,6 +87,8 @@ class HexagonalMesh(object):
         # self.vertices, self.hexagons = self.init_grid()
         self.mesh_type = 'hexagonal'
         self.unit_length = unit_length
+
+        self.vertices, self.hexagons = self.init_grid()
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
@@ -171,8 +174,8 @@ class HexagonalMesh(object):
         for j in xrange(self.ny):
             for i in xrange(self.nx):
                 index = self._index(i, j)
-                x, y = self.coordinates[index]
-                corners = hexagon_corners(x, y, self.radius)
+                x, y = self.coordinates[index][0], self.coordinates[index][1]
+                corners = self.hexagon_corners(x, y, self.radius)
                 hexagon = []
                 # We'll go through the corners in a counter-clockwise direction.
                 # For each corner, we think about if it's a "new" vertex, or
@@ -185,7 +188,7 @@ class HexagonalMesh(object):
                 # NW (2) corner could have been created by western neighbour
                 # where it will have been the the NE (0) corner
                 W = self._index(i - 1, j)
-                if W is not False:  # can't replace by if W because 0 == False
+                if W is not (False or -1):  # can't replace by if W because 0 == False
                     hexagon.append(hexagons[W][0])  # our NW (2) is west's NE (0)
                 else:
                     vertices.append(corners[2])
@@ -194,16 +197,16 @@ class HexagonalMesh(object):
                 # SW (3) corner could have been created either by western
                 # or south-western neighbour
                 SW = self._index(i, j - 1)
-                if W is not False:
+                if W is not (False or -1):
                     hexagon.append(hexagons[W][5])  # our SW is west's SE (5)
-                elif SW:
+                elif SW is not (False or -1):
                     hexagon.append(hexagons[SW][1])  # or south-west's N (1)
                 else:
                     vertices.append(corners[3])
                     hexagon.append(vertex_counter)
                     vertex_counter += 1
                 # S (4) corner could have been created by south-western neighbour
-                if SW is not False:
+                if SW is not (False or -1):
                     hexagon.append(hexagons[SW][0])  # our S is south-west's NE (0)
                 else:
                     vertices.append(corners[4])
@@ -211,7 +214,7 @@ class HexagonalMesh(object):
                     vertex_counter += 1
                 # SE (5) corner could have been created by south-eastern neighbour
                 SE = self._index(i + 1, j - 1)
-                if SE is not False:
+                if SE is not (False or -1):
                     hexagon.append(hexagons[SE][1])  # our SE is south-east's N (1)
                 else:
                     vertices.append(corners[5])
@@ -290,3 +293,15 @@ class HexagonalMesh(object):
 
         """
         return (self.n, 3)
+
+    def hexagon_corners(self, x, y, radius):
+        """
+        Returns the coordinates of the corners of the hexagonal with
+        center at `x`, `y` and radius `radius`.
+
+        """
+        angle_deg = [60 * i + 30 for i in xrange(6)]
+        angle_rad = [a * np.pi / 180 for a in angle_deg]
+        return [(x + radius * np.cos(theta),
+                 y + radius * np.sin(theta),
+                 0) for theta in angle_rad]
