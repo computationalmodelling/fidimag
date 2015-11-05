@@ -178,18 +178,16 @@ cdef class CvodeSolver(object):
             raise Exception("Run %s failed!"%fun_name)
 
     def stat(self):
-
         CVodeGetNumSteps(self.cvode_mem, &self.nsteps);
         CVodeGetNumRhsEvals(self.cvode_mem, &self.nfevals);
         CVSpilsGetNumJtimesEvals(self.cvode_mem, &self.njevals)
 
-        return self.__str__()
+        return self.nsteps, self.nfevals, self.njevals
 
     def get_current_step(self):
         cdef double step
         CVodeGetCurrentStep(self.cvode_mem, &step)
         return step
-
 
     def __repr__(self):
         s = []
