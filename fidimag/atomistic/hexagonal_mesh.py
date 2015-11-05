@@ -187,6 +187,9 @@ class HexagonalMesh(object):
                     vertex_counter += 1
                 # NW (2) corner could have been created by western neighbour
                 # where it will have been the the NE (0) corner
+                # Sites with no magnetisation have a value of -1 (before it was
+                # False but we changed to numpy arrays; I will
+                # let the False statements just in case)
                 W = self._index(i - 1, j)
                 if W is not (False or -1):  # can't replace by if W because 0 == False
                     hexagon.append(hexagons[W][0])  # our NW (2) is west's NE (0)
