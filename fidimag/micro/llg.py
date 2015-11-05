@@ -7,6 +7,7 @@ from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
 from fidimag.common.constant import Constant
 import fidimag.common.helper as helper
+import re
 
 const = Constant()
 
@@ -60,9 +61,26 @@ class LLG(object):
             'get': lambda sim: sim.skyrmion_number(),
             'header': 'skx_num'}
 
+        # RHS evaluations:
+        # sim.vode.stat() has the following structure:
+        # CvodeSolver(nsteps = 18,
+        #     nfevals = 32,
+        #     njevals = 14.
+        #     ) rhs_evals
+        #
+        # nsteps  --> number of steps taken by CVODE
+        # nfevals --> number of calls to the user's f function
+        #             (I guess this is what we need)
+        # njevals --> the cumulative number of calls to the Jacobian function
+        #
+        # So we regex search any number preceded by "nfevals = " to get the
+        # number of evaluations of the RHS and convert to integer
+
         self.saver.entities['rhs_evals'] = {
             'unit': '<>',
-            'get': lambda sim: sim.vode.stat()[0],
+            'get': lambda sim: int(re.search(r'(?<=nfevals\s=\s)[0-9]*',
+                                             sim.vode.stat()).group(0)
+                                   ),
             'header': 'rhs_evals'}
 
         self.saver.update_entity_order()
@@ -85,17 +103,14 @@ class LLG(object):
         self.gamma = gamma
         self.do_procession = True
 
-
     def reset_integrator(self, t=0):
         self.vode.reset(self.spin, t)
-
 
     def set_tols(self, rtol=1e-8, atol=1e-10):
         if self.integrator_tolerances_set is True:
             self.reset_integrator(self.t)
         self.vode.set_options(rtol, atol)
         self.integrator_tolerances_set = True
-
 
     def set_m(self, m0=(1, 0, 0), normalise=True):
 
@@ -210,7 +225,6 @@ class LLG(object):
         # update field before saving data
         self.compute_effective_field(t)
         self.saver.save()
-
 
     def compute_effective_field(self, t):
 
