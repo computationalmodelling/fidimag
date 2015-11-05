@@ -64,9 +64,9 @@ class LLG(object):
         # RHS evaluations:
         # sim.vode.stat() has the following structure:
         # CvodeSolver(nsteps = 18,
-        #     nfevals = 32,
-        #     njevals = 14.
-        #     ) rhs_evals
+        #             nfevals = 32,
+        #             njevals = 14.
+        #             )
         #
         # nsteps  --> number of steps taken by CVODE
         # nfevals --> number of calls to the user's f function

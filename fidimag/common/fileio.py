@@ -81,9 +81,6 @@ class DataSaver(object):
         with open(self.filename, 'a') as f:
             f.write(' ' * len(self.comment_symbol))  # account for comment
 
-            nfevals = re.search(r'(?<=nfevals\s=\s)[0-9]*',
-                                self.sim.vode.stat()).group(0)
-
             for entityname in self.entity_order:
                 value = self.entities[entityname]['get'](self.sim)
                 if isinstance(value, np.ndarray):
