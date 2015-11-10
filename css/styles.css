@@ -4,7 +4,7 @@
 /* BODY looks at its parent HTML, to know how 
    to scale the property dynamically */
 html, body {
-    height:100%;
+height:100%;
 } 
 
 body{
@@ -30,13 +30,28 @@ p.title {
 	font-weight: 300;
 	color: #d6ae0c;
 	margin-bottom: -5px;
+    margin-top: 5%;
 }
-
+/*
 p.title:first-letter {
     background-color: #d6ae0c;
     color: rgb(10, 10, 10);
     border-radius: 15px;
-    padding: 0 25px;
+    position: relative;
+}
+*/
+
+.square-back {
+    background-color: #d6ae0c;
+    color: rgb(10, 10, 10);
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 7%;
+    height: 0;
+    padding-bottom: 7%;
+    text-align: center;
 }
 
 p.subtitle{
@@ -54,9 +69,10 @@ a.icons{
 	position: fixed;
 	color: #d6ae0c;
 	font-size: 100%;
-	bottom: 0px;
+	bottom: 5%;
+    transition: color 1s ease;
 }
 
-a.icons:hover, p.icons.on {
+a.icons:hover {
 	color: rgb(255, 255, 255);
 }
