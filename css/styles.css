@@ -25,7 +25,7 @@ body{
 }
 
 p.title {
-    font-size: 500%;
+    font-size: 80px;
     font-family: Lato, sans-serif;
 	font-weight: 300;
 	color: #d6ae0c;
@@ -48,15 +48,15 @@ p.title:first-letter {
     position: relative;
     overflow: hidden;
     display: inline-block;
-    width: 7%;
+    width: 100px;
     height: 0;
-    padding-bottom: 7%;
+    padding-bottom: 100px;
     text-align: center;
 }
 
 p.subtitle{
 	color: #d6ae0c;
-	font-size: 300%;
+	font-size: 48px;
 	max-width: 45%;
 	font-family: Lato, sans-serif;
 	font-weight: 300;
