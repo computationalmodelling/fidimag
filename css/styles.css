@@ -25,7 +25,7 @@ body{
 }
 
 p.title {
-    font-size: 80px;
+    font-size: 500%;
     font-family: Lato, sans-serif;
 	font-weight: 300;
 	color: #d6ae0c;
@@ -45,18 +45,18 @@ p.title:first-letter {
     background-color: #d6ae0c;
     color: rgb(10, 10, 10);
     border-radius: 15px;
-    position: relative;
     overflow: hidden;
     display: inline-block;
-    width: 100px;
+    width: 10%;
     height: 0;
-    padding-bottom: 100px;
+    padding-bottom: 10%;
     text-align: center;
+    font-size: 7vw;
 }
 
 p.subtitle{
 	color: #d6ae0c;
-	font-size: 48px;
+	font-size: 250%;
 	max-width: 45%;
 	font-family: Lato, sans-serif;
 	font-weight: 300;
