@@ -25,9 +25,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id - 1;
 					id2 = id + 1;
 
-					field[id] += jx[id] * (spin[id2] - spin[id1]) / (2 * dx);
-					field[id + n1] += jx[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dx);
-					field[id + n2] += jx[id]*(spin[id2 + n2] - spin[id1 + n2]) / (2 * dx);
+					field[3 * id]     += jx[id] * (spin[3 * id2]     - spin[3 * id1])     / (2 * dx);
+					field[3 * id + 1] += jx[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (2 * dx);
+					field[3 * id + 2] += jx[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (2 * dx);
 
 				}
 			}
@@ -44,9 +44,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id + (nx - 1);
 					id2 = id + 1;
 
-					field[id] += jx[id] * (spin[id2] - spin[id1]) / (2 * dx);
-					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (2 * dx);
-					field[id + n2] += jx[id] * (spin[id2 + n2] - spin[id1 + n2]) / (2 * dx);
+					field[3 * id]     += jx[id] * (spin[3 * id2]     - spin[3 * id1])     / (2 * dx);
+					field[3 * id + 1] += jx[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (2 * dx);
+					field[3 * id + 2] += jx[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (2 * dx);
 
 				}
 			}
@@ -61,9 +61,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id;
 					id2 = id + 1;
 
-					field[id] += jx[id] * (spin[id2] - spin[id1]) / (dx);
-					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (dx);
-					field[id + n2] += jx[id] * (spin[id2 + n2] - spin[id1 + n2]) / (dx);
+					field[3 * id]     += jx[id] * (spin[3 * id2]     - spin[3 * id1])     / (dx);
+					field[3 * id + 1] += jx[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (dx);
+					field[3 * id + 2] += jx[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (dx);
 
 				}
 			}
@@ -80,9 +80,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id - 1;
 					id2 = id - (nx - 1);
 
-					field[id] += jx[id] * (spin[id2] - spin[id1]) / (2 * dx);
-					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (2 * dx);
-					field[id + n2] += jx[id] * (spin[id2 + n2] - spin[id1 + n2]) / (2 * dx);
+					field[3 * id]     += jx[id] * (spin[3 * id2]     - spin[3 * id1])     / (2 * dx);
+					field[3 * id + 1] += jx[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (2 * dx);
+					field[3 * id + 2] += jx[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (2 * dx);
 
 				}
 			}
@@ -96,9 +96,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id - 1;
 					id2 = id;
 
-					field[id] += jx[id] * (spin[id2] - spin[id1]) / (dx);
-					field[id + n1] += jx[id] * (spin[id2 + n1] - spin[id1 + n1]) / (dx);
-					field[id + n2] += jx[id] * (spin[id2 + n2] - spin[id1 + n2]) / (dx);
+					field[3 * id]     += jx[id] * (spin[3 * id2]     - spin[3 * id1])     / (dx);
+					field[3 * id + 1] += jx[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (dx);
+					field[3 * id + 2] += jx[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (dx);
 
 				}
 			}
@@ -118,9 +118,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id - nx;
 					id2 = id + nx;
 
-					field[id] += jy[id] * (spin[id2] - spin[id1]) / (2 * dy);
-					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dy);
-					field[id + n2] += jy[id]*(spin[id2 + n2] - spin[id1 + n2]) / (2 * dy);
+					field[3 * id]      += jy[id] * (spin[3 * id2]     - spin[3 * id1])     / (2 * dy);
+					field[3 * id + 1]  += jy[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (2 * dy);
+					field[3 * id + 2]  += jy[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (2 * dy);
 				}
 			}
 		}
@@ -135,9 +135,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id + nx * (ny - 1);
 					id2 = id + nx;
 
-					field[id] += jy[id] * (spin[id2] - spin[id1]) / (2 * dy);
-					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dy);
-					field[id + n2] += jy[id]*(spin[id2 + n2] - spin[id1 + n2]) / (2 * dy);
+					field[3 * id]     += jy[id] * (spin[3 * id2]     - spin[3 * id1])     / (2 * dy);
+					field[3 * id + 1] += jy[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (2 * dy);
+					field[3 * id + 2] += jy[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (2 * dy);
 				}
 			}
 		}else{
@@ -149,9 +149,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id;
 					id2 = id + nx;
 
-					field[id] += jy[id] * (spin[id2] - spin[id1]) / (dy);
-					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (dy);
-					field[id + n2] += jy[id]*(spin[id2 + n2] - spin[id1 + n2]) / (dy);
+					field[3 * id]     += jy[id] * (spin[3 * id2]     - spin[3 * id1])     / (dy);
+					field[3 * id + 1] += jy[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (dy);
+					field[3 * id + 2] += jy[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (dy);
 				}
 			}
 
@@ -168,9 +168,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id - nx;
 					id2 = id - nx * (ny - 1);
 
-					field[id] += jy[id] * (spin[id2] - spin[id1]) / (2 * dy);
-					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (2 * dy);
-					field[id + n2] += jy[id]*(spin[id2 + n2] - spin[id1 + n2]) / (2 * dy);
+					field[3 * id]     += jy[id] * (spin[3 * id2]     - spin[3 * id1])     / (2 * dy);
+					field[3 * id + 1] += jy[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (2 * dy);
+					field[3 * id + 2] += jy[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (2 * dy);
 				}
 			}
 		}else{
@@ -182,9 +182,9 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
 					id1 = id - nx;
 					id2 = id;
 
-					field[id] += jy[id] * (spin[id2] - spin[id1]) / (dy);
-					field[id + n1] += jy[id]*(spin[id2 + n1] - spin[id1 + n1]) / (dy);
-					field[id + n2] += jy[id]*(spin[id2 + n2] - spin[id1 + n2]) / (dy);
+					field[3 * id]     += jy[id] * (spin[3 * id2]     - spin[3 * id1])     / (dy);
+					field[3 * id + 1] += jy[id] * (spin[3 * id2 + 1] - spin[3 * id1 + 1]) / (dy);
+					field[3 * id + 2] += jy[id] * (spin[3 * id2 + 2] - spin[3 * id1 + 2]) / (dy);
 				}
 			}
 
