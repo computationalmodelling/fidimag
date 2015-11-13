@@ -200,11 +200,12 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 		double *alpha, double beta, double u0, double gamma, int n) {
 
 	#pragma omp parallel for
-	for (int i = 0; i < n; i++) {
-		int j = i + n;
-		int k = j + n;
+	for (int index = 0; index < n; index++) {
+        int i = 3 * index;
+		int j = 3 * index + 1;
+		int k = 3 * index + 2;
 
-		double coeff = -gamma / (1 + alpha[i] * alpha[i]);
+		double coeff = -gamma / (1 + alpha[index] * alpha[index]);
 
 		double mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
 		double mh = m[i] * h[i] + m[j] * h[j] + m[k] * h[k];
@@ -218,13 +219,13 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
         double mth1 = cross_y(m[i],m[j],m[k],hpi,hpj,hpk);
         double mth2 = cross_z(m[i],m[j],m[k],hpi,hpj,hpk);
 
-		dm_dt[i] = coeff * (mth0 - hpi * alpha[i]);
-		dm_dt[j] = coeff * (mth1 - hpj * alpha[i]);
-		dm_dt[k] = coeff * (mth2 - hpk * alpha[i]);
+		dm_dt[i] = coeff * (mth0 - hpi * alpha[index]);
+		dm_dt[j] = coeff * (mth1 - hpj * alpha[index]);
+		dm_dt[k] = coeff * (mth2 - hpk * alpha[index]);
 
 		//the above part is standard LLG equation.
 
-		double coeff_stt = u0 / (1 + alpha[i] * alpha[i]);
+		double coeff_stt = u0 / (1 + alpha[index] * alpha[index]);
 
 		double mht = m[i] * h_stt[i] + m[j] * h_stt[j] + m[k] * h_stt[k];
 
@@ -236,12 +237,12 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
         mth1 = cross_y(m[i],m[j],m[k],hpi,hpj,hpk);
         mth2 = cross_z(m[i],m[j],m[k],hpi,hpj,hpk);
 
-		dm_dt[i] += coeff_stt * ((1 + alpha[i] * beta) * hpi
-				- (beta - alpha[i]) * mth0);
-		dm_dt[j] += coeff_stt * ((1 + alpha[i] * beta) * hpj
-				- (beta - alpha[i]) * mth1);
-		dm_dt[k] += coeff_stt * ((1 + alpha[i] * beta) * hpk
-				- (beta - alpha[i]) * mth2);
+		dm_dt[i] += coeff_stt * ((1 + alpha[index] * beta) * hpi
+				- (beta - alpha[index]) * mth0);
+		dm_dt[j] += coeff_stt * ((1 + alpha[index] * beta) * hpj
+				- (beta - alpha[index]) * mth1);
+		dm_dt[k] += coeff_stt * ((1 + alpha[index] * beta) * hpk
+				- (beta - alpha[index]) * mth2);
 
 		double c = 6 * sqrt(dm_dt[i] * dm_dt[i] + dm_dt[j] * dm_dt[j] + dm_dt[k]* dm_dt[k]);
 		dm_dt[i] += c * (1 - mm) * m[i];
