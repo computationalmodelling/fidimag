@@ -61,26 +61,9 @@ class LLG(object):
             'get': lambda sim: sim.skyrmion_number(),
             'header': 'skx_num'}
 
-        # RHS evaluations:
-        # sim.vode.stat() has the following structure:
-        # CvodeSolver(nsteps = 18,
-        #             nfevals = 32,
-        #             njevals = 14.
-        #             )
-        #
-        # nsteps  --> number of steps taken by CVODE
-        # nfevals --> number of calls to the user's f function
-        #             (I guess this is what we need)
-        # njevals --> the cumulative number of calls to the Jacobian function
-        #
-        # So we regex search any number preceded by "nfevals = " to get the
-        # number of evaluations of the RHS and convert to integer
-
         self.saver.entities['rhs_evals'] = {
             'unit': '<>',
-            'get': lambda sim: int(re.search(r'(?<=nfevals\s=\s)[0-9]*',
-                                             sim.vode.stat()).group(0)
-                                   ),
+            'get': lambda sim: self.cvode_stat_output(sim),
             'header': 'rhs_evals'}
 
         self.saver.update_entity_order()
@@ -374,6 +357,51 @@ class LLG(object):
         if save_vtk_steps is not None:
             self.save_vtk()
 
+    def cvode_stat_output(self, sim):
+        """
+        This function tries to get the values from the CVODE statistics. For a
+        'sim' simulation object, this is done starting from calling
+        sim.vode.stats()
+
+        According to the CVODE version, this call can generate a string:
+
+        CvodeSolver(nsteps = 18,
+                    nfevals = 32,
+                    njevals = 14.
+                    )
+
+        where:
+
+        nsteps  --> number of steps taken by CVODE
+        nfevals --> number of calls to the user's f function
+                    (I guess this is what we need)
+        njevals --> the cumulative number of calls to the Jacobian function
+
+        So, for example,  we can regex search any number preceded by
+            "nfevals = "
+        to get the number of evaluations of the RHS and convert the
+        result to an integer
+
+        OR it can give a tuple with 3 values, which must be in the same
+        order than before
+
+        For now, we are only interested in the RHS evaluations, so we
+        return a single value
+
+        """
+        cvode_stat = sim.vode.stat()
+
+        if isinstance(cvode_stat, str):
+            out = int(re.search(r'(?<=nfevals\s=\s)[0-9]*',
+                                cvode_stat).group(0)
+                      )
+        elif isinstance(cvode_stat, tuple):
+            out = cvode_stat[1]
+        else:
+            raise NotImplementedError('Cannot retrieve the values'
+                                      'from CVODE stats')
+
+        return out
 
 if __name__ == '__main__':
     pass
