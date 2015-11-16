@@ -79,11 +79,9 @@ class LLG_STT(LLG):
                                    self._jy,
                                    self.mesh.dx * self.mesh.unit_length,
                                    self.mesh.dy * self.mesh.unit_length,
-                                   self.mesh.nx,
-                                   self.mesh.ny,
-                                   self.mesh.nz,
-                                   self.xperiodic,
-                                   self.yperiodic)
+                                   self.mesh.neighbours,
+                                   self.n
+                                   )
 
         clib.compute_llg_stt_rhs(ydot,
                                  self.spin,

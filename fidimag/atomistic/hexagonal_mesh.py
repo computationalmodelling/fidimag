@@ -67,8 +67,8 @@ class HexagonalMesh(object):
         self.nz = 1  # time will tell if 0 is a better value here
         self.periodicity = periodicity
 
-        self.dx = sqrt(3) * radius
-        self.dy = 2.0 * radius
+        self.dy = sqrt(3) * radius
+        self.dx = 2.0 * radius
         self.radius = radius
 
         # To avoid moodifying the other classes that assume a 3D sample

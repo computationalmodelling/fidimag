@@ -20,11 +20,11 @@ void compute_uniaxial_anis(double *m, double *field, double *energy, double *Ms_
 
         double m_u = m[j] * axis[j] + m[j + 1] * axis[j + 1] + m[j + 2] * axis[j + 2];
 
-		field[j] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[j];
-		field[j + 1] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[j + 1];
-		field[j + 2] = 2*Ku[i]*m_u*Ms_inv[i]*MU0_INV*axis[j + 2];
+		field[j]     = 2 * Ku[i] * m_u * Ms_inv[i] * MU0_INV * axis[j];
+		field[j + 1] = 2 * Ku[i] * m_u * Ms_inv[i] * MU0_INV * axis[j + 1];
+		field[j + 2] = 2 * Ku[i] * m_u * Ms_inv[i] * MU0_INV * axis[j + 2];
 
-		energy[i] = Ku[i]*(1-m_u*m_u);
+		energy[i] = Ku[i] * (1 - m_u * m_u);
 
 	}
 

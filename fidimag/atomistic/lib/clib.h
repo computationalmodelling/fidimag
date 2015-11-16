@@ -45,7 +45,7 @@ void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
 
 
 void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
-		double dx, double dy, int nx, int ny, int nz, int xperiodic, int yperiodic);
+		double dx, double dy, int *ngbs, int n);
 
 void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,
                  double beta, double u0, double gamma, int n);

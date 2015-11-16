@@ -24,12 +24,12 @@ class UniaxialAnisotropy(Energy):
 
     def compute_field(self, t=0):
         micro_clib.compute_anisotropy_micro(self.spin,
-                                self.field,
-                                self.energy,
-                                self.Ms_inv,
-                                self._Ku,
-                                self._axis,
-                                self.nx,
-                                self.ny,
-                                self.nz)
+                                            self.field,
+                                            self.energy,
+                                            self.Ms_inv,
+                                            self._Ku,
+                                            self._axis,
+                                            self.nx,
+                                            self.ny,
+                                            self.nz)
         return self.field
