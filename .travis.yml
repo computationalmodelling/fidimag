@@ -13,6 +13,7 @@ before_script:
         # libfftw in ubuntu 12.04 is a bit older for fidimag.
         # - sudo apt-get install libsundials-serial-dev libfftw3-dev
         # Matplotlib installation using apt-get is failing
+        - sudo apt-get update
         - sudo apt-get install mayavi2 cython
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
