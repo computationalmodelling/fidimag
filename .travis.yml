@@ -3,7 +3,7 @@ python:
         - "2.7"
 # command to install dependencies
 install:
-        # - pip install cython
+        - pip install cython
         - pip install matplotlib
         - pip install pyvtk
         # - pip install Mayavi[app] --> Needs VTK
@@ -14,7 +14,7 @@ before_script:
         # - sudo apt-get install libsundials-serial-dev libfftw3-dev
         # Matplotlib installation using apt-get is failing
         - sudo apt-get update
-        - sudo apt-get install mayavi2 cython
+        - sudo apt-get install mayavi2
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
         - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
