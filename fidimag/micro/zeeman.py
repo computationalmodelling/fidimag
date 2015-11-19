@@ -44,12 +44,13 @@ class Zeeman(object):
     def compute_field(self, t=0):
         return self.field
 
-    # Todo: update it later
     def average_field(self):
-        hx = self.field[0]
-        hy = self.field[self.n]
-        hz = self.field[2 * self.n]
-        return np.array([hx, hy, hz])
+        # Remember that fields are: [fx0, fy0, fz0, fx1, fy1, fz1, fx2, ...]
+        # So we jump in steps of 3 starting from the 0, 1 and 2nd elements
+        hx = self.field[::3]
+        hy = self.field[1::3]
+        hz = self.field[2::3]
+        return np.array([np.average(hx), np.average(hy), np.average(hz)])
 
     def compute_energy(self):
 

@@ -322,7 +322,8 @@ class LLG(object):
         max_dmdt = max_dm / dt
         return max_dmdt
 
-    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000, save_m_steps=100, save_vtk_steps=100):
+    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000,
+              save_m_steps=100, save_vtk_steps=100):
 
         ONE_DEGREE_PER_NS = 17453292.52
 
@@ -346,7 +347,10 @@ class LLG(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step, self.t, dmdt / ONE_DEGREE_PER_NS, cvode_dt)
+            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step,
+                                                                 self.t,
+                                                                 dmdt / ONE_DEGREE_PER_NS,
+                                                                 cvode_dt)
 
             if dmdt < stopping_dmdt * ONE_DEGREE_PER_NS:
                 break
