@@ -88,6 +88,9 @@ class LLG(object):
 
     def reset_integrator(self, t=0):
         self.vode.reset(self.spin, t)
+        # Also reinitialise the simulation time and step
+        self.t = t
+        self.step = 0
 
     def set_tols(self, rtol=1e-8, atol=1e-10):
         if self.integrator_tolerances_set is True:
