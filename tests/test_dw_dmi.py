@@ -37,11 +37,11 @@ def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
 
 def save_plot(mxyz, mx, my, mz):
     fig = plt.figure()
-    mxyz.shape = (3, -1)
+    mxyz.shape = (-1, 3)
     xs = np.array([p[0] for p in mesh.pos])
-    plt.plot(xs, mxyz[0], '.', label='mx')
-    plt.plot(xs, mxyz[1], '.', label='my')
-    plt.plot(xs, mxyz[2], '.', label='mz')
+    plt.plot(xs, mxyz[:, 0], '.', label='mx')
+    plt.plot(xs, mxyz[:, 1], '.', label='my')
+    plt.plot(xs, mxyz[:, 2], '.', label='mz')
 
     plt.plot(xs, mx, '-')
     plt.plot(xs, my, '-')

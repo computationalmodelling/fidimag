@@ -23,16 +23,14 @@ class VTK(object):
         else:
             raise NotImplementedError("Mesh should be CuboidMesh or HexagonalMesh.")
 
-    def save_scalar(self, s, step=0, name="my_field"):
+    def save_scalar(self, s, name="my_field"):
         self.grid.cell_data.scalars = s.copy()
         self.grid.cell_data.scalars.name = name
 
-        filename = "{}_{:06}".format(self.filename, step)
-        write_data(self.grid, os.path.join(self.directory, filename))
-
-    def save_vector(self, v, step=0, name="my_field"):
+    def save_vector(self, v, name="my_field"):
         self.grid.cell_data.vectors = v.copy()
         self.grid.cell_data.vectors.name = name
 
+    def write_file(self, step=0):
         filename = "{}_{:06}".format(self.filename, step)
         write_data(self.grid, os.path.join(self.directory, filename))

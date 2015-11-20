@@ -388,8 +388,13 @@ class NEB_Sundials(object):
 
         self.coords.shape = (self.total_image_num, -1)
 
+        # We use Ms from the simulation assuming that all the
+        # images are the same
         for i in range(self.total_image_num):
-            self.vtk.save_vtk(self.coords[i], step=i, vtkname='m')
+            self.vtk.save_vtk(self.coords[i].reshape(-1, 3),
+                              self.sim.Ms,
+                              step=i,
+                              vtkname='m')
 
         self.coords.shape = (-1, )
 

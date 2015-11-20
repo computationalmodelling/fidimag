@@ -311,7 +311,7 @@ class LLG(object):
         self.saver.update_entity_order()
 
     def save_vtk(self):
-        self.vtk.save_vtk(self.spin, step=self.step)
+        self.vtk.save_vtk(self.spin.reshape(-1, 3), self._mu_s, step=self.step)
 
     def save_m(self):
         if not os.path.exists('%s_npys' % self.name):
