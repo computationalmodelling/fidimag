@@ -25,8 +25,8 @@ def test_coordinates_x():
     """
     size = 1
     mesh = HexagonalMesh(size, 2, 1)
-    height = size * 2.0
-    width = sqrt(3) / 2.0 * height
+    width = size * 2.0
+    height = sqrt(3) / 2.0 * width
     assert allclose(mesh.coordinates,
                     np.array(((width / 2.0, height / 2.0, 0),
                               (width * 3.0 / 2.0, height / 2.0, 0))))
@@ -45,8 +45,8 @@ def test_coordinates_y():
     """
     size = 1
     mesh = HexagonalMesh(size, 2, 1)
-    height = size * 2.0
-    width = sqrt(3) / 2.0 * height
+    width = size * 2.0
+    height = sqrt(3) / 2.0 * width
     mesh = HexagonalMesh(size, 2, 2)
     assert allclose(mesh.coordinates, np.array((
         (width / 2.0, height / 2.0, 0),
