@@ -81,12 +81,12 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
             nn_x1 = ngbs[nn_i];
             nn_x2 = ngbs[nn_i + 1];
         // Here there is no NN to the right so we make f(x) - f(x-1)
-        } else if(ngbs[nn_i + 1] == -1){
+        } else if(ngbs[nn_i + 1] == -1 && ngbs[nn_i] != -1){
             factor_x = 1;
             nn_x1 = ngbs[nn_i];
             nn_x2 = i;
         // Here there is no NN to the left so we make f(x + 1) - f(x)
-        } else if(ngbs[nn_i] == -1){
+        } else if(ngbs[nn_i] == -1 && ngbs[nn_i + 1] != -1){
             factor_x = 1;
             nn_x1 = i;
             nn_x2 = ngbs[nn_i + 1];
@@ -111,11 +111,11 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
             factor_y = 2;
             nn_y1 = ngbs[nn_i + 2];
             nn_y2 = ngbs[nn_i + 3];
-        } else if(ngbs[nn_i + 3] == -1){
+        } else if(ngbs[nn_i + 3] == -1 && ngbs[nn_i + 2] != -1){
             factor_y = 1;
             nn_y1 = ngbs[nn_i + 2];
             nn_y2 = i;
-        } else if(ngbs[nn_i + 2] == -1){
+        } else if(ngbs[nn_i + 2] == -1 && ngbs[nn_i + 3] != -1){
             factor_y = 1;
             nn_y1 = i;
             nn_y2 = ngbs[nn_i + 3];
