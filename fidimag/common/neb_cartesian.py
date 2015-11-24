@@ -391,10 +391,19 @@ class NEB_Sundials(object):
         # We use Ms from the simulation assuming that all the
         # images are the same
         for i in range(self.total_image_num):
-            self.vtk.save_vtk(self.coords[i].reshape(-1, 3),
-                              self.sim.Ms,
-                              step=i,
-                              vtkname='m')
+            # We will try to save for the micromagnetic simulation (Ms)
+            # or an atomistic simulation (mu_s)
+            # TODO: maybe this can be done with an: isinstance
+            try:
+                self.vtk.save_vtk(self.coords[i].reshape(-1, 3),
+                                  self.sim.Ms,
+                                  step=i,
+                                  vtkname='m')
+            except:
+                self.vtk.save_vtk(self.coords[i].reshape(-1, 3),
+                                  self.sim._mu_s,
+                                  step=i,
+                                  vtkname='m')
 
         self.coords.shape = (-1, )
 
