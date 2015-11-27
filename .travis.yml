@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get install xvfb
 
 install:
-  - conda create -y -n fidimag-test cython matplotlib pytest mayavi wxpython
+  - conda create -y -n fidimag-test cython matplotlib pytest mayavi
   - source activate fidimag-test
   # Download and compile FFTW & Sundials locally
   - bash bin/install.sh
@@ -24,7 +24,8 @@ before_script:
         - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
         - export MPLBACKEND=Agg
-        - export ETS_TOOLKIT=wx
+        # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
+        - export QT_API=pyqt
 
 # command to run tests
 # tvtk can't be imported without an X server, so we run in xvfb, which creates a virtual display
