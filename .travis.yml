@@ -14,12 +14,14 @@ before_install:
 install:
   - conda create -y -n fidimag-test cython matplotlib
   - source activate fidimag-test
-  - conda install -y -c http://conda.anaconda.org/moble fftw
-  - conda install -y -c http://conda.anaconda.org/chemreac sundials
+  # Download and compile FFTW & Sundials locally
+  - bash bin/install.sh
 
 before_script:
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
+        - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
+        - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
 
 # command to run tests
