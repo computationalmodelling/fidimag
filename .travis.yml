@@ -23,6 +23,7 @@ before_script:
         - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
         - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
+        - export MPLBACKEND=Agg
 
 # command to run tests
 # tvtk can't be imported without an X server, so we run in xvfb, which creates a virtual display
