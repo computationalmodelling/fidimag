@@ -126,37 +126,39 @@ def excite_system(mesh, time=5, snaps=501):
         sim.save_m()
 
 
-# We will crate a mesh with 1000 elements of 2x2x2 nm
-# in the x direction, and 1 along y and z
-# (so we have a 1D system)
-mesh = Mesh(nx=1000, ny=1, nz=1,
-            dx=2, dy=2, dz=2.0,
-            unit_length=1e-9)
+def test_stt_dw():
+    # We will crate a mesh with 1000 elements of 2x2x2 nm
+    # in the x direction, and 1 along y and z
+    # (so we have a 1D system)
+    mesh = Mesh(nx=1000, ny=1, nz=1,
+                dx=2, dy=2, dz=2.0,
+                unit_length=1e-9)
 
-# Relax the initial state. It will save the last state
-# to the m0.npy file
-relax_system(mesh)
+    # Relax the initial state. It will save the last state
+    # to the m0.npy file
+    relax_system(mesh)
 
+    m0_z = load_mz_npy('m0.npy')
 
-m0_z = load_mz_npy('m0.npy')
+    x = np.arange(len(m0_z))
+    index_max = np.argmax(np.abs(m0_z))
 
-x = np.arange(len(m0_z))
-index_max = np.argmax(np.abs(m0_z))
+    assert x[index_max] == 225
+    assert np.abs(m0_z[index_max] - 0.705740362679) < 1e-8
 
-assert x[index_max] == 225
-assert np.abs(m0_z[index_max] - 0.705740362679) < 1e-8
+    # Excite the system for 1.5 ns
+    excite_system(mesh, 1.5, 151)
 
+    m0_z = load_mz_npy('dyn_npys/m_100.npy')
+    x = np.arange(len(m0_z))
+    # Check that the DW is at the 242th x-position in the 100th snapshot
+    print x[np.argmax(np.abs(m0_z))]
+    assert x[np.argmax(np.abs(m0_z))] == 242
 
-# Excite the system for 1.5 ns
-excite_system(mesh, 1.5, 151)
+    # Check that the DW is at the 251th x-position in the 150th snapshot
+    m0_z = load_mz_npy('dyn_npys/m_150.npy')
+    assert x[np.argmax(np.abs(m0_z))] == 251
 
+if __name__ == '__main__':
+    test_stt_dw()
 
-m0_z = load_mz_npy('dyn_npys/m_100.npy')
-x = np.arange(len(m0_z))
-# Check that the DW is at the 242th x-position in the 100th snapshot
-print x[np.argmax(np.abs(m0_z))]
-assert x[np.argmax(np.abs(m0_z))] == 242
-
-# Check that the DW is at the 251th x-position in the 150th snapshot
-m0_z = load_mz_npy('dyn_npys/m_150.npy')
-assert x[np.argmax(np.abs(m0_z))] == 251
