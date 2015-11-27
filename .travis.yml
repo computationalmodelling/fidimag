@@ -7,7 +7,7 @@ before_install:
         # - sudo apt-get install libsundials-serial-dev libfftw3-dev
         # Matplotlib installation using apt-get is failing
         - sudo apt-get update
-        - sudo apt-get install mayavi2
+        - sudo apt-get install mayavi2 xvfb
 
 install:
         - pip install cython
@@ -26,5 +26,6 @@ virtualenv:
     system_site_packages: true
 
 # command to run tests
+# tvtk can't be imported without an X server, so we run in xvfb, which creates a virtual display
 script:
-        - make test-without-run-oommf
+        - xvfb-run --server-args="-screen 0 1024x768x24" make test-without-run-oommf
