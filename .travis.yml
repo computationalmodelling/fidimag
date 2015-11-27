@@ -3,30 +3,31 @@ python:
         - "2.7"
 # command to install dependencies
 before_install:
-        # libfftw in ubuntu 12.04 is a bit older for fidimag.
-        # - sudo apt-get install libsundials-serial-dev libfftw3-dev
-        # Matplotlib installation using apt-get is failing
-        - sudo apt-get update
-        - sudo apt-get install mayavi2 xvfb
+  - wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda2/bin:$PATH
+  # XVFB for running tests in virtual X display
+  - sudo apt-get update
+  - sudo apt-get install xvfb
 
 install:
-        - pip install cython
-        - pip install matplotlib
-        - pip install pyvtk
-        # - pip install Mayavi[app] --> Needs VTK
+  - conda create -y -n fidimag-test cython matplotlib pytest mayavi
+  - source activate fidimag-test
+  # Download and compile FFTW & Sundials locally
+  - bash bin/install.sh
 
 before_script:
-        - bash bin/install.sh
         - make build
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
         - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
         - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
-
-virtualenv:
-    system_site_packages: true
+        - export MPLBACKEND=Agg
+        # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
+        - export QT_API=pyqt
 
 # command to run tests
 # tvtk can't be imported without an X server, so we run in xvfb, which creates a virtual display
 script:
-        - xvfb-run --server-args="-screen 0 1024x768x24" make test-without-run-oommf
+  - xvfb-run --server-args="-screen 0 1024x768x24" make test-without-run-oommf
