@@ -12,11 +12,9 @@ before_install:
   - sudo apt-get install xvfb
 
 install:
-  - conda install cython matplotlib
-  - conda install -c http://conda.anaconda.org/moble fftw
-  - conda install -c http://conda.anaconda.org/chemreac sundials
-        - pip install cython
-        - pip install matplotlib
+  - conda install -y cython matplotlib
+  - conda install -y -c http://conda.anaconda.org/moble fftw
+  - conda install -y -c http://conda.anaconda.org/chemreac sundials
 
 before_script:
         - make build
