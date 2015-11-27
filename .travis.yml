@@ -21,6 +21,7 @@ before_script:
         - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
         - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
         - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
+        - export OMP_NUM_THREADS=1
 
 virtualenv:
     system_site_packages: true
