@@ -12,7 +12,8 @@ before_install:
   - sudo apt-get install xvfb
 
 install:
-  - conda install -y cython matplotlib
+  - conda create -y -n fidimag-test cython matplotlib
+  - source activate fidimag-test
   - conda install -y -c http://conda.anaconda.org/moble fftw
   - conda install -y -c http://conda.anaconda.org/chemreac sundials
 
