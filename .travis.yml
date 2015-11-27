@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get install xvfb
 
 install:
-  - conda create -y -n fidimag-test cython matplotlib
+  - conda create -y -n fidimag-test cython matplotlib pytest
   - source activate fidimag-test
   # Download and compile FFTW & Sundials locally
   - bash bin/install.sh
