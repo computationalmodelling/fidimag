@@ -100,4 +100,4 @@ def test_energy(do_plot=False):
 
 if __name__ == '__main__':
 
-    test_energy(do_plot=True)
+    test_energy(do_plot=False)
