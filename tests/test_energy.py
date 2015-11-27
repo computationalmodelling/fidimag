@@ -37,6 +37,7 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
     mat = UnitMaterial()
 
     sim = Sim(mesh, name='test_energy')
+    print('Created sim')
     sim.set_tols(rtol=1e-10, atol=1e-12)
 
     sim.alpha = mat.alpha
@@ -45,12 +46,15 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
 
     exch = UniformExchange(mat.J)
     sim.add(exch)
+    print('Added UniformExchange')
 
     anis = Anisotropy(Dx, axis=[1, 0, 0], name='Dx')
     sim.add(anis)
+    print('Added Anisotropy')
 
     anis2 = Anisotropy([0, 0, -Dp], name='Dp')
     sim.add(anis2)
+    print('Added Anisotropy 2')
 
     sim.set_m((1, 1, 1))
 
@@ -59,6 +63,7 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
     for t in ts:
         # sim.save_vtk()
         sim.run_until(t)
+        print('Running -', t)
 
     # sim.save_vtk()
     np.save('m0.npy', sim.spin)
@@ -86,12 +91,15 @@ def save_plot():
 
 def test_energy(do_plot=False):
     mesh = CuboidMesh(nx=30)
+    print('Made mesh')
     relax_system(mesh)
+    print('Done relax_system')
 
     if do_plot:
         save_plot()
 
     data = DataReader('test_energy.txt')
+    print('Made DataReader')
     energy = data['E_total']
 
     for i in range(len(energy) - 1):
