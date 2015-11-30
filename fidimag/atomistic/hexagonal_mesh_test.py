@@ -26,7 +26,7 @@ def test_coordinates_x():
     size = 1
     mesh = HexagonalMesh(size, 2, 1)
     width = size * 2.0
-    height = sqrt(3) / 2.0 * width
+    height = 2.0 * width / sqrt(3)
     assert allclose(mesh.coordinates,
                     np.array(((width / 2.0, height / 2.0, 0),
                               (width * 3.0 / 2.0, height / 2.0, 0))))
@@ -46,13 +46,17 @@ def test_coordinates_y():
     size = 1
     mesh = HexagonalMesh(size, 2, 1)
     width = size * 2.0
-    height = sqrt(3) / 2.0 * width
+    # height refers to the y-distance between two hexagons
+    # centres in consecutive rows
+    height = sqrt(3) * size
+    # This is the total hexagon height that we use as the base
+    hex_height = 2.0 * width / sqrt(3)
     mesh = HexagonalMesh(size, 2, 2)
     assert allclose(mesh.coordinates, np.array((
-        (width / 2.0, height / 2.0, 0),
-        (width * 3.0 / 2.0, height / 2.0, 0),
-        (width, height * 5.0 / 4.0, 0),
-        (width * 2, height * 5.0 / 4.0, 0))))
+        (width / 2.0, hex_height / 2.0, 0),
+        (width * 3.0 / 2.0, hex_height / 2.0, 0),
+        (width, height + hex_height / 2.0, 0),
+        (width * 2, height + hex_height / 2.0, 0))))
 
 
 def test_neighbours_x():

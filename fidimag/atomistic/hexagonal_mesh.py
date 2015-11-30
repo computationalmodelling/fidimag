@@ -116,7 +116,7 @@ class HexagonalMesh(object):
                         sign = 0
 
                     r = (sign * self.dx / 2.0 + i * self.dx + self.dx / 2.0,
-                         j * self.dy * 3.0 / 4.0 + self.dy / 2.0,
+                         j * self.dy + self.h / 2.0,
                          0
                          )
 
