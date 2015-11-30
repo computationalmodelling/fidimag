@@ -2,8 +2,8 @@
 #include "math.h"
 #include "stdlib.h"
 
-void demag_hexagonal(double *spin, double *field, double *coords,
-                     double *energy, int n) {
+void demag_full(double *spin, double *field, double *coords,
+                double *energy, int n) {
 
     /* Full calculation of Demag */
 
