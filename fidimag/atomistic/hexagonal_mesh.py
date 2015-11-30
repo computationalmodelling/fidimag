@@ -179,7 +179,8 @@ class HexagonalMesh(object):
             for i in xrange(self.nx):
                 index = self._index(i, j)
                 x, y = self.coordinates[index][0], self.coordinates[index][1]
-                corners = self.hexagon_corners(x, y, self.radius)
+                # self.radius is the inradius while self.h/2  is the circumradius
+                corners = self.hexagon_corners(x, y, self.h * 0.5)
                 hexagon = []
                 # We'll go through the corners in a counter-clockwise direction.
                 # For each corner, we think about if it's a "new" vertex, or
