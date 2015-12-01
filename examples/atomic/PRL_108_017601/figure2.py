@@ -1,10 +1,6 @@
 import numpy as np
-from pccp.pc import Sim
-from fidimag.common import CuboidMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Zeeman, TimeZeeman
-from pccp.pc import DataReader
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, TimeZeeman
+from fidimag.common import CuboidMesh, DataReader
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
@@ -88,7 +84,7 @@ def deal_plot():
 if __name__ == '__main__':
 
     #mesh = CuboidMesh(nx=288,ny=288,nz=1)
-    mesh = CuboidMesh(nx=166, ny=96 * 2, nz=1, pbc='2d')
+    mesh = CuboidMesh(nx=166, ny=96 * 2, nz=1, periodicity=(True, True, False))
 
     excite_system(mesh)
 

@@ -1,10 +1,6 @@
 import numpy as np
-from pccp.pc import Sim
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman
 from fidimag.common import CuboidMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Zeeman
-
 
 def init_m(pos):
     x, y, z = pos
@@ -63,7 +59,7 @@ if __name__ == '__main__':
     np.random.seed(11)
 
     #mesh = CuboidMesh(nx=288,ny=288,nz=1)
-    mesh = CuboidMesh(nx=166, ny=96 * 2, nz=1, pbc='2d')
+    mesh = CuboidMesh(nx=166, ny=96 * 2, nz=1, periodicity=(True, True, False))
 
     relax_system(mesh)
 
