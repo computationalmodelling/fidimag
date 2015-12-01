@@ -3,7 +3,7 @@
 #include "stdlib.h"
 
 void demag_full(double *spin, double *field, double *coords,
-                double *energy, int n) {
+                double *energy, double* mu_s, int n) {
 
     /* Full calculation of Demag */
 
@@ -13,10 +13,11 @@ void demag_full(double *spin, double *field, double *coords,
         double* rij_n = malloc(3 * sizeof(double));
         double mrij = 0;
         double rij_mag;
+        for (int k=0; k < 3; k++) field[3 * i + k] = 0;
 
         for (int j = 0; j < n; j++) {
 
-            if(j != i){
+            if(j != i && mu_s[i] != 0.){
                 
                 for(int k = 0; k < 3; k++) {
                     rij[k] = coords[3 * j + k] - coords[3 * i + k];
@@ -37,6 +38,11 @@ void demag_full(double *spin, double *field, double *coords,
                 }
             }
         }
+
+        energy[i] = field[3 * i]     * spin[3 * i]     +
+                    field[3 * i + 1] * spin[3 * i + 1] +
+                    field[3 * i + 2] * spin[3 * i + 2];
+
         free(rij);
         free(rij_n);
     }
