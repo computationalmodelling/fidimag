@@ -9,26 +9,31 @@ cdef extern from "clib.h":
 
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
-    
-    void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res)
-    
-    void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py)
+
+    void compute_guiding_center(double *spin, int nx, int ny, int nz,
+                                double *res)
+
+    void compute_px_py_c(double *spin, int nx, int ny, int nz,
+                         double *px, double *py)
 
     void compute_exch_field(double *spin, double *field, double *energy,
                             double Jx, double Jy, double Jz,
                             int *ngbs, int n)
-    
-    double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, 
-                               int nx, int ny, int nz, 
+
+    double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
+                               int nx, int ny, int nz,
                                int xperiodic, int yperiodic)
 
     void dmi_field_bulk(double *spin, double *field, double *energy,
                         double D, int *ngbs, int n)
-    
+
     void dmi_field_interfacial_atomistic(double *spin, double *field,
                                          double *energy, double D, int *ngbs,
                                          int n, int nneighbours,
                                          double *DMI_vec)
+
+    void demag_full(double *spin, double *field, double *coords,
+                    double *energy, double* mu_s, int n)
 
     double dmi_energy(double *spin, double D, int nx, int ny, int nz,
                       int xperiodic, int yperiodic)
@@ -36,22 +41,25 @@ cdef extern from "clib.h":
     void compute_anis(double *spin, double *field, double *energy,
                       double *Ku, double *axis, int n)
 
-    void llg_rhs(double * dm_dt, double * spin, double *h, double *alpha, int *pins,
+    void llg_rhs(double * dm_dt, double * spin,
+                 double *h, double *alpha, int *pins,
                  double gamma, int n, int do_procession, double default_c)
-    
-    void llg_s_rhs(double * dm_dt, double * spin, double * h, 
+
+    void llg_s_rhs(double * dm_dt, double * spin, double * h,
                    double *alpha, double *chi, double gamma, int n)
-    
-    void llg_rhs_jtimes(double *jtn, double *m, double *h, 
+
+    void llg_rhs_jtimes(double *jtn, double *m, double *h,
                         double *mp, double *hp, double *alpha, int *pins,
-                        double gamma, int n, int do_procession, double default_c)
+                        double gamma, int n,
+                        int do_procession, double default_c)
 
     void normalise(double *m, int n)
 
-    void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
+    void compute_stt_field_c(double *spin, double *field,
+                             double *jx, double *jy,
                              double dx, double dy, int *ngbs, int n)
 
-    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, 
+    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
                      double *alpha,double beta, double u0, double gamma, int n)
 
 
@@ -60,10 +68,19 @@ cdef extern from "clib.h":
         pass
 
     ode_solver *create_ode_plan()
-    void init_solver(ode_solver *s, double k_B, double theta, int n, double dt, double gamma)
+
+    void init_solver(ode_solver *s, double k_B, double theta,
+                     int n, double dt, double gamma)
+
     void finalize_ode_plan(ode_solver *plan)
-    void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T, double *alpha, double *mu_s_inv, int *pins)
-    void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T, double *alpha, double *mu_s_inv, int *pins)
+
+    void run_step1(ode_solver *s, double *m, double *h,
+                   double *m_pred, double *T, double *alpha,
+                   double *mu_s_inv, int *pins)
+
+    void run_step2(ode_solver *s, double *m_pred,
+                   double *h, double *m, double *T,
+                   double *alpha, double *mu_s_inv, int *pins)
 
 def random_number(np.ndarray[double, ndim=1, mode="c"] v):
     cdef int n = len(v)
@@ -116,7 +133,9 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                             Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):
 
-    return compute_exch_energy(&spin[0], Jx, Jy, Jz, nx, ny, nz, xperiodic, yperiodic)
+    return compute_exch_energy(&spin[0], Jx, Jy, Jz,
+                               nx, ny, nz,
+                               xperiodic, yperiodic)
 
 
 def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -135,7 +154,7 @@ def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       D,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
                       n):
-    dmi_field_bulk(&spin[0], &field[0], &energy[0], D, &ngbs[0,0], n)
+    dmi_field_bulk(&spin[0], &field[0], &energy[0], D, &ngbs[0, 0], n)
 
 
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -151,6 +170,15 @@ def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
                                     nneighbours,
                                     &DMI_vec[0]
                                     )
+
+def compute_demag_full(np.ndarray[double, ndim=1, mode="c"] spin,
+                       np.ndarray[double, ndim=1, mode="c"] field,
+                       np.ndarray[double, ndim=1, mode="c"] energy,
+                       np.ndarray[int, ndim=2, mode="c"] coords,
+                       np.ndarray[double, ndim=1, mode="c"] mu_s,
+                       n
+                       ):
+    demag_full(&spin[0], &field[0], &energy[0], &coords[0, 0], &mu_s[0], n)
 
 def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                         D, nx, ny, nz,
@@ -176,7 +204,7 @@ def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 np.ndarray[int, ndim=1, mode="c"] pins,
                 gamma, n, do_procession, default_c):
-    llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0], 
+    llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0],
                    &alpha[0], &pins[0], gamma, n, do_procession, default_c)
 
 def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
@@ -196,7 +224,7 @@ def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
                       n
                       ):
-    compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0], 
+    compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0],
                         dx, dy, &ngbs[0, 0], n)
 
 def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
@@ -205,7 +233,8 @@ def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field_stt,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 beta, u0, gamma, n):
-    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0] ,&alpha[0], beta, u0, gamma, n)
+    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0], 
+                &alpha[0], beta, u0, gamma, n)
 
 
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, n):
@@ -280,13 +309,15 @@ cdef class RK2S(object):
 
         #print "from cython1", self.spin,self.field,self.pred_m
         self.update_fun(self.y, self.t)
-        run_step1(self._c_plan,&y[0],&field[0],&pred_m[0],&T[0],&alpha[0], &mu_s_inv[0], &pins[0])
+        run_step1(self._c_plan, &y[0], &field[0], &pred_m[0],
+                  &T[0], &alpha[0], &mu_s_inv[0], &pins[0])
 
         self.step += 1
-        self.t = self.step*self.dt
+        self.t = self.step * self.dt
 
         self.update_fun(self.pred_m, self.t)
-        run_step2(self._c_plan,&pred_m[0],&field[0],&y[0],&T[0],&alpha[0], &mu_s_inv[0], &pins[0])
+        run_step2(self._c_plan, &pred_m[0], &field[0],
+                  &y[0], &T[0], &alpha[0], &mu_s_inv[0], &pins[0])
 
 
     def run_until(self, t):

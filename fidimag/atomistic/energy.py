@@ -6,7 +6,10 @@ import numpy as np
 class Energy(object):
 
     """
-    An abstract class to implement the basic functions such as setup for atomic dynamics.
+
+    An abstract class to implement the basic functions such as setup for atomic
+    dynamics.
+
     """
 
     def setup(self, mesh, spin, mu_s):
@@ -37,7 +40,8 @@ class Energy(object):
 
         self.mu_s_inv.shape = (-1,)
 
-        self.xperiodic, self.yperiodic = mesh.periodicity[0], mesh.periodicity[1]
+        self.xperiodic, self.yperiodic = (mesh.periodicity[0],
+                                          mesh.periodicity[1])
         self.neighbours = mesh.neighbours
 
         try:

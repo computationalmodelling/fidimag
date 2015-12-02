@@ -1,26 +1,26 @@
 import fidimag.extensions.clib as clib
 import numpy as np
+from energy import Energy
 
 
-class DemagFull(object):
+class DemagFull(Energy):
+    """
+    Calculation of the demag field using a brute-force approach,
+    summing the dipolar contributions of the whole system for
+    every lattice point.
+    Since we can obtain the field directly, the energy is calculated
+    in this process, thus we inherit from the Energy class
+    as in the Exchange field, to calculate the total energy summing up
+    the energy density.
+    """
 
     def __init__(self, name='demag_full'):
         self.name = name
         self.jac = True
 
     def setup(self, mesh, spin, mu_s):
-        self.mesh = mesh
-        self.dx = mesh.dx
-        self.dy = mesh.dy
-        self.dz = mesh.dz
-        self.nx = mesh.nx
-        self.ny = mesh.ny
-        self.nz = mesh.nz
-        self.spin = spin
-        self.n = mesh.n
-        self.mu_s = mu_s
+        super(DemagFull, self).setup(mesh, spin, mu_s)
 
-        self.field = np.zeros(3 * self.n, dtype=np.float)
         unit_length = mesh.unit_length
         self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
 
@@ -36,14 +36,12 @@ class DemagFull(object):
         else:
             m = self.spin
 
-        clib.demag_full(m, self.field, self.mesh.coordinates,
-                        self.energy, self.mu_s, self.n)
+        clib.compute_demag_full(m, self.field, self.mesh.coordinates,
+                                self.energy, self.mu_s, self.n)
 
         return self.field * self.mu_s_scale
 
     # def compute_energy(self):
-
     #     energy = self.demag.compute_energy(
     #         self.spin, self.mu_s_scale, self.field)
-
     #     return energy / self.scale

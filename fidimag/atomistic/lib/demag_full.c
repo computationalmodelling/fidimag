@@ -2,8 +2,8 @@
 #include "math.h"
 #include "stdlib.h"
 
-void demag_full(double *spin, double *field, double *coords,
-                double *energy, double* mu_s, int n) {
+void demag_full(double *spin, double *field, double *energy,
+                double *coords, double *mu_s, int n) {
 
     /* Full calculation of Demag */
 
