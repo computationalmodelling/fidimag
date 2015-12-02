@@ -2,8 +2,8 @@
 #include "math.h"
 #include "stdlib.h"
 
-void demag_full(double *spin, double *field, double *energy,
-                double *coords, double *mu_s, int n) {
+void demag_full(double *spin, double *field, double *energy, double *coords,
+                double *mu_s, double *mu_s_scale, int n) {
 
     /* Full calculation of Demag */
 
@@ -17,7 +17,7 @@ void demag_full(double *spin, double *field, double *energy,
 
         for (int j = 0; j < n; j++) {
 
-            if(j != i && mu_s[j] != 0.){
+            if(j != i && mu_s_scale[j] != 0.){
                 
                 for(int k = 0; k < 3; k++) {
                     rij[k] = coords[3 * j + k] - coords[3 * i + k];
@@ -38,10 +38,11 @@ void demag_full(double *spin, double *field, double *energy,
                 }
             }
         }
+        for(int k = 0; k < 3; k++) field[3 * i + k] *= mu_s_scale[i];
 
-        energy[i] = field[3 * i]     * spin[3 * i]     +
-                    field[3 * i + 1] * spin[3 * i + 1] +
-                    field[3 * i + 2] * spin[3 * i + 2];
+        energy[i] = -0.5 * mu_s[i] * (field[3 * i]     * spin[3 * i]     +
+                                      field[3 * i + 1] * spin[3 * i + 1] +
+                                      field[3 * i + 2] * spin[3 * i + 2]);
 
         free(rij);
         free(rij_n);

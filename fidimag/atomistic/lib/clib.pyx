@@ -33,7 +33,9 @@ cdef extern from "clib.h":
                                          double *DMI_vec)
 
     void demag_full(double *spin, double *field, double *coords,
-                    double *energy, double* mu_s, int n)
+                    double *energy,
+                    double *mu_s, double *mu_s_scale,
+                    int n)
 
     double dmi_energy(double *spin, double D, int nx, int ny, int nz,
                       int xperiodic, int yperiodic)
@@ -176,9 +178,11 @@ def compute_demag_full(np.ndarray[double, ndim=1, mode="c"] spin,
                        np.ndarray[double, ndim=1, mode="c"] energy,
                        np.ndarray[double, ndim=2, mode="c"] coords,
                        np.ndarray[double, ndim=1, mode="c"] mu_s,
+                       np.ndarray[double, ndim=1, mode="c"] mu_s_scale,
                        n
                        ):
-    demag_full(&spin[0], &field[0], &energy[0], &coords[0, 0], &mu_s[0], n)
+    demag_full(&spin[0], &field[0], &energy[0],
+               &coords[0, 0], &mu_s[0], &mu_s_scale[0], n)
 
 def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                         D, nx, ny, nz,
@@ -233,7 +237,7 @@ def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field_stt,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
                 beta, u0, gamma, n):
-    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0], 
+    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0],
                 &alpha[0], beta, u0, gamma, n)
 
 

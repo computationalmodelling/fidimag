@@ -47,7 +47,7 @@ class DemagHexagonal(object):
 
     """
 
-    def __init__(self, name='demag'):
+    def __init__(self, name='demag_hex'):
         self.name = name
         self.jac = True
 
@@ -75,7 +75,8 @@ class DemagHexagonal(object):
         self.spin_c = np.zeros(2 * len(spin))
 
         self.n = mesh.n
-        self.n_c = self.mesh_c.n
+        self.n_c = mesh.n * 2
+        # self.n_c = self.mesh_c.n
 
         self.field = np.zeros(3 * self.n, dtype=np.float)
         self.field_c = np.zeros(3 * self.n_c, dtype=np.float)
@@ -104,10 +105,12 @@ class DemagHexagonal(object):
     def compute_field(self, t=0, spin=None):
         if spin is not None:
             # Copy the spin components to the cuboid mesh system
-            m = self.vector2cuboid(spin, self.spin_c)
+            self.vector2cuboid(spin, self.spin_c)
         else:
             # Copy the spin components to the cuboid mesh system
-            m = self.vector2cuboid(self.spin, self.spin_c)
+            self.vector2cuboid(self.spin, self.spin_c)
+
+        m = self.spin_c
 
         # self.demag.compute_field(m, self.mu_s_scale, self.field)
         self.demag.compute_field(m, self.mu_s_scale_c, self.field_c)
@@ -135,6 +138,9 @@ class DemagHexagonal(object):
         #     self.spin, self.mu_s_scale, self.field)
 
         # We don't need to convert since energy is only a scalar
+        self.vector2cuboid(self.field, self.field_c)
+        self.vector2cuboid(self.spin, self.spin_c)
+
         energy = self.demag.compute_energy(
             self.spin_c, self.mu_s_scale_c, self.field_c)
 

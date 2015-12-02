@@ -16,13 +16,13 @@ inline double cross_z(double a0, double a1, double a2,
 void compute_exch_field(double *spin, double *field, double *energy,
 						double Jx, double Jy, double Jz,
                         int *ngbs, int n);
+
 double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
                            int nx, int ny, int nz,
                            int xperiodic, int yperiodic);
 
 void compute_anis(double *spin, double *field, double *energy,
 	              double *Ku, double *axis, int n);
-
 
 void dmi_field_bulk(double *spin, double *field, double *energy,
                     double D, int *ngbs, int n);
@@ -33,13 +33,15 @@ void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *DMI_vec);
 
 void demag_full(double *spin, double *field, double *energy,
-                double *coords, double *mu_s, int n);
+                double *coords,
+                double *mu_s, double *mu_s_scale, int n);
 
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,
                   int xperiodic, int yperiodic);
 
 void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
-		int *pins, double gamma, int n, int do_procession, double default_c);
+		     int *pins, double gamma, int n, int do_procession,
+             double default_c);
 
 void llg_rhs_jtimes(double *jtn, double *m, double *h,
                     double *mp, double *hp, double *alpha, int *pins,
