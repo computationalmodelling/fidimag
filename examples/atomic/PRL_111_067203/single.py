@@ -103,6 +103,6 @@ def excite_system(mesh):
 
 
 if __name__ == '__main__':
-    mesh = CuboidMesh(nx=150, ny=50, nz=1,  pbc='2d')
+    mesh = CuboidMesh(nx=150, ny=50, nz=1,  periodicity=(True, True, False))
     relax_system(mesh)
     #excite_system(mesh)

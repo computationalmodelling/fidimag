@@ -384,7 +384,7 @@ class NEB_Sundials(object):
         # Create the directory
         directory = 'vtks/%s_%d' % (self.name, self.step)
 
-        self.vtk = SaveVTK(self.sim.mesh, directory)
+        self.vtk = SaveVTK(self.sim.mesh, directory=directory)
 
         self.coords.shape = (self.total_image_num, -1)
 

@@ -74,8 +74,12 @@ class HexagonalMesh(object):
         # To avoid moodifying the other classes that assume a 3D sample
         self.dz = 1
 
+        # hexagons height: h = (3 / 4) * dy
+        self.h = self.dx * 2. / np.sqrt(3)
+
         self.Lx = self.nx * self.dx
-        self.Ly = self.ny * self.dy * 3.0 / 4.0 + self.dy / 4.0
+        # This is: (n - 1) * self.dy + self.h
+        self.Ly = self.ny * self.dy + self.dy / 3.
 
         self.n = nx * ny  # total number of cells
 
@@ -99,7 +103,7 @@ class HexagonalMesh(object):
                 # in their x-position by dx * 0.5, on every row
                 if self.alignment == 'diagonal':
                     r = (j * self.dx / 2.0 + i * self.dx + self.dx / 2.0,
-                         j * self.dy * 3.0 / 4.0 + self.dy / 2.0,
+                         j * self.dy + self.h / 2.0,
                          0
                          )
                 # For a square alignment, the hexagons will
@@ -112,7 +116,7 @@ class HexagonalMesh(object):
                         sign = 0
 
                     r = (sign * self.dx / 2.0 + i * self.dx + self.dx / 2.0,
-                         j * self.dy * 3.0 / 4.0 + self.dy / 2.0,
+                         j * self.dy + self.h / 2.0,
                          0
                          )
 
@@ -175,7 +179,8 @@ class HexagonalMesh(object):
             for i in xrange(self.nx):
                 index = self._index(i, j)
                 x, y = self.coordinates[index][0], self.coordinates[index][1]
-                corners = self.hexagon_corners(x, y, self.radius)
+                # self.radius is the inradius while self.h/2  is the circumradius
+                corners = self.hexagon_corners(x, y, self.h * 0.5)
                 hexagon = []
                 # We'll go through the corners in a counter-clockwise direction.
                 # For each corner, we think about if it's a "new" vertex, or

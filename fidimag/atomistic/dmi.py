@@ -99,7 +99,7 @@ class DMI(Energy):
         z_vec = np.array([0, 0, 1])
 
         rij = lambda i, j: np.array([i * self.mesh.dx * 0.5,
-                                     j * self.mesh.dy * 3.0 / 4.0,
+                                     j * self.mesh.dy,
                                      0])
 
         if self.mesh_type == 'hexagonal':

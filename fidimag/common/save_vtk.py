@@ -5,12 +5,17 @@ from fidimag.common.vtk import VTK
 
 class SaveVTK():
 
-    def __init__(self, mesh, name='unnamed'):
+    def __init__(self, mesh, name='unnamed', directory=None):
         self.name = name
+
+        if directory is None:
+            self.directory = '{}_vtks'.format(name)
+        else:
+            self.directory = directory
 
         # Initiate a VTK object
         self.VTK = VTK(mesh,
-                       directory='{}_vtks'.format(name),
+                       directory=self.directory,
                        filename=name
                        )
 

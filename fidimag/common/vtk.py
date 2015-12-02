@@ -10,9 +10,6 @@ class VTK(object):
         self.directory = directory
         self.filename = filename
 
-        if not os.path.isdir(self.directory):
-            os.makedirs(self.directory)
-
         if isinstance(mesh, HexagonalMesh):
             self.grid = tvtk.PolyData(points=mesh.vertices, polys=mesh.hexagons)
         elif isinstance(mesh, CuboidMesh):
@@ -34,5 +31,9 @@ class VTK(object):
         self.write_file(step)
 
     def write_file(self, step=0):
+        # We will create the directory only when writing the file
+        if not os.path.isdir(self.directory):
+            os.makedirs(self.directory)
+
         filename = "{}_{:06}".format(self.filename, step)
         write_data(self.grid, os.path.join(self.directory, filename))
