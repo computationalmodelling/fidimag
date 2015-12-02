@@ -174,7 +174,7 @@ def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
 def compute_demag_full(np.ndarray[double, ndim=1, mode="c"] spin,
                        np.ndarray[double, ndim=1, mode="c"] field,
                        np.ndarray[double, ndim=1, mode="c"] energy,
-                       np.ndarray[int, ndim=2, mode="c"] coords,
+                       np.ndarray[double, ndim=2, mode="c"] coords,
                        np.ndarray[double, ndim=1, mode="c"] mu_s,
                        n
                        ):

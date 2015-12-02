@@ -33,7 +33,7 @@ void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *DMI_vec);
 
 void demag_full(double *spin, double *field, double *energy,
-                double *coords, double *mu_s, int n)
+                double *coords, double *mu_s, int n);
 
 double dmi_energy(double *spin, double D, int nx, int ny, int nz,
                   int xperiodic, int yperiodic);
