@@ -15,9 +15,9 @@ void demag_full(double *spin, double *field, double *coords,
         double rij_mag;
         for (int k=0; k < 3; k++) field[3 * i + k] = 0;
 
-        for (int j = 0; j < n; j++) {
+        for (int i = 0; j < n; i++) {
 
-            if(j != i && mu_s[i] != 0.){
+            if(j != i && mu_s[j] != 0.){
                 
                 for(int k = 0; k < 3; k++) {
                     rij[k] = coords[3 * j + k] - coords[3 * i + k];

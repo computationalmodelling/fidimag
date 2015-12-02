@@ -25,7 +25,7 @@ class DemagFull(object):
         self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
 
         # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
-        self.scale = 1e-7 / unit_length**3
+        self.scale = 1e-7 / unit_length ** 3
 
         # could be wrong, needs carefully tests!!!
         self.mu_s_scale = self.mu_s * self.scale
@@ -41,9 +41,9 @@ class DemagFull(object):
 
         return self.field * self.mu_s_scale
 
-    def compute_energy(self):
+    # def compute_energy(self):
 
-        energy = self.demag.compute_energy(
-            self.spin, self.mu_s_scale, self.field)
+    #     energy = self.demag.compute_energy(
+    #         self.spin, self.mu_s_scale, self.field)
 
-        return energy / self.scale
+    #     return energy / self.scale
