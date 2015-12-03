@@ -67,8 +67,8 @@ def test_hexagonal_demags():
     # alignment of the spins positions in the lattice
     # produce the same result, although the field is
     # diferent. The library is based on the square alignment
-    mesh = HexagonalMesh(0.27 * 0.5, 4, 4, 
-                         unit_length=1e-9, 
+    mesh = HexagonalMesh(0.27 * 0.5, 4, 4,
+                         unit_length=1e-9,
                          alignment='square')
     mu_s = 2 * const.mu_B
 

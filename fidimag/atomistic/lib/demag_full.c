@@ -13,12 +13,12 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
      *
      * Thus, for the i-th spin, the field is calculated as:
      *
-     *                                   ^      ^         ^        ^
-	 *   ->	     mu0 mu_s        __    3 r_ij ( m_j \cdot r_ij ) - m_j
-     *   H_i =   --------    +  \	   -------------------------------
-     *             4 pi         /__              r_ij ^ 3
+     *                               ^      ^         ^        ^
+	 *   ->	     mu0 mu_s    __    3 r_ij ( m_j \cdot r_ij ) - m_j
+     *   H_i =   --------   \	   -------------------------------
+     *             4 pi     /__              r_ij ^ 3
      *
-     *                        i != j
+     *                    i != j
      *
      * where the numerator has unit vectors.
      * r_ij is a vector from r_i to r_j , i.e.  r_ij = r_j - r_i
@@ -35,23 +35,25 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
      * mu_s has the magnetic moments magnitudes and it is used for computing
      * the energy density of the i-th spin as:
      *
-	 *   	       mu_s       __  ^         ->
-     *   E_i =  -   --    +  \	  m_i \cdot H_i
-     *               2       /__
+	 *   	       mu_s    __ ^         ->
+     *   E_i =  -   --    \	  m_i \cdot H_i
+     *               2    /__
      *
-     *                     i=x,y,z
+     *                  i=x,y,z
      *
      * the 1/2 factor is for the double counting.
      *
      */
 
+
+    /* rij for the distance vector and rij_n for the normalised
+     * version of the vector. rij_mag is the magnitude */
+    double rij[3];
+    double rij_n[3];
+
     /* we start iterating through every lattice site */
-	#pragma omp parallel
+	#pragma omp parallel for private(rij, rij_n)
 	for (int i = 0; i < n; i++) {
-        /* rij for the distance vector and rij_n for the normalised
-         * version of the vector. rij_mag is the magnitude */
-        double* rij = malloc(3 * sizeof(double));
-        double* rij_n = malloc(3 * sizeof(double));
         double rij_mag;
         /* This is for the dot product of m and rij */
         double mrij = 0;
@@ -98,8 +100,5 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
         energy[i] = -0.5 * mu_s[i] * (field[3 * i]     * spin[3 * i]     +
                                       field[3 * i + 1] * spin[3 * i + 1] +
                                       field[3 * i + 2] * spin[3 * i + 2]);
-
-        free(rij);
-        free(rij_n);
     }
 }
