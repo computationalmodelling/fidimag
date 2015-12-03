@@ -14,7 +14,7 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
      * Thus, for the i-th spin, the field is calculated as:
      *
      *                               ^      ^         ^        ^
-	 *   ->	     mu0 mu_s    __    3 r_ij ( m_j \cdot r_ij ) - m_j
+     *   ->      mu0 mu_s    __    3 r_ij ( m_j \cdot r_ij ) - m_j
      *   H_i =   --------   \	   -------------------------------
      *             4 pi     /__              r_ij ^ 3
      *
@@ -35,8 +35,8 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
      * mu_s has the magnetic moments magnitudes and it is used for computing
      * the energy density of the i-th spin as:
      *
-	 *   	       mu_s    __ ^         ->
-     *   E_i =  -   --    \	  m_i \cdot H_i
+     *             mu_s    __   ^         ->
+     *   E_i =  -   --    \     m_i \cdot H_i
      *               2    /__
      *
      *                  i=x,y,z
