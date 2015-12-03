@@ -63,7 +63,13 @@ def test_hexagonal_demags():
     of the Demag field
     """
 
-    mesh = HexagonalMesh(0.27 * 0.5, 4, 4, unit_length=1e-9)
+    # It seems that using the square and diagonal
+    # alignment of the spins positions in the lattice
+    # produce the same result, although the field is
+    # diferent. The library is based on the square alignment
+    mesh = HexagonalMesh(0.27 * 0.5, 4, 4, 
+                         unit_length=1e-9, 
+                         alignment='square')
     mu_s = 2 * const.mu_B
 
     sim = Sim(mesh)
@@ -74,7 +80,7 @@ def test_hexagonal_demags():
     sim.add(DemagFull())
 
     sim.get_interaction('demag_full').compute_field()
-    # print sim.get_interaction('demag_full').field
+    print sim.get_interaction('demag_full').field
     demag_full_energy = sim.compute_energy() / const.meV
 
     # Demag using the FFT approach and a larger mesh
