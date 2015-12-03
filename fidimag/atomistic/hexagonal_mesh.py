@@ -35,6 +35,8 @@ along the y axis, it is only well defined for the DIAGONAL case, where,
 for example, we have periodicity between 0 and 6, 1 and 7 and 2 and 8.
 For the SQUARE case, it is still not properly defined.
 
+Coordinates a
+
 """
 import numpy as np
 from math import sqrt
@@ -48,16 +50,27 @@ class HexagonalMesh(object):
         Create mesh with nx cells in x-direction and ny cells in the
         y-direction. The size of a hexagon is given by
 
-            width  = sqrt(3) * radius
-            height = 2 * radius.
+            height  = sqrt(3) * radius
+            width = 2 * radius.
+
+        The radius is for an incircle inside the hexagon, thus the distance
+        between two lattice sites at the same y coordinate, is just 2 * radius,
+        which can be seen as the triangular lattice constant.
+        The height refers to the y distance between two lattice sites of
+        consecutive rows.
+        The first row of atoms has the lattice points located at the middle
+        of an hexagon, whose height is not the same distance than
+        the *height* defined before. This
+        distance, in terms of dx = 2 * radius, can be easily calculated as
+        2 * dx / sqrt(3), since the hexagon height is: (3 / 4) * height
 
         By default, the mesh is not periodic along any axis, so the periodicity
-        is set to (False, False). Passing a tuple with any combination
-        of entries set to True will enable periodicity along the given axes.
+        is set to (False, False). Passing a tuple with any combination of
+        entries set to True will enable periodicity along the given axes.
 
-        The alignment of the hexagons can be set to 'diagonal' or 'square'
-        In both cases the matrix with the neighbours indexes will have
-        the same order for every row (lattice site):
+        The alignment of the hexagons can be set to 'diagonal' or 'square' In
+        both cases the matrix with the neighbours indexes will have the same
+        order for every row (lattice site):
 
             | left right top_right bottom_left top_left bottom_right |
 

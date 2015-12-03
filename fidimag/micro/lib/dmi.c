@@ -112,11 +112,24 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
      *
      */
 
+    /* The DMI vectors are the same according to the neighbours
+     * positions. Thus we set them here to avoid compute them
+     * every time in the loop . So, if we have the j-th NN,
+     * the DMI vector will be dmivector[3 * j] */
+    double dmivector[18] = {-1,  0,  0,
+                             1,  0,  0,
+                             0, -1,  0,
+                             0,  1,  0,
+                             0,  0, -1,
+                             0,  0,  1
+                             };
+
+    /* These are for the DMI prefactor or coefficient */
+    double dxs[6] = {dx, dx, dy, dy, dz, dz};
+
     /* Here we iterate through every mesh node */
-	#pragma omp parallel for
+	#pragma omp parallel for shared(dmivector, dxs)
 	for (int i = 0; i < n; i++) {
-        double sign;
-        double * dmivector = malloc(3 * sizeof(double));
         double DMIc;
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
@@ -139,28 +152,6 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
              * we skip those sites */
 	        if (ngbs[idn + j] >= 0) {
 
-                /* Since we are iterating through the 6 NN neighbours, we
-                 * set the sign for the DMI vector since, for example,
-                 * in the x directions, r_{ij} = (+-1, 0, 0)
-                 * So, for j=0, 2, 4 (i.e. -x, -y, -z) we use a negatiev sign
-                 */
-                if (j == 0 || j == 2 || j == 4){ sign = -1; }
-                else{ sign = 1; }
-
-                /* Now we set the DMI vectors according to the neighbour position */
-                if (j == 0 || j == 1) {
-                    DMIc = -D[i] / dx;
-                    dmivector[0] = sign, dmivector[1] = 0, dmivector[2] = 0;
-                }
-                else if (j == 2 || j == 3) {
-                    DMIc = -D[i] / dy;
-                    dmivector[0] = 0, dmivector[1] = sign, dmivector[2] = 0;
-                }
-                else if (j == 4 || j == 5) {
-                    DMIc = -D[i] / dz;
-                    dmivector[0] = 0, dmivector[1] = 0, dmivector[2] = sign;
-                }
-
                 /* Magnetisation array index of the neighbouring spin
                  * since ngbs gives the neighbour's index */
 	            idnm = 3 * ngbs[idn + j];
@@ -171,21 +162,31 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 
                     /* We do here:  (D / dx_i) * ( r_{ij} X M_{j} )
                      * The cross_i function gives the i component of the
-                     * cross product
+                     * cross product. The coefficient is computed according
+                     * to the DMI strength of the current lattice site.
+                     * For the denominator, for example, if j=2 or 3, then
+                     * dxs[j] = dy
                      */
+                    DMIc = -D[i] / dxs[j];
 
                     /* The x component of the cross product of +-x
-                     * times anything is zero (similar for the other comps */
+                     * times anything is zero (similar for the other comps) */
                     if (j != 0 && j != 1) {
-                        fx += DMIc * cross_x(dmivector[0], dmivector[1], dmivector[2],
+                        fx += DMIc * cross_x(dmivector[3 * j],
+                                             dmivector[3 * j + 1],
+                                             dmivector[3 * j + 2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
                     if (j != 2 && j != 3) {
-                        fy += DMIc * cross_y(dmivector[0], dmivector[1], dmivector[2],
+                        fy += DMIc * cross_y(dmivector[3 * j],
+                                             dmivector[3 * j + 1],
+                                             dmivector[3 * j + 2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
                     if (j != 4 && j != 5) {
-                        fz += DMIc * cross_z(dmivector[0], dmivector[1], dmivector[2],
+                        fz += DMIc * cross_z(dmivector[3 * j],
+                                             dmivector[3 * j + 1],
+                                             dmivector[3 * j + 2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
                 }
@@ -201,7 +202,6 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
         field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
         field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
 
-        free(dmivector);
     }
 }
 
@@ -233,13 +233,13 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      *     +x:      (D / dx) * (-y  X  M)
      *     -y:      (D / dy) * (-x  X  M)
      *     +y       (D / dy) * (+x  X  M)
-     * 
+     *
      * So, our Dzyaloshinskii vectors can be depicted in a square lattice as
      *
      *                     o  +y
      *                     |
      *                     --> D
-     *                ^    | 
+     *                ^    |
      *       -x  o __ | __ o __  | _ o  +x
      *                    |      v
      *                    <--
@@ -251,12 +251,23 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      *
      */
 
+    /* We set the DMi vectors here. For the j-th NN, the DMI
+     * vector starts at dmivector[3 * j]
+     * (NNs are in the order: -x, +x, -y, +y)
+     * For interfacial DMI we only compute the DMI in 2D
+     * */
+    double dmivector[12] = { 0,  1,  0,
+                             0, -1,  0,
+                            -1,  0,  0,
+                             1,  0,  0,
+                             };
+    double dxs[4] = {dx, dx, dy, dy};
+
     /* Here we iterate through every mesh node */
-	#pragma omp parallel for
+	#pragma omp parallel for shared(dmivector)
 	for (int i = 0; i < n; i++) {
         double sign;
         double DMIc;
-        double * dmivector = malloc(3 * sizeof(double));
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours
@@ -275,26 +286,9 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
 
             /* Remember that index=-1 is for sites without material */
 	        if (ngbs[idn + j] >= 0) {
-                
-                /* Since we are iterating through 4 NN neighbours, we
-                 * set the sign for the DMI vector since, for example,
-                 * in the x directions, (r_{ij} X z) = (0, +-1, 0)
-                 * So, for j=1, 2 (i.e. x, -y) we use a negatiev sign
-                 * (see the DMI vector details in the above documentation)
-                 */
-                if (j == 1 || j == 2){ sign = -1; }
-                else{ sign = 1; }
 
-                /* Now we set the vectors with the mesh spacing below only
-                 * for in plane neighbours */
-                if (j == 0 || j == 1) {
-                    DMIc = D[i] / dx;
-                    dmivector[0] = 0, dmivector[1] = sign, dmivector[2] = 0;
-                }
-                else if (j == 2 || j == 3) {
-                    DMIc = D[i] / dy;
-                    dmivector[0] = sign, dmivector[1] = 0, dmivector[2] = 0;
-                }
+                /* DMI coefficient according to the neighbour position */
+                DMIc = D[i] / dxs[j];
 
                 /* Magnetisation array index of the neighbouring spin
                  * since ngbs gives the neighbour's index */
@@ -304,11 +298,17 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
                  * is larger than zero */
                 if (Ms_inv[ngbs[idn + j]] > 0){
 
-                    fx += DMIc * cross_x(dmivector[0], dmivector[1], dmivector[2],
+                    fx += DMIc * cross_x(dmivector[3 * j],
+                                         dmivector[3 * j + 1],
+                                         dmivector[3 * j + 2],
                                          m[idnm], m[idnm + 1], m[idnm + 2]);
-                    fy += DMIc * cross_y(dmivector[0], dmivector[1], dmivector[2],
+                    fy += DMIc * cross_y(dmivector[3 * j],
+                                         dmivector[3 * j + 1],
+                                         dmivector[3 * j + 2],
                                          m[idnm], m[idnm + 1], m[idnm + 2]);
-                    fz += DMIc * cross_z(dmivector[0], dmivector[1], dmivector[2],
+                    fz += DMIc * cross_z(dmivector[3 * j],
+                                         dmivector[3 * j + 1],
+                                         dmivector[3 * j + 2],
                                          m[idnm], m[idnm + 1], m[idnm + 2]);
                 }
             }
@@ -323,6 +323,5 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
         field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
         field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
 
-        free(dmivector);
     }
 }

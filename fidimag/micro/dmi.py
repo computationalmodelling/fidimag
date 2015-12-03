@@ -3,6 +3,7 @@ import numpy as np
 from energy import Energy
 from fidimag.common.constant import mu_0
 import fidimag.common.helper as helper
+import gc
 
 
 class DMI(Energy):
@@ -37,6 +38,7 @@ class DMI(Energy):
                                               self.n,
                                               self.neighbours
                                               )
+
         elif self.type == 'interfacial':
             micro_clib.compute_dmi_field_interfacial(self.spin,
                                                      self.field,

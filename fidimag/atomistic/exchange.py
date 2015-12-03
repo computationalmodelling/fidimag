@@ -10,8 +10,8 @@ class UniformExchange(Energy):
         Hamiltonian = - J \sum_<i,j> S_i \cdot S_j
 
     where the brackets represent the nearest neighbours and only evaluate once
-    for each pair, which means for two spins case, the total energy is -J S_1 S_2. Therefore,
-    the effective field at site i is,
+    for each pair, which means for two spins case, the total energy is
+    -J S_1 S_2. Therefore, the effective field at site i is,
 
         H_i = J \sum_<i,j> S_j
 
