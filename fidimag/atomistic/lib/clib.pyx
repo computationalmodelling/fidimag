@@ -64,6 +64,8 @@ cdef extern from "clib.h":
     void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
                      double *alpha,double beta, double u0, double gamma, int n)
 
+    void llg_stt_slonczewski_type(double *dm_dt, double *m, double *h, double *p,
+			      double *alpha, double u0, double gamma, int n)
 
     # used for sllg
     ctypedef struct ode_solver:
@@ -200,6 +202,7 @@ def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
     llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0],
             gamma, n, do_procession, default_c)
 
+
 def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
                 np.ndarray[double, ndim=1, mode="c"] m,
                 np.ndarray[double, ndim=1, mode="c"] field,
@@ -241,8 +244,21 @@ def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 &alpha[0], beta, u0, gamma, n)
 
 
+
+def compute_llg_stt_slonczewski_type(np.ndarray[double, ndim=1, mode="c"] dm_dt,
+                np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] field,
+                np.ndarray[double, ndim=1, mode="c"] p,
+                np.ndarray[double, ndim=1, mode="c"] alpha,
+                u0, gamma, n):
+    llg_stt_slonczewski_type(&dm_dt[0], &spin[0], &field[0], &p[0],
+                &alpha[0], u0, gamma, n)
+
+
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, n):
     normalise(&spin[0], n)
+
+
 
 cdef class RK2S(object):
     cdef ode_solver * _c_plan
