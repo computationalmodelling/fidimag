@@ -235,9 +235,9 @@ void llg_stt_slonczewski_type(double *dm_dt, double *m, double *h, double *p,
 	    mth1 = cross_y(m[i], m[j], m[k], hpi, hpj, hpk);
 	    mth2 = cross_z(m[i], m[j], m[k], hpi, hpj, hpk);
 
-	    dm_dt[i] += coeff_stt * (hpi + alpha[index]) * mth0;
-	    dm_dt[j] += coeff_stt * (hpj + alpha[index]) * mth1;
-	    dm_dt[k] += coeff_stt * (hpk + alpha[index]) * mth2;
+	    dm_dt[i] += coeff_stt * (hpi + alpha[index] * mth0);
+	    dm_dt[j] += coeff_stt * (hpj + alpha[index] * mth1);
+	    dm_dt[k] += coeff_stt * (hpk + alpha[index] * mth2);
 
 	    double c = 6 * sqrt(dm_dt[i] * dm_dt[i] +
 				dm_dt[j] * dm_dt[j] +
