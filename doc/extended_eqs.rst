@@ -116,3 +116,20 @@ i.e.,
 
 .. math::
    (1+\alpha^2)\frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H} - \alpha \gamma \vec{H}_{\perp}  - \frac{\vec{m} \times \delta \vec{m}}{\tau_{sd}} + \alpha \frac{\delta \vec{m}}{\tau_{sd}}
+
+
+Spin transfer torque (Slonczewski type)
+=======================================================
+We consider the LLG equation with a Slonczewski-type extension [PRB 91 064423 (2015)],
+ 
+.. math::
+   \frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H} + \alpha \vec{m} \times  \frac{\partial \vec{m}}{\partial t} + u \vec{m} \times (\vec{p}\times \vec{m})
+
+where :math:`\vec{p}` is the unit vector in the direction of the spin polarization. Similar to the Zhang-Li case, the implemented equation in the code is,
+
+.. math::
+   (1+\alpha^2)\frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H}_{\perp} + \alpha \gamma \vec{H}_{\perp}   + u \vec{p}_{\perp} + \alpha u \vec{m} \times  \vec{p}_{\perp}
+
+where :math:`\vec{p}_\perp=\vec{p}-(\vec{m}\cdot\vec{p})\vec{m}`.
+ 
+ 

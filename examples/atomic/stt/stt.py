@@ -1,83 +1,65 @@
 import numpy as np
-from pc import *
-
-
-class Material(object):
-
-    def __init__(self):
-        self.a = 5
-        self.b = 5
-        self.c = 5
-        # Ms = 8e5, mu_s = Ms * v
-        self.mu_s = 1e-22
-
-        # A =0.5e-11, J = 2a*A
-        self.J = 1e-20
-        self.Dx = 0.005 * self.J
-        self.Dp = -0.02 * self.J
-
-        self.gamma = 1.76e11
-        self.alpha = 0.01
-        self.unit_length = 1e-10
+from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, Anisotropy
+from fidimag.common import CuboidMesh
 
 
 def init_m(pos):
     x, y, z = pos
-    if x < 250 * 5:
+    if x < 250:
         return (1, 0, 0)
-    elif x > 270 * 5:
+    elif x > 270:
         return (-1, 0, 0)
     else:
         return (0, 1, 0)
 
 
 def relax_system(mesh):
-    mat = Material()
-    mesh.set_material(mat)
-    sim = Sim(mesh)
+
+    sim = Sim(mesh, name='relax')
+    # sim.set_options(rtol=1e-10,atol=1e-14)
+    sim.alpha = 1.0
+    sim.gamma = 1.0
+    sim.mu_s = 1.0
 
     sim.set_m(init_m)
-    exch = UniformExchange(mat.J)
+    # sim.set_m(random_m)
+    # sim.set_m(np.load('m_10000.npy'))
+
+    J = 1.0
+    exch = UniformExchange(J)
     sim.add(exch)
 
-    Kx = Anisotropy(mat.Dx, direction=(1, 0, 0), name='Dx')
+    Kx = Anisotropy(Ku=0.005, axis=(1, 0, 0), name='Kx')
     sim.add(Kx)
 
-    Kp = Anisotropy(mat.Dp, direction=(0, 0, 1), name='Dp')
-    sim.add(Kp)
-
-    sim.alpha = 0.5
-
-    ts = np.linspace(0, 2e-10, 101)
-    for t in ts:
-        sim.run_until(t)
-    sim.save_vtk()
+    sim.relax(dt=2.0, stopping_dmdt=1e-6, max_steps=1000,
+              save_m_steps=100, save_vtk_steps=50)
 
     np.save('m0.npy', sim.spin)
 
 
 def dynamic(mesh):
-    mat = Material()
-    mesh.set_material(mat)
 
-    sim = Sim(mesh, driver='llg_stt', name='stt')
+    sim = Sim(mesh, name='dyn', driver='slonczewski')
+    # sim.set_options(rtol=1e-10,atol=1e-14)
+    sim.gamma = 1.0
+    sim.mu_s = 1.0
 
-    m0 = np.load('m0.npy')
-    sim.set_m(m0)
-    exch = UniformExchange(mat.J)
+    sim.set_m(np.load('m0.npy'))
+
+    J = 1.0
+    exch = UniformExchange(J)
     sim.add(exch)
 
-    Kx = Anisotropy(mat.Dx, direction=(1, 0, 0), name='Dx')
+    Kx = Anisotropy(Ku=0.005, axis=(1, 0, 0), name='Kx')
     sim.add(Kx)
 
-    Kp = Anisotropy(mat.Dp, direction=(0, 0, 1), name='Dp')
-    sim.add(Kp)
+    sim.p = (0,0,1)
 
-    sim.jx = 2e12
-    sim.alpha = 0.01
-    sim.beta = 0.02
+    sim.u0 = 0.03
+    sim.alpha = 0.1
 
-    ts = np.linspace(0, 1e-9, 101)
+    ts = np.linspace(0, 1e3, 101)
     for t in ts:
         sim.run_until(t)
         sim.save_vtk()
