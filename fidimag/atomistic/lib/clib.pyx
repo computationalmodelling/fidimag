@@ -293,8 +293,11 @@ cdef class RK2S(object):
             finalize_ode_plan(self._c_plan)
             self._c_plan = NULL
 
-
-    def set_initial_value(self,np.ndarray[double, ndim=1, mode="c"] spin, t):
+    
+    # I dont understand clearly how this function inherits
+    # from the LLG class, but to avoid problems I'm gonna pass
+    # the flag_m argument which is in the CVOde pyx file in common/
+    def set_initial_value(self,np.ndarray[double, ndim=1, mode="c"] spin, t, flag_m):
         self.t = t
         self.y[:] = spin[:]
 

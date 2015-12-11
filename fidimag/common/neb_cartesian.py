@@ -4,6 +4,7 @@ import numpy as np
 from fileio import DataSaver, DataReader
 from save_vtk import SaveVTK
 import fidimag.extensions.neb_clib as neb_clib
+import gc
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -466,6 +467,7 @@ class NEB_Sundials(object):
             y, self.energy, self.tangents, self.total_image_num, 3 * self.n)
         # native_neb.compute_springs(y,self.springs,self.spring)
         y.shape = (-1, )
+        gc.collect()
 
     def sundials_rhs(self, time, y, ydot):
         """

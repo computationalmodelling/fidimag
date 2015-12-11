@@ -79,6 +79,14 @@ class LLG(object):
 
         self.set_tols()
 
+        # When initialising the integrator in the self.vode call, the CVOde
+        # class calls the set_initial_value function (with flag_m=0), which
+        # initialises a new integrator and allocates memory in this process.
+        # Now, when we set the magnetisation, we will use the same memory
+        # setting this flag_m to 1, so instead of calling CVodeInit we call
+        # CVodeReInit. If don't, memory is allocated in every call of set_m
+        self.flag_m = 1
+
     def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
         self.default_c = 1e11
         self._alpha[:] = alpha
@@ -109,7 +117,10 @@ class LLG(object):
                 self.spin[i, :] = 0
         self.spin.shape = (-1,)
 
-        self.vode.set_initial_value(self.spin, self.t)
+        self.vode.set_initial_value(self.spin, self.t, self.flag_m)
+
+        if not self.flag_m:
+            self.flag_m = 1
 
     def get_pins(self):
         return self._pins

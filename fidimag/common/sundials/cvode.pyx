@@ -125,7 +125,7 @@ cdef class CvodeSolver(object):
         flag = CVodeSetUserData(self.cvode_mem, <void*>&self.user_data);
         self.check_flag(flag,"CVodeSetUserData")
 
-        self.set_initial_value(spin, self.t)
+        self.set_initial_value(spin, self.t, 0)
         self.set_options(rtol, atol)
 
 
@@ -134,14 +134,25 @@ cdef class CvodeSolver(object):
         CVodeReInit(self.cvode_mem, t, self.u_y)
 
 
-    def set_initial_value(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
+    # The flag_m argument indicates if the magnetisation was already loaded
+    # since, when using CVOdeInit, new memory is allocated and this causes a
+    # memory issue when reloading the magnetisation (spin) multiple times Thus,
+    # in the llg classes, when calling this function, we initiate the flag as
+    # zero and then change it to 1, in order to use this same memory when
+    # reloading the integrator after setting the initial magnetisation
+    def set_initial_value(self, np.ndarray[double, ndim=1, mode="c"] spin,
+                          t, flag_m):
         self.t = t
         self.y[:] = spin[:]
 
         cdef np.ndarray[double, ndim=1, mode="c"] y=self.y
         self.u_y = N_VMake_Serial(y.size,&y[0])
 
-        flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
+        if not flag_m:
+            flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
+        else:
+            flag = CVodeReInit(self.cvode_mem, t, self.u_y)
+        
         self.check_flag(flag,"CVodeInit")
 
         # Set options for the CVODE scaled, preconditioned GMRES linear solver, CVSPGMR
