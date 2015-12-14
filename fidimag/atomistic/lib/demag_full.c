@@ -59,7 +59,7 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
         double mrij = 0;
 
         /* Reset the field values */
-        for (int k=0; k < 3; k++) field[3 * i + k] = 0;
+        for (int k = 0; k < 3; k++) field[3 * i + k] = 0;
 
         /* Now we iterate through every spin of the system excluding
          * the point where we are right now */
@@ -79,11 +79,11 @@ void demag_full(double *spin, double *field, double *energy, double *coords,
 
                 for(int k = 0; k < 3; k++) rij_n[k] = rij[k] / rij_mag;
 
-                /* dot product of m_j and r_ij
+                /* dot product of m_j and r_ij (normalised)
                  * Remember that m has the structure: mx0 my0 mz0 mx1 my1 ...
                  */
-                mrij = spin[3 * j] * rij[0] + spin[3 * j + 1] * rij[1]
-                       + spin[3 * j + 2] * rij[2] ;
+                mrij = spin[3 * j] * rij_n[0] + spin[3 * j + 1] * rij_n[1]
+                       + spin[3 * j + 2] * rij_n[2] ;
 
                 /* Now add the contribution of the j-th spin */
                 for(int k = 0; k < 3; k++){

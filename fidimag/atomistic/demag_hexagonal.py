@@ -91,7 +91,7 @@ class DemagHexagonal(object):
         # could be wrong, needs carefully tests!!!
         self.mu_s_scale = mu_s * self.scale
 
-        # This seems to not to be necessary
+        # This seems not to be necessary
         # self.create_cuboid_mesh()
 
         self.scalar2cuboid(self.mu_s_scale, self.mu_s_scale_c)
