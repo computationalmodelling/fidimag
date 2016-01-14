@@ -45,7 +45,7 @@ class LLG_STT_Slonczewski(LLG):
         if isinstance(self.u0,types.FunctionType):
             _u = self.u0(t)
         else:
-            _u = u0
+            _u = self.u0
         
         clib.compute_llg_stt_slonczewski_type(ydot,
                                  self.spin,
