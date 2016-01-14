@@ -31,3 +31,8 @@ before_script:
 # tvtk can't be imported without an X server, so we run in xvfb, which creates a virtual display
 script:
   - xvfb-run --server-args="-screen 0 1024x768x24" make test-without-run-oommf
+
+
+notifications:
+  email:
+    on_failure: always
