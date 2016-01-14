@@ -1,3 +1,5 @@
+import pytest
+
 # FIDIMAG:
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
@@ -87,6 +89,8 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
               stopping_dmdt=1e-2)
 
 
+# this test runs for over a minute
+@pytest.mark.slow
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
     def mid_m(pos):
