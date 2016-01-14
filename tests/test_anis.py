@@ -3,6 +3,8 @@ from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 import numpy as np
 
+raise RunTimeError("Break code to test reporting of failures through Travis")
+
 
 def test_anis():
     mesh = CuboidMesh(nx=5, ny=3, nz=2)
