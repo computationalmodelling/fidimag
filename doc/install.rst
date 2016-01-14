@@ -3,8 +3,20 @@
 How to install
 ===============
 
-Install external libraries.
----------------------------------------
+Install prerequisites
+---------------------
+
+On Ubuntu systems, we need to run the following commands::
+  # required to compile fidimag
+  apt-get install cython python-numpy
+  # required for tests and running it
+  apt-get install python-pytest python-pyvtk ipython python-matplotlib mayavi2
+
+These are available in the script `bin/install-ubuntu-packages.sh` for convenience.
+
+
+Install external libraries (FFTW and Sundials)
+----------------------------------------------
 
 Run the install.sh by using ::
 
@@ -107,3 +119,46 @@ Go to the fidimag/tests folder and type "py.test", a similar result is expected 
    test_stt.py .
 
    ========================== 20 passed in 2.31 seconds ===========================
+
+
+
+How to set up a virtual machine via vagrant
+-------------------------------------------
+
+- install vagrant on your host machine
+- run::
+
+    vagrant init ubuntu/trusty64
+
+  to set up a basic linux machine.
+
+- run::
+    vagrant up
+
+  to start the machine.
+
+- ssh into the machine with X-forwarding:
+
+    vagrant ssh -- -X
+
+Then within the virtual machine::
+
+  aptitude install git
+  git clone https://github.com/fangohr/fidimag.git
+  cd fidimag/bin
+  sudo sh install-ubuntu-packages.sh
+  sh install.sh
+  cd ..
+  make
+
+To run the tests::
+
+  cd /home/vagrant/fidimag/tests
+  py.test
+
+Notes:
+
+- some tests will fail as OOMMF is not installed
+- it seems that we need an active X server, on OS X, one may need to
+  install XQuartz before the tests can pass (even 'import fidimag'
+  failed without a working X server).
