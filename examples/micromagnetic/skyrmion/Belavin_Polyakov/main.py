@@ -49,7 +49,43 @@ def relax_system(mesh):
     zeeman = Zeeman((0, 0, 6.014576e4))
     sim.add(zeeman, save_field=True)
 
-    sim.relax(dt=1e-13, stopping_dmdt=1e-2, max_steps=5000,
+    sim.relax(dt=1e-13, stopping_dmdt=0.5, max_steps=5000,
+              save_m_steps=None, save_vtk_steps=50)
+
+    np.save('m0.npy', sim.spin)
+
+
+def init_m_BP(pos):
+
+    x, y = pos[0] - 500, pos[1] - 500
+    l = 100
+
+    r2 = x*x+y*y
+
+    nx = 2*l*x/(r2+l*l)
+    ny = 2*l*y/(r2+l*l)
+    nz = (r2-l*l)/(r2+l*l)
+
+    return (nx,ny,nz)
+
+
+def relax_system_only_exchange(mesh):
+
+    sim = Sim(mesh, name='relax_exchange_only')
+
+    sim.set_tols(rtol=1e-6, atol=1e-6)
+    sim.alpha = 0.5
+    sim.gamma = 2.211e5
+    sim.Ms = 8.6e5
+    sim.do_procession = False
+
+    sim.set_m(init_m_BP)
+
+    A = 1.3e-11
+    exch = UniformExchange(A=A)
+    sim.add(exch)
+
+    sim.relax(dt=1e-13, stopping_dmdt=0.5, max_steps=5000,
               save_m_steps=None, save_vtk_steps=50)
 
     np.save('m0.npy', sim.spin)
@@ -60,7 +96,8 @@ if __name__ == '__main__':
     mesh = CuboidMesh(
         nx=501, ny=501, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, periodicity=(True, True, False))
 
-    relax_system(mesh)
+    #relax_system(mesh)
+    relax_system_only_exchange(mesh)
 
     # apply_field1(mesh)
     # deal_plot()
