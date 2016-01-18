@@ -26,16 +26,16 @@ def two_part(pos):
 
     x, y = pos[0], pos[1]
 
-    if x > 7 or x < 3:
+    if x > 6 or x < 3:
         return Ms
     else:
         return 0
 
 # Finite differences mesh
-mesh = CuboidMesh(nx=10,
+mesh = CuboidMesh(nx=3,
               ny=1,
               nz=1,
-              dx=1, dy=3, dz=3,
+              dx=3, dy=3, dz=3,
               unit_length=1e-9
               )
 
@@ -94,10 +94,10 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
     def mid_m(pos):
-        if pos[0] > 1:
-            return (0, 0.1, 0.9)
+        if pos[0] > 4:
+            return (0.5, 0, 0.2)
         else:
-            return (-0.1, 0, 0.8)
+            return (-0.5, 0, 0.2)
 
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [6, 6]
@@ -114,9 +114,10 @@ def test_energy_barrier_2particles():
                   save_every=5000)
 
     # Get the energies from the last state
-    data = np.loadtxt('neb_2particles_k1e10_10-10int_energy.ndt')[-1][1:]
+    data = np.loadtxt('neb_2particles_k1e8_10-10int_energy.ndt')[-1][1:]
 
     ebarrier = np.abs(np.max(data) - np.min(data)) / (1.602e-19)
+    print ebarrier
 
     # Analitically, the energy when a single particle rotates is:
     #   K V cos^2 theta
