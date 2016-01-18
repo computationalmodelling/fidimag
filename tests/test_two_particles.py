@@ -33,9 +33,9 @@ def two_part(pos):
 
 # Finite differences mesh
 mesh = CuboidMesh(nx=10,
-              ny=3,
-              nz=3,
-              dx=1, dy=1, dz=1,
+              ny=1,
+              nz=1,
+              dx=1, dy=3, dz=3,
               unit_length=1e-9
               )
 
@@ -61,7 +61,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
     sim = Sim(mesh)
     sim.Ms = two_part
 
-    sim.add(UniformExchange(A=A))
+    #sim.add(UniformExchange(A=A))
 
     # Uniaxial anisotropy along x-axis
     sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
@@ -100,10 +100,10 @@ def test_energy_barrier_2particles():
             return (-0.1, 0, 0.8)
 
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
-    interp = [10, 10]
+    interp = [6, 6]
 
     # Define different ks for multiple simulations
-    krange = ['1e10']
+    krange = ['1e8']
 
     for k in krange:
         # print 'Computing for k = {}'.format(k)
@@ -130,3 +130,7 @@ def test_energy_barrier_2particles():
 
     assert ebarrier < 0.017
     assert ebarrier > 0.005
+
+
+if __name__=='__main__':
+  test_energy_barrier_2particles()
