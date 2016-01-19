@@ -6,7 +6,7 @@ mu_0 = 4 * np.pi * 1e-7
 
 class Demag(object):
 
-    def __init__(self, name='demag'):
+    def __init__(self, name='demag', pbc_2d=False):
         self.name = name
         self.oommf = True
 
@@ -25,7 +25,7 @@ class Demag(object):
 
         self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                    self.nx, self.ny, self.nz,
-                                   self.oommf)
+                                   tensor_type='demag')
 
     def compute_field(self, t=0):
 

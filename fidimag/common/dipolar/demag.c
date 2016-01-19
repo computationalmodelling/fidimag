@@ -46,7 +46,7 @@ double NXXdipole(enum Type_Nij type, double x, double y, double z) {
 }
 
 //compute the demag tensors, i.e, H=-N.M
-void compute_all_tensors_oommf(fft_demag_plan *plan) {
+void compute_demag_tensors(fft_demag_plan *plan) {
 
 	int i, j, k, id;
 	double x, y, z;
@@ -100,7 +100,7 @@ void compute_all_tensors_oommf(fft_demag_plan *plan) {
 }
 
 //compute the demag tensors, i.e, H=-N.M
-void compute_all_tensors(fft_demag_plan *plan) {
+void compute_dipolar_tensors(fft_demag_plan *plan) {
 
 	int i, j, k, id;
 	double x, y, z;
@@ -163,7 +163,7 @@ fft_demag_plan *create_plan(void) {
 }
 
 void init_plan(fft_demag_plan *plan, double dx, double dy,
-		double dz, int nx, int ny, int nz, int oommf) {
+		double dz, int nx, int ny, int nz) {
 
 	//plan->mu_s = mu_s;
 
@@ -216,6 +216,12 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 	plan->Hy = (fftw_complex *) fftw_malloc(size2);
 	plan->Hz = (fftw_complex *) fftw_malloc(size2);
 
+}
+
+
+void create_fftw_plan(fft_demag_plan *plan) {
+
+	
 	plan->tensor_plan = fftw_plan_dft_r2c_3d(plan->lenz, plan->leny,
 			plan->lenx, plan->tensor_xx, plan->Nxx,
 			FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
@@ -242,11 +248,8 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 		plan->hy[i] = 0;
 		plan->hz[i] = 0;
 	}
-	if (oommf){
-		compute_all_tensors_oommf(plan);
-	}else{
-		compute_all_tensors(plan);
-	}
+
+
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, plan->Nyy);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_zz, plan->Nzz);
@@ -256,6 +259,10 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 	fftw_destroy_plan(plan->tensor_plan);
 
 }
+
+
+
+
 
 //The computed results doesn't consider the coefficient of \frac{\mu_0}{4 \pi}, the
 //reason is in future we can use the following code directly for continuum case

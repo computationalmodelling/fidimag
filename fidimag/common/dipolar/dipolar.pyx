@@ -2,8 +2,6 @@ import numpy
 cimport numpy as np
 np.import_array()
 
-     
-
 cdef extern from "dipolar.h":
     
     # used for demag
@@ -12,20 +10,36 @@ cdef extern from "dipolar.h":
 
     fft_demag_plan * create_plan()
     void finalize_plan(fft_demag_plan * plan)
-    void init_plan(fft_demag_plan * plan, double dx, double dy, double dz, int nx,int ny, int nz, int oommf)
+    void init_plan(fft_demag_plan * plan, double dx, double dy, double dz, int nx,int ny, int nz)
     void compute_fields(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
     void exact_compute(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
     double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field)
+    void compute_dipolar_tensors(fft_demag_plan *plan)
+    void compute_demag_tensors(fft_demag_plan *plan)
+    void create_fftw_plan(fft_demag_plan *plan)
 
 
 cdef class FFTDemag(object):
     cdef fft_demag_plan *_c_plan
-
-    def __cinit__(self, dx, dy, dz, nx, ny, nz, oommf):
+    
+    #tensor_type could be 'dipolar', 'demag' or '2d_pbc'
+    def __cinit__(self, dx, dy, dz, nx, ny, nz, tensor_type='dipolar', options={}):
         self._c_plan = create_plan()
         if self._c_plan is NULL:
             raise MemoryError()
-        init_plan(self._c_plan, dx, dy, dz, nx, ny, nz, oommf)
+        init_plan(self._c_plan, dx, dy, dz, nx, ny, nz)
+	
+        if tensor_type == 'dipolar':
+            compute_dipolar_tensors(self._c_plan)
+        elif tensor_type == 'demag':
+            compute_demag_tensors(self._c_plan)
+        elif tensor_type == '2d_pbc':
+            pass
+        else:
+            raise Exception("Only support options 'dipolar', 'demag' and '2d_pbc'.")
+
+        create_fftw_plan(self._c_plan)
+	   
 
     def free(self):
         self.__dealloc__()
