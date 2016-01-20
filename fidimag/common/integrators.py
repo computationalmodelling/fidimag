@@ -70,6 +70,13 @@ def SundialsIntegrator():
     def stat(self):
         return self.cvode.stat()
 
+    def get_current_step(self):
+        return self.cvode.get_current_step()
+
+    @property
+    def y(self):
+        return self.cvode.y
+
 
 
 def euler_step(t, y, h, f):
