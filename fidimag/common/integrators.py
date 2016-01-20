@@ -8,7 +8,7 @@ import fidimag.extensions.cvode as cvode
 class SundialsIntegrator(object):
     def __init__(self, spins, rhs):
         self.cvode = cvode.CvodeSolver(spins, rhs)
-        self.set_tols(reset=False)
+        self.set_tols()
 
     @property
     def rhs_evals(self):
