@@ -89,7 +89,7 @@ class LLG(object):
         self.step = 0
 
     def set_tols(self, rtol=1e-8, atol=1e-10):
-        self.integrator.set_tols(**kwargs)
+        self.integrator.set_tols(rtol=rtol, atol=atol)
 
     def set_m(self, m0=(1, 0, 0), normalise=True):
 
