@@ -5,7 +5,7 @@ Implement the time integrators used in the simulation of magnetisation dynamics.
 import fidimag.extensions.cvode as cvode
 
 
-def SundialsIntegrator(object):
+class SundialsIntegrator(object):
     def __init__(self, spins, rhs):
         self.cvode = cvode.CvodeSolver(spins, rhs)
         self.set_tols(reset=False)
