@@ -100,7 +100,7 @@ class DemagHexagonal(object):
         # number of x finite differences
         self.demag = clib.FFTDemag(self.dx_c, self.dy, self.dz,
                                    self.nx_c, self.ny, self.nz,
-                                   False)
+                                   tensor_type='dipolar')
 
     def compute_field(self, t=0, spin=None):
         if spin is not None:

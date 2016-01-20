@@ -1,3 +1,5 @@
+import pytest
+
 # FIDIMAG:
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
@@ -24,16 +26,16 @@ def two_part(pos):
 
     x, y = pos[0], pos[1]
 
-    if x > 7 or x < 3:
+    if x > 6 or x < 3:
         return Ms
     else:
         return 0
 
 # Finite differences mesh
-mesh = CuboidMesh(nx=10,
-              ny=3,
-              nz=3,
-              dx=1, dy=1, dz=1,
+mesh = CuboidMesh(nx=3,
+              ny=1,
+              nz=1,
+              dx=3, dy=3, dz=3,
               unit_length=1e-9
               )
 
@@ -59,7 +61,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
     sim = Sim(mesh)
     sim.Ms = two_part
 
-    sim.add(UniformExchange(A=A))
+    #sim.add(UniformExchange(A=A))
 
     # Uniaxial anisotropy along x-axis
     sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
@@ -87,19 +89,21 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
               stopping_dmdt=1e-2)
 
 
+# this test runs for over a minute
+@pytest.mark.slow
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
     def mid_m(pos):
-        if pos[0] > 1:
-            return (0, 0.1, 0.9)
+        if pos[0] > 4:
+            return (0.5, 0, 0.2)
         else:
-            return (-0.1, 0, 0.8)
+            return (-0.5, 0, 0.2)
 
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
-    interp = [10, 10]
+    interp = [6, 6]
 
     # Define different ks for multiple simulations
-    krange = ['1e10']
+    krange = ['1e8']
 
     for k in krange:
         # print 'Computing for k = {}'.format(k)
@@ -110,9 +114,10 @@ def test_energy_barrier_2particles():
                   save_every=5000)
 
     # Get the energies from the last state
-    data = np.loadtxt('neb_2particles_k1e10_10-10int_energy.ndt')[-1][1:]
+    data = np.loadtxt('neb_2particles_k1e8_10-10int_energy.ndt')[-1][1:]
 
     ebarrier = np.abs(np.max(data) - np.min(data)) / (1.602e-19)
+    print ebarrier
 
     # Analitically, the energy when a single particle rotates is:
     #   K V cos^2 theta
@@ -126,3 +131,7 @@ def test_energy_barrier_2particles():
 
     assert ebarrier < 0.017
     assert ebarrier > 0.005
+
+
+if __name__=='__main__':
+  test_energy_barrier_2particles()
