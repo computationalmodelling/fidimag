@@ -64,7 +64,7 @@ def SundialsIntegrator(object):
         if reset:
             self.reset()
 
-    def set_initial_value(spins, t, reuse_memory=1):
+    def set_initial_value(self, spins, t, reuse_memory=1):
         self.cvode.set_initial_value(spins, t, reuse_memory)
 
     def stat(self):
