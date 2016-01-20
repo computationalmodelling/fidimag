@@ -55,6 +55,8 @@ class SundialsIntegrator(object):
 
         return out
 
+    def run_until(self, t):
+        return self.cvode.run_until(t)
 
     def reset(self, spins, t):
         self.cvode.reset(spins, t)
