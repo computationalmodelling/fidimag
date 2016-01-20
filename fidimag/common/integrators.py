@@ -59,10 +59,8 @@ class SundialsIntegrator(object):
     def reset(self, spins, t):
         self.cvode.reset(spins, t)
 
-    def set_tols(self, rtol=1e-8, atol=1e-10, reset=True):
+    def set_tols(self, rtol=1e-8, atol=1e-10):
         self.cvode.set_options(rtol, atol)
-        if reset:
-            self.reset()
 
     def set_initial_value(self, spins, t, reuse_memory=1):
         self.cvode.set_initial_value(spins, t, reuse_memory)
