@@ -43,6 +43,7 @@ to copyright protection within the United States.
 #include <math.h>
 #include <stdlib.h>
 #include "dipolar.h"
+#include "demagcoef.h"
 
 
 /* FILE: demagcoef.cc            -*-Mode: c++-*-
@@ -118,51 +119,6 @@ to copyright protection within the United States.
  *  6  6  6   1  2  3 | -0.00043908646098482886546108269881031774163900540796564
  *
  */
-
-////////////////////////////////////////////////////////////////////////////
-// Routines to do accurate summation
-
-static int AS_Compare(const void* px,const void* py)
-{
-  // Comparison based on absolute values
-  double x=fabs(*((const double *)px));
-  double y=fabs(*((const double *)py));
-  if(x<y) return 1;
-  if(x>y) return -1;
-  return 0;
-}
-
-
-static double
-AccurateSum(int n,double *arr)
-{
-  // Order by decreasing magnitude
-  qsort(arr,n,sizeof(double),AS_Compare);
-
-  // Add up using doubly compensated summation.  If necessary, mark
-  // variables these "volatile" to protect against problems arising
-  // from extra precision.  Also, don't expect the compiler to respect
-  // order with respect to parentheses at high levels of optimization,
-  // i.e., write "u=x; u-=(y-corr)" as opposed to "u=x-(y-corr)".
-
-  double sum,corr,y,u,t,v,z,x,tmp;
-
-  sum=arr[0]; corr=0;
-  for(int i=1;i<n;i++) {
-    x=arr[i];
-    y=corr+x;
-    tmp=y-corr;
-    u=x-tmp;
-    t=y+sum;
-    tmp=t-sum;
-    v=y-tmp;
-    z=u+v;
-    sum=t+z;
-    tmp=sum-t;
-    corr=z-tmp;
-  }
-  return sum;
-}
 
 
 ////////////////////////////////////////////////////////////////////////////

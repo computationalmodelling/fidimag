@@ -17,7 +17,7 @@ cdef extern from "dipolar.h":
     void compute_dipolar_tensors(fft_demag_plan *plan)
     void compute_demag_tensors(fft_demag_plan *plan)
     void create_fftw_plan(fft_demag_plan *plan)
-
+    void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, int dipolar_radius_sq)
 
 cdef class FFTDemag(object):
     cdef fft_demag_plan *_c_plan
@@ -34,7 +34,23 @@ cdef class FFTDemag(object):
         elif tensor_type == 'demag':
             compute_demag_tensors(self._c_plan)
         elif tensor_type == '2d_pbc':
-            pass
+            pbc_2d_error = 1e-10
+            sample_repeat_nx = -1
+            sample_repeat_ny = -1
+            asymptotic_radius = 32.0
+            dipolar_radius = 10000.0
+            if 'sample_repeat_nx' in options:
+                sample_repeat_nx = options['sample_repeat_nx']
+                sample_repeat_ny = options['sample_repeat_ny']
+            if 'relative_tensor_error' in options:
+                pbc_2d_error = options['relative_tensor_error']
+            if 'asymptotic_radius' in options:
+                asymptotic_radius = options['asymptotic_radius']
+            if 'dipolar_radius' in options:
+                dipolar_radius = options['dipolar_radius']
+            
+            compute_demag_tensors_2dpbc(self._c_plan, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
+        
         else:
             raise Exception("Only support options 'dipolar', 'demag' and '2d_pbc'.")
 

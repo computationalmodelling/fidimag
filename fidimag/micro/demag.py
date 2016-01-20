@@ -4,11 +4,19 @@ import numpy as np
 mu_0 = 4 * np.pi * 1e-7
 
 
+default_options={
+    'pbc_2d_error':1e-10, 
+    'sample_repeat_nx':-1,
+    'sample_repeat_ny':-1,
+}
+
 class Demag(object):
 
-    def __init__(self, name='demag', pbc_2d=False):
+    def __init__(self, name='demag', pbc_2d=False, pbc_options=default_options):
         self.name = name
         self.oommf = True
+        self.pbc_2d = pbc_2d
+        self.pbc_options = pbc_options
 
     def setup(self, mesh, spin, Ms):
         self.mesh = mesh
@@ -23,9 +31,15 @@ class Demag(object):
 
         self.Ms = Ms
 
-        self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
-                                   self.nx, self.ny, self.nz,
-                                   tensor_type='demag')
+        if self.pbc_2d is True:
+            self.demag = clib.FFTDemag(self.dx, self.dy, self.dz, 
+                                       self.nx, self.ny, self.nz, tensor_type='2d_pbc', options=self.pbc_options)
+
+        else:
+            self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
+                                       self.nx, self.ny, self.nz, tensor_type='demag')
+
+
 
     def compute_field(self, t=0):
 

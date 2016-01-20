@@ -4,10 +4,6 @@
 #include "demagcoef.h"
 
 
-enum Type_Nij {
-	Tensor_xx, Tensor_yy, Tensor_zz, Tensor_xy, Tensor_xz, Tensor_yz
-};
-
 double Nxxdipole(double x, double y, double z) {
 	double x2 = x * x;
 	double y2 = y * y;
@@ -43,6 +39,41 @@ double NXXdipole(enum Type_Nij type, double x, double y, double z) {
 			return Nxydipole(y, z, x);
 	}
 	return 0;
+}
+
+//compute the demag tensors, i.e, H=-N.M
+void compute_dipolar_tensors(fft_demag_plan *plan) {
+
+	int i, j, k, id;
+	double x, y, z;
+
+	int nx = plan->nx;
+	int ny = plan->ny;
+	int nz = plan->nz;
+	int lenx = plan->lenx;
+	int leny = plan->leny;
+	int lenz = plan->lenz;
+        int lenxy = lenx * leny;
+	int lenyz = leny * lenz;
+	
+	for (k = 0; k < lenz; k++) {
+		for (j = 0; j < leny; j++) {
+			for (i = 0; i < lenx; i++) {
+ 				id = k * lenxy + j * lenx + i;
+				x = (i - nx + 1) * plan->dx;
+				y = (j - ny + 1) * plan->dy;
+				z = (k - nz + 1) * plan->dz;
+
+				plan->tensor_xx[id] = NXXdipole(Tensor_xx, x, y, z);
+				plan->tensor_yy[id] = NXXdipole(Tensor_yy, x, y, z);
+				plan->tensor_zz[id] = NXXdipole(Tensor_zz, x, y, z);
+				plan->tensor_xy[id] = NXXdipole(Tensor_xy, x, y, z);
+				plan->tensor_xz[id] = NXXdipole(Tensor_xz, x, y, z);
+				plan->tensor_yz[id] = NXXdipole(Tensor_yz, x, y, z);
+
+			}
+		}
+	}
 }
 
 //compute the demag tensors, i.e, H=-N.M
@@ -99,40 +130,7 @@ void compute_demag_tensors(fft_demag_plan *plan) {
 	}
 }
 
-//compute the demag tensors, i.e, H=-N.M
-void compute_dipolar_tensors(fft_demag_plan *plan) {
 
-	int i, j, k, id;
-	double x, y, z;
-
-	int nx = plan->nx;
-	int ny = plan->ny;
-	int nz = plan->nz;
-	int lenx = plan->lenx;
-	int leny = plan->leny;
-	int lenz = plan->lenz;
-        int lenxy = lenx * leny;
-	int lenyz = leny * lenz;
-	
-	for (k = 0; k < lenz; k++) {
-		for (j = 0; j < leny; j++) {
-			for (i = 0; i < lenx; i++) {
- 				id = k * lenxy + j * lenx + i;
-				x = (i - nx + 1) * plan->dx;
-				y = (j - ny + 1) * plan->dy;
-				z = (k - nz + 1) * plan->dz;
-
-				plan->tensor_xx[id] = NXXdipole(Tensor_xx, x, y, z);
-				plan->tensor_yy[id] = NXXdipole(Tensor_yy, x, y, z);
-				plan->tensor_zz[id] = NXXdipole(Tensor_zz, x, y, z);
-				plan->tensor_xy[id] = NXXdipole(Tensor_xy, x, y, z);
-				plan->tensor_xz[id] = NXXdipole(Tensor_xz, x, y, z);
-				plan->tensor_yz[id] = NXXdipole(Tensor_yz, x, y, z);
-
-			}
-		}
-	}
-}
 
 //used for debug
 void print_r(char *str, double *x, int n) {

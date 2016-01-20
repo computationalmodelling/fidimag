@@ -9,6 +9,11 @@ inline double cross_x(double a0, double a1, double a2, double b0, double b1, dou
 inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
 inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
+
+enum Type_Nij {
+	Tensor_xx, Tensor_yy, Tensor_zz, Tensor_xy, Tensor_xz, Tensor_yz
+};
+
 //==========================================
 //used for demag
 
