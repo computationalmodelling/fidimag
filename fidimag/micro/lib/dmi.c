@@ -214,6 +214,9 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      * summation: D_{ij} x S_{ij}
      *
      * For the Interfacial DMI, D_{ij} has the structure: D_{ij} = r_{ij} X z
+     * See Rohart et al. Phys. Rev. B 88, 184422)
+     *
+     * but [Yang et al. Phys. Rev. Lett. 115, 267210] uses the opposite sign (?)
      *
      * so the Dzyaloshinskii vectors are IN plane. This function only works
      * along the XY plane since we assume there is a non magnetic material below
@@ -238,13 +241,13 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      *
      *                     o  +y
      *                     |
-     *                     --> D
-     *                ^    |
+     *                    --> D
+     *                ^    |     
      *       -x  o __ | __ o __  | _ o  +x
-     *                    |      v
+     *                     |     v
      *                    <--
-     *                    |
-     *                    o  -y
+     *                     |
+     *                     o  -y
      *
      * If we start with this picture in the atomic model, we can get the
      * continuum expression when doing the limit  a_x a_y a_z  --> 0
@@ -264,7 +267,7 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
     double dxs[4] = {dx, dx, dy, dy};
 
     /* Here we iterate through every mesh node */
-	#pragma omp parallel for shared(dmivector)
+	#pragma omp parallel for shared(dmivector, dxs)
 	for (int i = 0; i < n; i++) {
         double sign;
         double DMIc;

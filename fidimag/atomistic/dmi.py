@@ -90,7 +90,7 @@ class DMI(Energy):
         Then, the DMI vectors array has (3 * nneighbours) entries, 3 for every
         neighbouring site The vectors are normalised and computed according to:
         D_ij = r_ij X z where r_ij is the vector connecting a lattice site with
-        the j-th neighbour
+        the j-th neighbour (see Rohart and Thiaville PRB 88, 184422)
 
         """
 

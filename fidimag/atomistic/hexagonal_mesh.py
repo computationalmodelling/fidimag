@@ -198,6 +198,25 @@ class HexagonalMesh(object):
                 # We'll go through the corners in a counter-clockwise direction.
                 # For each corner, we think about if it's a "new" vertex, or
                 # if it has been created by a neighbouring hexagon before.
+
+                # Here we define the neighbours indexes to check if vertexes
+                # were already created
+                if self.alignment == 'square':
+                    if j % 2 == 0:
+                        W = self.index(i - 1, j)        # left   west
+                        SW = self.index(i, j - 1)       # down   south-west
+                        SE = self.index(i + 1, j - 1)   #        south-east
+                    else:
+                        W = self.index(i - 1, j)        # left   west
+                        SW = self.index(i - 1, j - 1)   # down   south-west
+                        SE = self.index(i, j - 1)       #        south-east
+
+                elif self.alignment == 'diagonal':
+                    W = self._index(i - 1, j)
+                    SW = self._index(i, j - 1)
+                    SE = self._index(i + 1, j - 1)
+
+
                 # NE (0) and N (1) corners will always be "new" vertices
                 for c in (0, 1):
                     vertices.append(corners[c])
@@ -208,7 +227,6 @@ class HexagonalMesh(object):
                 # Sites with no magnetisation have a value of -1 (before it was
                 # False but we changed to numpy arrays; I will
                 # let the False statements just in case)
-                W = self._index(i - 1, j)
                 if W is not (False or -1):  # can't replace by if W because 0 == False
                     hexagon.append(hexagons[W][0])  # our NW (2) is west's NE (0)
                 else:
@@ -217,7 +235,6 @@ class HexagonalMesh(object):
                     vertex_counter += 1
                 # SW (3) corner could have been created either by western
                 # or south-western neighbour
-                SW = self._index(i, j - 1)
                 if W is not (False or -1):
                     hexagon.append(hexagons[W][5])  # our SW is west's SE (5)
                 elif SW is not (False or -1):
@@ -234,7 +251,6 @@ class HexagonalMesh(object):
                     hexagon.append(vertex_counter)
                     vertex_counter += 1
                 # SE (5) corner could have been created by south-eastern neighbour
-                SE = self._index(i + 1, j - 1)
                 if SE is not (False or -1):
                     hexagon.append(hexagons[SE][1])  # our SE is south-east's N (1)
                 else:

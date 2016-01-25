@@ -429,6 +429,9 @@ class NEB_Sundials(object):
 
         self.coords.shape = (-1, )
 
+    def set_tols(self, rtol, atol):
+        self.integrator.set_options(rtol, atol)
+
     def create_integrator(self, rtol=1e-6, atol=1e-6, nsteps=10000):
 
         self.integrator = cvode.CvodeSolver(self.coords, self.sundials_rhs)
