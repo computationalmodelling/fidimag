@@ -1,5 +1,7 @@
 from __future__ import division
 
+import types
+
 import fidimag.extensions.clib as clib
 import numpy as np
 
@@ -40,11 +42,16 @@ class LLG_STT_Slonczewski(LLG):
 
         self.compute_effective_field(t)
 
+        if isinstance(self.u0,types.FunctionType):
+            _u = self.u0(t)
+        else:
+            _u = self.u0
+        
         clib.compute_llg_stt_slonczewski_type(ydot,
                                  self.spin,
                                  self.field,
                                  self._p,
                                  self.alpha,
-                                 self.u0,
+                                 _u,
                                  self.gamma,
                                  self.n)

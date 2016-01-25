@@ -30,7 +30,7 @@ class Demag(object):
 
         self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                    self.nx, self.ny, self.nz,
-                                   False)
+                                   tensor_type='dipolar')
 
     def compute_field(self, t=0, spin=None):
         if spin is not None:

@@ -1,3 +1,5 @@
+import pytest
+
 # Since we are testing this script for different versions, we need to rebuild
 # Fidimag every time we call the tests
 # import os
@@ -126,6 +128,8 @@ def excite_system(mesh, time=5, snaps=501):
         sim.save_m()
 
 
+# this test runs for about 10 seconds
+@pytest.mark.slow
 def test_stt_dw():
     # We will crate a mesh with 1000 elements of 2x2x2 nm
     # in the x direction, and 1 along y and z

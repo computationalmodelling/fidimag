@@ -1,11 +1,11 @@
 from __future__ import division
 import os
 import fidimag.extensions.clib as clib
-import fidimag.extensions.cvode as cvode
 import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
 from fidimag.common.constant import Constant
+from fidimag.common.integrators import SundialsIntegrator
 import fidimag.common.helper as helper
 import re
 
@@ -14,7 +14,7 @@ const = Constant()
 
 class LLG(object):
 
-    def __init__(self, mesh, name='unnamed'):
+    def __init__(self, mesh, name='unnamed', integrator='sundials'):
         """Simulation object.
 
         *Arguments*
@@ -41,8 +41,9 @@ class LLG(object):
         self.interactions = []
         self.pin_fun = None
         self.integrator_tolerances_set = False
-
         self.step = 0
+
+        self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
 
         self.saver = DataSaver(self, name + '.txt')
 
@@ -63,7 +64,7 @@ class LLG(object):
 
         self.saver.entities['rhs_evals'] = {
             'unit': '<>',
-            'get': lambda sim: self.cvode_stat_output(sim),
+            'get': lambda sim: self.integrator.rhs_evals,
             'header': 'rhs_evals'}
 
         self.saver.update_entity_order()
@@ -73,19 +74,7 @@ class LLG(object):
 
         self.vtk = SaveVTK(self.mesh, name=name)
 
-        self.vode = cvode.CvodeSolver(self.spin, self.sundials_rhs)
-
         self.set_default_options()
-
-        self.set_tols()
-
-        # When initialising the integrator in the self.vode call, the CVOde
-        # class calls the set_initial_value function (with flag_m=0), which
-        # initialises a new integrator and allocates memory in this process.
-        # Now, when we set the magnetisation, we will use the same memory
-        # setting this flag_m to 1, so instead of calling CVodeInit we call
-        # CVodeReInit. If don't, memory is allocated in every call of set_m
-        self.flag_m = 1
 
     def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
         self.default_c = 1e11
@@ -95,16 +84,14 @@ class LLG(object):
         self.do_procession = True
 
     def reset_integrator(self, t=0):
-        self.vode.reset(self.spin, t)
-        # Also reinitialise the simulation time and step
-        self.t = t
+        self.integrator.reset(self.spin, t)
+        self.t = t # also reinitialise the simulation time and step
         self.step = 0
 
-    def set_tols(self, rtol=1e-8, atol=1e-10):
-        if self.integrator_tolerances_set is True:
+    def set_tols(self, rtol=1e-8, atol=1e-10, reset=True):
+        self.integrator.set_tols(rtol=rtol, atol=atol)
+        if reset:
             self.reset_integrator(self.t)
-        self.vode.set_options(rtol, atol)
-        self.integrator_tolerances_set = True
 
     def set_m(self, m0=(1, 0, 0), normalise=True):
 
@@ -117,10 +104,7 @@ class LLG(object):
                 self.spin[i, :] = 0
         self.spin.shape = (-1,)
 
-        self.vode.set_initial_value(self.spin, self.t, self.flag_m)
-
-        if not self.flag_m:
-            self.flag_m = 1
+        self.integrator.set_initial_value(self.spin, self.t)
 
     def get_pins(self):
         return self._pins
@@ -198,29 +182,23 @@ class LLG(object):
                                  name, [x.name for x in self.interactions]))
 
     def run_until(self, t):
-
         if t <= self.t:
             if t == self.t and self.t == 0.0:
                 self.compute_effective_field(t)
                 self.saver.save()
             return
 
-        ode = self.vode
-
         self.spin_last[:] = self.spin[:]
 
-        flag = ode.run_until(t)
-
+        flag = self.integrator.run_until(t)
         if flag < 0:
             raise Exception("Run cython run_until failed!!!")
 
-        self.spin[:] = ode.y[:]
-
+        self.spin[:] = self.integrator.y[:]
         self.t = t
         self.step += 1
 
-        # update field before saving data
-        self.compute_effective_field(t)
+        self.compute_effective_field(t) # update fields before saving data
         self.saver.save()
 
     def compute_effective_field(self, t):
@@ -315,7 +293,7 @@ class LLG(object):
         np.save(name, self._skx_number)
 
     def stat(self):
-        return self.vode.stat()
+        return self.integrator.stat()
 
     def spin_length(self):
         self.spin.shape = (3, -1)
@@ -343,7 +321,7 @@ class LLG(object):
 
         for i in range(0, max_steps + 1):
 
-            cvode_dt = self.vode.get_current_step()
+            cvode_dt = self.integrator.get_current_step()
 
             increment_dt = dt
 
@@ -374,52 +352,6 @@ class LLG(object):
 
         if save_vtk_steps is not None:
             self.save_vtk()
-
-    def cvode_stat_output(self, sim):
-        """
-        This function tries to get the values from the CVODE statistics. For a
-        'sim' simulation object, this is done starting from calling
-        sim.vode.stats()
-
-        According to the CVODE version, this call can generate a string:
-
-        CvodeSolver(nsteps = 18,
-                    nfevals = 32,
-                    njevals = 14.
-                    )
-
-        where:
-
-        nsteps  --> number of steps taken by CVODE
-        nfevals --> number of calls to the user's f function
-                    (I guess this is what we need)
-        njevals --> the cumulative number of calls to the Jacobian function
-
-        So, for example,  we can regex search any number preceded by
-            "nfevals = "
-        to get the number of evaluations of the RHS and convert the
-        result to an integer
-
-        OR it can give a tuple with 3 values, which must be in the same
-        order than before
-
-        For now, we are only interested in the RHS evaluations, so we
-        return a single value
-
-        """
-        cvode_stat = sim.vode.stat()
-
-        if isinstance(cvode_stat, str):
-            out = int(re.search(r'(?<=nfevals\s=\s)[0-9]*',
-                                cvode_stat).group(0)
-                      )
-        elif isinstance(cvode_stat, tuple):
-            out = cvode_stat[1]
-        else:
-            raise NotImplementedError('Cannot retrieve the values'
-                                      'from CVODE stats')
-
-        return out
 
 if __name__ == '__main__':
     pass

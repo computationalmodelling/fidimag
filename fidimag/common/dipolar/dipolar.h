@@ -9,41 +9,10 @@ inline double cross_x(double a0, double a1, double a2, double b0, double b1, dou
 inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
 inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
-void compute_exch_field(double *spin, double *field, double *energy,
-						double Jx, double Jy, double Jz,
-                        int *ngbs, int nxyz);
-double compute_exch_energy(double *spin, double Jx, double Jy, double Jz, int nx, int ny, int nz, int xperiodic, int yperiodic);
 
-void compute_anis(double *spin, double *field, double *energy,
-	double *Ku, double *axis, int nx, int ny, int nz);
-
-
-void dmi_field_bulk(double *spin, double *field, double *energy, double D, int *ngbs, int nxyz);
-void dmi_field_interfacial_atomistic(double *m, double *field, double *energy, double D, int nx, int ny, int nz, int xperiodic, int yperiodic);
-double dmi_energy(double *spin, double D, int nx, int ny, int nz,int xperiodic, int yperiodic);
-
-void llg_rhs(double * dm_dt, double * spin, double * h, double *alpha,
-		int *pins, double gamma, int nxyz, int do_procession, double default_c);
-
-void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, double *alpha, int *pins,
-        double gamma, int nxyz, int do_procession, double default_c);
-
-void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
-             double *chi, double gamma, int nxyz);
-
-
-void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
-		double dx, double dy, int nx, int ny, int nz, int xperiodic, int yperiodic);
-
-void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt, double *alpha,
-                 double beta, double u0, double gamma, int nxyz);
-
-
-
-void normalise(double *m, int nxyz);
-double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz);
-void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res);
-void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *py);
+enum Type_Nij {
+	Tensor_xx, Tensor_yy, Tensor_zz, Tensor_xy, Tensor_xz, Tensor_yz
+};
 
 //==========================================
 //used for demag
@@ -99,10 +68,18 @@ typedef struct {
 fft_demag_plan *create_plan(void);
 void finalize_plan(fft_demag_plan *plan);
 void init_plan(fft_demag_plan *plan, double dx, double dy,
-		double dz, int nx, int ny, int nz, int oommf);
+		double dz, int nx, int ny, int nz);
+void compute_dipolar_tensors(fft_demag_plan *plan); 
+void compute_demag_tensors(fft_demag_plan *plan);
+void create_fftw_plan(fft_demag_plan *plan);
+
+
+
 void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
 void exact_compute(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
 double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
+
+
 
 //=========================================================
 //=========================================================

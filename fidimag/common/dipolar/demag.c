@@ -4,10 +4,6 @@
 #include "demagcoef.h"
 
 
-enum Type_Nij {
-	Tensor_xx, Tensor_yy, Tensor_zz, Tensor_xy, Tensor_xz, Tensor_yz
-};
-
 double Nxxdipole(double x, double y, double z) {
 	double x2 = x * x;
 	double y2 = y * y;
@@ -46,7 +42,42 @@ double NXXdipole(enum Type_Nij type, double x, double y, double z) {
 }
 
 //compute the demag tensors, i.e, H=-N.M
-void compute_all_tensors_oommf(fft_demag_plan *plan) {
+void compute_dipolar_tensors(fft_demag_plan *plan) {
+
+	int i, j, k, id;
+	double x, y, z;
+
+	int nx = plan->nx;
+	int ny = plan->ny;
+	int nz = plan->nz;
+	int lenx = plan->lenx;
+	int leny = plan->leny;
+	int lenz = plan->lenz;
+        int lenxy = lenx * leny;
+	int lenyz = leny * lenz;
+	
+	for (k = 0; k < lenz; k++) {
+		for (j = 0; j < leny; j++) {
+			for (i = 0; i < lenx; i++) {
+ 				id = k * lenxy + j * lenx + i;
+				x = (i - nx + 1) * plan->dx;
+				y = (j - ny + 1) * plan->dy;
+				z = (k - nz + 1) * plan->dz;
+
+				plan->tensor_xx[id] = NXXdipole(Tensor_xx, x, y, z);
+				plan->tensor_yy[id] = NXXdipole(Tensor_yy, x, y, z);
+				plan->tensor_zz[id] = NXXdipole(Tensor_zz, x, y, z);
+				plan->tensor_xy[id] = NXXdipole(Tensor_xy, x, y, z);
+				plan->tensor_xz[id] = NXXdipole(Tensor_xz, x, y, z);
+				plan->tensor_yz[id] = NXXdipole(Tensor_yz, x, y, z);
+
+			}
+		}
+	}
+}
+
+//compute the demag tensors, i.e, H=-N.M
+void compute_demag_tensors(fft_demag_plan *plan) {
 
 	int i, j, k, id;
 	double x, y, z;
@@ -99,40 +130,7 @@ void compute_all_tensors_oommf(fft_demag_plan *plan) {
 	}
 }
 
-//compute the demag tensors, i.e, H=-N.M
-void compute_all_tensors(fft_demag_plan *plan) {
 
-	int i, j, k, id;
-	double x, y, z;
-
-	int nx = plan->nx;
-	int ny = plan->ny;
-	int nz = plan->nz;
-	int lenx = plan->lenx;
-	int leny = plan->leny;
-	int lenz = plan->lenz;
-        int lenxy = lenx * leny;
-	int lenyz = leny * lenz;
-	
-	for (k = 0; k < lenz; k++) {
-		for (j = 0; j < leny; j++) {
-			for (i = 0; i < lenx; i++) {
- 				id = k * lenxy + j * lenx + i;
-				x = (i - nx + 1) * plan->dx;
-				y = (j - ny + 1) * plan->dy;
-				z = (k - nz + 1) * plan->dz;
-
-				plan->tensor_xx[id] = NXXdipole(Tensor_xx, x, y, z);
-				plan->tensor_yy[id] = NXXdipole(Tensor_yy, x, y, z);
-				plan->tensor_zz[id] = NXXdipole(Tensor_zz, x, y, z);
-				plan->tensor_xy[id] = NXXdipole(Tensor_xy, x, y, z);
-				plan->tensor_xz[id] = NXXdipole(Tensor_xz, x, y, z);
-				plan->tensor_yz[id] = NXXdipole(Tensor_yz, x, y, z);
-
-			}
-		}
-	}
-}
 
 //used for debug
 void print_r(char *str, double *x, int n) {
@@ -163,7 +161,7 @@ fft_demag_plan *create_plan(void) {
 }
 
 void init_plan(fft_demag_plan *plan, double dx, double dy,
-		double dz, int nx, int ny, int nz, int oommf) {
+		double dz, int nx, int ny, int nz) {
 
 	//plan->mu_s = mu_s;
 
@@ -216,6 +214,12 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 	plan->Hy = (fftw_complex *) fftw_malloc(size2);
 	plan->Hz = (fftw_complex *) fftw_malloc(size2);
 
+}
+
+
+void create_fftw_plan(fft_demag_plan *plan) {
+
+	
 	plan->tensor_plan = fftw_plan_dft_r2c_3d(plan->lenz, plan->leny,
 			plan->lenx, plan->tensor_xx, plan->Nxx,
 			FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
@@ -242,11 +246,8 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 		plan->hy[i] = 0;
 		plan->hz[i] = 0;
 	}
-	if (oommf){
-		compute_all_tensors_oommf(plan);
-	}else{
-		compute_all_tensors(plan);
-	}
+
+
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, plan->Nyy);
 	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_zz, plan->Nzz);
@@ -256,6 +257,10 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 	fftw_destroy_plan(plan->tensor_plan);
 
 }
+
+
+
+
 
 //The computed results doesn't consider the coefficient of \frac{\mu_0}{4 \pi}, the
 //reason is in future we can use the following code directly for continuum case

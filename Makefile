@@ -33,6 +33,14 @@ test-without-run-oommf: create-dirs
 test-basic:
 	cd tests && py.test -v
 
+# Convenience name for commonly used quick running of tests
+tq:
+	make test-quick
+# Quick tests, also not using OOMMF tests
+test-quick:
+	cd tests && py.test -v -m "not slow and not run_oommf"
+
+
 test-ipynb: create-dirs
 	cd doc/ipynb && py.test . -v --ipynb --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
 
