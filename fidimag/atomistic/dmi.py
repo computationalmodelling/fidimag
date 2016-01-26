@@ -18,6 +18,21 @@ class DMI(Energy):
 
         self.jac = True
 
+    def setup(self, mesh, spin, mu_s):
+        super(DMI, self).setup(mesh, spin, mu_s)
+
+        if self.mesh_type == 'hexagonal':
+            self.nneighbours = 6
+            # rdim = 3
+
+        elif self.mesh_type == 'cuboid':
+            self.nneighbours = 4
+            # rdim = 3
+
+        # We will generate the Dzyaloshinskii vectors according
+        # to the lattice, for the Interfacial DMI
+        self.DMI_vector = self.compute_DMI_vectors(self.nneighbours)
+
     def compute_field(self, t=0, spin=None):
 
         if spin is not None:
@@ -34,20 +49,6 @@ class DMI(Energy):
                                    self.n)
 
         elif self.dmi_type == 'interfacial':
-
-            # We will generate the Dzyaloshinskii vectors according
-            # to the lattice, for the Interfacial DMI
-            # TODO: Move this at the beginning so we don't compute the vectors
-            # every time we update the field
-            if self.mesh_type == 'hexagonal':
-                self.nneighbours = 6
-                # rdim = 3
-
-            elif self.mesh_type == 'cuboid':
-                self.nneighbours = 4
-                # rdim = 3
-
-            self.DMI_vector = self.compute_DMI_vectors(self.nneighbours)
 
             clib.compute_dmi_field_interfacial(m,
                                                self.field,
