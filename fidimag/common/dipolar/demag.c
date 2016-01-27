@@ -53,8 +53,8 @@ void compute_dipolar_tensors(fft_demag_plan *plan) {
 	int lenx = plan->lenx;
 	int leny = plan->leny;
 	int lenz = plan->lenz;
-        int lenxy = lenx * leny;
-	int lenyz = leny * lenz;
+    int lenxy = lenx * leny;
+
 	
 	for (k = 0; k < lenz; k++) {
 		for (j = 0; j < leny; j++) {
