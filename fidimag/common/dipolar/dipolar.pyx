@@ -17,13 +17,15 @@ cdef extern from "dipolar.h":
     void compute_dipolar_tensors(fft_demag_plan *plan)
     void compute_demag_tensors(fft_demag_plan *plan)
     void create_fftw_plan(fft_demag_plan *plan)
-    void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, int dipolar_radius_sq)
-
+    void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double *tensors, double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, double dipolar_radius)
+    void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors)
+    
 cdef class FFTDemag(object):
     cdef fft_demag_plan *_c_plan
     
+    
     #tensor_type could be 'dipolar', 'demag' or '2d_pbc'
-    def __cinit__(self, dx, dy, dz, nx, ny, nz, tensor_type='dipolar', options={}):
+    def __cinit__(self, dx, dy, dz, nx, ny, nz, tensor_type='dipolar'):
         self._c_plan = create_plan()
         if self._c_plan is NULL:
             raise MemoryError()
@@ -31,30 +33,17 @@ cdef class FFTDemag(object):
 	
         if tensor_type == 'dipolar':
             compute_dipolar_tensors(self._c_plan)
+            create_fftw_plan(self._c_plan)
         elif tensor_type == 'demag':
             compute_demag_tensors(self._c_plan)
+            create_fftw_plan(self._c_plan)
         elif tensor_type == '2d_pbc':
-            pbc_2d_error = 1e-10
-            sample_repeat_nx = -1
-            sample_repeat_ny = -1
-            asymptotic_radius = 32.0
-            dipolar_radius = 10000.0
-            if 'sample_repeat_nx' in options:
-                sample_repeat_nx = options['sample_repeat_nx']
-                sample_repeat_ny = options['sample_repeat_ny']
-            if 'relative_tensor_error' in options:
-                pbc_2d_error = options['relative_tensor_error']
-            if 'asymptotic_radius' in options:
-                asymptotic_radius = options['asymptotic_radius']
-            if 'dipolar_radius' in options:
-                dipolar_radius = options['dipolar_radius']
-            
-            compute_demag_tensors_2dpbc(self._c_plan, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
+            pass
         
         else:
             raise Exception("Only support options 'dipolar', 'demag' and '2d_pbc'.")
 
-        create_fftw_plan(self._c_plan)
+        
 	   
 
     def free(self):
@@ -65,6 +54,14 @@ cdef class FFTDemag(object):
             finalize_plan(self._c_plan)
             self._c_plan = NULL
 
+    def compute_tensors_2dpbc(self, np.ndarray[double, ndim=1, mode="c"] tensors, 
+                            pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius):
+        compute_demag_tensors_2dpbc(self._c_plan, &tensors[0], pbc_2d_error, 
+                            sample_repeat_nx, sample_repeat_ny, dipolar_radius)
+    
+    def fill_demag_tensors(self, np.ndarray[double, ndim=1, mode="c"] tensors):
+        fill_demag_tensors_c(self._c_plan, &tensors[0])
+        create_fftw_plan(self._c_plan)
 
     def compute_field(self,np.ndarray[double, ndim=1, mode="c"] spin,
                         np.ndarray[double, ndim=1, mode="c"] mu_s,
