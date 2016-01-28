@@ -28,7 +28,7 @@ class Energy(object):
         self.mu_s = mu_s
 
         self.field = np.zeros(3 * self.n, dtype=np.float)
-        self.energy = np.zeros(3 * mesh.n, dtype=np.float)
+        self.energy = np.zeros(mesh.n, dtype=np.float)
         self.mu_s_inv = np.zeros(3 * self.n, dtype=np.float)
 
         self.mu_s_inv.shape = (-1, 3)

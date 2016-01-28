@@ -3,6 +3,35 @@ import numpy as np
 
 
 class Demag(object):
+    """
+
+    Energy class for the demagnetising field (a.k.a. dipolar interactions,
+    stray field), *only for Cuboid meshes* (i.e. a square lattice in the
+    discrete spin model), since this class uses the OOMMF's FFT code to
+    simplify the field calculations.
+
+    The field has the expression:
+
+                                   ^      ^         ^        ^
+       ->      mu0 mu_s    __    3 r_ij ( m_j \cdot r_ij ) - m_j
+       H_i =   --------   \	   -------------------------------
+                 4 pi     /__              r_ij ^ 3
+
+                        i != j
+
+     where the numerator has unit vectors (^) and
+                                                     ->    ->
+     r_ij is a vector from r_i to r_j , i.e.  r_ij = r_j - r_i
+
+     Accordingly, the energy is computed as:
+
+                 mu_s    __   ^         ->
+       E_i =  -   --    \     m_i \cdot H_i
+                   2    /__
+
+                      i=x,y,z
+
+    """
 
     def __init__(self, name='demag'):
         self.name = name

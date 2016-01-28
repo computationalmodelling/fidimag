@@ -15,7 +15,7 @@ import numpy as np
 const = Constant()
 
 
-def m_init(pos, N, a):
+def m_init_dw(pos, N, a):
     """
     This creates a pseudo domain wall along x
     N is the number of atoms and a the lattice spacing
@@ -24,6 +24,26 @@ def m_init(pos, N, a):
     mx = x
     mz = np.sqrt(1 - x ** 2.)
     return (mx, 0, mz)
+
+
+def m_init_2Dvortex(pos, centre):
+    x, y = pos[0] - centre[0], pos[1] - centre[1]
+
+    if np.sqrt(x ** 2 + y ** 2) <= 2.5:
+        # Polar coordinates:
+        r = (x ** 2 + y ** 2) ** 0.5
+        phi = np.arctan2(y, x)
+        # This determines the profile we want for the
+        # skyrmion-like vortex
+        # Single twisting: k = pi / R
+        k = np.pi / 2.5
+
+        # We define here a 'hedgehog' skyrmion pointing up
+        return (np.sin(k * r) * np.cos(phi),
+                np.sin(k * r) * np.sin(phi),
+                np.cos(k * r))
+    else:
+        return (0, 0, -1)
 
 
 def test_hexagonal_demags_1Dchain():
@@ -45,7 +65,7 @@ def test_hexagonal_demags_1Dchain():
     sim = Sim(mesh)
     sim.mu_s = mu_s
 
-    sim.set_m(lambda pos: m_init(pos, N, a))
+    sim.set_m(lambda pos: m_init_dw(pos, N, a))
     # Brute force demag calculation
     sim.add(DemagFull())
 
@@ -57,7 +77,7 @@ def test_hexagonal_demags_1Dchain():
     sim2 = Sim(mesh)
     sim2.mu_s = mu_s
 
-    sim2.set_m(lambda pos: m_init(pos, N, a))
+    sim2.set_m(lambda pos: m_init_dw(pos, N, a))
 
     sim2.add(DemagHexagonal())
     sim2.get_interaction('demag_hex').compute_field()
@@ -86,7 +106,7 @@ def test_cuboid_demags_1Dchain():
     sim = Sim(mesh)
     sim.mu_s = mu_s
 
-    sim.set_m(lambda pos: m_init(pos, N, a))
+    sim.set_m(lambda pos: m_init_dw(pos, N, a))
     # Brute force demag calculation
     sim.add(DemagFull())
 
@@ -98,7 +118,7 @@ def test_cuboid_demags_1Dchain():
     sim2 = Sim(mesh)
     sim2.mu_s = mu_s
 
-    sim2.set_m(lambda pos: m_init(pos, N, a))
+    sim2.set_m(lambda pos: m_init_dw(pos, N, a))
 
     sim2.add(Demag())
     sim2.get_interaction('demag').compute_field()
@@ -109,6 +129,103 @@ def test_cuboid_demags_1Dchain():
     # We compare both energies scaled in meV
     assert (demag_full_energy - demag_fft_energy) < 1e-10
 
+
+def test_cuboid_demags_2D():
+    """
+    Comparison of the FFT approach for hexagonal meshes, named
+    DemagHexagonal, where it is used a system with the double number
+    of nodes along the x direction (i.e. a mesh with twice the number
+    of nodes of the original mesh), against the full calculation
+    of the Demag field
+    """
+    # Number of atoms
+    N = 15
+    a = 0.4
+
+    mesh = CuboidMesh(a, a, a, N, N, 1, unit_length=1e-9)
+    mu_s = 2 * const.mu_B
+
+    # Centre
+    xc = (mesh.Lx * 0.5)
+    yc = (mesh.Ly * 0.5)
+
+    sim = Sim(mesh)
+    sim.mu_s = mu_s
+
+    sim.set_m(lambda pos: m_init_2Dvortex(pos, (xc, yc)))
+    # Brute force demag calculation
+    sim.add(DemagFull())
+
+    sim.get_interaction('demag_full').compute_field()
+    # print sim.get_interaction('demag_full').field
+    demag_full_energy = sim.compute_energy() / const.meV
+
+    # Demag using the FFT approach
+    sim2 = Sim(mesh)
+    sim2.mu_s = mu_s
+
+    sim2.set_m(lambda pos: m_init_2Dvortex(pos, (xc, yc)))
+
+    sim2.add(Demag())
+    sim2.get_interaction('demag').compute_field()
+    sim2.compute_energy()
+
+    demag_fft_energy = sim2.compute_energy() / const.meV
+
+    # We compare both energies scaled in meV
+    assert (demag_full_energy - demag_fft_energy) < 1e-10
+
+
+def test_hexagonal_demags_2D():
+    """
+    Comparison of the FFT approach for hexagonal meshes, named
+    DemagHexagonal, where it is used a system with the double number
+    of nodes along the x direction (i.e. a mesh with twice the number
+    of nodes of the original mesh), against the full calculation
+    of the Demag field
+    """
+    # Number of atoms
+    N = 15
+    a = 0.4
+    mesh = HexagonalMesh(a * 0.5, N, N,
+                         unit_length=1e-9,
+                         alignment='square')
+
+    # Centre
+    xc = (mesh.Lx * 0.5)
+    yc = (mesh.Ly * 0.5)
+
+    mu_s = 2 * const.mu_B
+
+    sim = Sim(mesh)
+    sim.mu_s = mu_s
+
+    sim.set_m(lambda pos: m_init_2Dvortex(pos, (xc, yc)))
+    # Brute force demag calculation
+    sim.add(DemagFull())
+
+    sim.get_interaction('demag_full').compute_field()
+    sim.get_interaction('demag_full').field
+    demag_full_energy = sim.compute_energy() / const.meV
+
+    # Demag using the FFT approach and a larger mesh
+    sim2 = Sim(mesh)
+    sim2.mu_s = mu_s
+
+    sim2.set_m(lambda pos: m_init_2Dvortex(pos, (xc, yc)))
+
+    sim2.add(DemagHexagonal())
+    sim2.get_interaction('demag_hex').compute_field()
+    sim2.compute_energy()
+
+    demag_2fft_energy = sim2.compute_energy() / const.meV
+
+    # We compare both energies scaled in meV
+    assert (demag_full_energy - demag_2fft_energy) < 1e-10
+
+
 if __name__ == '__main__':
     test_hexagonal_demags_1Dchain()
     test_cuboid_demags_1Dchain()
+    test_hexagonal_demags_2D()
+    test_cuboid_demags_2D()
