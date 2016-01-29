@@ -4,6 +4,8 @@ Implement the time integrators used in the simulation of magnetisation dynamics.
 """
 import fidimag.extensions.cvode as cvode
 
+EPSILON = 1e-14
+
 
 class SundialsIntegrator(object):
     def __init__(self, spins, rhs):
@@ -76,6 +78,55 @@ class SundialsIntegrator(object):
     @property
     def y(self):
         return self.cvode.y
+
+
+class StepIntegrator(object):
+    def __init__(self, spins, rhs, step="euler"):
+        self.spins = spins
+        self.rhs = rhs
+        self.t = 0
+        self.h = 1e-14
+        self.steps = 0
+        if step == "euler":
+            self.single_step = euler_step
+        elif step == "rk4":
+            self.single_step = runge_kutta_step
+        else:
+            raise NotImplemented("step must be euler or rk4")
+
+    @property
+    def rhs_evals(self):
+        return self.steps
+
+    def run_until(self, t):
+        while abs(self.t - t) > EPSILON:
+            self.t, self.spins = self.single_step(self.t, self.spins, self.h, self.rhs)
+            self.steps += 1
+            if self.t > t:
+                break
+        return 0
+
+    def reset(self, spins, t):
+        self.spins = spins
+        self.t = t
+        self.steps = 0
+
+    # same methods as SundialsIntegrator below
+    def set_tols(self, rtol=1e-8, atol=1e-10):  
+        pass
+
+    def set_initial_value(self, spins, t, reuse_memory=1):
+        pass
+
+    def stat(self):
+        return self.steps
+
+    def get_current_step(self):
+        return self.h
+
+    @property
+    def y(self):
+        return self.spins
 
 
 def euler_step(t, y, h, f):
