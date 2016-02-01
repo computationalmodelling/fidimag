@@ -1,5 +1,6 @@
 import os
 from tvtk.api import tvtk, write_data  # distributed with enthought/mayavi2
+# if the import above fails due to missing X display, export ETS_TOOLKIT='null'
 from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 
