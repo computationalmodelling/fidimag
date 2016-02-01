@@ -116,7 +116,8 @@ class StepIntegrator(object):
         pass
 
     def set_initial_value(self, spins, t, reuse_memory=1):
-        pass
+        self.spins = spins
+        self.t = t
 
     def stat(self):
         return self.steps

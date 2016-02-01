@@ -5,7 +5,7 @@ import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
 from fidimag.common.constant import Constant
-from fidimag.common.integrators import SundialsIntegrator
+from fidimag.common.integrators import SundialsIntegrator, StepIntegrator
 import fidimag.common.helper as helper
 import re
 
@@ -43,7 +43,12 @@ class LLG(object):
         self.integrator_tolerances_set = False
         self.step = 0
 
-        self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
+        if integrator == "sundials":
+            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
+        elif integrator == "euler" or integrator == "rk4":
+            self.integrator = StepIntegrator(self.spin, self.sundials_rhs, integrator)
+        else:
+            raise NotImplemented("integrator must be sundials, euler or rk4")
 
         self.saver = DataSaver(self, name + '.txt')
 
