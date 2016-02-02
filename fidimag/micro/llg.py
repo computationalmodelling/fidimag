@@ -46,7 +46,7 @@ class LLG(object):
         if integrator == "sundials":
             self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = StepIntegrator(self.spin, self.sundials_rhs, integrator)
+            self.integrator = StepIntegrator(self.spin, self.step_rhs, integrator)
         else:
             raise NotImplemented("integrator must be sundials, euler or rk4")
 
@@ -237,6 +237,20 @@ class LLG(object):
         #ydot[:] = self.dm_dt[:]
 
         return 0
+
+    def step_rhs(self, t, y):
+        self.t = t
+        self.compute_effective_field(t)
+        clib.compute_llg_rhs(self.dm_dt,
+                             self.spin,
+                             self.field,
+                             self.alpha,
+                             self._pins,
+                             self.gamma,
+                             self.n,
+                             self.do_procession,
+                             self.default_c)
+        return self.dm_dt
 
     def compute_average(self):
         self.spin.shape = (-1, 3)
