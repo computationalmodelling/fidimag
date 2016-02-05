@@ -1,5 +1,6 @@
 from __future__ import division
 import os
+import time
 import fidimag.extensions.clib as clib
 import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
@@ -71,6 +72,11 @@ class LLG(object):
             'unit': '<>',
             'get': lambda sim: self.integrator.rhs_evals,
             'header': 'rhs_evals'}
+
+        self.saver.entities['real_time'] = {
+            'unit': '<s>',
+            'get': lambda _: time.time(),  # seconds since epoch
+            'header': 'real_time'}
 
         self.saver.update_entity_order()
 
