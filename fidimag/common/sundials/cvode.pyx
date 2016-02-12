@@ -73,6 +73,22 @@ cdef int cv_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y, N_Vector fy,
 
     return 0
 
+
+cdef int psetup(realtype t, N_Vector y, N_Vector fy,
+        booleantype jok, booleantype *jcurPtr, realtype gamma,
+        void *user data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
+    if not jok:
+        self.y[:] = y[:]
+    return 0
+
+
+cdef int psolve(realtype t, N_Vector y, N_Vector fy,
+        N_Vector r, N_Vector z, realtype gamma, realtype delta, int lr,
+        void *user data, N_Vector tmp):
+    z[:] = r
+    return 0
+
+
 cdef class CvodeSolver(object):
 
     cdef public double t
@@ -118,21 +134,15 @@ cdef class CvodeSolver(object):
                                      <void *>self.jtimes_fun,
                                      <void *>self.mp,<void *>self.Jmp)
 
-
         self.cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
-        #self.cvode_mem = CVodeCreate(CV_ADAMS, CV_FUNCTIONAL);
-
         flag = CVodeSetUserData(self.cvode_mem, <void*>&self.user_data);
         self.check_flag(flag,"CVodeSetUserData")
-
         self.set_initial_value(spin, self.t, 0)
         self.set_options(rtol, atol)
-
 
     def reset(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
         copy_arr2nv(spin, self.u_y)
         CVodeReInit(self.cvode_mem, t, self.u_y)
-
 
     # The flag_m argument indicates if the magnetisation was already loaded
     # since, when using CVOdeInit, new memory is allocated and this causes a
@@ -152,15 +162,16 @@ cdef class CvodeSolver(object):
             flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
         else:
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)
-        
         self.check_flag(flag,"CVodeInit")
 
-        # Set options for the CVODE scaled, preconditioned GMRES linear solver, CVSPGMR
-        flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
         if self.has_jtimes:
-            #flag = CVSpilsSetGSType(self.cvode_mem, 1);
+            # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
+            flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300);
+            # p. 37 CVODE 2.7 manual
             flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, <CVSpilsJacTimesVecFn>self.jvn_fun)
-
+            flag = CVSpilsSetPreconditioner(self.cvode_mem, <CVSpilsPrecSetupFn>psetup, <CVSpilsPrecSolveFn>psolve)
+        else:
+            flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
 
     def set_options(self, rtol, atol, max_num_steps=100000):
         self.rtol = rtol

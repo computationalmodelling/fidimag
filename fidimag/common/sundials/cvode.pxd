@@ -132,11 +132,12 @@ cdef extern from "cvode/cvode_spils.h":
     int CVSpilsSetGSType(void *cvode_mem, int gstype)
     int CVSpilsSetMaxl(void *cvode_mem, int maxl)
     int CVSpilsSetEpsLin(void *cvode_mem, realtype eplifac)
-    
-    ctypedef int (*CVSpilsJacTimesVecFn)(N_Vector v, N_Vector Jv, realtype t,
-                                    N_Vector y, N_Vector fy,
-                                    void *user_data, N_Vector tmp)
-    
+
+    ctypedef int (*CVSpilsPrecSetupFn)(realtype t, N_Vector y, N_Vector fy, booleantype jok, booleantype *jcurPtr, realtype gamma, void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);  
+    ctypedef int (*CVSpilsPrecSolveFn)(realtype t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z, realtype gamma, realtype delta, int lr, void *user_data, N_Vector tmp); 
+    int CVSpilsSetPreconditioner(void *cvode_mem, CVSpilsPrecSetupFn pset, CVSpilsPrecSolveFn psolve);
+
+    ctypedef int (*CVSpilsJacTimesVecFn)(N_Vector v, N_Vector Jv, realtype t, N_Vector y, N_Vector fy, void *user_data, N_Vector tmp)
     int CVSpilsSetJacTimesVecFn(void *cvode_mem, CVSpilsJacTimesVecFn jtv)
     
 cdef extern from "sundials/sundials_iterative.h":
