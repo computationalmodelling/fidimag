@@ -173,13 +173,19 @@ cdef class CvodeSolver(object):
         else:
             flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
 
-    def set_options(self, rtol, atol, max_num_steps=100000):
+    def set_options(self, rtol, atol, max_num_steps=100000, max_ord=None):
         self.rtol = rtol
         self.atol = atol
         self.max_num_steps = max_num_steps
 
         # Set tolerances
         flag = CVodeSStolerances(self.cvode_mem, self.rtol, self.atol)
+
+        # maximum order of the linear multistep method
+        # c.f. Suess et al. / Journal of Magnetism and Magnetic Materials 248 (2002) 298–311
+        # where it speeds up time integration considerably (Fig. 3)
+        if max_ord is not None:  # default is 5 for BDF method, 2 is a good alternative value to try
+            flag = CVodeSetMaxOrd(self.cvode_mem, max_ord)
 
         # Set maximum number of iteration steps (?)
         flag = CVodeSetMaxNumSteps(self.cvode_mem, max_num_steps)
