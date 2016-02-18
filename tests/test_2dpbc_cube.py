@@ -9,6 +9,10 @@ mu0 = 4 * np.pi * 1e-7
 
 
 def test_compute_field():
+    """In an infinite film, we expect the demag tensor to be (0, 0, -1), and thus the
+    magnetisation, if aligned in 0, 0, 1 direction, to create a demag field pointing
+    with equal strength in the opposite direction.
+    """
 
     mesh = CuboidMesh(nx=1, ny=1, nz=1, dx=2.0, dy=2.0, dz=2.0, 
                       unit_length=1e-9, periodicity=(True, True, False))
