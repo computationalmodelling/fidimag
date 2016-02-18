@@ -36,8 +36,6 @@ def test_compute_field():
     print(1 + field[2] / 8.6e5) 
     assert abs(1 + field[2] / 8.6e5) < 1e-10
 
-    #np.save('m0.npy', sim.spin)
-
 
 if __name__ == '__main__':
 
