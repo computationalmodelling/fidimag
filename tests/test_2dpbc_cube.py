@@ -21,7 +21,7 @@ def test_compute_field():
     sim.Ms = 8.6e5
     sim.do_procession = False
 
-    sim.set_m((0,0,1))
+    sim.set_m((0, 0, 1))
 
     A = 1.3e-11
     exch = UniformExchange(A=A)
