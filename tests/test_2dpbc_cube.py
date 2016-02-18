@@ -8,7 +8,7 @@ from fidimag.common.fileio import DataReader
 mu0 = 4 * np.pi * 1e-7
 
 
-def compute_field():
+def test_compute_field():
 
     mesh = CuboidMesh(nx=1, ny=1, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, periodicity=(True, True, False))
 
@@ -38,4 +38,4 @@ def compute_field():
 
 if __name__ == '__main__':
 
-    compute_field()
+    test_compute_field()
