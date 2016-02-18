@@ -25,7 +25,6 @@ def test_compute_field():
 
     A = 1.3e-11
     exch = UniformExchange(A=A)
-    sim.add(exch)
 
     demag = Demag(pbc_2d=True)
     sim.add(demag)
