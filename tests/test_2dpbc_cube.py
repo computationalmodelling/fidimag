@@ -1,9 +1,7 @@
 import numpy as np
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
-from fidimag.micro import UniformExchange, Demag, DMI
-from fidimag.micro import Zeeman, TimeZeeman
-from fidimag.common.fileio import DataReader
+from fidimag.micro import Demag
 
 mu0 = 4 * np.pi * 1e-7
 
@@ -26,9 +24,6 @@ def test_compute_field():
     sim.do_procession = False
 
     sim.set_m((0, 0, 1))
-
-    A = 1.3e-11
-    exch = UniformExchange(A=A)
 
     demag = Demag(pbc_2d=True)
     sim.add(demag)
