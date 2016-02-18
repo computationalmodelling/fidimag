@@ -76,7 +76,7 @@ cdef int cv_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y, N_Vector fy,
 
 cdef int psetup(realtype t, N_Vector y, N_Vector fy,
         booleantype jok, booleantype *jcurPtr, realtype gamma,
-        void *user data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
+        void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
     if not jok:
         self.y[:] = y[:]
     return 0
@@ -84,7 +84,7 @@ cdef int psetup(realtype t, N_Vector y, N_Vector fy,
 
 cdef int psolve(realtype t, N_Vector y, N_Vector fy,
         N_Vector r, N_Vector z, realtype gamma, realtype delta, int lr,
-        void *user data, N_Vector tmp):
+        void *user_data, N_Vector tmp):
     z[:] = r
     return 0
 
