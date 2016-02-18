@@ -33,5 +33,4 @@ def test_compute_field():
 
 
 if __name__ == '__main__':
-
     test_compute_field()
