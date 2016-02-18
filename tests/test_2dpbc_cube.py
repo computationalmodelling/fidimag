@@ -1,16 +1,19 @@
 import numpy as np
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
-from fidimag.micro import UniformExchange, Demag, DMI
-from fidimag.micro import Zeeman, TimeZeeman
-from fidimag.common.fileio import DataReader
+from fidimag.micro import Demag
 
 mu0 = 4 * np.pi * 1e-7
 
 
-def compute_field():
+def test_compute_field():
+    """In an infinite film, we expect the demag tensor to be (0, 0, -1), and thus the
+    magnetisation, if aligned in 0, 0, 1 direction, to create a demag field pointing
+    with equal strength in the opposite direction.
+    """
 
-    mesh = CuboidMesh(nx=1, ny=1, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, periodicity=(True, True, False))
+    mesh = CuboidMesh(nx=1, ny=1, nz=1, dx=2.0, dy=2.0, dz=2.0, 
+                      unit_length=1e-9, periodicity=(True, True, False))
 
     sim = Sim(mesh, name='relax')
 
@@ -20,22 +23,14 @@ def compute_field():
     sim.Ms = 8.6e5
     sim.do_procession = False
 
-    sim.set_m((0,0,1))
-    # sim.set_m(np.load('m0.npy'))
-
-    A = 1.3e-11
-    exch = UniformExchange(A=A)
-    sim.add(exch)
+    sim.set_m((0, 0, 1))
 
     demag = Demag(pbc_2d=True)
     sim.add(demag)
     field=demag.compute_field()
-    print field,(1+field[2]/8.6e5)
-    assert abs(1+field[2]/8.6e5)<1e-10
-
-    #np.save('m0.npy', sim.spin)
+    print(1 + field[2] / 8.6e5) 
+    assert abs(1 + field[2] / 8.6e5) < 1e-10
 
 
 if __name__ == '__main__':
-
-    compute_field()
+    test_compute_field()
