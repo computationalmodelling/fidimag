@@ -7,7 +7,7 @@ mpl.use('Agg')
 import pytest
 import numpy as np
 from math import ceil
-from integrators import euler_step, runge_kutta_step, StepIntegrator
+from integrators import euler_step, runge_kutta_step, StepIntegrator, ScipyIntegrator
 
 
 interval = (0, 10)
@@ -56,6 +56,32 @@ def test_step_integrator(integrator, stepsize_reported, stepsize_internal):
     assert 85 < ys[-1] < 100
     return ts, ys
 
+
+def test_scipy_integrator():
+    y_true = lambda t: np.sin(t) + t
+    f = lambda t, y: np.cos(t) + 1  # derivative of f we'll use for integration
+
+    ts = np.arange(interval[0], interval[1], step=1.0)
+    ys = np.zeros(ts.shape[0])
+    ys[0] = y_true(ts[0])  # known initial value
+
+    y = np.zeros(1)  # scipy wants an np.array
+    y[0] = ys[0]
+    od = ScipyIntegrator(y, f)
+    od.set_tols(1e-5, 1e-5)
+    
+    for i, t in enumerate(ts[1:]):
+        od.run_until(t)
+        ts[i+1] = od.t
+        ys[i+1] = od.y
+        print "t = {}".format(t)
+
+
+    print len(od.internal_timesteps)
+    print od.steps
+    return y_true, ts, ys, od.internal_timesteps
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
@@ -68,3 +94,13 @@ if __name__ == "__main__":
     plt.plot(*test_step_integrator("euler", 0.2, 0.05), marker="o", linestyle="dashed", label="euler h=0.05 int")
     plt.legend(loc=0)
     plt.savefig("test_integrators.png")
+    plt.clf()
+
+    y_true, ts, ys, ts_internal = test_scipy_integrator()
+    plt.plot(ts_fine, y_true(ts_fine), label="y=sin(x)+x")
+    plt.plot(ts, ys, "go", label="dopri reported")
+    for t in ts_internal[:-1]:
+        plt.plot((t, t), (0, 1), 'r-')
+    plt.plot((ts_internal[-1], ts_internal[-1]), (0, 1), 'r-', label="internal timesteps")
+    plt.legend(loc=0)
+    plt.savefig("test_integrators_dopri.png")

@@ -2,6 +2,7 @@
 Implement the time integrators used in the simulation of magnetisation dynamics.
 
 """
+from scipy.integrate import ode
 import fidimag.extensions.cvode as cvode
 
 EPSILON = 1e-14
@@ -112,7 +113,7 @@ class StepIntegrator(object):
         self.steps = 0
 
     # same methods as SundialsIntegrator below
-    def set_tols(self, rtol=1e-8, atol=1e-10):  
+    def set_tols(self, rtol=1e-8, atol=1e-8):  
         pass
 
     def set_initial_value(self, spins, t, reuse_memory=1):
@@ -164,3 +165,45 @@ def runge_kutta_step(t, y, h, f):
     tp = t + h
     yp = y + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
     return tp, yp
+
+
+class ScipyIntegrator(StepIntegrator):
+    def __init__(self, spins, rhs):
+        self.y = spins
+        self.t = 0
+        self.h = 0
+        self.steps = 0
+        self.integrator_created = False
+        self.internal_timesteps = [0]
+
+        def rhs_wrap(y, t):
+            self.steps += 1
+            return rhs(y, t)
+        self.rhs = rhs_wrap
+
+    def solout(self, t, y):
+        """ callback for scipy """
+        self.h = t - self.internal_timesteps[-1]
+        self.internal_timesteps.append(t)
+        return 0  # all ok
+
+    def set_tols(self, rtol=1e-8, atol=1e-8):
+        self.rtol = rtol
+        self.atol = atol
+
+    def _create_integrator(self):
+        self.ode = ode(self.rhs).set_integrator("dopri5", rtol=self.rtol, atol=self.atol)
+        self.ode.set_solout(self.solout)  # needs to be before set_initial_value for scipy < 0.17.0
+        self.ode.set_initial_value(self.y, self.t)
+        self.integrator_created = True
+
+    def run_until(self, t):
+        if not self.integrator_created:
+            # as late as possible so the user had a chance to set options
+            self._create_integrator()
+
+        r = self.ode.integrate(t)
+        if not self.ode.successful():
+            raise RuntimeError("integration with ode unsuccessful")
+        self.y[:] = r
+        self.t = t
