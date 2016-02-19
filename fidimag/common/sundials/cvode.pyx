@@ -64,14 +64,6 @@ cdef int psolve(realtype t, N_Vector y, N_Vector fy,
     return 0
 
 
-cpdef int psetup(self, realtype t, N_Vector y, N_Vector fy,
-                 booleantype jok, booleantype *jcurPtr, realtype gamma,
-                 void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
-    if not jok:
-        self.y[:] = y
-    return 0
-
-
 cdef class CvodeSolver(object):
     cdef public double t
     cdef public np.ndarray y
@@ -145,7 +137,7 @@ cdef class CvodeSolver(object):
             flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300);
             # functions below in p. 37 CVODE 2.7 manual
             flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, <CVSpilsJacTimesVecFn>self.jvn_fun)
-            flag = CVSpilsSetPreconditioner(self.cvode_mem, <CVSpilsPrecSetupFn>psetup, <CVSpilsPrecSolveFn>psolve)
+            flag = CVSpilsSetPreconditioner(self.cvode_mem, <CVSpilsPrecSetupFn>self.psetup, <CVSpilsPrecSolveFn>psolve)
         else:
             flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
 
@@ -174,6 +166,13 @@ cdef class CvodeSolver(object):
         flag = CVodeStep(self.cvode_mem, tf, self.u_y, &tret, CV_NORMAL)
         self.check_flag(flag,"CVodeStep")
         self.t = tret  # FIXME: or should this be tf?
+        return 0
+
+    cdef int psetup(self, realtype t, N_Vector y, N_Vector fy,
+                     booleantype jok, booleantype *jcurPtr, realtype gamma,
+                     void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
+        if not jok:
+            copy_nv2arr(y, self.y)
         return 0
 
     def check_flag(self, flag, fun_name):
