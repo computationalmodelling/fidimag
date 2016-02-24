@@ -64,8 +64,13 @@ class SundialsIntegrator(object):
     def reset(self, spins, t):
         self.cvode.reset(spins, t)
 
-    def set_tols(self, rtol=1e-8, atol=1e-10):
-        self.cvode.set_options(rtol, atol)
+    def set_tols(self, rtol=1e-8, atol=1e-10, max_ord=None):
+        if max_ord is not None:
+            # that way we use the CVODE default value if none is provided
+            # instead of fixing our own default
+            self.cvode.set_options(rtol, atol, max_ord=max_ord)
+        else:
+            self.cvode.set_options(rtol, atol)
 
     def set_initial_value(self, spins, t, reuse_memory=1):
         self.cvode.set_initial_value(spins, t, reuse_memory)
@@ -113,7 +118,7 @@ class StepIntegrator(object):
         self.steps = 0
 
     # same methods as SundialsIntegrator below
-    def set_tols(self, rtol=1e-8, atol=1e-8):  
+    def set_tols(self, rtol=1e-8, atol=1e-8, max_ord=None)
         pass
 
     def set_initial_value(self, spins, t, reuse_memory=1):
@@ -187,7 +192,7 @@ class ScipyIntegrator(StepIntegrator):
         self.internal_timesteps.append(t)
         return 0  # all ok
 
-    def set_tols(self, rtol=1e-8, atol=1e-8):
+    def set_tols(self, rtol=1e-8, atol=1e-8, max_ord=None)
         self.rtol = rtol
         self.atol = atol
 
