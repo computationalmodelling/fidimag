@@ -192,7 +192,7 @@ class ScipyIntegrator(StepIntegrator):
         self.internal_timesteps.append(t)
         return 0  # all ok
 
-    def set_tols(self, rtol=1e-8, atol=1e-8, max_ord=None)
+    def set_tols(self, rtol=1e-8, atol=1e-8, max_ord=None):
         self.rtol = rtol
         self.atol = atol
 
