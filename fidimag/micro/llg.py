@@ -99,8 +99,13 @@ class LLG(object):
         self.t = t # also reinitialise the simulation time and step
         self.step = 0
 
-    def set_tols(self, rtol=1e-8, atol=1e-10, reset=True):
-        self.integrator.set_tols(rtol=rtol, atol=atol)
+    def set_tols(self, rtol=1e-8, atol=1e-10, max_ord=None, reset=True):
+        if max_ord is not None:
+            self.integrator.set_tols(rtol=rtol, atol=atol, max_ord=max_ord)
+        else:
+            # not all integrators have max_ord (only VODE does)
+            # and we don't want to encode a default value here either
+            self.integrator.set_tols(rtol=rtol, atol=atol)
         if reset:
             self.reset_integrator(self.t)
 
