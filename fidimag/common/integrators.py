@@ -118,7 +118,7 @@ class StepIntegrator(object):
         self.steps = 0
 
     # same methods as SundialsIntegrator below
-    def set_tols(self, rtol=1e-8, atol=1e-8, max_ord=None)
+    def set_tols(self, rtol=1e-8, atol=1e-8, max_ord=None):
         pass
 
     def set_initial_value(self, spins, t, reuse_memory=1):
