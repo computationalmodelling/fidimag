@@ -1,6 +1,6 @@
 #ifndef __LLG_RANDOM__
-Â#define __LLG_RANDOM__
-
+#define __LLG_RANDOM__
+#endif
 #include <stdlib.h>  // rand(), srand()
 #include <time.h>    // time()
 #include <math.h>
