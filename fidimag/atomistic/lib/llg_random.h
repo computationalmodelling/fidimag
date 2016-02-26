@@ -1,6 +1,6 @@
 #ifndef __LLG_RANDOM__
 #define __LLG_RANDOM__
-#endif
+
 #include <stdlib.h>  // rand(), srand()
 #include <time.h>    // time()
 #include <math.h>
@@ -143,3 +143,5 @@ void gauss_random_vec_with_init(double *x, int n) {
 	gauss_random_vec(x,n);
 
 }
+
+#endif
