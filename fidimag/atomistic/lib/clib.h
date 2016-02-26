@@ -1,5 +1,6 @@
 #ifndef __CLIB__
 #define __CLIB__
+#endif
 #include<math.h>
 #include<complex.h>
 #include<fftw3.h>
