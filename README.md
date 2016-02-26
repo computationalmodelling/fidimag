@@ -1,7 +1,7 @@
 FIDIMAG
 =======
 
-[![Build Status](https://travis-ci.org/fangohr/fidimag.svg?branch=master)](https://travis-ci.org/fangohr/fidimag)
+[![Build Status](https://travis-ci.org/computationalmodelling/fidimag.svg?branch=master)](https://travis-ci.org/computationalmodelling/fidimag)
 
 Fidimag solves finite-difference micromagnetic problems and also
 does atomistic simulations.
