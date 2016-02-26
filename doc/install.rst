@@ -7,6 +7,7 @@ Install prerequisites
 ---------------------
 
 On Ubuntu systems, we need to run the following commands::
+
   # required to compile fidimag
   apt-get install cython python-numpy
   # required for tests and running it
@@ -133,11 +134,12 @@ How to set up a virtual machine via vagrant
   to set up a basic linux machine.
 
 - run::
+
     vagrant up
 
   to start the machine.
 
-- ssh into the machine with X-forwarding:
+- ssh into the machine with X-forwarding::
 
     vagrant ssh -- -X
 
