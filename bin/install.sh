@@ -30,14 +30,17 @@ download_and_install() {
         tar -xvzf ${1}.tar.gz
         cd ${1}
         ./configure --enable-shared --prefix=${LIBS_DIR} $3
-        make
-        make install
+        echo "Making and installing "${1}"."
+        {
+            make
+            make install
+        } &> /dev/null
+        echo "Done."
         cd ${LIBS_DIR}
     fi;
 }
 
 download_and_install ${SUNDIALS} http://ftp.mcs.anl.gov/pub/petsc/externalpackages --disable-lapack
 download_and_install ${FFTW} http://ftp.mcs.anl.gov/pub/petsc/externalpackages --enable-openmp
-#download_and_install ${FFTW} http://www.fftw.org --enable-openmp
 
 echo "Installation succesful."
