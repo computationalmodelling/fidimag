@@ -42,6 +42,10 @@ p.title:first-letter {
 }
 */
 
+div.fixed {
+    position: fixed;
+    bottom: 5%;
+}
 .title img {
     display:block;
     width:100%;
@@ -60,11 +64,10 @@ p.subtitle{
 }
 
 a.icons{
-	position: fixed;
-	color: #d6ae0c;
-	font-size: 100%;
-	bottom: 5%;
+    color: #d6ae0c;
+    font-size: 100%;
     transition: color 1s ease;
+    padding: 0 16px;
 }
 
 a.icons:hover {
