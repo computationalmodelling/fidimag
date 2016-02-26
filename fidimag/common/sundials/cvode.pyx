@@ -86,10 +86,10 @@ cdef class CvodeSolver(object):
     def __cinit__(self, spins, rhs_fun, jtimes_fun=None, rtol=1e-8, atol=1e-8):
         self.t = 0
         self.spin = spins
-        self.dm_dt = np.copy(spin)
-        self.y = np.copy(spin)
-        self.mp = np.copy(spin)
-        self.Jmp = np.copy(spin)
+        self.dm_dt = np.copy(spins)
+        self.y = np.copy(spins)
+        self.mp = np.copy(spins)
+        self.Jmp = np.copy(spins)
 
         self.callback_fun = rhs_fun
         self.jtimes_fun= jtimes_fun
