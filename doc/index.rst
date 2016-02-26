@@ -15,6 +15,4 @@ Contents:
    core_eqs
    extended_eqs
    develop
-
-
-
+   ipynb/tutorial-basics

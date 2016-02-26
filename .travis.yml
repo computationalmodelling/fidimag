@@ -19,9 +19,9 @@ install:
 
 before_script:
         - make build
-        - export PYTHONPATH="/home/travis/build/fangohr/fidimag:$PYTHONPATH"
-        - export LD_LIBRARY_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_LIBRARY_PATH"
-        - export LD_RUN_PATH="/home/travis/build/fangohr/fidimag/local/lib:$LD_RUN_PATH"
+        - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
+        - export LD_LIBRARY_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_LIBRARY_PATH"
+        - export LD_RUN_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
         - export MPLBACKEND=Agg
         # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
