@@ -83,16 +83,16 @@ cdef class CvodeSolver(object):
     cdef int max_num_steps
     cdef int has_jtimes
 
-    def __cinit__(self, spin, callback_fun, jtimes_fun=None, rtol=1e-8, atol=1e-8):
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, rtol=1e-8, atol=1e-8):
         self.t = 0
-        self.spin = spin
+        self.spin = spins
         self.dm_dt = np.copy(spin)
         self.y = np.copy(spin)
         self.mp = np.copy(spin)
         self.Jmp = np.copy(spin)
 
-        self.callback_fun = callback_fun
-        self.jtimes_fun=jtimes_fun
+        self.callback_fun = rhs_fun
+        self.jtimes_fun= jtimes_fun
         self.jvn_fun = <void *>cv_jtimes
         self.rhs_fun = <void *>cv_rhs # wrapper for callback_fun (which is a Python function)
 
@@ -108,29 +108,27 @@ cdef class CvodeSolver(object):
         self.cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
         flag = CVodeSetUserData(self.cvode_mem, <void*>&self.user_data);
         self.check_flag(flag,"CVodeSetUserData")
-        self.set_initial_value(spin, self.t, 0)
+        self.cvode_already_initialised = False
+        self.set_initial_value(spins, self.t, 0)
         self.set_options(rtol, atol)
 
     def reset(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
         copy_arr2nv(spin, self.u_y)
         CVodeReInit(self.cvode_mem, t, self.u_y)
 
-    def set_initial_value(self, np.ndarray[double, ndim=1, mode="c"] spin, t, flag_m):
+    def set_initial_value(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
         self.t = t
         self.y[:] = spin[:]
 
         cdef np.ndarray[double, ndim=1, mode="c"] y = self.y
         self.u_y = N_VMake_Serial(y.size, &y[0])
 
-        # We make sure that new memory for the magnetisation data is only allocated
-        # once, by using the `flag_m` variable to signify allocation has already
-        # taken place. If `flag_m` is 1, we use CvodeReInit instead of CvodeInit,
-        # which reuses existing memory.
-        if not flag_m:
+        if self.cvode_already_initialised:
+            flag = CVodeReInit(self.cvode_mem, t, self.u_y)
+            self.check_flag(flag, "CVodeReInit")
+        else:
             flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
             self.check_flag(flag, "CVodeInit")
-        else:
-            flag = CVodeReInit(self.cvode_mem, t, self.u_y)
 
         if self.has_jtimes:  # we will use preconditioning with the Jacobian
             # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
@@ -141,7 +139,7 @@ cdef class CvodeSolver(object):
         else:
             flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
 
-    def set_options(self, rtol, atol, max_num_steps=100000, max_ord=None):
+    def set_tols(self, rtol, atol, max_num_steps=100000, max_ord=None):
         self.rtol = rtol
         self.atol = atol
         self.max_num_steps = max_num_steps
@@ -154,18 +152,22 @@ cdef class CvodeSolver(object):
         # where it speeds up time integration considerably (Fig. 3)
         if max_ord is not None:  # default is 5 for BDF method, 2 is a good alternative value to try
             flag = CVodeSetMaxOrd(self.cvode_mem, max_ord)
+            check_flag(flag, "CVodeSetMaxOrd")
 
         # Set maximum number of iteration steps (?)
         flag = CVodeSetMaxNumSteps(self.cvode_mem, max_num_steps)
-        CVodeReInit(self.cvode_mem, self.t, self.u_y)
+        check_flag(flag, "CVodeSetMaxNumSteps")
+
+        flag = CVodeReInit(self.cvode_mem, self.t, self.u_y)
+        check_flag(flag, "CVodeReInit")
 
     cpdef int run_until(self, double tf) except -1:
         cdef int flag
         cdef double tret
 
         flag = CVodeStep(self.cvode_mem, tf, self.u_y, &tret, CV_NORMAL)
-        self.check_flag(flag,"CVodeStep")
-        self.t = tret  # FIXME: or should this be tf?
+        self.check_flag(flag, "CVodeStep")
+        self.t = tret
         return 0
 
     cdef int psetup(self, realtype t, N_Vector y, N_Vector fy,
@@ -176,8 +178,12 @@ cdef class CvodeSolver(object):
         return 0
 
     def check_flag(self, flag, fun_name):
-        if flag < 0:
-            raise Exception("Run %s failed!"%fun_name)
+        if flag != 0:
+            raise RuntimeError("CVODE function {} failed!".format(fun_name))
+
+    def rhs_evals(self):
+        CVodeGetNumRhsEvals(self.cvode_mem, &self.nfevals);
+        return self.nfevals
 
     def stat(self):
         CVodeGetNumSteps(self.cvode_mem, &self.nsteps);
@@ -191,15 +197,12 @@ cdef class CvodeSolver(object):
         return step
 
     def __repr__(self):
-        s = []
-        s.append("nsteps = %d," % self.nsteps)
-        s.append("nfevals = %d," % self.nfevals)
-        s.append("njevals = %d.\n" % self.njevals)
-
-        return "(%s)" % ("\n".join(s))
+        return "nsteps = {}, nfevals = {}, njevals = {}".format(
+                self.nsteps, self.nfevals, self.njevals)
 
     def __str__(self):
-        return '%s%s' % (self.__class__.__name__, self.__repr__())
+        return "{} ({})".format(self.__class__.__name__,
+                                self.__repr__())
 
     def __dealloc__(self):
         self.user_data.rhs_fun = NULL
@@ -208,6 +211,5 @@ cdef class CvodeSolver(object):
         self.user_data.dm_dt = NULL
         self.user_data.v = NULL
         self.user_data.jv = NULL
-
         N_VDestroy_Serial(self.u_y)
         CVodeFree(&self.cvode_mem)

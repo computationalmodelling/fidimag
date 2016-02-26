@@ -27,7 +27,7 @@ def test_step(integrator, stepsize, debug=False):
     ys[0] = y_true(ts[0])  # known initial value
     
     for i, t in enumerate(ts[:-1]):
-        tp, yp = integrator(t, ys[i], stepsize, f)
+        tp, yp, evals = integrator(t, ys[i], stepsize, f)
         ts[i+1] = tp
         ys[i+1] = yp
     if not debug:
@@ -47,10 +47,9 @@ def test_step_integrator(integrator, stepsize_reported, stepsize_internal):
 
     ys[0] = y_true(ts[0])  # known initial value
 
-    integrator = StepIntegrator(ys[0], f, step="euler")
-    integrator.h = stepsize_internal
+    integrator = StepIntegrator(ys[0], f, step="euler", stepsize=stepsize_internal)
     for i, t in enumerate(ts[1:]):
-        assert integrator.run_until(t) == 0
+        integrator.run_until(t)
         ts[i+1] = integrator.t
         ys[i+1] = integrator.y
     assert 85 < ys[-1] < 100
@@ -78,7 +77,7 @@ def test_scipy_integrator():
 
 
     print len(od.internal_timesteps)
-    print od.steps
+    print od.rhs_evals
     return y_true, ts, ys, od.internal_timesteps
 
 
