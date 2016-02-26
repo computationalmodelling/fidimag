@@ -27,7 +27,7 @@ download_and_install() {
     fi;
 
     if [ ! -e ${1} ]; then
-        tar -xvzf ${1}.tar.gz
+        tar -xzf ${1}.tar.gz
         cd ${1}
         ./configure --enable-shared --prefix=${LIBS_DIR} $3
         echo "Making and installing "${1}"."
