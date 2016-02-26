@@ -29,7 +29,7 @@ download_and_install() {
     if [ ! -e ${1} ]; then
         tar -xzf ${1}.tar.gz
         cd ${1}
-        ./configure --enable-shared --prefix=${LIBS_DIR} $3
+        ./configure --quiet --enable-shared --prefix=${LIBS_DIR} $3
         echo "Making and installing "${1}"."
         {
             make
