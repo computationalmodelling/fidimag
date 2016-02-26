@@ -172,9 +172,9 @@ def runge_kutta_step(t, y, h, f):
     return tp, yp
 
 
-class ScipyIntegrator(StepIntegrator):
+class ScipyIntegrator(object):
     def __init__(self, spins, rhs):
-        self.spins = spins
+        self.y = spins
         self.t = 0
         self.h = 0
         self.steps = 0
