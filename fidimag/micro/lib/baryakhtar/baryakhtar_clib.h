@@ -18,9 +18,9 @@ void compute_perp_field_c(double *m, double *field, double *field_p, int n);
 
 void llg_rhs_baryakhtar(double *dm_dt, double *m, double *h, double *delta_h,
 		double *alpha, double beta, int *pins,
-		double gamma, int nxyz, int do_procession);
+		double gamma, int nxyz, int do_precession);
 
 
 void llg_rhs_baryakhtar_reduced(double *dm_dt, double *m, double *hp, double *delta_hp,
                                 double *alpha, double beta, int *pins,
-                                double gamma, int nxyz, int do_procession, double default_c);
+                                double gamma, int nxyz, int do_precession, double default_c);

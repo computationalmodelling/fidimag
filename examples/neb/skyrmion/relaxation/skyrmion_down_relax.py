@@ -64,7 +64,7 @@ sim = Sim(mesh, name='skyrmion_down')
 sim.Ms = cylinder
 
 # To get a faster relaxation, we tune the LLG equation parameters
-sim.do_procession = False
+sim.do_precession = False
 sim.alpha = 0.5
 
 # Initial magnetisation:

@@ -22,9 +22,9 @@ def m_init_dw(pos):
 
 def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
 
-    delta = np.sqrt(A / (K - D * D / (4 * A))) 
+    delta = np.sqrt(A / (K - D * D / (4 * A)))
 
-    phi = D / (2 * A) * xs 
+    phi = D / (2 * A) * xs
 
     mx = - np.tanh(xs / delta)
     my = 1.0 / np.cosh(xs / delta) * np.cos(phi)
@@ -39,7 +39,7 @@ def test_dw_dmi_atomistic(do_plot=False):
     sim.set_default_options(gamma=const.gamma)
     sim.alpha = 0.5
     sim.mu_s = const.mu_s_1
-    sim.do_procession = False
+    sim.do_precession = False
 
     sim.set_m(m_init_dw)
 

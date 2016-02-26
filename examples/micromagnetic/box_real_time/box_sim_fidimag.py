@@ -286,7 +286,7 @@ sim.alpha = args.alpha
 # sim.gamma = 2.211e5
 
 if args.no_precession:
-    sim.do_procession = False
+    sim.do_precession = False
 
 # Material parameters -----------------------------------------------------
 
@@ -377,7 +377,7 @@ if args.preview:
     coords = np.array(sim.mesh.pos)
     # Now we copy the magnetisation to not modify the simulation object
     m = np.copy(sim.spin)
-    # Reshape and transpose to get an array 
+    # Reshape and transpose to get an array
     # with [mx, my, mz] elements (matrix)
     m = m.reshape(3, -1).T
     # We will filter the data and show only the TOP layer of the mesh
@@ -450,7 +450,7 @@ if args.preview:
         # reshape rows, transpose and filter according to top layer
         m = m.reshape(3, -1).T[top_z]
         quiv.set_UVC(m[:, 0], m[:, 1], m[:, 2])
-        
+
         # Update title
         ttime.set_text('Time: {:.4f} ns'.format(time * 1e9))
         tenergy.set_text('Energy: {:.6e} ns'.format(sim.compute_energy()))
@@ -460,7 +460,7 @@ if args.preview:
 
 else:
     # Fidimag automatically saves the last state
-    sim.do_procession = False
+    sim.do_precession = False
     sim.relax(dt=1e-13, stopping_dmdt=args.stopping_dmdt,
               max_steps=args.max_steps,
               save_m_steps=args.save_files,

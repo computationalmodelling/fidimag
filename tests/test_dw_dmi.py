@@ -66,7 +66,7 @@ def test_dw_dmi(mesh=mesh, do_plot=False):
     sim.set_tols(rtol=1e-8, atol=1e-12)
     sim.Ms = Ms
     sim.alpha = 0.5
-    sim.do_procession = False
+    sim.do_precession = False
 
     A = 1.3e-11
     D = 4e-4

@@ -32,7 +32,7 @@ def test_skx_num():
 
     sim.set_m(init_m)
 
-    sim.do_procession = False
+    sim.do_precession = False
 
     J = 1.0
     exch = UniformExchange(J)
