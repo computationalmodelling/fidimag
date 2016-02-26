@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get -qq install xvfb  # virtual X display for tests that need a display
 
 install:
-  - conda create -y -n fidimag-test cython matplotlib pytest mayavi scipy
+  - conda create -q -y -n fidimag-test cython matplotlib pytest mayavi scipy
   - source activate fidimag-test
   # Download and compile FFTW & Sundials locally
   - bash bin/install.sh
