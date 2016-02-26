@@ -7,9 +7,8 @@ before_install:
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda2/bin:$PATH
-  # XVFB for running tests in virtual X display
-  - sudo apt-get update
-  - sudo apt-get install xvfb
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install xvfb  # virtual X display for tests that need a display
 
 install:
   - conda create -y -n fidimag-test cython matplotlib pytest mayavi scipy

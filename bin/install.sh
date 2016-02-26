@@ -23,21 +23,25 @@ download_and_install() {
     # $3 configure options
     if [ ! -e ${1}.tar.gz ]; then
         echo "Downloading "${1}"."
-        wget ${2}/${1}.tar.gz
+        wget -q ${2}/${1}.tar.gz
     fi;
 
     if [ ! -e ${1} ]; then
-        tar -xvzf ${1}.tar.gz
+        tar -xzf ${1}.tar.gz
         cd ${1}
-        ./configure --enable-shared --prefix=${LIBS_DIR} $3
-        make
-        make install
+        echo "Configuring "${1}"."
+        ./configure --quiet --enable-shared --prefix=${LIBS_DIR} $3
+        echo "Compiling and installing "${1}"."
+        {
+            make
+            make install
+        } > /dev/null
+        echo "Done."
         cd ${LIBS_DIR}
     fi;
 }
 
 download_and_install ${SUNDIALS} http://ftp.mcs.anl.gov/pub/petsc/externalpackages --disable-lapack
 download_and_install ${FFTW} http://ftp.mcs.anl.gov/pub/petsc/externalpackages --enable-openmp
-#download_and_install ${FFTW} http://www.fftw.org --enable-openmp
 
 echo "Installation succesful."

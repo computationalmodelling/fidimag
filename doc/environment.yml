@@ -1,0 +1,12 @@
+# name of the conda environment
+name: fidimag_docs
+
+# add channel for pandoc
+channels:
+  - asmeurer
+
+dependencies:
+  - pandoc
+  - nbformat
+  - pip:
+      - nbsphinx
