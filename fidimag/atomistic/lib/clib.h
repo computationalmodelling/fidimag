@@ -1,6 +1,6 @@
 #ifndef __CLIB__
 #define __CLIB__
-#endif
+
 #include<math.h>
 #include<complex.h>
 #include<fftw3.h>
@@ -111,3 +111,5 @@ void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T,
 
 void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T,
 		double *alpha, double *mu_s_inv, int *pins);
+
+#endif
