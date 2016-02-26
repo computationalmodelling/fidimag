@@ -23,7 +23,7 @@ download_and_install() {
     # $3 configure options
     if [ ! -e ${1}.tar.gz ]; then
         echo "Downloading "${1}"."
-        wget ${2}/${1}.tar.gz
+        wget -q ${2}/${1}.tar.gz
     fi;
 
     if [ ! -e ${1} ]; then
