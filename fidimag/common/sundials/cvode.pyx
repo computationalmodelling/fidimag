@@ -152,14 +152,14 @@ cdef class CvodeSolver(object):
         # where it speeds up time integration considerably (Fig. 3)
         if max_ord is not None:  # default is 5 for BDF method, 2 is a good alternative value to try
             flag = CVodeSetMaxOrd(self.cvode_mem, max_ord)
-            check_flag(flag, "CVodeSetMaxOrd")
+            self.check_flag(flag, "CVodeSetMaxOrd")
 
         # Set maximum number of iteration steps (?)
         flag = CVodeSetMaxNumSteps(self.cvode_mem, max_num_steps)
-        check_flag(flag, "CVodeSetMaxNumSteps")
+        self.check_flag(flag, "CVodeSetMaxNumSteps")
 
         flag = CVodeReInit(self.cvode_mem, self.t, self.u_y)
-        check_flag(flag, "CVodeReInit")
+        self.check_flag(flag, "CVodeReInit")
 
     cpdef int run_until(self, double tf) except -1:
         cdef int flag
