@@ -68,6 +68,7 @@ cdef class CvodeSolver(object):
     cdef public double t
     cdef public np.ndarray y
     cdef double rtol, atol
+    cdef int cvode_already_initialised
     cdef np.ndarray spin
     cdef np.ndarray dm_dt
     cdef np.ndarray mp
@@ -106,10 +107,13 @@ cdef class CvodeSolver(object):
                                      <void *>self.mp,<void *>self.Jmp)
 
         self.cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+
         flag = CVodeSetUserData(self.cvode_mem, <void*>&self.user_data);
         self.check_flag(flag,"CVodeSetUserData")
-        self.cvode_already_initialised = False
-        self.set_initial_value(spins, self.t, 0)
+
+
+        self.cvode_already_initialised = 0
+        self.set_initial_value(spins, self.t)
         self.set_options(rtol, atol)
 
     def reset(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
