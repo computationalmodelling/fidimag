@@ -1,6 +1,9 @@
+#ifndef __LLG_RANDOM__
+#define __LLG_RANDOM__
+
 #include <stdlib.h>  // rand(), srand()
 #include <time.h>    // time()
-
+#include <math.h>
 #define MT19937_N		624
 #define MT19937_M		397
 #define MT19937_INIT_MULT	0x6c078965U
@@ -140,3 +143,5 @@ void gauss_random_vec_with_init(double *x, int n) {
 	gauss_random_vec(x,n);
 
 }
+
+#endif
