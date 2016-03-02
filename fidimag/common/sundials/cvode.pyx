@@ -133,6 +133,7 @@ cdef class CvodeSolver(object):
         else:
             flag = CVodeInit(self.cvode_mem, <CVRhsFn>self.rhs_fun, t, self.u_y)
             self.check_flag(flag, "CVodeInit")
+            self.cvode_already_initialised = 1
 
         if self.has_jtimes:  # we will use preconditioning with the Jacobian
             # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
