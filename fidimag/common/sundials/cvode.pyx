@@ -114,7 +114,7 @@ cdef class CvodeSolver(object):
 
         self.cvode_already_initialised = 0
         self.set_initial_value(spins, self.t)
-        self.set_options(rtol, atol)
+        self.set_tols(rtol, atol)
 
     def reset(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
         copy_arr2nv(spin, self.u_y)
