@@ -107,7 +107,7 @@ class LLG(object):
                 self.spin[i, :] = 0
         self.spin.shape = (-1,)
 
-        self.vode.set_initial_value(self.spin, self.t, self.flag_m)
+        self.vode.set_initial_value(self.spin, self.t)
 
         if not self.flag_m:
             self.flag_m = 1
