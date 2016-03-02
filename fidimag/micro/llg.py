@@ -70,7 +70,7 @@ class LLG(object):
 
         self.saver.entities['rhs_evals'] = {
             'unit': '<>',
-            'get': lambda sim: self.integrator.rhs_evals,
+            'get': lambda sim: self.integrator.rhs_evals(),
             'header': 'rhs_evals'}
 
         self.saver.entities['real_time'] = {
