@@ -114,7 +114,7 @@ cdef class CvodeSolver(object):
 
         self.cvode_already_initialised = 0
         self.set_initial_value(spins, self.t)
-        self.set_tols(rtol, atol)
+        self.set_options(rtol, atol)
 
     def reset(self, np.ndarray[double, ndim=1, mode="c"] spin, t):
         copy_arr2nv(spin, self.u_y)
@@ -144,7 +144,7 @@ cdef class CvodeSolver(object):
         else:
             flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
 
-    def set_tols(self, rtol, atol, max_num_steps=100000, max_ord=None):
+    def set_options(self, rtol, atol, max_num_steps=100000, max_ord=None):
         self.rtol = rtol
         self.atol = atol
         self.max_num_steps = max_num_steps
