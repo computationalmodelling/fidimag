@@ -101,7 +101,7 @@ def test_prb88_184422():
 
     ovf = OMF2(omf_file)
     m_oommf = ovf.get_all_mags()
-    assert max(abs(m_oommf / Ms - m)) < 5e-7
+    assert max(abs(m_oommf / Ms - m)) < 3e-6
 
 if __name__ == '__main__':
     test_prb88_184422()
