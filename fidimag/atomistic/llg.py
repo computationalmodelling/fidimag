@@ -88,7 +88,7 @@ class LLG(object):
         self._alpha[:] = alpha
         self._mu_s[:] = mu_s
         self.gamma = gamma
-        self.do_procession = True
+        self.do_precession = True
 
     def set_tols(self, rtol=1e-8, atol=1e-10):
         self.vode.set_options(rtol, atol)
@@ -246,7 +246,7 @@ class LLG(object):
                              self._pins,
                              self.gamma,
                              self.n,
-                             self.do_procession,
+                             self.do_precession,
                              self.default_c)
 
         #ydot[:] = self.dm_dt[:]
@@ -265,7 +265,7 @@ class LLG(object):
                                 self._pins,
                                 self.gamma,
                                 self.n,
-                                self.do_procession,
+                                self.do_precession,
                                 self.default_c)
 
         return 0

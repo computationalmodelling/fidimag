@@ -49,7 +49,7 @@ def relax_system(mesh, Hy=0):
     sim.gamma = 1.0
     sim.mu_s = 1.0
 
-    sim.do_procession = False
+    sim.do_precession = False
 
     sim.set_m(init_m)
     #sim.set_m(random_m)
@@ -109,7 +109,3 @@ if __name__=='__main__':
 
 	relax_system(global_mesh)
 	excite_system(global_mesh)
-
-
-
-

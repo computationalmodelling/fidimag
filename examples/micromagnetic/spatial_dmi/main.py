@@ -33,7 +33,7 @@ sim.set_tols(rtol=1e-6, atol=1e-6)
 sim.alpha = 0.5
 sim.gamma = 2.211e5
 sim.Ms = 8.6e5
-sim.do_procession = False
+sim.do_precession = False
 
 # Set magnetisation and add energies.
 sim.set_m(m_init)

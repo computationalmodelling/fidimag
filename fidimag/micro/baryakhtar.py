@@ -35,7 +35,7 @@ class LLBarFull(LLG):
                                         self._pins,
                                         self.gamma,
                                         self.n,
-                                        self.do_procession)
+                                        self.do_precession)
 
         #ydot[:] = self.dm_dt[:]
 
@@ -74,7 +74,7 @@ class LLBar(LLG):
                                                 self._pins,
                                                 self.gamma,
                                                 self.n,
-                                                self.do_procession,
+                                                self.do_precession,
                                                 self.default_c)
 
         #ydot[:] = self.dm_dt[:]

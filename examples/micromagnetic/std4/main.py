@@ -32,7 +32,7 @@ def relax_system(mesh):
     sim.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.0e5
-    sim.do_procession = False
+    sim.do_precession = False
 
     sim.set_m((1, 0.25, 0.1))
     # sim.set_m(np.load('m0.npy'))

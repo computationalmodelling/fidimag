@@ -92,7 +92,7 @@ class LLG(object):
         self._alpha[:] = alpha
         self._Ms[:] = Ms
         self.gamma = gamma
-        self.do_procession = True
+        self.do_precession = True
 
     def reset_integrator(self, t=0):
         self.integrator.reset(self.spin, t)
@@ -242,7 +242,7 @@ class LLG(object):
                              self._pins,
                              self.gamma,
                              self.n,
-                             self.do_procession,
+                             self.do_precession,
                              self.default_c)
 
         #ydot[:] = self.dm_dt[:]
@@ -259,7 +259,7 @@ class LLG(object):
                              self._pins,
                              self.gamma,
                              self.n,
-                             self.do_procession,
+                             self.do_precession,
                              self.default_c)
         return self.dm_dt
 
