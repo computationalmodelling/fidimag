@@ -31,6 +31,14 @@ cdef inline copy_nv2arr(N_Vector v, np.ndarray[realtype, ndim=1, mode='c'] np_x)
     return 0
 
 
+cdef copy_nv2nv(N_Vector v_dest, N_Vector v_src):
+    cdef size_t n = (<N_VectorContent_Serial>v_dest.content).length
+    cdef realtype *v_dest_data = (<N_VectorContent_Serial>v_dest.content).data
+    cdef realtype *v_src_data = (<N_VectorContent_Serial>v_src.content).data
+    memcpy(v_dest_data, v_src_data, n * sizeof(realtype))
+    return 0;
+
+
 cdef int cv_rhs(realtype t, N_Vector yv, N_Vector yvdot, void* user_data) except -1:
     cdef cv_userdata *ud = <cv_userdata *>user_data
     cdef np.ndarray[realtype, ndim=1, mode='c'] y_arr= <np.ndarray[realtype, ndim=1, mode='c']>ud.y
@@ -60,7 +68,7 @@ cdef int cv_jtimes(N_Vector v, N_Vector Jv, realtype t, N_Vector y, N_Vector fy,
 cdef int psolve(realtype t, N_Vector y, N_Vector fy,
                 N_Vector r, N_Vector z, realtype gamma, realtype delta, int lr,
                 void *user_data, N_Vector tmp):
-    z[:] = r
+    copy_nv2nv(z, r)
     return 0
 
 
@@ -110,7 +118,6 @@ cdef class CvodeSolver(object):
 
         flag = CVodeSetUserData(self.cvode_mem, <void*>&self.user_data);
         self.check_flag(flag,"CVodeSetUserData")
-
 
         self.cvode_already_initialised = 0
         self.set_initial_value(spins, self.t)
@@ -169,7 +176,6 @@ cdef class CvodeSolver(object):
     cpdef int run_until(self, double tf) except -1:
         cdef int flag
         cdef double tret
-
         flag = CVodeStep(self.cvode_mem, tf, self.u_y, &tret, CV_NORMAL)
         self.check_flag(flag, "CVodeStep")
         self.t = tret
