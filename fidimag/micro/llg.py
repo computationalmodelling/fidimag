@@ -15,7 +15,7 @@ const = Constant()
 
 class LLG(object):
 
-    def __init__(self, mesh, name='unnamed', integrator='sundials'):
+    def __init__(self, mesh, name='unnamed', integrator='sundials', use_jac=False):
         """Simulation object.
 
         *Arguments*
@@ -43,7 +43,9 @@ class LLG(object):
         self.integrator_tolerances_set = False
         self.step = 0
 
-        if integrator == "sundials":
+        if integrator == "sundials" and use_jac:
+            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
+        elif integrator == "sundials":
             self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs, self.sundials_jtimes)
         elif integrator == "euler" or integrator == "rk4":
             self.integrator = StepIntegrator(self.spin, self.step_rhs, integrator)
