@@ -12,10 +12,15 @@ class UniformExchange(Energy):
     def __init__(self, A, name='exch'):
         self.A = A
         self.name = name
+        self.jac = True
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
 
-        micro_clib.compute_exchange_field_micro(self.spin,
+        micro_clib.compute_exchange_field_micro(m,
                                                 self.field,
                                                 self.energy,
                                                 self.Ms_inv,

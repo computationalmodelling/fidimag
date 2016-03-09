@@ -19,6 +19,7 @@ class Zeeman(object):
                              .format(H0))
         self.H0 = H0
         self.name = name
+        self.jac = False
 
     def setup(self, mesh, spin, Ms):
         self.mesh = mesh
@@ -41,7 +42,7 @@ class Zeeman(object):
         self.H0 = H0
         self.field[:] = helper.init_vector(self.H0, self.mesh)
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
         return self.field
 
     def average_field(self):
@@ -74,11 +75,12 @@ class TimeZeeman(Zeeman):
         self.H0 = H0
         self.time_fun = time_fun
         self.name = name
+        self.jac = True
 
     def setup(self, mesh, spin, Ms):
         super(TimeZeeman, self).setup(mesh, spin, Ms)
         self.H_init = self.field.copy()
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
         self.field[:] = self.H_init[:] * self.time_fun(t)
         return self.field

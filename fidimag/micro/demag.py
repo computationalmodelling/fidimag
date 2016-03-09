@@ -19,6 +19,7 @@ class Demag(object):
         self.oommf = True
         self.pbc_2d = pbc_2d
         self.pbc_options = pbc_options
+        self.jac = False
 
     def setup(self, mesh, spin, Ms):
         self.mesh = mesh
@@ -92,9 +93,13 @@ class Demag(object):
 
 
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
 
-        self.demag.compute_field(self.spin, self.Ms, self.field)
+        self.demag.compute_field(m, self.Ms, self.field)
 
         return self.field
 
