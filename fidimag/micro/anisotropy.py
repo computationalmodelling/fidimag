@@ -14,6 +14,7 @@ class UniaxialAnisotropy(Energy):
     def __init__(self, Ku, axis=(1, 0, 0), name='anis'):
         self.Ku = Ku
         self.name = name
+        self.jac = True
         self.axis = axis
 
     def setup(self, mesh, spin, Ms):

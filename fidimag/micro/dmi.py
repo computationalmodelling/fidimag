@@ -18,6 +18,7 @@ class DMI(Energy):
         """
         self.D = D
         self.name = name
+        self.jac = True
         self.type = type
 
     def setup(self, mesh, spin, Ms):
