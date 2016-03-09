@@ -23,7 +23,6 @@ class LLG(object):
           name : the Simulation name (used for writing data files, for examples)
 
         """
-
         self.t = 0
         self.name = name
         self.mesh = mesh
@@ -45,7 +44,7 @@ class LLG(object):
         self.step = 0
 
         if integrator == "sundials":
-            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
+            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs, self.sundials_jtimes)
         elif integrator == "euler" or integrator == "rk4":
             self.integrator = StepIntegrator(self.spin, self.step_rhs, integrator)
         else:
@@ -226,6 +225,12 @@ class LLG(object):
         for obj in self.interactions:
             self.field += obj.compute_field(t)
 
+    def compute_effective_field_jac(self, t, spin):
+        self.field[:] = 0
+        for obj in self.interactions:
+            if obj.jac:
+                self.field += obj.compute_field(t, spin=spin)
+
     def sundials_rhs(self, t, y, ydot):
 
         self.t = t
@@ -247,6 +252,19 @@ class LLG(object):
 
         #ydot[:] = self.dm_dt[:]
 
+        return 0
+
+    def sundials_jtimes(self, mp, Jmp, t, m, fy):
+        self.compute_effective_field_jac(t, mp)
+        clib.compute_llg_jtimes(Jmp,
+                                m, fy,
+                                mp, self.field,
+                                self.alpha,
+                                self._pins,
+                                self.gamma,
+                                self.n,
+                                self.do_precession,
+                                self.default_c)
         return 0
 
     def step_rhs(self, t, y):
