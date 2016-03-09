@@ -26,9 +26,14 @@ class DMI(Energy):
         self.Ds = np.zeros(self.n, dtype=np.float)
         self.Ds[:] = helper.init_scalar(self.D, self.mesh)
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+
         if self.type == 'bulk':
-            micro_clib.compute_dmi_field_bulk(self.spin,
+            micro_clib.compute_dmi_field_bulk(m,
                                               self.field,
                                               self.energy,
                                               self.Ms_inv,
@@ -41,7 +46,7 @@ class DMI(Energy):
                                               )
 
         elif self.type == 'interfacial':
-            micro_clib.compute_dmi_field_interfacial(self.spin,
+            micro_clib.compute_dmi_field_interfacial(m,
                                                      self.field,
                                                      self.energy,
                                                      self.Ms_inv,

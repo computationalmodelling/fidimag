@@ -23,8 +23,12 @@ class UniaxialAnisotropy(Energy):
         self._Ku = helper.init_scalar(self.Ku, self.mesh)
         self._axis = helper.init_vector(self.axis, self.mesh, True)
 
-    def compute_field(self, t=0):
-        micro_clib.compute_anisotropy_micro(self.spin,
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+        micro_clib.compute_anisotropy_micro(m,
                                             self.field,
                                             self.energy,
                                             self.Ms_inv,
