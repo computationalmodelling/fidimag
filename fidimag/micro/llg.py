@@ -44,9 +44,9 @@ class LLG(object):
         self.step = 0
 
         if integrator == "sundials" and use_jac:
-            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
-        elif integrator == "sundials":
             self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs, self.sundials_jtimes)
+        elif integrator == "sundials":
+            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
             self.integrator = StepIntegrator(self.spin, self.step_rhs, integrator)
         else:
