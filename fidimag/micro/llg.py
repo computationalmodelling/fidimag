@@ -209,7 +209,7 @@ class LLG(object):
 
         flag = self.integrator.run_until(t)
         if flag < 0:
-            raise Exception("Run cython run_until failed!!!")
+            raise Exception("Run run_until failed!!!")
 
         self.spin[:] = self.integrator.y[:]
         self.t = t
