@@ -13,10 +13,16 @@ class BaseIntegrator(object):
         self.y = spins
         self.t = 0
         self.rhs = rhs_fun
-        self.rhs_evals = 0
+        self.rhs_evals_nb = 0
 
     def run_until(self, t):
         pass
+
+    def set_initial_value(self, spins, t):
+        pass
+
+    def rhs_evals(self):
+        return self.rhs_evals_nb
 
 
 class StepIntegrator(BaseIntegrator):
@@ -32,9 +38,10 @@ class StepIntegrator(BaseIntegrator):
         while abs(self.t - t) > EPSILON:
             print self.t
             self.t, self.y, evals = self.step(self.t, self.y, self.stepsize, self.rhs)
-            self.rhs_evals += evals
+            self.rhs_evals_nb += evals
             if self.t > t:
                 break
+        return 0
 
 
 class ScipyIntegrator(BaseIntegrator):
@@ -44,7 +51,7 @@ class ScipyIntegrator(BaseIntegrator):
         self.internal_timesteps = [0]
 
         def rhs_wrap(y, t):
-            self.rhs_evals += 1
+            self.rhs_evals_nb += 1
             return rhs_fun(y, t)
         self.rhs = rhs_wrap  # overwriting rhs to count evals
 
@@ -72,6 +79,7 @@ class ScipyIntegrator(BaseIntegrator):
             raise RuntimeError("integration with ode unsuccessful")
         self.y[:] = r
         self.t = t
+        return 0
 
 
 def euler_step(t, y, h, f):
