@@ -19,6 +19,8 @@ cdef extern from "clib.h":
     void compute_exch_field(double *spin, double *field, double *energy,
                             double Jx, double Jy, double Jz,
                             int *ngbs, int n)
+    void compute_exch_field_spatial(double *spin, double *field, double *energy,
+                            double *J, int *ngbs, int n)
 
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
                                int nx, int ny, int nz,
@@ -133,6 +135,16 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
     compute_exch_field(&spin[0], &field[0], &energy[0],
 		       Jx, Jy, Jz,
                        &ngbs[0, 0], n)
+
+def compute_exchange_field_spatial(np.ndarray[double, ndim=1, mode="c"] spin,
+                            np.ndarray[double, ndim=1, mode="c"] field,
+                            np.ndarray[double, ndim=1, mode="c"] energy,
+                            np.ndarray[double, ndim=2, mode="c"] J,
+                            np.ndarray[int, ndim=2, mode="c"] ngbs,
+                            n):
+
+    compute_exch_field_spatial(&spin[0], &field[0], &energy[0],&J[0,0],&ngbs[0, 0], n)
+
 
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                             Jx, Jy, Jz, nx, ny, nz, xperiodic,yperiodic):

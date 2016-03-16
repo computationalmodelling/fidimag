@@ -20,6 +20,10 @@ void compute_exch_field(double *spin, double *field, double *energy,
 						double Jx, double Jy, double Jz,
                         int *ngbs, int n);
 
+
+void compute_exch_field_spatial(double *spin, double *field, double *energy,double *J,
+                        int *ngbs, int n);
+
 double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
                            int nx, int ny, int nz,
                            int xperiodic, int yperiodic);

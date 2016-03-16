@@ -1,5 +1,5 @@
 from sim import Sim
-from exchange import UniformExchange
+from exchange import UniformExchange, Exchange
 from anisotropy import Anisotropy
 from zeeman import Zeeman, TimeZeeman
 from demag import Demag
