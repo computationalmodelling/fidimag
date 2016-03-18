@@ -34,6 +34,7 @@ class VTK(object):
         if not os.path.isdir(self.directory):
             os.makedirs(self.directory)
 
-        filename = "{}_{:06}".format(self.filename, step)
+        filename = "{}_{:06}".format(self.filename, step) + ".vtk"
         path = os.path.join(self.directory, filename)
         self.vtk_data.tofile(path)
+        return path
