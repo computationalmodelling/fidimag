@@ -12,17 +12,16 @@ class VTK(object):
 
         if isinstance(mesh, HexagonalMesh):
             structure = pyvtk.PolyData(points=mesh.vertices, polygons=mesh.hexagons)
-            self.vtk_data = pyvtk.VtkData(structure, header)
         elif isinstance(mesh, CuboidMesh):
             # for keyword argument dimensions: if the mesh is made up of
             # nx * ny * nz cells, it has (nx + 1) * (ny + 1) * (nz + 1)
             # vertices.
             structure = pyvtk.RectilinearGrid(* mesh.grid)
-            self.vtk_data = pyvtk.VtkData(structure, header)
         else:
             raise NotImplementedError(
                     "Mesh should be CuboidMesh or HexagonalMesh, is {}.".format(
                         mesh.__class__.__name__))
+        self.vtk_data = pyvtk.VtkData(structure, header)
 
     def save_scalar(self, s, name="my_field", step=0):
         self.vtk_data.cell_data.append(pyvtk.Scalars(s, name))
