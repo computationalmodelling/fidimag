@@ -88,17 +88,12 @@ class CuboidMesh(object):
 
     def init_grid(self, origin=(0, 0, 0)):
         """
-        Compute the coordinates of the points which make up the grid.
+        Compute the coordinates for each of the axes.
 
         """
-        grid = np.zeros(((self.nx + 1) * (self.ny + 1) * (self.nz + 1), 3))
-        i = 0
-        for z in origin[2] + np.linspace(0, self.Lz, self.nz + 1):
-            for y in origin[1] + np.linspace(0, self.Ly, self.ny + 1):
-                for x in origin[0] + np.linspace(0, self.Lx, self.nx + 1):
-                    grid[i] = (x, y, z)
-                    i += 1
-        return grid
+        return (origin[0] + np.linspace(0, self.Lx, self.nx + 1),
+                origin[1] + np.linspace(0, self.Ly, self.ny + 1),
+                origin[2] + np.linspace(0, self.Lz, self.nz + 1))
 
     def init_neighbours(self):
         # array will have entry set to -1 for nonexisting neighbours
@@ -187,3 +182,18 @@ class CuboidMesh(object):
 
         """
         return (self.n, 3)
+
+    def vertices(self, origin=(0, 0, 0)):
+        """
+        Compute the coordinates of all vertices.
+
+        """
+        grid = np.zeros(((self.nx + 1) * (self.ny + 1) * (self.nz + 1), 3))
+        i = 0
+        axes = self.axes(origin)
+        for z in axes[2]:
+            for y in axes[1]:
+                for x in axes[0]:
+                    grid[i] = (x, y, z)
+                    i += 1
+        return grid

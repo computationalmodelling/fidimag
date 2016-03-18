@@ -13,6 +13,7 @@ before_install:
 install:
   - conda create -q -y -n fidimag-test cython matplotlib pytest mayavi scipy
   - source activate fidimag-test
+  - pip install pyvtk
   # Download and compile FFTW & Sundials locally
   - bash bin/install.sh
 
