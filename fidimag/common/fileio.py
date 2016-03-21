@@ -1,6 +1,5 @@
 import os
 import numpy as np
-from types import TupleType, StringType, NoneType
 import re  # For cvode RHS output
 
 
@@ -90,7 +89,7 @@ class DataSaver(object):
 
                 elif isinstance(value, float) or isinstance(value, int):
                     f.write(self.float_format % value)
-                elif isinstance(value, NoneType):
+                elif value is None:
                     #f.write(self.string_format % value)
                     f.write(self.string_format % "nan")
                 else:
@@ -162,9 +161,9 @@ class DataReader(object):
         then a 2D numpy array is returned where the columns represent
         the data for the entities.
         """
-        if isinstance(entity, StringType):
+        if isinstance(entity, str):
             res = self.datadic[entity]
-        elif isinstance(entity, TupleType):
+        elif isinstance(entity, tuple):
             res = [self.datadic[e] for e in entity]
         else:
             raise TypeError("'entity' must be a string or a tuple. "
