@@ -36,7 +36,7 @@ class DataSaver(object):
         self.entity_order = self.default_entity_order()
 
     def default_entity_order(self):
-        keys = self.entities.keys()
+        keys = set(self.entities.keys())
         # time needs to go first
         if 'time' in keys:
             keys.remove('time')
@@ -45,7 +45,7 @@ class DataSaver(object):
             keys.remove('step')
             return ['step'] + sorted(keys)
         else:
-            return keys
+            return list(keys)
 
     def update_entity_order(self):
         self.entity_order = self.default_entity_order()

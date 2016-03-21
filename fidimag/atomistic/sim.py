@@ -13,9 +13,8 @@ def Sim(*args, **kwargs):
 
     driver = 'llg'
 
-    if kwargs.has_key('driver'):
-        driver = kwargs['driver']
-        kwargs.pop('driver')
+    if 'driver' in kwargs:
+        driver = kwargs.pop('driver')
 
     if driver not in KNOWN_DRIVERS:
         raise NotImplementedError("""Driver '{}' is not implemented.
