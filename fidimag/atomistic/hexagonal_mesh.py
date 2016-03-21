@@ -41,6 +41,8 @@ Coordinates a
 import numpy as np
 from math import sqrt
 
+from six.moves import range
+
 
 class HexagonalMesh(object):
     def __init__(self, radius, nx, ny,
@@ -109,8 +111,8 @@ class HexagonalMesh(object):
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
-        for j in xrange(self.ny):
-            for i in xrange(self.nx):
+        for j in range(self.ny):
+            for i in range(self.nx):
                 index = self.index(i, j)
                 # For a diagonal alignment, the hexagons are shifted
                 # in their x-position by dx * 0.5, on every row
@@ -138,8 +140,8 @@ class HexagonalMesh(object):
 
     def init_neighbours(self):
         connectivity = []
-        for j in xrange(self.ny):
-            for i in xrange(self.nx):
+        for j in range(self.ny):
+            for i in range(self.nx):
                 cell = self._index(i, j)
                 # there can be periodicity along x and y axes, but not
                 # along the third cubic axis (would be z), hence, we use
@@ -188,8 +190,8 @@ class HexagonalMesh(object):
         vertex_counter = 0
         vertices = []  # list of tuples of coordinates
         hexagons = []  # list of tuples of vertices
-        for j in xrange(self.ny):
-            for i in xrange(self.nx):
+        for j in range(self.ny):
+            for i in range(self.nx):
                 index = self._index(i, j)
                 x, y = self.coordinates[index][0], self.coordinates[index][1]
                 # self.radius is the inradius while self.h/2  is the circumradius
@@ -337,7 +339,7 @@ class HexagonalMesh(object):
         center at `x`, `y` and radius `radius`.
 
         """
-        angle_deg = [60 * i + 30 for i in xrange(6)]
+        angle_deg = [60 * i + 30 for i in range(6)]
         angle_rad = [a * np.pi / 180 for a in angle_deg]
         return [(x + radius * np.cos(theta),
                  y + radius * np.sin(theta),
