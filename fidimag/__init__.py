@@ -5,9 +5,9 @@ except ImportError as e:
     cwd = os.getcwd()
     FIDIMAG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(FIDIMAG_DIR)
-    print "Could not find fidimag extensions. Trying to build them now..."
+    print("Could not find fidimag extensions. Trying to build them now...")
     os.system("make build")
-    print "Building extensions done."
+    print("Building extensions done.")
     os.chdir(cwd)
 from . import common
 from . import atomistic

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 
 
@@ -39,13 +40,13 @@ class Nickel(object):
 
 if __name__ == '__main__':
     ni = Nickel()
-    print ni.K
-    print 'gamma', ni.gamma
-    print 'mu_s', ni.mu_s
-    print 'J', ni.J
-    print 'D', ni.D
-    print 'D/J:', ni.D / ni.J
+    print(ni.K)
+    print('gamma', ni.gamma)
+    print('mu_s', ni.mu_s)
+    print('J', ni.J)
+    print('D', ni.D)
+    print('D/J:', ni.D / ni.J)
 
     K = 1e5 * ni.a**3
-    print K
-    print (ni.J / K)**0.5
+    print(K)
+    print((ni.J / K)**0.5)

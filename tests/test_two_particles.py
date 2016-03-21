@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pytest
 
 # FIDIMAG:
@@ -117,7 +118,7 @@ def test_energy_barrier_2particles():
     data = np.loadtxt('neb_2particles_k1e8_10-10int_energy.ndt')[-1][1:]
 
     ebarrier = np.abs(np.max(data) - np.min(data)) / (1.602e-19)
-    print ebarrier
+    print(ebarrier)
 
     # Analitically, the energy when a single particle rotates is:
     #   K V cos^2 theta

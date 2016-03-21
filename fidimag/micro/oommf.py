@@ -3,6 +3,7 @@ This code reproduces a Fidimag simulation using OOMMF
 
 """
 
+from __future__ import print_function
 import os
 import logging
 import subprocess
@@ -240,7 +241,7 @@ def run_oommf(field='Demag'):
 
     cmd = ' '.join(command)
     logger.info("About to execute '{}'".format(cmd))
-    print("About to execute '{}'".format(cmd))
+    print(("About to execute '{}'".format(cmd)))
 
     save_path = os.getcwd()
     new_path = os.path.join(MODULE_DIR, field)
@@ -354,4 +355,4 @@ if __name__ == "__main__":
 
     mesh = CuboidMesh(nx=5, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
     m = compute_demag_field(mesh, init_m0='return "1 0 0"')
-    print m
+    print(m)

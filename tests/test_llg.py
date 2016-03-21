@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
@@ -38,7 +39,7 @@ def test_sim_pin():
     sim.add(anis)
 
     sim.run_until(1.0)
-    print sim.spin
+    print(sim.spin)
     assert sim.spin[0] == 0
     assert sim.spin[2] != 0
 
@@ -57,8 +58,8 @@ def test_sim_init_m_fun():
     sim = Sim(mesh)
     sim.set_m(init_m, normalise=False)
 
-    print sim.spin.reshape(-1, 3).shape
-    print sim.mesh.index(1, 2, 3)
+    print(sim.spin.reshape(-1, 3).shape)
+    print(sim.mesh.index(1, 2, 3))
 
     assert(sim.spin_at(1, 2, 3)[0] == 1)
     assert(sim.spin_at(1, 2, 3)[1] == 2)
@@ -114,7 +115,7 @@ def test_sim_single_spin(do_plot=False):
     for t in ts:
         sim.run_until(t)
         real_ts.append(sim.t)
-        print sim.t, abs(sim.spin_length()[0] - 1)
+        print(sim.t, abs(sim.spin_length()[0] - 1))
         mx.append(sim.spin[0])
         my.append(sim.spin[1])
         mz.append(sim.spin[2])
@@ -123,7 +124,7 @@ def test_sim_single_spin(do_plot=False):
     # print mz
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
-    print sim.stat()
+    print(sim.stat())
 
     if do_plot:
         ts_ns = np.array(real_ts) * 1e9
@@ -139,8 +140,8 @@ def test_sim_single_spin(do_plot=False):
         plt.legend()
         plt.savefig("single_spin.pdf")
 
-    print("Max Deviation = {0}".format(
-        np.max(np.abs(mz - a_mz))))
+    print(("Max Deviation = {0}".format(
+        np.max(np.abs(mz - a_mz)))))
 
     assert np.max(np.abs(mz - a_mz)) < 5e-7
 

@@ -1,5 +1,6 @@
 #! /usr/bin/python
 
+from __future__ import print_function
 import math
 import os
 import sys
@@ -20,7 +21,7 @@ class OMF2:
         line = f.readline()
         # print line
         if line != "# OOMMF OVF 2.0\n":
-            print self.file_name + ": NOT OOMMF OVF 2.0!"
+            print(self.file_name + ": NOT OOMMF OVF 2.0!")
             sys.exit(0)
 
         while not line.startswith("# Begin: Data Binary"):
@@ -38,7 +39,7 @@ class OMF2:
         msb = f.read(8)
 
         if struct.unpack('d', msb)[0] != 123456789012345.0:
-            print 'check value error!'
+            print('check value error!')
             return
 
         count = 3 * self.xnodes * self.ynodes * self.znodes

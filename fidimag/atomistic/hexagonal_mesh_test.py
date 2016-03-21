@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from math import sqrt
 from hexagonal_mesh import HexagonalMesh
@@ -97,7 +98,7 @@ def test_neighbours_x_periodic_all():
      \/ \/
 
     """
-    print ""
+    print("")
     mesh = HexagonalMesh(1, 2, 1, periodicity=(True, True))
     assert (mesh.neighbours == [[1, 1, -1, -1, -1, -1],
                                 [0, 0, -1, -1, -1, -1]]).all()
@@ -186,7 +187,7 @@ def test_neighbours_multiple():
 
     """
     mesh = HexagonalMesh(1, 3, 3)
-    print mesh.neighbours
+    print(mesh.neighbours)
     # assert to_sets(mesh.neighbours) == [{1, 3}, {0, 2, 3, 4},  # cells 0, 1
     #                                     {1, 4, 5}, {0, 1, 4, 6},  # cells 2, 3
     #                                     {1, 2, 3, 5, 6, 7}, {2, 4, 7, 8},  # cells 4, 5
@@ -221,7 +222,7 @@ def test_neighbours_multiple_square():
 
     """
     mesh = HexagonalMesh(1, 3, 3, alignment='square')
-    print mesh.neighbours
+    print(mesh.neighbours)
     assert (mesh.neighbours == [[1, -1, 4, -1, 3, -1],   # cell 0
                                 [2, 0, 5, -1, 4, -1],    # cell 1
                                 [-1, 1, -1, -1, 5, -1],  # cell 2
@@ -237,12 +238,12 @@ def test_neighbours_multiple_square():
 def test_iterate_over_cells():
     mesh = HexagonalMesh(1, 2, 2)
     for c_i in mesh.cells():
-        print "This is cell #{}, I have neighbours {}.".format(c_i, mesh.neighbours[c_i])
+        print("This is cell #{}, I have neighbours {}.".format(c_i, mesh.neighbours[c_i]))
 
 
 def test_iterate_over_cells_and_neighbours():
     mesh = HexagonalMesh(1, 2, 2)
     for c_i in mesh.cells():
-        print "I am cell #{}.".format(c_i)
+        print("I am cell #{}.".format(c_i))
         for c_j in mesh.neighbours[c_i]:
-            print "\tAnd I am its neighbour, cell #{}!".format(c_j)
+            print("\tAnd I am its neighbour, cell #{}!".format(c_j))

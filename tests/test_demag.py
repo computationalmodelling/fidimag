@@ -1,3 +1,4 @@
+from __future__ import print_function
 from fidimag.common import CuboidMesh
 from fidimag.atomistic import Sim
 from fidimag.atomistic import Demag
@@ -24,7 +25,7 @@ def test_demag_fft_exact():
     fft = demag.compute_field()
     exact = demag.compute_exact()
     # print fft,exact
-    print np.max(np.abs(fft - exact))
+    print(np.max(np.abs(fft - exact)))
 
     assert np.max(np.abs(fft - exact)) < 5e-22
 
@@ -49,7 +50,7 @@ def test_demag_fft_exact_oommf():
     fft = demag.compute_field()
     exact = demag.compute_exact()
     # print fft,exact
-    print np.max(np.abs(fft - exact))
+    print(np.max(np.abs(fft - exact)))
 
     assert np.max(np.abs(fft - exact)) < 1e-15
 
@@ -63,7 +64,7 @@ def test_demag_two_spin_xx():
 
     sim.set_m((1, 0, 0))
     field = demag.compute_field()
-    print field
+    print(field)
     assert(field[0] == 2e-7)
     assert(field[3] == 2e-7)
 

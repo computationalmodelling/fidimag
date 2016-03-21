@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import numpy as np
 import fidimag.extensions.clib as clib
@@ -256,7 +257,7 @@ class LLG(object):
     def sundials_jtn(self, mp, Jmp, t, m, fy):
         # we can not copy mp to self.spin since m and self.spin is one object.
         #self.spin[:] = mp[:]
-        print 'NO jac...........'
+        print('NO jac...........')
         self.compute_effective_field_jac(t, mp)
         clib.compute_llg_jtimes(Jmp,
                                 m, fy,
@@ -383,7 +384,7 @@ class LLG(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step, self.t, dmdt, cvode_dt)
+            print('step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step, self.t, dmdt, cvode_dt))
 
             if dmdt < stopping_dmdt:
                 break

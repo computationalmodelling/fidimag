@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pytest
 
 # Since we are testing this script for different versions, we need to rebuild
@@ -122,7 +123,7 @@ def excite_system(mesh, time=5, snaps=501):
     ts = np.linspace(0, time * 1e-9, snaps)
 
     for t in ts:
-        print 'time', t
+        print('time', t)
         sim.run_until(t)
         sim.save_vtk()
         sim.save_m()
@@ -156,7 +157,7 @@ def test_stt_dw():
     m0_z = load_mz_npy('dyn_npys/m_100.npy')
     x = np.arange(len(m0_z))
     # Check that the DW is at the 242th x-position in the 100th snapshot
-    print x[np.argmax(np.abs(m0_z))]
+    print(x[np.argmax(np.abs(m0_z))])
     assert x[np.argmax(np.abs(m0_z))] == 242
 
     # Check that the DW is at the 251th x-position in the 150th snapshot
