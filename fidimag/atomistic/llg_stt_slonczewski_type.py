@@ -5,7 +5,7 @@ import types
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from llg import LLG
+from .llg import LLG
 import fidimag.common.helper as helper
 
 

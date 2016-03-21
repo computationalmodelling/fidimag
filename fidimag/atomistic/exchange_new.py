@@ -1,4 +1,4 @@
-from field import scalar_field, vector_field
+from .field import scalar_field, vector_field
 
 class Exchange(object):
     """
