@@ -1,7 +1,7 @@
 import fidimag.extensions.micro_clib as micro_clib
 import numpy as np
 from fidimag.common.constant import mu_0
-from energy import Energy
+from .energy import Energy
 import fidimag.common.helper as helper
 
 

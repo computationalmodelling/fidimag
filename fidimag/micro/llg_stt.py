@@ -3,7 +3,7 @@ from __future__ import division
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from llg import LLG
+from .llg import LLG
 import fidimag.common.helper as helper
 
 from fidimag.common.constant import Constant

@@ -1,6 +1,6 @@
-import llg
-import llg_stt
-import baryakhtar
+from . import llg
+from . import llg_stt
+from . import baryakhtar
 
 KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llg_stt': llg_stt.LLG_STT,

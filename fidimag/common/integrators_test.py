@@ -8,7 +8,7 @@ mpl.use('Agg')
 import pytest
 import numpy as np
 from math import ceil
-from integrators import euler_step, runge_kutta_step, StepIntegrator, ScipyIntegrator
+from .integrators import euler_step, runge_kutta_step, StepIntegrator, ScipyIntegrator
 
 
 interval = (0, 10)

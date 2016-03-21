@@ -1,6 +1,6 @@
 from __future__ import print_function
 import numpy as np
-from cuboid_mesh import CuboidMesh
+from .cuboid_mesh import CuboidMesh
 
 
 def allclose(a, b):
