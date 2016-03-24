@@ -2,6 +2,7 @@
 Implement the time integrators used in the simulation of magnetisation dynamics.
 
 """
+from __future__ import print_function
 from scipy.integrate import ode
 from fidimag.extensions.cvode import CvodeSolver as SundialsIntegrator
 
@@ -36,7 +37,7 @@ class StepIntegrator(BaseIntegrator):
 
     def run_until(self, t):
         while abs(self.t - t) > EPSILON:
-            print self.t
+            print(self.t)
             self.t, self.y, evals = self.step(self.t, self.y, self.stepsize, self.rhs)
             self.rhs_evals_nb += evals
             if self.t > t:

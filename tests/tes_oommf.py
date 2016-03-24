@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import fidimag.extensions.dipolar as dipolar
 from fidimag.common import CuboidMesh
@@ -232,11 +233,11 @@ def test_demag_field_oommf(Ms=6e5):
     field_oommf = compute_demag_field(mesh, Ms=Ms, init_m0=init_m0)
 
     mx0, mx1, mx2 = compare_fields(field_oommf, exact)
-    print mx0, mx1, mx2
+    print(mx0, mx1, mx2)
     assert max([mx0, mx1, mx2]) < 2e-14
 
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
-    print mx0, mx1, mx2
+    print(mx0, mx1, mx2)
 
     assert np.max(abs(field - field_oommf)) < 2e-9
 
@@ -320,7 +321,7 @@ def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
     demag_energy_oommf = 5.5389695779175673e-19
     dmi_energy_oommf = 2.6657360769014251e-20
 
-    print demag_energy, exch_energy
+    print(demag_energy, exch_energy)
 
     assert abs(exch_energy - exch_energy_oommf) / exch_energy_oommf < 3e-15
     assert abs(demag_energy - demag_energy_oommf) / demag_energy_oommf < 1e-10
@@ -355,7 +356,7 @@ def test_energy_dmi(Ms=8e5, D=1.32e-3):
 
     dmi_energy_oommf = -4.5665527749090378e-20
 
-    print 'dmi energy', dmi_energy
+    print('dmi energy', dmi_energy)
 
     assert abs(dmi_energy - dmi_energy_oommf) / dmi_energy_oommf < 1e-15
 

@@ -1,8 +1,8 @@
 import os
 import fidimag.extensions.cvode as cvode
 import numpy as np
-from fileio import DataSaver, DataReader
-from save_vtk import SaveVTK
+from .fileio import DataSaver, DataReader
+from .save_vtk import SaveVTK
 import fidimag.extensions.neb_clib as neb_clib
 import gc
 

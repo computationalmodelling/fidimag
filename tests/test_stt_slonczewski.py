@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, Anisotropy
 from fidimag.common import CuboidMesh, DataReader
@@ -29,7 +31,7 @@ def test_dynamic():
 
     mz = sim.spin[2]
     alpha, K, u = 0.1, 0.05, 0.0052
-    print mz, u/(2*alpha*K)
+    print(mz, u/(2*alpha*K))
 
     #########################################################
     # The system used in this test can be solved analytically, which gives that mz = u/(2*alpha*K),

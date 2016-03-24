@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import time
 import fidimag.extensions.clib as clib
@@ -389,10 +390,10 @@ class LLG(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print 'step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step,
+            print('step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step,
                                                                  self.t,
                                                                  dmdt / ONE_DEGREE_PER_NS,
-                                                                 cvode_dt)
+                                                                 cvode_dt))
 
             if dmdt < stopping_dmdt * ONE_DEGREE_PER_NS:
                 break

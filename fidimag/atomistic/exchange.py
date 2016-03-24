@@ -1,6 +1,6 @@
 import fidimag.extensions.clib as clib
 import numpy as np
-from energy import Energy
+from .energy import Energy
 
 
 class UniformExchange(Energy):

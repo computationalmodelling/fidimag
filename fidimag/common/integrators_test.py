@@ -2,12 +2,13 @@
 Sanity testing of the integrators in integrators.py.
 
 """
+from __future__ import print_function
 import matplotlib as mpl
 mpl.use('Agg')
 import pytest
 import numpy as np
 from math import ceil
-from integrators import euler_step, runge_kutta_step, StepIntegrator, ScipyIntegrator
+from .integrators import euler_step, runge_kutta_step, StepIntegrator, ScipyIntegrator
 
 
 interval = (0, 10)
@@ -41,8 +42,8 @@ def test_step(integrator, stepsize, debug=False):
     ("rk4", 0.2, 0.05)])
 def test_step_integrator(integrator, stepsize_reported, stepsize_internal):
     ts = np.arange(interval[0], interval[1], step=stepsize_reported)
-    print ts
-    print ts[1:]
+    print(ts)
+    print(ts[1:])
     ys = np.zeros(ts.shape[0])
 
     ys[0] = y_true(ts[0])  # known initial value
@@ -73,11 +74,11 @@ def test_scipy_integrator():
         od.run_until(t)
         ts[i+1] = od.t
         ys[i+1] = od.y
-        print "t = {}".format(t)
+        print("t = {}".format(t))
 
 
-    print len(od.internal_timesteps)
-    print od.rhs_evals
+    print(len(od.internal_timesteps))
+    print(od.rhs_evals)
     return y_true, ts, ys, od.internal_timesteps
 
 

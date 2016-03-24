@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
@@ -63,7 +64,7 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
     for t in ts:
         # sim.save_vtk()
         sim.run_until(t)
-        print('Running -', t)
+        print(('Running -', t))
 
     # sim.save_vtk()
     np.save('m0.npy', sim.spin)

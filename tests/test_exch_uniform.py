@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh
@@ -88,7 +89,7 @@ def test_exch_2d_pbc2d():
     """
 
     mesh = CuboidMesh(nx=3, ny=2, nz=1, periodicity=(True, True, False))
-    print mesh.neighbours
+    print(mesh.neighbours)
     sim = Sim(mesh)
     exch = UniformExchange(1)
     sim.add(exch)

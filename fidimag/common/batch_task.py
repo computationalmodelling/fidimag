@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import time
 import numpy as np
@@ -143,7 +144,7 @@ class BatchTasks(object):
             try:
                 self.process_res.append(fun(**task))
             except RuntimeError:
-                print 'error:', task
+                print('error:', task)
             os.chdir(self.current_directory)
 
     def get_res(self, key=None, value=None):
@@ -180,7 +181,7 @@ class BatchTasks(object):
 
 
 def task(p1, p2):
-    print 'current directory:', os.getcwd()
+    print('current directory:', os.getcwd())
     res = 'p1=' + str(p1) + '  p2=' + str(p2)
     #res= 1/0
     with open('res.txt', 'w') as f:

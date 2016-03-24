@@ -1,8 +1,8 @@
 import numpy as np
 import fidimag.extensions.baryakhtar_clib as clib
 from fidimag.micro.llg import LLG
-from relax import Relaxation
-from relax import Laplace
+from .relax import Relaxation
+from .relax import Laplace
 
 
 class LLBarFull(LLG):

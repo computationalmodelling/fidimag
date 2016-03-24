@@ -1,5 +1,5 @@
 import fidimag.extensions.micro_clib as micro_clib
-from energy import Energy
+from .energy import Energy
 #from constant import mu_0
 
 

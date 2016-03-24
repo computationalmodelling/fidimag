@@ -1,19 +1,25 @@
 language: python
 python:
+        - "3.5"
+        - "3.4"
         - "2.7"
+sudo: false
 # command to install dependencies
 before_install:
-  - wget http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda2/bin:$PATH
-  - sudo apt-get -qq update
-  - sudo apt-get -qq install xvfb  # virtual X display for tests that need a display
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH=/home/travis/miniconda/bin:$PATH
 
 install:
-  - conda create -q -y -n fidimag-test cython matplotlib pytest mayavi scipy
+  - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython matplotlib pytest scipy
   - source activate fidimag-test
-  - pip install pyvtk
+  - pip install pyvtk six
   # Download and compile FFTW & Sundials locally
   - bash bin/install.sh
 
@@ -28,9 +34,8 @@ before_script:
         - export QT_API=pyqt
 
 # command to run tests
-# tvtk can't be imported without an X server, so we run in xvfb, which creates a virtual display
 script:
-  - xvfb-run --server-args="-screen 0 1024x768x24" make test-without-run-oommf
+  - make test-without-run-oommf
 
 
 notifications:

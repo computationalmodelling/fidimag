@@ -1,5 +1,6 @@
 #! /usr/bin/python
 
+from __future__ import print_function
 import math
 import os
 import sys
@@ -19,26 +20,26 @@ class OMF2:
         f = open(self.file_name, 'rb')
         line = f.readline()
         # print line
-        if line != "# OOMMF OVF 2.0\n":
-            print self.file_name + ": NOT OOMMF OVF 2.0!"
+        if line != b"# OOMMF OVF 2.0\n":
+            print(self.file_name + ": NOT OOMMF OVF 2.0!")
             sys.exit(0)
 
-        while not line.startswith("# Begin: Data Binary"):
+        while not line.startswith(b"# Begin: Data Binary"):
             line = f.readline()
 
-            if line.startswith("# xnodes:"):
-                self.xnodes = int(line.split(":")[1])
-            elif line.startswith("# ynodes:"):
-                self.ynodes = int(line.split(":")[1])
-            elif line.startswith("# znodes:"):
-                self.znodes = int(line.split(":")[1])
-            elif line.startswith("# ystepsize:"):
-                self.ystepsize = float(line.split(":")[1])
+            if line.startswith(b"# xnodes:"):
+                self.xnodes = int(line.split(b":")[1])
+            elif line.startswith(b"# ynodes:"):
+                self.ynodes = int(line.split(b":")[1])
+            elif line.startswith(b"# znodes:"):
+                self.znodes = int(line.split(b":")[1])
+            elif line.startswith(b"# ystepsize:"):
+                self.ystepsize = float(line.split(b":")[1])
 
         msb = f.read(8)
 
         if struct.unpack('d', msb)[0] != 123456789012345.0:
-            print 'check value error!'
+            print('check value error!')
             return
 
         count = 3 * self.xnodes * self.ynodes * self.znodes

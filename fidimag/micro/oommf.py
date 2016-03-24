@@ -3,13 +3,14 @@ This code reproduces a Fidimag simulation using OOMMF
 
 """
 
+from __future__ import print_function
 import os
 import logging
 import subprocess
 import sys
 import numpy as np
 
-import omf
+from . import omf
 
 from fidimag.common import CuboidMesh
 
@@ -36,15 +37,9 @@ logger = setup_logger()
 
 # OOMMF bash variables used by Fidimag to locate OOMMF's
 # installation folder
-if os.environ.has_key('OOMMF_PATH'):
-    OOMMF_PATH = os.environ['OOMMF_PATH']
-else:
-    OOMMF_PATH = '/home/ww1g11/Softwares/oommf-1.2a5/'
-
-if os.environ.has_key('OOMMF_TKTCL_VERSION'):
-    OOMMF_TKTCL_VERSION = os.environ['OOMMF_TKTCL_VERSION']
-else:
-    OOMMF_TKTCL_VERSION = ""
+# TODO: is there a way to find a better default path?
+OOMMF_PATH = os.environ.get('OOMMF_PATH', '/home/ww1g11/Softwares/oommf-1.2a5/')
+OOMMF_TKTCL_VERSION = os.environ.get('OOMMF_TKTCL_VERSION', '')
 
 # The path where the script is being executed
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -240,7 +235,7 @@ def run_oommf(field='Demag'):
 
     cmd = ' '.join(command)
     logger.info("About to execute '{}'".format(cmd))
-    print("About to execute '{}'".format(cmd))
+    print(("About to execute '{}'".format(cmd)))
 
     save_path = os.getcwd()
     new_path = os.path.join(MODULE_DIR, field)
@@ -354,4 +349,4 @@ if __name__ == "__main__":
 
     mesh = CuboidMesh(nx=5, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
     m = compute_demag_field(mesh, init_m0='return "1 0 0"')
-    print m
+    print(m)

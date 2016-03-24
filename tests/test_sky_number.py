@@ -1,3 +1,4 @@
+from __future__ import print_function
 from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh
 from fidimag.atomistic import DMI
@@ -49,7 +50,7 @@ def test_skx_num():
               save_m_steps=None, save_vtk_steps=None)
 
     skn = sim.skyrmion_number()
-    print 'skx_number', skn
+    print('skx_number', skn)
     assert skn > -1 and skn < -0.99
 
 

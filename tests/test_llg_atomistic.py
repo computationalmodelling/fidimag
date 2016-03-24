@@ -1,3 +1,4 @@
+from __future__ import print_function
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
@@ -146,13 +147,13 @@ def test_sim_single_spin_vode(do_plot=False):
     mz = np.array(mz)
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
-    print sim.stat()
+    print(sim.stat())
 
     if do_plot:
         plot(real_ts, mx, my, mz, a_mx, a_my, a_mz)
 
-    print("Max Deviation = {0}".format(
-        np.max(np.abs(mz - a_mz))))
+    print(("Max Deviation = {0}".format(
+        np.max(np.abs(mz - a_mz)))))
 
     assert np.max(np.abs(mz - a_mz)) < 5e-7
 
@@ -170,7 +171,7 @@ def test_sim_spins(do_plot=False):
     sim.mu_s = 1.0
 
     sim.set_m((1, 0, 0))
-    print sim.spin
+    print(sim.spin)
 
     H0 = 1e5
     sim.add(Zeeman((0, 0, H0)))
@@ -197,13 +198,13 @@ def test_sim_spins(do_plot=False):
     # print mz
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
-    print sim.stat()
+    print(sim.stat())
 
     if do_plot:
         plot(real_ts, mx, my, mz, a_mx, a_my, a_mz, name='spins.pdf', title='integrating spins')
 
-    print("Max Deviation = {0}".format(
-        np.max(np.abs(mz - a_mz))))
+    print(("Max Deviation = {0}".format(
+        np.max(np.abs(mz - a_mz)))))
 
     assert np.max(np.abs(mz - a_mz)) < 5e-7
 
@@ -236,7 +237,7 @@ def test_sim_single_spin_sllg(do_plot=False):
     for t in ts:
         sim.run_until(t)
         real_ts.append(sim.t)
-        print sim.t, abs(sim.spin_length()[0] - 1)
+        print(sim.t, abs(sim.spin_length()[0] - 1))
         mx.append(sim.spin[0])
         my.append(sim.spin[1])
         mz.append(sim.spin[2])
@@ -248,8 +249,8 @@ def test_sim_single_spin_sllg(do_plot=False):
     if do_plot:
         plot(real_ts, mx, my, mz, a_mx, a_my, a_mz, name='spin_sllg.pdf', title='integrating a spin')
 
-    print("Max Deviation = {0}".format(
-        np.max(np.abs(mz - a_mz))))
+    print(("Max Deviation = {0}".format(
+        np.max(np.abs(mz - a_mz)))))
 
     assert np.max(np.abs(mz - a_mz)) < 1e-8
 
@@ -278,7 +279,7 @@ def disable_test_sim_single_spin_llg_stt(do_plot=False):
     for t in ts:
         sim.run_until(t)
         real_ts.append(sim.t)
-        print sim.t, abs(sim.spin_length()[0] - 1), sim.spin
+        print(sim.t, abs(sim.spin_length()[0] - 1), sim.spin)
         mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
         mxyz.append(np.copy(sim.spin))
 
@@ -297,7 +298,7 @@ def disable_test_sim_single_spin_llg_stt(do_plot=False):
         plt.legend()
         plt.savefig("test_llg_stt.png")
 
-        print("Deviation = {0}".format(np.max(np.abs(mxyz[:, 2] - mz_ref))))
+        print(("Deviation = {0}".format(np.max(np.abs(mxyz[:, 2] - mz_ref)))))
 
     assert np.max(np.abs(mxyz[:, 2] - mz_ref)) < 1e-9
 

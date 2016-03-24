@@ -1,5 +1,5 @@
 import numpy as np
-from field import scalar_field, vector_field
+from .field import scalar_field, vector_field
 from fidimag.common.cuboid_mesh import CuboidMesh
 
 

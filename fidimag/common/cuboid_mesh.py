@@ -28,6 +28,8 @@ in the innermost loop, and the z-axis in the outermost loop!
 """
 import numpy as np
 
+from six.moves import range
+
 
 class CuboidMesh(object):
     def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0,
@@ -76,9 +78,9 @@ class CuboidMesh(object):
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
-        for i in xrange(self.nz):
-            for j in xrange(self.ny):
-                for k in xrange(self.nx):
+        for i in range(self.nz):
+            for j in range(self.ny):
+                for k in range(self.nx):
                     index = self.index(k, j, i)
                     r = (self.x0 + k * self.dx + self.dx / 2.0,
                          self.y0 + j * self.dy + self.dy / 2.0,
@@ -100,9 +102,9 @@ class CuboidMesh(object):
         # this way we get to use a 2d array which is convenient to use
         # in our C code instead of a list of lists
         connectivity = []
-        for i in xrange(self.nz):
-            for j in xrange(self.ny):
-                for k in xrange(self.nx):
+        for i in range(self.nz):
+            for j in range(self.ny):
+                for k in range(self.nx):
                     cell = self._index(k, j, i)
                     neighbours = [other for other in [
                         self.index(k - 1, j, i),  # left

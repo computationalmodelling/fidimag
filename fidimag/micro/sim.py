@@ -1,6 +1,6 @@
-import llg
-import llg_stt
-import baryakhtar
+from . import llg
+from . import llg_stt
+from . import baryakhtar
 
 KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llg_stt': llg_stt.LLG_STT,
@@ -12,9 +12,8 @@ def Sim(*args, **kwargs):
 
     driver = 'llg'
 
-    if kwargs.has_key('driver'):
-        driver = kwargs['driver']
-        kwargs.pop('driver')
+    if 'driver' in kwargs:
+        driver = kwargs.pop('driver')
 
     if driver not in KNOWN_DRIVERS:
         raise NotImplementedError("""Driver '{}' is not implemented.

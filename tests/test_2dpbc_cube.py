@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
@@ -28,7 +29,7 @@ def test_compute_field():
     demag = Demag(pbc_2d=True)
     sim.add(demag)
     field=demag.compute_field()
-    print(1 + field[2] / 8.6e5)
+    print((1 + field[2] / 8.6e5))
     assert abs(1 + field[2] / 8.6e5) < 1e-10
 
 

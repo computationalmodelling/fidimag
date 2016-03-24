@@ -1,5 +1,6 @@
+from __future__ import print_function
 import numpy as np
-from cuboid_mesh import CuboidMesh
+from .cuboid_mesh import CuboidMesh
 
 
 def allclose(a, b):
@@ -188,7 +189,7 @@ def test_neighbours_multiple():
 
     """
     mesh = CuboidMesh(2, 2, 2, 2, 2, 2)
-    print mesh.neighbours
+    print(mesh.neighbours)
     assert to_sets(mesh.neighbours) == [{1, 2, 4}, {0, 3, 5},  # for cells 0, 1
                                         {0, 3, 6}, {1, 2, 7},  # for cells 2, 3
                                         {0, 5, 6}, {1, 4, 7},  # for cells 4, 5
@@ -198,15 +199,15 @@ def test_neighbours_multiple():
 def test_iterate_over_cells():
     mesh = CuboidMesh(1, 1, 1, 2, 2, 2)
     for c_i in mesh.cells():
-        print "This is cell #{}, I have neighbours {}.".format(c_i, mesh.neighbours[c_i])
+        print("This is cell #{}, I have neighbours {}.".format(c_i, mesh.neighbours[c_i]))
 
 
 def test_iterate_over_cells_and_neighbours():
     mesh = CuboidMesh(1, 1, 1, 2, 2, 2)
     for c_i in mesh.cells():
-        print "I am cell #{}.".format(c_i)
+        print("I am cell #{}.".format(c_i))
         for c_j in mesh.neighbours[c_i]:
-            print "\tAnd I am its neighbour, cell #{}!".format(c_j)
+            print("\tAnd I am its neighbour, cell #{}!".format(c_j))
 
 
 def test_scalar_field_shape():

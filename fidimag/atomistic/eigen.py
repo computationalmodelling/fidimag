@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import print_function
 import os
 import numpy as np
 import scipy.sparse as sp
@@ -201,21 +202,21 @@ class EigenProblem(object):
 	def build_matrix(self):
 		if self.H is not None:
 			self.add_H0_H()
-			print 'build_matrix for applied field: Done!'
+			print('build_matrix for applied field: Done!')
 		if self.J !=0:
 			self.add_H0_J()
 			self.add_h_J()
-			print 'build_matrix for exchange: Done!'
+			print('build_matrix for exchange: Done!')
 			
 		if self.Kx!=0 or self.Kz !=0:
 			self.add_H0_K()
 			self.add_h_K()
-			print 'build_matrix for anisotropy: Done!'
+			print('build_matrix for anisotropy: Done!')
 
 		if self.D !=0:
 			self.add_H0_D()
 			self.add_h_D()
-			print 'build_matrix DMI: Done!'
+			print('build_matrix DMI: Done!')
 
 	def solve_sparse(self, w0=1e-8, n=20):
 		
@@ -236,7 +237,7 @@ class EigenProblem(object):
 
 		M = self.M.toarray()
 
-		print 'max:::::',np.max(np.abs(M.transpose()+M))
+		print('max:::::',np.max(np.abs(M.transpose()+M)))
 
 		w,v = np.linalg.eig(M)
 
