@@ -1,5 +1,5 @@
 import fidimag.extensions.clib as clib
-from energy import Energy
+from .energy import Energy
 import numpy as np
 
 
