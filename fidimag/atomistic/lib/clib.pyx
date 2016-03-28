@@ -27,7 +27,7 @@ cdef extern from "clib.h":
                                int xperiodic, int yperiodic)
 
     void dmi_field_bulk(double *spin, double *field, double *energy,
-                        double D, int *ngbs, int n)
+                        double *D, int *ngbs, int n)
 
     void dmi_field_interfacial_atomistic(double *spin, double *field,
                                          double *energy, double D, int *ngbs,
@@ -167,10 +167,10 @@ def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] field,
                       np.ndarray[double, ndim=1, mode="c"] energy,
-                      D,
+                      np.ndarray[double, ndim=2, mode="c"] D,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
                       n):
-    dmi_field_bulk(&spin[0], &field[0], &energy[0], D, &ngbs[0, 0], n)
+    dmi_field_bulk(&spin[0], &field[0], &energy[0], &D[0,0], &ngbs[0, 0], n)
 
 
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,

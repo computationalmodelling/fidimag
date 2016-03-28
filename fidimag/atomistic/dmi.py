@@ -1,5 +1,5 @@
 import fidimag.extensions.clib as clib
-from .energy import Energy
+from energy import Energy
 import numpy as np
 
 
@@ -32,6 +32,20 @@ class DMI(Energy):
         # We will generate the Dzyaloshinskii vectors according
         # to the lattice, for the Interfacial DMI
         self.DMI_vector = self.compute_DMI_vectors(self.nneighbours)
+        
+        if self.dmi_type == 'bulk':
+            self._D = np.zeros(self.neighbours.shape)
+            if isinstance(self.D, (int, float)):
+                self._D[:,:] = self.D
+            elif hasattr(self.D, '__call__'):
+                n =  self.mesh.n
+                for i in range(n):
+                    value = self.D(self.coordinates[i])
+                    if len(value) == 6:
+                        self._D[i,:] = value[:]
+                    else:
+                        raise Exception('The given spatial function for D is not acceptable!')
+            
 
     def compute_field(self, t=0, spin=None):
 
@@ -41,10 +55,10 @@ class DMI(Energy):
             m = self.spin
 
         if self.dmi_type == 'bulk':
-            clib.compute_dmi_field(m,
+              clib.compute_dmi_field(m,
                                    self.field,
                                    self.energy,
-                                   self.D,
+                                   self._D,
                                    self.neighbours,
                                    self.n)
 

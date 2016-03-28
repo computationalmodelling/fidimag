@@ -3,7 +3,7 @@
 #include "stdlib.h"
 
 void dmi_field_bulk(double *spin, double *field,
-                    double *energy, double D, int *ngbs, int nxyz) {
+                    double *energy, double *_D, int *ngbs, int nxyz) {
 
     /* Bulk DMI field and energy computation
      *
@@ -50,9 +50,11 @@ void dmi_field_bulk(double *spin, double *field,
 		int idv = 6 * i; // index for the neighbours
 
 		double fx = 0, fy = 0, fz = 0;
+        double D=0;
 
 		if (ngbs[idv]>=0) { // neighbour at x-1
 			id = 3*ngbs[idv];
+            D = _D[idv];
 			fx += D*cross_x(-1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(-1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(-1,0,0,spin[id],spin[id+1],spin[id+2]);
@@ -60,6 +62,7 @@ void dmi_field_bulk(double *spin, double *field,
 
 		if (ngbs[idv+1]>=0) { // neighbour x+1
 			id = 3*ngbs[idv+1];
+            D = _D[idv+1];
 			fx += D*cross_x(1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(1,0,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(1,0,0,spin[id],spin[id+1],spin[id+2]);
@@ -67,6 +70,7 @@ void dmi_field_bulk(double *spin, double *field,
 
 		if (ngbs[idv+2]>=0) { // neighbour at y-1
 			id = 3*ngbs[idv+2];
+            D = _D[idv+2];
 			fx += D*cross_x(0,-1,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,-1,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,-1,0,spin[id],spin[id+1],spin[id+2]);
@@ -74,6 +78,7 @@ void dmi_field_bulk(double *spin, double *field,
 
 		if (ngbs[idv+3]>=0) { // neighbour at y+1
 			id = 3*ngbs[idv+3];
+            D = _D[idv+3];
 			fx += D*cross_x(0,1,0,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,1,0,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,1,0,spin[id],spin[id+1],spin[id+2]);
@@ -81,6 +86,7 @@ void dmi_field_bulk(double *spin, double *field,
 
 		if (ngbs[idv+4]>=0) { // neighbour at z-1
 			id = 3*ngbs[idv+4];
+            D = _D[idv+4];
 			fx += D*cross_x(0,0,-1,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,0,-1,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,0,-1,spin[id],spin[id+1],spin[id+2]);
@@ -88,6 +94,7 @@ void dmi_field_bulk(double *spin, double *field,
 
 		if (ngbs[idv+5]>=0) { // neighbour at z+1
 			id = 3*ngbs[idv+5];
+            D = _D[idv+5];
 			fx += D*cross_x(0,0,1,spin[id],spin[id+1],spin[id+2]);
 			fy += D*cross_y(0,0,1,spin[id],spin[id+1],spin[id+2]);
 			fz += D*cross_z(0,0,1,spin[id],spin[id+1],spin[id+2]);

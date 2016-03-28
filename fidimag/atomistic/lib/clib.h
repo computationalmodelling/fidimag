@@ -32,7 +32,7 @@ void compute_anis(double *spin, double *field, double *energy,
 	              double *Ku, double *axis, int n);
 
 void dmi_field_bulk(double *spin, double *field, double *energy,
-                    double D, int *ngbs, int n);
+                    double *D, int *ngbs, int n);
 
 void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *energy, double D, int *ngbs,
