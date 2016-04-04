@@ -2,7 +2,6 @@ import numpy as np
 
 mu_0 = 4 * np.pi * 1e-7
 
-
 class Constant(object):
     mu_0 = mu_0
     mu_B = 9.27400949e-24

@@ -67,7 +67,7 @@ cdef extern from "clib.h":
                      double *alpha,double beta, double u0, double gamma, int n)
 
     void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
-			      double *alpha, int *pins, double beta, double u0, double gamma, int n)
+			      double *alpha, int *pins, double *a_J, double beta, double gamma, int n)
 
     # used for sllg
     ctypedef struct ode_solver:
@@ -262,10 +262,11 @@ def compute_llg_stt_cpp(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] field,
                 np.ndarray[double, ndim=1, mode="c"] p,
                 np.ndarray[double, ndim=1, mode="c"] alpha,
-		np.ndarray[int, ndim=1, mode="c"] pin,
-                beta, u0, gamma, n):
+		            np.ndarray[int, ndim=1, mode="c"] pin,
+                np.ndarray[double, ndim=1, mode="c"] a_J,
+                beta, gamma, n):
     llg_stt_cpp(&dm_dt[0], &spin[0], &field[0], &p[0], 
-                &alpha[0], &pin[0], beta, u0, gamma, n)
+                &alpha[0], &pin[0], &a_J[0], beta, gamma, n)
 
 
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, n):

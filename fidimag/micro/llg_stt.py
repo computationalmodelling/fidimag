@@ -66,11 +66,8 @@ class LLG_STT(LLG):
                                    self._jy * self.update_j_fun(t),
                                    self.mesh.dx * self.mesh.unit_length,
                                    self.mesh.dy * self.mesh.unit_length,
-                                   self.mesh.nx,
-                                   self.mesh.ny,
-                                   self.mesh.nz,
-                                   self.xperiodic,
-                                   self.yperiodic
+                                   self.mesh.neighbours,
+                                   self.n
                                    )
         else:
             clib.compute_stt_field(self.spin,

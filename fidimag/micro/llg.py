@@ -40,7 +40,6 @@ class LLG(object):
         self.dm_dt = np.zeros(3 * self.n, dtype=np.float)
         self._skx_number = np.zeros(self.n, dtype=np.float)
         self.interactions = []
-        self.pin_fun = None
         self.integrator_tolerances_set = False
         self.step = 0
 

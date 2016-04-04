@@ -195,7 +195,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 
 
 void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
-		double *alpha, int *pins, double beta, double u0, double gamma, int n) {
+		double *alpha, int *pins, double *a_J, double beta, double gamma, int n) {
 
 	#pragma omp parallel for
 	for (int index = 0; index < n; index++) {
@@ -230,7 +230,7 @@ void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
 
 	    //the above part is standard LLG equation.
 
-	    double coeff_stt = u0 / (1 + alpha[index] * alpha[index]);
+	    double coeff_stt = a_J[index] / (1 + alpha[index] * alpha[index]);
 	    
 	    double mp = m[i] * p[i] + m[j] * p[j] + m[k] * p[k];
 

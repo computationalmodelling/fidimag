@@ -66,7 +66,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h,
                  double beta, double u0, double gamma, int n);
 
 void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
-			      double *alpha, int *pins, double beta, double u0, double gamma, int n);
+			      double *alpha, int *pins, double *a_J, double beta, double gamma, int n);
 
 
 void normalise(double *m, int n);
