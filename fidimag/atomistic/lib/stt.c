@@ -194,14 +194,21 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 }
 
 
-void llg_stt_slonczewski_type(double *dm_dt, double *m, double *h, double *p,
-		double *alpha, double u0, double gamma, int n) {
+void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
+		double *alpha, int *pins, double beta, double u0, double gamma, int n) {
 
 	#pragma omp parallel for
 	for (int index = 0; index < n; index++) {
 	    int i = 3 * index;
 	    int j = 3 * index + 1;
 	    int k = 3 * index + 2;
+
+	    if (pins[index]>0){
+		dm_dt[i] = 0;
+		dm_dt[j] = 0;
+		dm_dt[k] = 0;
+		continue;
+       	}
 
 	    double coeff = -gamma / (1 + alpha[index] * alpha[index]);
 
@@ -235,9 +242,13 @@ void llg_stt_slonczewski_type(double *dm_dt, double *m, double *h, double *p,
 	    mth1 = cross_y(m[i], m[j], m[k], hpi, hpj, hpk);
 	    mth2 = cross_z(m[i], m[j], m[k], hpi, hpj, hpk);
 
-	    dm_dt[i] += coeff_stt * (hpi + alpha[index] * mth0);
-	    dm_dt[j] += coeff_stt * (hpj + alpha[index] * mth1);
-	    dm_dt[k] += coeff_stt * (hpk + alpha[index] * mth2);
+
+	    dm_dt[i] += coeff_stt * ((1 + alpha[index] * beta) * hpi
+				     - (beta - alpha[index]) * mth0);
+	    dm_dt[j] += coeff_stt * ((1 + alpha[index] * beta) * hpj
+				     - (beta - alpha[index]) * mth1);
+	    dm_dt[k] += coeff_stt * ((1 + alpha[index] * beta) * hpk
+				     - (beta - alpha[index]) * mth2);
 
 	    double c = 6 * sqrt(dm_dt[i] * dm_dt[i] +
 				dm_dt[j] * dm_dt[j] +

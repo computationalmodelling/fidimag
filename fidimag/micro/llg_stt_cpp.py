@@ -9,7 +9,7 @@ from .llg import LLG
 import fidimag.common.helper as helper
 
 
-class LLG_STT_Slonczewski(LLG):
+class LLG_STT_CPP(LLG):
 
     def __init__(self, mesh, name='unnamed'):
         """Simulation object.
@@ -19,11 +19,11 @@ class LLG_STT_Slonczewski(LLG):
           name : the Simulation name (used for writing data files, for examples)
 
         """
-        super(LLG_STT_Slonczewski, self).__init__(mesh, name=name)
+        super(LLG_STT_CPP, self).__init__(mesh, name=name)
 
         self._p = np.zeros(3 * self.n, dtype=np.float)
 
-        self.u0 = 1
+        self.a_J = 1
         self.beta = 0
 
     def get_p(self):
@@ -43,10 +43,10 @@ class LLG_STT_Slonczewski(LLG):
 
         self.compute_effective_field(t)
 
-        if isinstance(self.u0,types.FunctionType):
-            _u = self.u0(t)
+        if isinstance(self.a_J,types.FunctionType):
+            _a_J = self.a_J(t)
         else:
-            _u = self.u0
+            _a_J = self.a_J
         
         clib.compute_llg_stt_cpp(ydot,
                                  self.spin,
@@ -55,6 +55,6 @@ class LLG_STT_Slonczewski(LLG):
                                  self.alpha,
                                  self._pins,
                                  self.beta,
-                                 _u,
+                                 _a_J,
                                  self.gamma,
                                  self.n)

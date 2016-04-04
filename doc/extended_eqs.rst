@@ -118,17 +118,26 @@ i.e.,
    (1+\alpha^2)\frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H} - \alpha \gamma \vec{H}_{\perp}  - \frac{\vec{m} \times \delta \vec{m}}{\tau_{sd}} + \alpha \frac{\delta \vec{m}}{\tau_{sd}}
 
 
-Spin transfer torque (Slonczewski type)
-=======================================================
-We consider the LLG equation with a Slonczewski-type extension [PRB 91 064423 (2015)],
+Spin transfer torque (current-perpendicular-to-plane, CPP)
+-------------------------------------------------------------------------------------------
+In this case (current-perpendicular-to-plane, CPP), there are two types of torques can be 
+added to the orginal LLG equation. One is the so called Slonczewski torque 
+:math:`\vec{\tau}_s=-a_J \vec{m} \times (\vec{m} \times \vec{p})`, and the other is 
+a fieldlike torque :math:`\vec{\tau}_f=- b_J(\vec{m} \times \vec{p})` [PRL 102 037206 (2009)]. 
+So the full LLG equation is
  
 .. math::
-   \frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H} + \alpha \vec{m} \times  \frac{\partial \vec{m}}{\partial t} + u \vec{m} \times (\vec{p}\times \vec{m})
+   \frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H} + \alpha \vec{m} \times  \frac{\partial \vec{m}}{\partial t} -a_J \vec{m} \times (\vec{m} \times \vec{p}) - b_J (\vec{m} \times \vec{p})
 
-where :math:`\vec{p}` is the unit vector in the direction of the spin polarization. Similar to the Zhang-Li case, the implemented equation in the code is,
+where :math:`\vec{p}` is the unit vector of the spin polarization. The parameter :math:`b_J = \beta a_J` and 
 
 .. math::
-   (1+\alpha^2)\frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H}_{\perp} + \alpha \gamma \vec{H}_{\perp}   + u \vec{p}_{\perp} + \alpha u \vec{m} \times  \vec{p}_{\perp}
+    a_J = \frac{\hbar \gamma J P}{2 |e| d M_s}
+
+As we can see, this equation is exactly the same as the one used in Zhang-Li case if we take :math:`\vec{p} = (\vec{j}_s \cdot \nabla)\vec{m}`. So the implemented equation in the code is,
+
+.. math::
+   (1+\alpha^2)\frac{\partial \vec{m}}{\partial t} = - \gamma \vec{m} \times \vec{H}_{\perp} + \alpha \gamma \vec{H}_{\perp}   + (1+\alpha \beta) a_J \vec{p}_{\perp} - (\beta-\alpha) a_J (\vec{m}\times  \vec{p}_{\perp})
 
 where :math:`\vec{p}_\perp=\vec{p}-(\vec{m}\cdot\vec{p})\vec{m}`.
  

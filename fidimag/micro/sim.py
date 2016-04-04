@@ -1,9 +1,11 @@
 from . import llg
 from . import llg_stt
+from . import llg_stt_cpp
 from . import baryakhtar
 
 KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llg_stt': llg_stt.LLG_STT,
+                 'llg_stt_cpp': llg_stt_cpp.LLG_STT_CPP,
                  'llbar': baryakhtar.LLBar,
                  'llbar_full': baryakhtar.LLBarFull}
 
