@@ -3,10 +3,10 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim, UniformExchange, Demag, UniaxialAnisotropy
-from common import CuboidMesh
-from pc import NEB_Sundials
-from util.helper import plot_energy_2d, plot_energy_3d
+from fidimag.micro import Sim, UniformExchange, Demag, UniaxialAnisotropy
+from fidimag.common import CuboidMesh
+from fidimag.common.neb_cartesian import NEB_Sundials
+from fidimag.common.helper import plot_energy_2d, plot_energy_3d
 #from finmag.sim.neb import plot_energy_2d, plot_energy_3d
 
 

@@ -14,7 +14,7 @@ energies
 # FIDIMAG:
 from fidimag.micro import Sim, UniformExchange, Demag, DMI
 from fidimag.common import CuboidMesh
-from fidimag.pc import NEB_Sundials
+from fidimag.common.neb_cartesian import NEB_Sundials
 
 import numpy as np
 
