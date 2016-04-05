@@ -21,7 +21,7 @@ def test_dynamic():
 
     sim.p = (0,0,1)
 
-    sim.u0 = 0.0052
+    sim.a_J = 0.0052
     sim.alpha = 0.1
 
     ts = np.linspace(0, 1200, 401)
