@@ -21,7 +21,13 @@ class VTK(object):
             raise NotImplementedError(
                     "Mesh should be CuboidMesh or HexagonalMesh, is {}.".format(
                         mesh.__class__.__name__))
+        self.structure = structure
+        self.header = header
         self.vtk_data = pyvtk.VtkData(structure, header)
+
+
+    def reset_data(self):
+        self.vtk_data = pyvtk.VtkData(self.structure, self.header)
 
     def save_scalar(self, s, name="my_field", step=0):
         self.vtk_data.cell_data.append(pyvtk.Scalars(s, name))

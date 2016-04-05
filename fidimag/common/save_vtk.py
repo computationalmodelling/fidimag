@@ -20,7 +20,7 @@ class SaveVTK():
                        )
 
     def save_vtk(self, m1, Ms, step=0, vtkname='m'):
-
+        self.VTK.reset_data()
         # Here we save both Ms and spins as cell data
         self.VTK.save_scalar(Ms, name='Ms')
         self.VTK.save_vector(m1, name='spins')
