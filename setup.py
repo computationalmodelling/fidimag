@@ -32,6 +32,7 @@ DEMAG_DIR = os.path.join(SRC_DIR, "common","dipolar")
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
+print("LIB_DIR={}".format(LIB_DIR))
 
 
 def glob_cfiles(path, excludes):
