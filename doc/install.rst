@@ -1,5 +1,3 @@
-
-
 How to install
 ===============
 
@@ -164,3 +162,22 @@ Notes:
 - it seems that we need an active X server, on OS X, one may need to
   install XQuartz before the tests can pass (even 'import fidimag'
   failed without a working X server).
+
+Install on OS X
+===============
+
+The inbuilt OS X gcc compiler (actually clang) doesn't have OpenMP support. A workaround is to
+
+- install gcc5 (via homebrew, for example: ``brew install gcc --without-multilib``)
+- set CC environment variable to point to that compiler: ``export CC=gcc-5``
+
+
+Once this is done, run ``bin/install.sh`` which will compile fftw3 and
+sundials (in a local subdirectory) using this compiler.
+
+Also install pytest (``conda install pytest`` if using conda) and
+``pyvtk`` via pip (``pip install pyvtk``).
+
+Then run ``make``.
+
+Set the Pythonpath so that the fidimag source is in the path.
