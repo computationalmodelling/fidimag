@@ -32,9 +32,13 @@ except ImportError as e:
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath',
+extensions = ['sphinx.ext.autodoc', 
               'sphinx.ext.mathjax', 'sphinx.ext.viewcode',
               'nbsphinx']
+
+# Note: read-the-docs fails if we use the 'sphinx.ext.pngmath' and the
+# 'sphinx.ext.mathjax' extension at the same time. Let's go with
+# mathjax as the more modern version then.
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
