@@ -16,6 +16,7 @@ LIBS_DIR=${FIDIMAG_DIR}/local
 mkdir -p $LIBS_DIR
 cd ${LIBS_DIR}
 echo "Installing SUNDIALS and FFTW to "$LIBS_DIR"."
+echo "Using CC="$CC"."
 
 download_and_install() {
     # $1 name of the package
