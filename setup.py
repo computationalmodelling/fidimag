@@ -13,7 +13,12 @@ import fnmatch
 import os
 import glob
 
-os.environ["CC"] = "gcc"
+
+if 'CC' in os.environ:
+    print("Using CC={}".format(os.environ['CC']))
+else:
+    os.environ["CC"] = "gcc"
+    print("Using CC={} (set by setup.py)".format(os.environ['CC']))
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
