@@ -10,6 +10,12 @@
          - make install
      - [ ] Get Fidimag to link with it
        - Not sure what the problem is here - failed to load library with error:
-	 "Image not found"
+	 
+         fidimag/atomistic/llg.py:5: in <module>                          
+         import fidimag.extensions.clib as clib                                                                            
+         ImportError: dlopen(/Users/ryan/Git/fidimag/fidimag/extensions/clib.so, 2):
+         Library not loaded: libsundials_cvodes.2.dylib                                                                                                              │
+         Referenced from: /Users/ryan/Git/fidimag/fidimag/extensions/clib.so                                             │
+         Reason: image not found
 
 
