@@ -1,7 +1,15 @@
 * TODO [0/1]
-1) [ ] Documentation
-   - [ ] Add docstrings to the Cythonised functions which are exposed to the user; e.g fidimag.micro.sim.Sim
-
-
+  1) [ ] Documentation
+     - [ ] Add docstrings to the Cythonised functions which are exposed to the user; e.g fidimag.micro.sim.Sim
+ 
+  2) [1/2] Update dependencies
+     - [X] FFTW 3.3.3 -> 3.3.4
+     - [1/1] Sundials -> 
+       - [X] Get it to build
+         - cmake -DCMAKE_INSTALL_PREFIX=$PWD CC=gcc-5 OPENMP_ENABLE=ON sundials-2.6.2
+         - make install
+     - [ ] Get Fidimag to link with it
+       - Not sure what the problem is here - failed to load library with error:
+	 "Image not found"
 
 
