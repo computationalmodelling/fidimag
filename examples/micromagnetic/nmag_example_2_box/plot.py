@@ -10,7 +10,10 @@ label = lambda name, mi: mathmode(rm(rm(name) + "\; m_" + rm(mi)))
 fidi = mathmode(rm("fidimag"))
 m = lambda i: label("fidimag", i)
 
-for datafile, descr in (("sim_J0", "w/o Jacobian"), ("sim_J1", "with Jacobian")):
+for datafile, descr in (
+        ("sim_sundials_J0", "w/o Jacobian"),
+        ("sim_sundials_diag", "Jacobian approx."),
+        ("sim_sundials_J1", "with Jacobian")):
     data = DataReader(datafile + ".txt")
     total_wall_time = (data["real_time"][-1] - data["real_time"][0]) / 60.0
 
