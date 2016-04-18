@@ -163,8 +163,12 @@ cdef class CvodeSolver(object):
                 flag = CVSpilsSetPreconditioner(self.cvode_mem, <CVSpilsPrecSetupFn>self.psetup, <CVSpilsPrecSolveFn>psolve)
                 self.check_flag(flag, "CVSpilsSetPreconditioner")
             else:
-                # TODO: why do we choose SPGMR even if no user-defined Jacobian
-                # computation is provided?
+                # this will use the SPGMR without preconditioner and without
+                # our computation of the product J * m'. Instead, it uses
+                # a difference quotient approximation of the product.
+                # c.f. Sec 4.6.7 in CVODE manual
+                # Actually, it's the same Jacobian approximation as used
+                # in CVDiag (only difference is CVDiag is a direct linear solver).
                 flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
                 self.check_flag(flag, "CVSpgmr")
         else:
