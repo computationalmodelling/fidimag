@@ -9,7 +9,7 @@ from fidimag.micro import Sim, UniformExchange, Demag
 
 
 mesh = CuboidMesh(3, 3, 10/3.0, 10, 10, 30, unit_length=1e-9)
-sim = Sim(mesh)
+sim = Sim(mesh, name="nmag2")
 sim.Ms = 0.86e6
 sim.alpha = 0.5
 sim.set_m((1, 0, 1))
