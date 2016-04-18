@@ -91,8 +91,9 @@ cdef class CvodeSolver(object):
     cdef long int nsteps, nfevals, njevals
     cdef int max_num_steps
     cdef int has_jtimes
+    cdef str linear_solver
 
-    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, rtol=1e-8, atol=1e-8):
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
         self.t = 0
         self.spin = spins
         self.dm_dt = np.copy(spins)
@@ -104,6 +105,12 @@ cdef class CvodeSolver(object):
         self.jtimes_fun= jtimes_fun
         self.jvn_fun = <void *>cv_jtimes
         self.rhs_fun = <void *>cv_rhs # wrapper for callback_fun (which is a Python function)
+
+        if linear_solver == "spgmr" or linear_solver == "diag":
+            # scaled preconditioned GMRES or diagonal approximate solver
+            self.linear_solver = linear_solver
+        else:
+            raise ValueError("linear_solver is {}, should be spgmr or diag".format(linear_solver))
 
         self.has_jtimes = 0
         if jtimes_fun is not None:
@@ -142,14 +149,26 @@ cdef class CvodeSolver(object):
             self.check_flag(flag, "CVodeInit")
             self.cvode_already_initialised = 1
 
-        if self.has_jtimes:  # we will use preconditioning with the Jacobian
-            # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
-            flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300);
-            # functions below in p. 37 CVODE 2.7 manual
-            flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, <CVSpilsJacTimesVecFn>self.jvn_fun)
-            flag = CVSpilsSetPreconditioner(self.cvode_mem, <CVSpilsPrecSetupFn>self.psetup, <CVSpilsPrecSolveFn>psolve)
+        if self.linear_solver == "diag":
+            flag = CVDiag(self.cvode_mem)
+            self.check_flag(flag, "CVDiag")
+        elif self.linear_solver == "spgmr":
+            if self.has_jtimes:
+                # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
+                flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300);
+                self.check_flag(flag, "CVSpgmr")
+                # functions below in p. 37 CVODE 2.7 manual
+                flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, <CVSpilsJacTimesVecFn>self.jvn_fun)
+                self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
+                flag = CVSpilsSetPreconditioner(self.cvode_mem, <CVSpilsPrecSetupFn>self.psetup, <CVSpilsPrecSolveFn>psolve)
+                self.check_flag(flag, "CVSpilsSetPreconditioner")
+            else:
+                # TODO: why do we choose SPGMR even if no user-defined Jacobian
+                # computation is provided?
+                flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
+                self.check_flag(flag, "CVSpgmr")
         else:
-            flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300);
+            raise RuntimeError("linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
 
     def set_options(self, rtol, atol, max_num_steps=100000, max_ord=None):
         self.rtol = rtol
