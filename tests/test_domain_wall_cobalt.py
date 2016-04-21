@@ -28,9 +28,9 @@ def reference_mz(x):
     return math.cos(math.pi / 2 + math.atan(math.sinh(((x - LENGTH / 2) * UNIT_LENGTH) / math.sqrt(A_Co / K1_Co))))
 
 
-def setup_domain_wall_cobalt(node_count=NODE_COUNT, A=A_Co, Ms=Ms_Co, K1=K1_Co, length=LENGTH, do_precession=True):
-    a = LENGTH / NODE_COUNT  # cell size
-    mesh = CuboidMesh(dx=a, dy=a, dz=a, nx=NODE_COUNT, ny=1, nz=1, unit_length=UNIT_LENGTH)
+def setup_domain_wall_cobalt(node_count=NODE_COUNT, A=A_Co, Ms=Ms_Co, K1=K1_Co, length=LENGTH, do_precession=True, unit_length=UNIT_LENGTH):
+    a = length / node_count  # cell size
+    mesh = CuboidMesh(dx=a, dy=a, dz=a, nx=node_count, ny=1, nz=1, unit_length=unit_length)
     sim = Sim(mesh, "dw_cobalt")
     sim.Ms = Ms
     sim.set_m(initial_m)
