@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 import numpy as np
 import matplotlib
@@ -16,9 +17,9 @@ UNIT_LENGTH = 1e-9
 NODE_COUNT = 100
 
 
-def initial_m(r):
+def initial_m(r, length=LENGTH):
     x = r[0]
-    mz = 1.0 - 2.0 * x / LENGTH
+    mz = 1.0 - 2.0 * x / length
     my = math.sqrt(1 - mz * mz)
     return [0, my, mz]
 
@@ -33,7 +34,7 @@ def setup_domain_wall_cobalt(node_count=NODE_COUNT, A=A_Co, Ms=Ms_Co, K1=K1_Co, 
     mesh = CuboidMesh(dx=a, dy=a, dz=a, nx=node_count, ny=1, nz=1, unit_length=unit_length)
     sim = Sim(mesh, "dw_cobalt")
     sim.Ms = Ms
-    sim.set_m(initial_m)
+    sim.set_m(lambda r: initial_m(r, length))
     sim.do_precession = do_precession
     sim.add(UniformExchange(A))
     sim.add(UniaxialAnisotropy(K1, (0, 0, 1)))
@@ -53,7 +54,7 @@ def test_domain_wall_cobalt():
     mz = m[:, 2]
     ref = [reference_mz(x) for x in xs]
     diff = np.max(np.abs(mz - ref))
-    print "max difference between simulation and reference: ", diff
+    print("max difference between simulation and reference: ", diff)
     assert diff < 1e-2
 
 if __name__ == '__main__':
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     m.shape = (-1, 3)
     mz = m[:, 2]
     ref = [reference_mz(x) for x in xs]
-    print "max difference between simulation and reference: ", np.max(np.abs(mz - ref))
+    print("max difference between simulation and reference: ", np.max(np.abs(mz - ref)))
     plt.plot(xs, mz, label="finmag")
     plt.plot(xs, ref, label="ref")
     plt.xlabel('x [nm]')
