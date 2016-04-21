@@ -272,6 +272,7 @@ class LLG(object):
         return 0
 
     def step_rhs(self, t, y):
+        self.spin[:] = y[:]
         self.t = t
         self.compute_effective_field(t)
         clib.compute_llg_rhs(self.dm_dt,
