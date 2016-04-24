@@ -3,10 +3,10 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim
-from common import CuboidMesh
-from micro import UniformExchange, Demag
-from micro import Zeeman, TimeZeeman
+from fidimag.micro import Sim
+from fidimag.common import CuboidMesh
+from fidimag.micro import UniformExchange, Demag
+from fidimag.micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
 
 mu0 = 4 * np.pi * 1e-7
