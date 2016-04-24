@@ -103,7 +103,7 @@ Can only be done with ssh keys.
 Quick test
 ==========
 
-Use `make test-quick` to run a set of quick tests (that don not need
+Use ``make test-quick`` to run a set of quick tests (that don not need
 OOMMF installed). The output should look something like::
 
   fangohr$ make test-quick
