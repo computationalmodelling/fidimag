@@ -54,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Fidimag'
-copyright = u'2015, Fidimag Team'
+copyright = u'2015-2016, Fidimag Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
