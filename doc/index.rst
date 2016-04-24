@@ -6,6 +6,11 @@
 Welcome to fidimag's documentation!
 ================================
 
+The official webpage is
+http://computationalmodelling.github.io/fidimag/, the github
+repository is https://github.com/computationalmodelling/fidimag, and
+this documentation is hosted at http://fidimag.readthedocs.org.
+
 Contents:
 
 .. toctree::
