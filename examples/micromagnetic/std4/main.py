@@ -69,7 +69,7 @@ def apply_field1(mesh):
     sim.add(demag)
 
     mT = 0.001 / mu0
-    print mT
+    print("Applied field = {}".format(mT))
 
     zeeman = Zeeman([-24.6 * mT, 4.3 * mT, 0], name='H')
     sim.add(zeeman, save_field=True)
@@ -77,7 +77,7 @@ def apply_field1(mesh):
     ts = np.linspace(0, 1e-9, 201)
     for t in ts:
         sim.run_until(t)
-        print 'sim t=%g' % t
+        print('sim t=%g' % t)
 
 
 def deal_plot():
