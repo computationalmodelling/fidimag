@@ -118,7 +118,7 @@ def deal_plot():
         dev_mx, dev_my, dev_mz))
 
     expected_devs =  1.8811609559e-06, 1.88438380672e-05, 1.05292548867e-06
-    print("Expeted devs are {}, {} and {} in m_x, m_y and m_z.".format(
+    print("Expected devs are {}, {} and {} in m_x, m_y and m_z.".format(
         *expected_devs))
 
     # and use as simple system test
