@@ -3,10 +3,10 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim
-from common import CuboidMesh
-from micro import UniformExchange, Demag
-from micro import Zeeman, TimeZeeman
+from fidimag.micro import Sim
+from fidimag.common import CuboidMesh
+from fidimag.micro import UniformExchange, Demag
+from fidimag.micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
 
 mu0 = 4 * np.pi * 1e-7
@@ -69,7 +69,7 @@ def apply_field1(mesh):
     sim.add(demag)
 
     mT = 0.001 / mu0
-    print mT
+    print("Applied field = {}".format(mT))
 
     zeeman = Zeeman([-24.6 * mT, 4.3 * mT, 0], name='H')
     sim.add(zeeman, save_field=True)
@@ -77,7 +77,7 @@ def apply_field1(mesh):
     ts = np.linspace(0, 1e-9, 201)
     for t in ts:
         sim.run_until(t)
-        print 'sim t=%g' % t
+        print('sim t=%g' % t)
 
 
 def deal_plot():
@@ -109,7 +109,24 @@ def deal_plot():
     # plt.ylabel('Susceptibility')
     plt.savefig('cmp.pdf')
 
+    # compute deviation of very last point against reference solution
+    # from the OOMMF simulation tool
+    dev_mx = abs(mx[-1] - mx2[-1])
+    dev_my = abs(my[-1] - my2[-1])
+    dev_mz = abs(mz[-1] - mz2[-1])
+    print("Deviations are   {}, {} and {} in m_x, m_y and m_z.".format(
+        dev_mx, dev_my, dev_mz))
 
+    expected_devs =  1.8811609559e-06, 1.88438380672e-05, 1.05292548867e-06
+    print("Expected devs are {}, {} and {} in m_x, m_y and m_z.".format(
+        *expected_devs))
+
+    # and use as simple system test
+    assert dev_mx < 1.89e-06
+    assert dev_my < 1.89e-05
+    assert dev_mz < 1.06e-06
+    
+    
 if __name__ == '__main__':
 
     mesh = CuboidMesh(nx=200, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
