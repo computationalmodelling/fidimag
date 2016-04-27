@@ -44,9 +44,11 @@ def init_vector(m0, mesh, norm=False):
         spin = np.reshape(spin, 3 * n, order='C')
 
     elif isinstance(m0, np.ndarray):
-        spin.shape = (-1,)
         if m0.shape == spin.shape:
+            spin.shape = (-1,)
             spin[:] = m0[:]
+        else:
+            spin[:] = mo
 
     spin.shape = (-1,)
 
