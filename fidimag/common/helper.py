@@ -48,7 +48,7 @@ def init_vector(m0, mesh, norm=False):
             spin.shape = (-1,)
             spin[:] = m0[:]
         else:
-            spin[:] = mo
+            spin[:] = m0
 
     spin.shape = (-1,)
 
