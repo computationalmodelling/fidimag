@@ -44,11 +44,11 @@ def init_vector(m0, mesh, norm=False):
         spin = np.reshape(spin, 3 * n, order='C')
 
     elif isinstance(m0, np.ndarray):
-        if m0.shape == spin.shape:
-            spin.shape = (-1,)
-            spin[:] = m0[:]
+        if m0.shape == (3, ):
+            spin[:] = m0  # broadcasting
         else:
-            spin[:] = m0
+            spin.shape = (-1)
+            spin[:] = m0  # overwriting the whole thing
 
     spin.shape = (-1,)
 
