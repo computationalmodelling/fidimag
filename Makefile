@@ -17,8 +17,9 @@ clean:
 # Tests #
 #########
 
-create-dirs:
-	mkdir -p test-reports/junit
+# Quick tests, also not using OOMMF tests
+test:
+	cd tests && py.test -v -m "not slow and not run_oommf"
 
 test-all: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
@@ -36,13 +37,13 @@ tq:
 test-quick:
 	$(error This target 'test-quick' has been removed, please update the code calling this)
 
-# Quick tests, also not using OOMMF tests
-test:
-	cd tests && py.test -v -m "not slow and not run_oommf"
-
 
 test-ipynb: create-dirs
 	cd doc/ipynb && py.test . -v --ipynb --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
+
+create-dirs:
+	mkdir -p test-reports/junit
+
 
 #################
 # Documentation #
