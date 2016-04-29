@@ -31,7 +31,11 @@ test-basic:
 
 # Convenience name for commonly used quick running of tests
 tq:
-	make test-quick
+	$(error This target 'tq' has been removed, please update the code calling this)
+
+test-quick:
+	$(error This target 'test-quick' has been removed, please update the code calling this)
+
 # Quick tests, also not using OOMMF tests
 test:
 	cd tests && py.test -v -m "not slow and not run_oommf"
