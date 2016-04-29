@@ -15,3 +15,5 @@ from . import micro
 
 
 citation = common.citation
+
+__version__ = '0.2'
