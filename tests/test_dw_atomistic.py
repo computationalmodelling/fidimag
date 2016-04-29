@@ -3,10 +3,9 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from fidimag.atomistic import Sim, DMI, UniformExchange, Anisotropy
-from fidimag.common import Constant, CuboidMesh
+from fidimag.common import CuboidMesh
+import fidimag.common.constant as const
 
-
-const = Constant()
 
 def m_init_dw(pos):
 

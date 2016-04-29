@@ -3,10 +3,8 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from fidimag.atomistic import Sim, DMI, UniformExchange, Anisotropy
-from fidimag.common import Constant, CuboidMesh
+from fidimag.common import constant, CuboidMesh
 
-
-const = Constant()
 
 def m_init_dw(pos):
 
@@ -34,14 +32,14 @@ def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
 def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
-    sim.set_default_options(gamma=const.gamma)
+    sim.set_default_options(gamma=constant.gamma)
     sim.alpha = 0.5
-    sim.mu_s = const.mu_s_1
+    sim.mu_s = constant.mu_s_1
     sim.do_precession = False
 
     sim.set_m(m_init_dw)
 
-    J = 50.0 * const.k_B
+    J = 50.0 * constant.k_B
     exch = UniformExchange(J)
     sim.add(exch)
 

@@ -7,9 +7,7 @@ import fidimag.extensions.cvode as cvode
 import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.constant import Constant
-
-const = Constant()
+import fidimag.common.constant as const
 
 
 class LLG(object):
