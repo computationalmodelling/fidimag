@@ -6,16 +6,12 @@ EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 #####################
 
 
-build: extensions-directory
-	python setup.py build_ext --build-lib ${EXTENSIONS_DIR}
-	touch ${EXTENSIONS_DIR}/__init__.py
-	rm -rf ${PROJECT_DIR}/build
-
-extensions-directory:
-	mkdir -p ${EXTENSIONS_DIR}
+build:
+	python setup.py build_ext --inplace
 
 clean:
-	rm -rf ${EXTENSIONS_DIR}
+	rm -rf ${EXTENSIONS_DIR}/*
+	touch ${EXTENSIONS_DIR}/__init__.py
 
 #########
 # Tests #
