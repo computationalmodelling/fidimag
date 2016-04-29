@@ -11,7 +11,21 @@ KNOWN_DRIVERS = {'llg': llg.LLG,
 
 
 def Sim(*args, **kwargs):
+    """
+    def Sim(*args, **kwargs)
+    
+    This function returns a simulation object.
 
+    By default, it will return a simulation object for the LLG driver;
+    other available drivers are:
+        llg_stt - LLG w. spin transfer torque
+        llg_stt_cpp - LLG w. spin transfer torque 
+        llbar - Landau-Lifshitz-Baryakhtar equation
+        llbar_full
+    
+    To use the STT driver, for example, pass as an argument driver="llg_stt".
+
+    """
     driver = 'llg'
 
     if 'driver' in kwargs:
