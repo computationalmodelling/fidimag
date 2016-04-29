@@ -20,7 +20,7 @@ clean:
 create-dirs:
 	mkdir -p test-reports/junit
 
-test: create-dirs
+test-all: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-without-run-oommf: create-dirs
@@ -33,7 +33,7 @@ test-basic:
 tq:
 	make test-quick
 # Quick tests, also not using OOMMF tests
-test-quick:
+test:
 	cd tests && py.test -v -m "not slow and not run_oommf"
 
 
