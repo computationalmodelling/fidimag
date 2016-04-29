@@ -9,7 +9,7 @@ from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 from fidimag.atomistic import Demag, DemagFull, DemagHexagonal
-import fidimag.common.constant import const
+import fidimag.common.constant as const
 import numpy as np
 
 
