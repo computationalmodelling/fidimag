@@ -35,7 +35,7 @@ def run_fidimag(mesh):
     sim.set_m((0, 0, 1))
 
     sim.add(UniformExchange(A))
-    sim.add(DMI(D, type='interfacial'))
+    sim.add(DMI(D, dmi_type='interfacial'))
     sim.add(UniaxialAnisotropy(K, axis=(0, 0, 1)))
 
     sim.relax(dt=1e-13, stopping_dmdt=0.01, max_steps=5000,

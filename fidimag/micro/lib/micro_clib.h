@@ -26,3 +26,6 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
 
 void compute_uniaxial_anis(double *m, double *field, double *energy, double *Ms_inv, 
 	double *Ku, double *axis, int nx, int ny, int nz);
+
+double skyrmion_number(double *spin, double *charge,
+                       int nx, int ny, int nz, int *ngbs);
