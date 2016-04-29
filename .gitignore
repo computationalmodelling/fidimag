@@ -19,3 +19,11 @@ fidimag/micro/lib/micro_clib.c
 /build/
 /doc/build/
 
+
+# ignore *.so created by cython
+fidimag/extensions/baryakhtar_clib.so
+fidimag/extensions/clib.so
+fidimag/extensions/cvode.so
+fidimag/extensions/dipolar.so
+fidimag/extensions/micro_clib.so
+fidimag/extensions/neb_clib.so
