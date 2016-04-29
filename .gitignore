@@ -36,3 +36,6 @@ fidimag/extensions/neb_clib.so
 # ignore output from coverage
 htmlcov
 
+# ignore junit test output
+test-reports
+
