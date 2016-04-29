@@ -24,7 +24,7 @@ test: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-without-run-oommf: create-dirs
-	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml -m "not run_oommf" --cov=fidimag --cov-report=html
+	py.test -v -m "not run_oommf" --cov=fidimag --cov-report=html --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml 
 
 test-basic:
 	cd tests && py.test -v
