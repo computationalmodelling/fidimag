@@ -38,7 +38,7 @@ logger = setup_logger()
 # OOMMF bash variables used by Fidimag to locate OOMMF's
 # installation folder
 # TODO: is there a way to find a better default path?
-OOMMF_PATH = os.environ.get('OOMMF_PATH', '/home/ww1g11/Softwares/oommf-1.2a5/')
+OOMMF_PATH = os.environ.get('OOMMF_PATH')
 OOMMF_TKTCL_VERSION = os.environ.get('OOMMF_TKTCL_VERSION', '')
 
 # The path where the script is being executed
