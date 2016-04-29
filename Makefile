@@ -21,6 +21,11 @@ clean:
 test:
 	cd tests && py.test -v -m "not slow and not run_oommf"
 
+test2:
+	# like test, but run also outside the 'tests' directory.
+	# Doesn't work on Hans laptop.
+	py.test -v -m "not slow and not run_oommf"
+
 test-all: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
@@ -40,6 +45,9 @@ test-quick:
 
 test-ipynb: create-dirs
 	cd doc/ipynb && py.test . -v --ipynb --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
+
+test-oommf:
+	py.test -v -m "oommf"
 
 create-dirs:
 	mkdir -p test-reports/junit
