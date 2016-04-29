@@ -17,28 +17,41 @@ clean:
 # Tests #
 #########
 
-create-dirs:
-	mkdir -p test-reports/junit
+# Quick tests, also not using OOMMF tests
+test:
+	cd tests && py.test -v -m "not slow and not run_oommf"
 
-test: create-dirs
+test2:
+	# like test, but run also outside the 'tests' directory.
+	# Doesn't work on Hans laptop.
+	py.test -v -m "not slow and not run_oommf"
+
+test-all: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-without-run-oommf: create-dirs
-	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml -m "not run_oommf" --cov=fidimag --cov-report=html
+	py.test -v -m "not run_oommf" --cov=fidimag --cov-report=html --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml 
 
 test-basic:
 	cd tests && py.test -v
 
 # Convenience name for commonly used quick running of tests
 tq:
-	make test-quick
-# Quick tests, also not using OOMMF tests
+	$(error This target 'tq' has been removed, please update the code calling this)
+
 test-quick:
-	cd tests && py.test -v -m "not slow and not run_oommf"
+	$(error This target 'test-quick' has been removed, please update the code calling this)
 
 
 test-ipynb: create-dirs
 	cd doc/ipynb && py.test . -v --ipynb --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
+
+test-oommf:
+	py.test -v -m "oommf"
+
+create-dirs:
+	mkdir -p test-reports/junit
+
 
 #################
 # Documentation #
