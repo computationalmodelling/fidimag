@@ -16,4 +16,6 @@ fidimag/micro/lib/micro_clib.c
 *_npys
 *_vtks
 
+/build/
+/doc/build/
 

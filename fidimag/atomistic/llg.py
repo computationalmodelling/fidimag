@@ -288,7 +288,7 @@ class LLG(object):
         nx = self.mesh.nx
         ny = self.mesh.ny
         nz = self.mesh.nz
-        number = clib.compute_skymrion_number(
+        number = clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
