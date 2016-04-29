@@ -11,3 +11,9 @@ fidimag/micro/lib/micro_clib.c
 
 # ignore .cache from pytest
 .cache
+
+# ignore simulation data
+*_npys
+*_vtks
+
+
