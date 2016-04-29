@@ -16,6 +16,10 @@ fidimag/micro/lib/micro_clib.c
 *_npys
 *_vtks
 
+# ignore output files from NEB method
+npys
+vtks
+
 /build/
 /doc/build/
 
@@ -27,3 +31,8 @@ fidimag/extensions/cvode.so
 fidimag/extensions/dipolar.so
 fidimag/extensions/micro_clib.so
 fidimag/extensions/neb_clib.so
+
+
+# ignore output from coverage
+htmlcov
+
