@@ -5,11 +5,8 @@ from pccp.pc import DMI
 from pccp.pc import UniformExchange
 from pccp.pc import Demag
 from pccp.pc import Anisotropy
-from pccp.pc import Constant
-
+import fidimag.common.constant as const
 from pccp.pc.batch_task import BatchTasks
-
-const = Constant()
 
 
 def mu_s(pos):

@@ -6,10 +6,7 @@ from fidimag.atomistic import DMI
 from fidimag.atomistic import UniformExchange
 from fidimag.atomistic import Zeeman
 from fidimag.atomistic import Anisotropy
-from fidimag.atomistic import Constant
-
-# Import constants from fidimag
-const = Constant()
+import fidimag.common.constant as const
 
 # Number of spins and lattice spacing (see mesh)
 nx = 50

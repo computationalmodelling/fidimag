@@ -3,10 +3,10 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman
-from fidimag.common import Constant, CuboidMesh
+from fidimag.common import constant, CuboidMesh
 
 
-const = Constant()
+const = constant
 
 """
 If we only consider the exchange, dmi and external field, 

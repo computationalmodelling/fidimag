@@ -7,9 +7,7 @@ import fidimag.extensions.cvode as cvode
 import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.constant import Constant
-
-const = Constant()
+import fidimag.common.constant as const
 
 
 class LLG(object):
@@ -290,7 +288,7 @@ class LLG(object):
         nx = self.mesh.nx
         ny = self.mesh.ny
         nz = self.mesh.nz
-        number = clib.compute_skymrion_number(
+        number = clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 

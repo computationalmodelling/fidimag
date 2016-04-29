@@ -5,9 +5,7 @@ import numpy as np
 
 from .llg import LLG
 import fidimag.common.helper as helper
-
-from fidimag.common.constant import Constant
-const = Constant()
+import fidimag.common.constant as const
 
 
 class LLG_STT(LLG):

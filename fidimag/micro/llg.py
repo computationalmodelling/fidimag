@@ -6,12 +6,10 @@ import fidimag.extensions.clib as clib
 import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.constant import Constant
 from fidimag.common.integrators import SundialsIntegrator, StepIntegrator
+import fidimag.common.constant as const
 import fidimag.common.helper as helper
 import re
-
-const = Constant()
 
 
 class LLG(object):
@@ -305,7 +303,7 @@ class LLG(object):
         nx = self.mesh.nx
         ny = self.mesh.ny
         nz = self.mesh.nz
-        number = clib.compute_skymrion_number(
+        number = clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 

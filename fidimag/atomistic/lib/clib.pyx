@@ -98,7 +98,7 @@ def random_number(np.ndarray[double, ndim=1, mode="c"] v):
 
 
 
-def compute_skymrion_number(np.ndarray[double, ndim=1, mode="c"] spin,
+def compute_skyrmion_number(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] charge,
                             nx, ny, nz,
                             np.ndarray[int, ndim=2, mode="c"] ngbs
