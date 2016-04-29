@@ -5,10 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pc import Sim, Demag
 from fidimag.common import CuboidMesh
-from pc import Constant
+import fidimag.common.constant as const
 from pc.save_vtk import SaveVTK
-
-const = Constant()
 
 
 def mu_s(pos):

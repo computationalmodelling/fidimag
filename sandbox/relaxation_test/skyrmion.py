@@ -1,10 +1,7 @@
 from fidimag.atomistic import Sim
 from fidimag.common.cuboid_mesh import CuboidMesh
 from fidimag.atomistic import UniformExchange, Zeeman
-from fidimag.atomistic import Constant
-
-# Import physical constants from fidimag
-const = Constant()
+import fidimag.common.constant as const
 
 mesh = CuboidMesh(nx=1, ny=1, dx=1, dy=1)
 

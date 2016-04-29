@@ -6,12 +6,10 @@ import fidimag.extensions.clib as clib
 import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.constant import Constant
 from fidimag.common.integrators import SundialsIntegrator, StepIntegrator
+import fidimag.common.constant as const
 import fidimag.common.helper as helper
 import re
-
-const = Constant()
 
 
 class LLG(object):

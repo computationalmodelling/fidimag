@@ -3,9 +3,7 @@ import numpy as np
 import fidimag.extensions.clib as clib
 import fidimag.common.helper as helper
 from .llg import LLG
-from fidimag.common.constant import Constant
-
-const = Constant()
+import fidimag.common.constant as const
 
 
 class SLLG(LLG):
