@@ -8,6 +8,7 @@ sudo: false
 before_install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
+  - deactivate  # Deactivate virtualenv
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -19,7 +20,7 @@ before_install:
 install:
   - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython matplotlib pytest scipy pytest-cov
   - source activate fidimag-test
-  - pip install pyvtk six
+  - pip install pyvtk six nbval
   # Download and compile FFTW & Sundials locally
   - bash bin/install.sh
 
@@ -36,6 +37,7 @@ before_script:
 # command to run tests
 script:
   - make test-without-run-oommf
+  - make test-ipynb
 
 
 notifications:
