@@ -22,7 +22,7 @@ FIDIMAG_DIR="$(dirname "$HERE_DIR")"
 LIBS_DIR=${FIDIMAG_DIR}/local
 
 echo "Will install SUNDIALS to "${LIBS_DIR}" using CC="${CC}"."
-mkdir ${LIBS_DIR}
+mkdir -p ${LIBS_DIR}
 cd ${LIBS_DIR}
 
 download_and_cmake_install() {
