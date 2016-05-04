@@ -84,40 +84,5 @@ void compute_px_py_c(double *spin, int nx, int ny, int nz,
 void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, 
                   double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt);
 
-//=========================================================
-//=========================================================
-//used for sode
-typedef struct {
-	int n;
-
-	double dt;
-	double T;
-	double gamma;
-	double *mu_s;
-	double coeff;
-	double Q;
-
-	double theta;
-	double theta1;
-	double theta2;
-
-	double *dm1;
-	double *dm2;
-	double *eta;
-
-} ode_solver;
-
-void init_solver(ode_solver *s, double k_B, double theta,
-                 int n, double dt, double gamma);
-
-ode_solver *create_ode_plan(void);
-
-void finalize_ode_plan(ode_solver *plan);
-
-void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T,
-		double *alpha, double *mu_s_inv, int *pins);
-
-void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T,
-		double *alpha, double *mu_s_inv, int *pins);
 
 #endif
