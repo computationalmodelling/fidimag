@@ -34,6 +34,7 @@ class SLLG(LLG):
 
         self.gamma = gamma
         self.k_B = k_B
+        print 'self.n=',self.n
 
         self.vode = clib.RK2S(dt,
                               self.n,
@@ -53,6 +54,6 @@ class SLLG(LLG):
         self.spin[:] = y[:]
 
         self.field[:] = 0
-
+        return 0
         for obj in self.interactions:
             self.field += obj.compute_field(t)

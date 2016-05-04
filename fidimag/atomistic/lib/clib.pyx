@@ -355,5 +355,6 @@ cdef class RK2S(object):
 
     def run_until(self, t):
         while (self.t<t):
+            print "from cython %g"%self.t
             self.run_step()
         return 0
