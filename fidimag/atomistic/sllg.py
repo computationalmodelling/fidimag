@@ -25,6 +25,7 @@ class SLLG(LLG):
         self.dm2 = np.zeros(3*self.n, dtype=np.float)
 
         self.set_options()
+        self.minor_step =0
 
     def get_T(self):
         return self._T
@@ -63,8 +64,8 @@ class SLLG(LLG):
 				self.dt)
         self.next_spin = self.spin + self.theta * self.dm1
 
-        self.step += 1
-        self.t = self.dt*self.step
+        self.minor_step += 1
+        self.t = self.dt*self.minor_step
 
         #step2
         self.update_effective_field(self.next_spin, self.t)
@@ -105,6 +106,7 @@ class SLLG(LLG):
 
         while (self.t<t):
             self.run_step()
+        self.step += 1
 
         # update field before saving data
         self.compute_effective_field(t)
