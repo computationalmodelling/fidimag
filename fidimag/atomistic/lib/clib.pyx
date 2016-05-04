@@ -4,8 +4,8 @@ np.import_array()
 
 
 cdef extern from "clib.h":
-
-    void gauss_random_vec_with_init(double *x, int n)
+    void initial_random(int seed)
+    void gauss_random_vec(double *x, int n)
 
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
@@ -70,6 +70,8 @@ cdef extern from "clib.h":
 			      double *alpha, int *pins, double *a_J, double beta, double gamma, int n)
 
     # used for sllg
+    void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt)
+    
     ctypedef struct ode_solver:
         pass
 
@@ -87,15 +89,6 @@ cdef extern from "clib.h":
     void run_step2(ode_solver *s, double *m_pred,
                    double *h, double *m, double *T,
                    double *alpha, double *mu_s_inv, int *pins)
-
-def random_number(np.ndarray[double, ndim=1, mode="c"] v):
-    cdef int n = len(v)
-
-
-    print n
-
-    gauss_random_vec_with_init(&v[0], n)
-
 
 
 def compute_skyrmion_number(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -272,6 +265,26 @@ def compute_llg_stt_cpp(np.ndarray[double, ndim=1, mode="c"] dm_dt,
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, n):
     normalise(&spin[0], n)
 
+
+def init_random(seed):
+    initial_random(seed);
+
+def random_number_array(np.ndarray[double, ndim=1, mode="c"] v):
+    
+    cdef int n = len(v)
+
+    gauss_random_vec(&v[0], n)
+
+
+def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,
+                np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] field,
+                np.ndarray[double, ndim=1, mode="c"] T,
+                np.ndarray[double, ndim=1, mode="c"] alpha,
+                np.ndarray[double, ndim=1, mode="c"] mu_s_inv,
+                np.ndarray[double, ndim=1, mode="c"] eta,
+                np.ndarray[int, ndim=1, mode="c"] pin, n, gamma, dt):
+    llg_rhs_dw_c(&spin[0], &field[0], &dm[0], &T[0], &alpha[0],  &mu_s_inv[0], &pin[0], &eta[0], n, gamma, dt)
 
 
 cdef class RK2S(object):

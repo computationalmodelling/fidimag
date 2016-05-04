@@ -1,6 +1,48 @@
 #include "clib.h"
 #include "llg_random.h"
 
+/*
+* n is the spin number
+* eta is the random number array
+*/
+void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt) {
+        
+        double k_B = 1.3806505e-23;
+        double Q = 2 * k_B * dt / gamma;
+
+	//#pragma omp parallel for
+	for (int id = 0; id < n; id++) {
+		int i = 3*id;
+		int j = i+1;
+		int k = j+1;
+		
+		if (pins[id]>0){
+			 dm[i] = 0;
+			 dm[j] = 0;
+			 dm[k] = 0;
+			 continue;
+		}
+
+
+                double coeff = -gamma/ (1.0 + alpha[id] * alpha[id]);
+		double q = sqrt(Q * alpha[id] * T[id] * mu_s_inv[id]);
+		
+		double hi = h[i]*dt + eta[i]*q;
+		double hj = h[j]*dt + eta[j]*q;
+		double hk = h[k]*dt + eta[k]*q;
+		
+		double mth0 = coeff * (m[j] * hk - m[k] * hj);
+		double mth1 = coeff * (m[k] * hi - m[i] * hk);
+		double mth2 = coeff * (m[i] * hj - m[j] * hi);
+
+		dm[i] = mth0 + alpha[id] * (m[j] * mth2 - m[k] * mth1);
+		dm[j] = mth1 + alpha[id] * (m[k] * mth0 - m[i] * mth2);
+		dm[k] = mth2 + alpha[id] * (m[i] * mth1 - m[j] * mth0);
+		
+	}
+}
+
+
 
 ode_solver *create_ode_plan(void) {
 
@@ -33,7 +75,7 @@ void init_solver(ode_solver *s, double k_B, double theta, int n, double dt, doub
 		s->eta[i] = 0;
 	}
 
-	initial_random();
+	initial_random(2);
 }
 
 
@@ -57,7 +99,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 		j = i+1;
 		k = j+1;
 		
-		if (pins[i]>0){
+		if (pins[id]>0){
 			 dm[i] = 0;
 			 dm[j] = 0;
 			 dm[k] = 0;
@@ -66,7 +108,7 @@ void llg_rhs_dw(ode_solver *s, double *m, double *h, double *dm, double *T, doub
 
 
         coeff = -s->gamma/ (1.0 + alpha[id] * alpha[id]) ;
-		q = sqrt(Q * alpha[i] * T[i] * mu_s_inv[id]);
+		q = sqrt(Q * alpha[i] * T[id] * mu_s_inv[id]);
 		
 		hi = h[i]*dt + eta[i]*q;
 		hj = h[j]*dt + eta[j]*q;

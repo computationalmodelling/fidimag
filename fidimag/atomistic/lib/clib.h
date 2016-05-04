@@ -79,6 +79,10 @@ void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res);
 void compute_px_py_c(double *spin, int nx, int ny, int nz,
                      double *px, double *py);
 
+//======================================================================
+
+void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, 
+                  double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt);
 
 //=========================================================
 //=========================================================

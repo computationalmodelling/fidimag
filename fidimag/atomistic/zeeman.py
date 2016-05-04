@@ -30,7 +30,7 @@ class Zeeman(object):
         self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.H0, self.mesh)
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
         return self.field
 
     def average_field(self):
