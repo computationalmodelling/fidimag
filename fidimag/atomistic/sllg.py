@@ -42,8 +42,8 @@ class SLLG(LLG):
         self.k_B = k_B
         self.dt = dt
         self.theta = theta
-        self.theta1 = 1-0.5/theta;
-	self.theta2 = 0.5/theta;
+        self.theta1 = 1-0.5/theta
+        self.theta2 = 0.5/theta
 
     def run_step(self):
         
