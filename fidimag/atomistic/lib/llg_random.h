@@ -43,8 +43,8 @@ static inline unsigned int int_rand(void) {
 }
 
 //temporary random generator
-void initial_random(void) {
-	unsigned int seed = (unsigned int) time(NULL);
+void initial_random(int seed) {
+	//unsigned int seed = (unsigned int) time(NULL);
 
 	int i;
 	MT[0] = seed & 0xFFFFFFFFU;
@@ -133,14 +133,6 @@ void gauss_random_vec(double *x, int n) {
 	for (i = 0; i < n; i++) {
 		x[i] = gauss_random();
 	}
-
-}
-
-void gauss_random_vec_with_init(double *x, int n) {
-
-	initial_random();
-
-	gauss_random_vec(x,n);
 
 }
 

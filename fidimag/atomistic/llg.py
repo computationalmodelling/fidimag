@@ -382,7 +382,7 @@ class LLG(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print('step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step, self.t, dmdt, cvode_dt))
+            print('step=%d, time=%0.3g, max_dmdt=%0.3g ode_step=%0.3g' % (self.step,self.t, dmdt,cvode_dt))
 
             if dmdt < stopping_dmdt:
                 break

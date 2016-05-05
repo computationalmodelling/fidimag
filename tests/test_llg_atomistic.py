@@ -308,8 +308,8 @@ if __name__ == '__main__':
     # test_sim_init_m_fun()
     # test_sim_T_fun()
     # test_sim_single_spin_vode(do_plot=True)
-    #test_sim_single_spin_sllg(do_plot=True)
+    test_sim_single_spin_sllg(do_plot=True)
     # test_sim_single_spin_llg_stt(do_plot=True)
     # test_sim_single_spin(do_plot=True)
 
-    test_sim_spins(do_plot=True)
+    #test_sim_spins(do_plot=True)
