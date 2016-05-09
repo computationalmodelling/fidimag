@@ -77,7 +77,7 @@ cdef class CvodeSolver(object):
     cdef public np.ndarray y
     cdef double rtol, atol
     cdef int cvode_already_initialised
-    cdef np.ndarray spin
+    cdef np.ndarray y0
     cdef np.ndarray dm_dt
     cdef np.ndarray mp
     cdef np.ndarray Jmp
@@ -95,7 +95,7 @@ cdef class CvodeSolver(object):
 
     def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
         self.t = 0
-        self.spin = spins
+        self.y0 = spins
         self.dm_dt = np.copy(spins)
         self.y = np.copy(spins)
         self.mp = np.copy(spins)
@@ -117,7 +117,7 @@ cdef class CvodeSolver(object):
             self.has_jtimes = 1
 
         self.user_data = cv_userdata(<void*>self.callback_fun,
-                                     <void *>self.spin, <void *>self.dm_dt,
+                                     <void *>self.y0, <void *>self.dm_dt,
                                      <void *>self.jtimes_fun,
                                      <void *>self.mp,<void *>self.Jmp)
 

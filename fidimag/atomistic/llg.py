@@ -7,9 +7,7 @@ import fidimag.extensions.cvode as cvode
 import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.constant import Constant
-
-const = Constant()
+import fidimag.common.constant as const
 
 
 class LLG(object):
@@ -290,7 +288,7 @@ class LLG(object):
         nx = self.mesh.nx
         ny = self.mesh.ny
         nz = self.mesh.nz
-        number = clib.compute_skymrion_number(
+        number = clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
@@ -384,7 +382,7 @@ class LLG(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print('step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step, self.t, dmdt, cvode_dt))
+            print('step=%d, time=%0.3g, max_dmdt=%0.3g ode_step=%0.3g' % (self.step,self.t, dmdt,cvode_dt))
 
             if dmdt < stopping_dmdt:
                 break

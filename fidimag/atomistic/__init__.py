@@ -6,5 +6,5 @@ from .demag import Demag
 from .demag_hexagonal import DemagHexagonal
 from .demag_full import DemagFull
 from .dmi import DMI
-from fidimag.common.constant import Constant
+import fidimag.common.constant as const
 from .materials import UnitMaterial, Nickel

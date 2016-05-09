@@ -1,14 +1,9 @@
 import numpy as np
 import scipy.integrate as integrate
-from pccp.pc import Constant
-
-const = Constant()
-
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
-
-
+import fidimag.common.constant as const
 """
 compute the figure 2 in the paper at dx.doi.org/10.1063/1.2169472
 Note: it seems that the volume given in the paper is not correct, 

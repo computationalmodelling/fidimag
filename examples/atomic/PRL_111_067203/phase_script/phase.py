@@ -5,11 +5,9 @@ import matplotlib.cm as cm
 
 import numpy as np
 from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman
-from fidimag.common import Constant, BatchTasks, DataReader, CuboidMesh
+from fidimag.common import BatchTasks, DataReader, CuboidMesh
 from fidimag.common.helper import plot_m
-
-
-const = Constant()
+import fidimag.common.constant as const
 
 
 def init_m(pos):

@@ -130,13 +130,13 @@ def plot_m(mesh, npy, comp='x', based=None):
     if based is not None:
         data = data - based
 
-    data.shape = (3, -1)
-    m = data[cmpi]
+    data.shape = (-1, 3)
+    m = data[:,cmpi]
 
     nx = mesh.nx
     ny = mesh.ny
 
-    m.shape = (nx, ny)
+    m.shape = (ny, nx)
 
     fig = plt.figure()
     # norm=color.Normalize(-1,1)

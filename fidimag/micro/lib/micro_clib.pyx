@@ -22,7 +22,9 @@ cdef extern from "micro_clib.h":
                                double *energy, double *Ms_inv, 
                                double *Ku, double *axis,
                                int nx, int ny, int nz)
-
+    
+    double skyrmion_number(double *m, double *charge,
+                           int nx, int ny, int nz, int *ngbs)
 
 
 def compute_exchange_field_micro(np.ndarray[double, ndim=1, mode="c"] m,
@@ -70,3 +72,10 @@ def compute_anisotropy_micro(np.ndarray[double, ndim=1, mode="c"] m,
 
     compute_uniaxial_anis(&m[0], &field[0], &energy[0], &Ms_inv[0],
                           &Ku[0], &axis[0], nx, ny, nz)
+
+def compute_skyrmion_number(np.ndarray[double, ndim=1, mode="c"] m,
+                            np.ndarray[double, ndim=1, mode="c"] charge,
+                            nx, ny, nz,
+            		    np.ndarray[int, ndim=2, mode="c"] ngbs):
+
+    return skyrmion_number(&m[0], &charge[0], nx, ny, nz, &ngbs[0, 0])

@@ -1,2 +1,41 @@
 *.pyc
 /local/
+
+# ignore automatically generated cython files
+fidimag/atomistic/lib/clib.c
+fidimag/common/dipolar/dipolar.c
+fidimag/common/neb/neb_clib.c
+fidimag/common/sundials/cvode.c
+fidimag/micro/lib/baryakhtar/baryakhtar_clib.c
+fidimag/micro/lib/micro_clib.c
+
+# ignore .cache from pytest
+.cache
+
+# ignore simulation data
+*_npys
+*_vtks
+
+# ignore output files from NEB method
+npys
+vtks
+
+/build/
+/doc/build/
+
+
+# ignore *.so created by cython
+fidimag/extensions/baryakhtar_clib.so
+fidimag/extensions/clib.so
+fidimag/extensions/cvode.so
+fidimag/extensions/dipolar.so
+fidimag/extensions/micro_clib.so
+fidimag/extensions/neb_clib.so
+
+
+# ignore output from coverage
+htmlcov
+
+# ignore junit test output
+test-reports
+

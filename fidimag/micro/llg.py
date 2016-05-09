@@ -3,15 +3,14 @@ from __future__ import print_function
 import os
 import time
 import fidimag.extensions.clib as clib
+import fidimag.extensions.micro_clib as micro_clib
 import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.constant import Constant
 from fidimag.common.integrators import SundialsIntegrator, StepIntegrator
+import fidimag.common.constant as const
 import fidimag.common.helper as helper
 import re
-
-const = Constant()
 
 
 class LLG(object):
@@ -305,7 +304,7 @@ class LLG(object):
         nx = self.mesh.nx
         ny = self.mesh.ny
         nz = self.mesh.nz
-        number = clib.compute_skymrion_number(
+        number = micro_clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
@@ -392,7 +391,7 @@ class LLG(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print('step=%d, time=%g, max_dmdt=%g ode_step=%g' % (self.step,
+            print('step=%d, time=%0.3g, max_dmdt=%0.3g ode_step=%0.3g' % (self.step,
                                                                  self.t,
                                                                  dmdt / ONE_DEGREE_PER_NS,
                                                                  cvode_dt))

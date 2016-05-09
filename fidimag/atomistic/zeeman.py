@@ -73,7 +73,7 @@ class Zeeman(object):
         self.B0 = B0
         self.field[:] = helper.init_vector(self.B0, self.mesh)
 
-    def compute_field(self, t=0):
+    def compute_field(self, t=0, spin=None):
         return self.field
 
     def average_field(self):
