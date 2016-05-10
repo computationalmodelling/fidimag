@@ -89,6 +89,11 @@ class LLG(object):
         self.gamma = gamma
         self.do_precession = True
 
+    def reset_integrator(self, t=0):
+        self.vode.reset(self.spin, t)
+        self.t = t  # also reinitialise the simulation time and step
+        self.step = 0
+
     def set_tols(self, rtol=1e-8, atol=1e-10):
         self.vode.set_options(rtol, atol)
 
