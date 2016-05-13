@@ -34,7 +34,7 @@ def relax_system(mesh):
 
     ts = np.linspace(0, 5e-10, 101)
     for t in ts:
-        print t
+        print(t)
         sim.run_until(t)
         #sim.save_vtk()
 
