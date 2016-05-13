@@ -6,11 +6,73 @@ import numpy as np
 class DMI(Energy):
 
     """
-    Hamiltonian = D*[S_i x S_j]
-        ==> H = D x S_j
+
+    This class provides the Dzyaloshinskii-Moriya Interaction (DMI) energy
+    term, defined as
+
+                  __  ->         ->      ->
+         E =  -  \    D_ij   * ( S_i  X  S_j )
+                 /__
+                 i, j
+                i != j
+
+    where D_ij is the Dzyaloshinskii vector and S_i and S_j are the total spin
+    vectors at the i-th and j-th lattice sites. The Dzyaloshinskii vector
+    magnitude can vary with space.
+
+    Currently, there are implemented two kinds of DMI, that depend on the
+    Dzyaloshinskii vector definition. Calling D_i the Dzyaloshinskii vector
+    magnitude at the i-th site:
+
+    BULK:
+        ->         ^
+        D_ij = D_i r_ij   with r_ij as the unit vector pointing from the i-th
+                          towards the j-th site
+                          (only working for square lattices)
+
+    INTERFACIAL:
+
+        ->           ^       ^
+        D_ij = D_i ( r_ij X  z ) with r_ij as the unit vector pointing from the
+                                 i-th towards the j-th site and z the unitary
+                                 vector perpendicular to the magnetic material
+                                 plane which, in theory, is in contact with a
+                                 material with larger SOC (e.g. a metal).
+                                 Thus, this DMI is defined in 2D, for
+                                 interfaces or thin films.
+
+    For further details about the DMI calculations, take a look
+    to the C library documentation (dmi.c)
+
+
+    OPTIONAL ARGUMENTS: -------------------------------------------------------
+
+        dmi_type        :: 'bulk' or 'interfacial'
+        name            :: Interaction name
+
+    USAGE: --------------------------------------------------------------------
+
+    If the DMI is homogeneous, it can be specified in a simulation object
+    *Sim* as
+
+            Sim.add(DMI(D, dmi_type='bulk'))
+
+    where D is a float.
+
+    Otherwise, it can be specified as any Fidimag scalar field, passing a
+    function or an array. For example, a space dependent DMI that changes
+    linearly in the x-direction can be defined as:
+
+        def my_DMI(pos):
+            D = 0.01 * meV
+            return D * pos[0]
+
+        # Add DMI to Simulation object
+        Sim.add(DMI(my_DMI))
+
     """
 
-    def __init__(self, D, name='dmi', dmi_type='bulk'):
+    def __init__(self, D, name='DMI', dmi_type='bulk'):
         self.D = D
 
         self.name = name
@@ -32,20 +94,20 @@ class DMI(Energy):
         # We will generate the Dzyaloshinskii vectors according
         # to the lattice, for the Interfacial DMI
         self.DMI_vector = self.compute_DMI_vectors(self.nneighbours)
-        
+
         if self.dmi_type == 'bulk':
             self._D = np.zeros(self.neighbours.shape)
             if isinstance(self.D, (int, float)):
-                self._D[:,:] = self.D
+                self._D[:, :] = self.D
             elif hasattr(self.D, '__call__'):
-                n =  self.mesh.n
+                n = self.mesh.n
                 for i in range(n):
                     value = self.D(self.coordinates[i])
                     if len(value) == 6:
-                        self._D[i,:] = value[:]
+                        self._D[i, :] = value[:]
                     else:
                         raise Exception('The given spatial function for D is not acceptable!')
-            
+
 
     def compute_field(self, t=0, spin=None):
 
@@ -55,7 +117,7 @@ class DMI(Energy):
             m = self.spin
 
         if self.dmi_type == 'bulk':
-              clib.compute_dmi_field(m,
+            clib.compute_dmi_field(m,
                                    self.field,
                                    self.energy,
                                    self._D,

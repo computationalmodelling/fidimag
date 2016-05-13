@@ -39,66 +39,62 @@ void dmi_field_bulk(double *spin, double *field,
      *
      * for every spin *i*
      *
-     * --- Check this: can we use a SC lattice for this bulk DMI expression?
-     *     Since, for example, MnSi crystal structure is more complex 
+     * NOTES:
+     *
+     * 1. Check this: can we use a SC lattice for this bulk DMI expression?
+     *    Since, for example, MnSi crystal structure is more complex
+     *
+     * 2. This function is not defined for a hexagonal lattice, we can
+     *    generalise the code to solve this
+     *      
      */
 
-	#pragma omp parallel for
+
+    /* The DMI vectors are the same according to the neighbours
+     * positions. Thus we set them here to avoid compute them
+     * every time in the loop . So, if we want the j-th NN,
+     * the DMI vector will be 
+     * (D_x, D_y, D_z) --> ( dmivector[3 * j] ,
+     *                       dmivector[3 * j + 1],
+     *                       dmivector[3 * j + 2] )
+     */
+    double dmivector[18] = {-1,  0,  0,
+                             1,  0,  0,
+                             0, -1,  0,
+                             0,  1,  0,
+                             0,  0, -1,
+                             0,  0,  1
+                             };
+
+	#pragma omp parallel for shared(dmivector)
 	for (int i = 0; i < nxyz; i++) {
 
 		int id = 0;
-		int idv = 6 * i; // index for the neighbours
+		int id_nn = 6 * i; // index for the neighbours
 
 		double fx = 0, fy = 0, fz = 0;
         double D=0;
 
-		if (ngbs[idv]>=0) { // neighbour at x-1
-			id = 3*ngbs[idv];
-            D = _D[idv];
-			fx += D*cross_x(-1,0,0,spin[id],spin[id+1],spin[id+2]);
-			fy += D*cross_y(-1,0,0,spin[id],spin[id+1],spin[id+2]);
-			fz += D*cross_z(-1,0,0,spin[id],spin[id+1],spin[id+2]);
-		}
-
-		if (ngbs[idv+1]>=0) { // neighbour x+1
-			id = 3*ngbs[idv+1];
-            D = _D[idv+1];
-			fx += D*cross_x(1,0,0,spin[id],spin[id+1],spin[id+2]);
-			fy += D*cross_y(1,0,0,spin[id],spin[id+1],spin[id+2]);
-			fz += D*cross_z(1,0,0,spin[id],spin[id+1],spin[id+2]);
-		}
-
-		if (ngbs[idv+2]>=0) { // neighbour at y-1
-			id = 3*ngbs[idv+2];
-            D = _D[idv+2];
-			fx += D*cross_x(0,-1,0,spin[id],spin[id+1],spin[id+2]);
-			fy += D*cross_y(0,-1,0,spin[id],spin[id+1],spin[id+2]);
-			fz += D*cross_z(0,-1,0,spin[id],spin[id+1],spin[id+2]);
-		}
-
-		if (ngbs[idv+3]>=0) { // neighbour at y+1
-			id = 3*ngbs[idv+3];
-            D = _D[idv+3];
-			fx += D*cross_x(0,1,0,spin[id],spin[id+1],spin[id+2]);
-			fy += D*cross_y(0,1,0,spin[id],spin[id+1],spin[id+2]);
-			fz += D*cross_z(0,1,0,spin[id],spin[id+1],spin[id+2]);
-		}
-
-		if (ngbs[idv+4]>=0) { // neighbour at z-1
-			id = 3*ngbs[idv+4];
-            D = _D[idv+4];
-			fx += D*cross_x(0,0,-1,spin[id],spin[id+1],spin[id+2]);
-			fy += D*cross_y(0,0,-1,spin[id],spin[id+1],spin[id+2]);
-			fz += D*cross_z(0,0,-1,spin[id],spin[id+1],spin[id+2]);
-		}
-
-		if (ngbs[idv+5]>=0) { // neighbour at z+1
-			id = 3*ngbs[idv+5];
-            D = _D[idv+5];
-			fx += D*cross_x(0,0,1,spin[id],spin[id+1],spin[id+2]);
-			fy += D*cross_y(0,0,1,spin[id],spin[id+1],spin[id+2]);
-			fz += D*cross_z(0,0,1,spin[id],spin[id+1],spin[id+2]);
-		}
+        // Compute the DMI contribution for every neighbour:
+        // -x, +x, -y, +y, -z, +z
+        for (int j = 0; j < 6; j++){
+            if (ngbs[id_nn + j] >= 0) {
+                id = 3 * ngbs[id_nn + j];
+                D = _D[id_nn + j];
+                fx += D * cross_x(dmivector[3 * j], 
+                                  dmivector[3 * j + 1], 
+                                  dmivector[3 * j + 2], 
+                                  spin[id], spin[id+1], spin[id+2]);
+                fy += D * cross_y(dmivector[3 * j], 
+                                  dmivector[3 * j + 1], 
+                                  dmivector[3 * j + 2], 
+                                  spin[id], spin[id+1], spin[id+2]);
+                fz += D * cross_z(dmivector[3 * j], 
+                                  dmivector[3 * j + 1], 
+                                  dmivector[3 * j + 2], 
+                                  spin[id], spin[id+1], spin[id+2]);
+            }
+        }
 
 		field[3 * i] = fx;
         field[3 * i + 1] = fy;
