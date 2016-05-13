@@ -11,13 +11,14 @@ class DMI(Energy):
     term, defined as
 
                   __  ->         ->      ->
-         E =  -  \    D_ij   * ( S_i  X  S_j )
+         E =     \    D_ij   * ( S_i  X  S_j )
                  /__
-                 i, j
+                <i, j>
                 i != j
 
-    where D_ij is the Dzyaloshinskii vector and S_i and S_j are the total spin
-    vectors at the i-th and j-th lattice sites. The Dzyaloshinskii vector
+    where D_ij is the Dzyaloshinskii vector, S_i and S_j are the total spin
+    vectors at the i-th and j-th lattice sites, and <i, j> means counting the
+    interaction between neighbouring spins only once. The Dzyaloshinskii vector
     magnitude can vary with space.
 
     Currently, there are implemented two kinds of DMI, that depend on the

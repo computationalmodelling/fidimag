@@ -20,7 +20,7 @@ void compute_exch_field(double *spin, double *field, double *energy,
 	for (int i = 0; i < n; i++) {
 
 		int id = 0;
-		int idv = 6 * i; // index for the neighbours
+		int id_nn = 6 * i; // index for the neighbours
 		
 		double fx = 0, fy = 0, fz = 0;
 
@@ -46,9 +46,9 @@ void compute_exch_field(double *spin, double *field, double *energy,
 
         for (int j = 0; j < 6; j++) {
             
-            if (ngbs[idv + j] >= 0) {
+            if (ngbs[id_nn + j] >= 0) {
 
-                id = 3 * ngbs[idv + j]; 
+                id = 3 * ngbs[id_nn + j]; 
                 fx += Jx * spin[id];
                 fy += Jy * spin[id + 1];
                 fz += Jz * spin[id + 2];
@@ -141,7 +141,7 @@ void compute_exch_field_spatial(double *spin, double *field, double *energy,
 	for (int i = 0; i < n; i++) {
 
 		int id = 0;
-		int idv = 6 * i; // index for the neighbours
+		int id_nn = 6 * i; // index for the neighbours
 		
 		double fx = 0, fy = 0, fz = 0;
 
@@ -169,7 +169,7 @@ void compute_exch_field_spatial(double *spin, double *field, double *energy,
 
         for (int j = 0; j < 6; j++) {
             
-            int p = idv+j;
+            int p = id_nn + j;
             
             if (ngbs[p] >= 0) {
 
