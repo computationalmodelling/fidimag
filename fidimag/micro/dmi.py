@@ -12,14 +12,14 @@ class DMI(Energy):
         compute the DMI field in micromagnetics
     """
 
-    def __init__(self, D, name='dmi', type='bulk'):
+    def __init__(self, D, name='dmi', dmi_type='bulk'):
         """
         type could be 'interfacial' or 'bulk'
         """
         self.D = D
         self.name = name
         self.jac = True
-        self.type = type
+        self.dmi_type = dmi_type
 
     def setup(self, mesh, spin, Ms):
         super(DMI, self).setup(mesh, spin, Ms)
@@ -32,7 +32,7 @@ class DMI(Energy):
         else:
             m = self.spin
 
-        if self.type == 'bulk':
+        if self.dmi_type == 'bulk':
             micro_clib.compute_dmi_field_bulk(m,
                                               self.field,
                                               self.energy,
@@ -45,7 +45,7 @@ class DMI(Energy):
                                               self.neighbours
                                               )
 
-        elif self.type == 'interfacial':
+        elif self.dmi_type == 'interfacial':
             micro_clib.compute_dmi_field_interfacial(m,
                                                      self.field,
                                                      self.energy,
@@ -59,6 +59,6 @@ class DMI(Energy):
                                                      )
         else:
             raise Exception(
-                "Unsppourted dmi type:{}, avaiable type: 'bulk','interfacial'.".format(self.type))
+                "Unsppourted dmi type:{}, avaiable type: 'bulk','interfacial'.".format(self.dmi_type))
 
         return self.field

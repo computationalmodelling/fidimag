@@ -1,9 +1,3 @@
-"""
-You shouldn't call this script directly but rather use the Makefile as in
-`make build`. If you decide to use this script directly, then create the
-file __init__.py in the fidimag/extensions directory.
-
-"""
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
@@ -12,6 +6,7 @@ import numpy
 import fnmatch
 import os
 import glob
+import re
 
 
 if 'CC' in os.environ:
@@ -33,6 +28,18 @@ LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
 print("LIB_DIR={}".format(LIB_DIR))
+
+
+pkg_init_path = os.path.join(os.path.dirname(__file__), 'fidimag', '__init__.py')
+def get_version():
+    with open(pkg_init_path) as f:
+        for line in f:
+            m = re.match(r'''__version__\s*=\s*(['"])(.+)\1''', line.strip())
+            if m:
+                return m.group(2)
+    raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
+
+version = get_version()
 
 
 def glob_cfiles(path, excludes):
@@ -68,7 +75,7 @@ dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
 dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 
 ext_modules = [
-    Extension("clib",
+    Extension("fidimag.extensions.clib",
               sources=sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
               libraries=['m', 'fftw3_omp', 'fftw3',
@@ -76,7 +83,7 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
-    Extension("cvode",
+    Extension("fidimag.extensions.cvode",
               sources=cvode_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
               libraries=[
@@ -84,7 +91,7 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
-    Extension("baryakhtar_clib",
+    Extension("fidimag.extensions.baryakhtar_clib",
               sources=baryakhtar_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
               libraries=[
@@ -92,7 +99,7 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
-    Extension("micro_clib",
+    Extension("fidimag.extensions.micro_clib",
               sources=micro_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
               libraries=[
@@ -100,7 +107,7 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
-    Extension("neb_clib",
+    Extension("fidimag.extensions.neb_clib",
               sources=neb_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
               libraries=['m', 'fftw3_omp', 'fftw3',
@@ -108,7 +115,7 @@ ext_modules = [
               extra_compile_args=["-fopenmp", '-std=c99'],
               extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
               ),
-    Extension("dipolar",
+    Extension("fidimag.extensions.dipolar",
               sources = dipolar_sources,
               include_dirs=[numpy.get_include(), INCLUDE_DIR],
               libraries=['m', 'fftw3_omp', 'fftw3'],
@@ -118,6 +125,14 @@ ext_modules = [
 ]
 
 setup(
-    cmdclass={'build_ext': build_ext},
-    ext_modules=ext_modules
+    name='fidimag',
+    version=version,
+    description='Finite difference micromagnetic code',
+    packages=['fidimag',
+              'fidimag.atomistic',
+              'fidimag.micro',
+              'fidimag.extensions',
+              'fidimag.common',
+              ],
+    ext_modules=cythonize(ext_modules),
 )

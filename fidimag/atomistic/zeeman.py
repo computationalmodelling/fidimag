@@ -5,11 +5,50 @@ import fidimag.common.helper as helper
 class Zeeman(object):
 
     """
-    The time independent external field, can vary with space
+
+    A time independent external magnetic field that can be space dependent.
+    The field energy is computed as:
+
+                  __   ->         ->
+         E =  -  \    \mu_i \cdot B_i
+                 /__
+                  i
+
+    where mu_i = g \mu_B S_i is the magnetic moment vector at the i-th lattice
+    site, g is the Lande factor, \mu_B the Bohr magneton, S_i the average total
+    spin vector at the i-th site and B_i the bias field vector at the i-th
+    site, given in Tesla units.
+
+    If the field is homogeneous, it can be specified in a simulation object
+    *Sim* as
+
+            Sim.add(Zeeman((B_x, B_y, B_z)))
+
+    Otherwise, it can be specified as any Fidimag field, passing a function or
+    an array. For example, a space dependent field function that changes
+    linearly in the x-direction, and only has a x-component, can be defined as:
+
+        def my_Zeeman_field(pos):
+            B = 0.01  # T
+            return (B * pos[0], 0, 0)
+
+        # Add field to Simulation object
+        Sim.add(Zeeman(my_Zeeman_field))
+
+
+    For a hysteresis loop, the field can be updated using the *update_field*
+    function. For an already defined simulation object *Sim*, it is updated as
+
+        Sim.get_interaction('Zeeman').update_field(new_field)
+
+    where new_field is a 3-tuple, and array or a function, as shown before.
+    It is recommended to reset the integrator with *Sim.reset_integrator()*
+    to start a new relaxation after updating the field.
+
     """
 
-    def __init__(self, H0, name='Zeeman'):
-        self.H0 = H0
+    def __init__(self, B0, name='Zeeman'):
+        self.B0 = B0
         self.name = name
         self.jac = False
 
@@ -28,9 +67,13 @@ class Zeeman(object):
         self.mu_s_long.shape = (-1,)
 
         self.field = np.zeros(3 * self.n)
-        self.field[:] = helper.init_vector(self.H0, self.mesh)
+        self.field[:] = helper.init_vector(self.B0, self.mesh)
 
-    def compute_field(self, t=0):
+    def update_field(self, B0):
+        self.B0 = B0
+        self.field[:] = helper.init_vector(self.B0, self.mesh)
+
+    def compute_field(self, t=0, spin=None):
         return self.field
 
     def average_field(self):
@@ -56,8 +99,8 @@ class TimeZeeman(Zeeman):
     The time dependent external field, also can vary with space
     """
 
-    def __init__(self, H0, time_fun, name='TimeZeeman'):
-        self.H0 = H0
+    def __init__(self, B0, time_fun, name='TimeZeeman'):
+        self.B0 = B0
         self.time_fun = time_fun
         self.name = name
         self.jac = False

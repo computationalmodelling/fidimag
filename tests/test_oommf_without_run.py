@@ -141,7 +141,7 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
     sim = Sim(mesh)
     sim.Ms = Ms
 
-    dmi = DMI(D=D, type='interfacial')
+    dmi = DMI(D=D, dmi_type='interfacial')
     sim.add(dmi)
 
     def init_m(pos):
