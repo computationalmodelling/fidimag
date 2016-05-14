@@ -89,6 +89,11 @@ class LLG(object):
         self.gamma = gamma
         self.do_precession = True
 
+    def reset_integrator(self, t=0):
+        self.vode.reset(self.spin, t)
+        self.t = t  # also reinitialise the simulation time and step
+        self.step = 0
+
     def set_tols(self, rtol=1e-8, atol=1e-10):
         self.vode.set_options(rtol, atol)
 
@@ -321,7 +326,18 @@ class LLG(object):
         self.saver.update_entity_order()
 
     def save_vtk(self):
-        self.vtk.save_vtk(self.spin.reshape(-1, 3), self._mu_s, step=self.step)
+        """
+        Save a VTK file with the magnetisation vector field and magnetic
+        moments as cell data. Magnetic moments are saved in units of
+        Bohr magnetons
+
+        NOTE: It is recommended to use a *cell to point data* filter in
+        Paraview or Mayavi to plot the vector field
+        """
+        self.vtk.save_vtk(self.spin.reshape(-1, 3),
+                          self._mu_s / const.mu_B,
+                          step=self.step
+                          )
 
     def save_m(self):
         if not os.path.exists('%s_npys' % self.name):
