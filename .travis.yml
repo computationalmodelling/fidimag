@@ -7,7 +7,7 @@ sudo: false
 # command to install dependencies
 cache:
   directories:
-  - $HOME/fidimag/local
+  - $TRAVIS_BUILD_DIR/local
 
 before_install:
   # We do this conditionally because it saves us some downloading if the
