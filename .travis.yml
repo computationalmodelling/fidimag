@@ -8,7 +8,7 @@ sudo: false
 cache:
   directories:
   - $HOME/fidimag/local
-  - $HOME/miniconda
+
 before_install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
