@@ -9,8 +9,8 @@ class Zeeman(object):
     A time independent external magnetic field that can be space dependent.
     The field energy is computed as:
 
-                  __   ->         ->
-         E =  -  \    \mu_i \cdot B_i
+                  __   ->       ->
+         E =  -  \    \mu_i  *  B_i
                  /__
                   i
 
@@ -19,14 +19,20 @@ class Zeeman(object):
     spin vector at the i-th site and B_i the bias field vector at the i-th
     site, given in Tesla units.
 
+    OPTIONAL ARGUMENTS: -------------------------------------------------------
+        name            :: Interaction name
+
+    USAGE: --------------------------------------------------------------------
+
     If the field is homogeneous, it can be specified in a simulation object
     *Sim* as
 
             Sim.add(Zeeman((B_x, B_y, B_z)))
 
-    Otherwise, it can be specified as any Fidimag field, passing a function or
-    an array. For example, a space dependent field function that changes
-    linearly in the x-direction, and only has a x-component, can be defined as:
+    Otherwise, it can be specified as any Fidimag vector field, passing a
+    function or an array. For example, a space dependent field function that
+    changes linearly in the x-direction, and only has a x-component, can be
+    defined as:
 
         def my_Zeeman_field(pos):
             B = 0.01  # T

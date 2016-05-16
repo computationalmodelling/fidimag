@@ -1,0 +1,17 @@
+* <2016-05-01 Sun>
+
+To see which tests run long:
+
+cd doc/ipynb && py.test . -v --nbval --duration=10 --sanitize-with sanitize_file
+
+========================== slowest 10 test durations ===========================
+17209.34s call     doc/ipynb/isolated_skyrmion.ipynb::Cell 13
+4098.12s call     doc/ipynb/standard_problem_4.ipynb::Cell 19
+967.73s call     doc/ipynb/spin-polarised-current-driven-skyrmion.ipynb::Cell 14
+703.63s call     doc/ipynb/standard_problem_4.ipynb::Cell 15
+20.86s call     doc/ipynb/tutorial-basics.ipynb::Cell 21
+6.32s call     doc/ipynb/spin-waves-in-periodic-system.ipynb::Cell 13
+6.16s call     doc/ipynb/isolated_skyrmion.ipynb::Cell 11
+5.76s call     doc/ipynb/current-driven-domain-wall.ipynb::Cell 24
+1.95s call     doc/ipynb/current-driven-domain-wall.ipynb::Cell 18
+1.67s call     doc/ipynb/spin-polarised-current-driven-skyrmion.ipynb::Cell 11
