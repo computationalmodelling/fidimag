@@ -399,10 +399,13 @@ double DemagNxxAsymptotic(double x, double y, double z,
   double dx4 = dx2*dx2;
   double dy4 = dy2*dy2;
   double dz4 = dz2*dz2;
+  double dx2dy2 = dx2*dy2;
+  double dy2dz2 = dy2*dz2;
+  double dx2dz2 = dx2*dz2;
 
   double term3 = 2*sx2 - sy2 - sz2;
-
   double term5 = 0.0;
+
   if(dx2!=dy2 || dx2!=dz2 || dy2!=dz2) { // Non-cube case
     double a1 =   8*dx2  -  4*dy2  -  4*dz2;
     double a2 = -24*dx2  + 27*dy2  -  3*dz2;
@@ -415,18 +418,18 @@ double DemagNxxAsymptotic(double x, double y, double z,
     term5 *= 0.25;
   }
 
-  double term7 = 0.0;
+  double term7 = 0.0;  
   {
-    double b1  =   32*dx4  -  40*dx2*dy2  -  40*dx2*dz2   +  12*dy4   +  10*dy2*dz2   +  12*dz4;
-    double b2  = -240*dx4  + 580*dx2*dy2  +  20*dx2*dz2   - 202*dy4   -  75*dy2*dz2   +  22*dz4;
-    double b3  = -240*dx4  +  20*dx2*dy2  + 580*dx2*dz2   +  22*dy4   -  75*dy2*dz2   - 202*dz4;
-    double b4  =  180*dx4  - 505*dx2*dy2  +  55*dx2*dz2   + 232*dy4   -  75*dy2*dz2   +   8*dz4;
-    double b5  =  360*dx4  - 450*dx2*dy2  - 450*dx2*dz2   - 180*dy4   + 900*dy2*dz2   - 180*dz4;
-    double b6  =  180*dx4  +  55*dx2*dy2  - 505*dx2*dz2   +   8*dy4   -  75*dy2*dz2   + 232*dz4;
-    double b7  =  -10*dx4  +  30*dx2*dy2  -   5*dx2*dz2   -  16*dy4   +  10*dy2*dz2   -   2*dz4;
-    double b8  =  -30*dx4  +  55*dx2*dy2  +  20*dx2*dz2   +   8*dy4   -  75*dy2*dz2   +  22*dz4;
-    double b9  =  -30*dx4  +  20*dx2*dy2  +  55*dx2*dz2   +  22*dy4   -  75*dy2*dz2   +   8*dz4;
-    double b10 =  -10*dx4  -   5*dx2*dy2  +  30*dx2*dz2   -   2*dy4   +  10*dy2*dz2   -  16*dz4;
+  double b1  =   32*dx4  -  40*dx2dy2  -  40*dx2dz2   +  12*dy4   +  10*dy2dz2   +  12*dz4;
+  double b2  = -240*dx4  + 580*dx2dy2  +  20*dx2dz2   - 202*dy4   -  75*dy2dz2   +  22*dz4;
+  double b3  = -240*dx4  +  20*dx2dy2  + 580*dx2dz2   +  22*dy4   -  75*dy2dz2   - 202*dz4;
+  double b4  =  180*dx4  - 505*dx2dy2  +  55*dx2dz2   + 232*dy4   -  75*dy2dz2   +   8*dz4;
+  double b5  =  360*dx4  - 450*dx2dy2  - 450*dx2dz2   - 180*dy4   + 900*dy2dz2   - 180*dz4;
+  double b6  =  180*dx4  +  55*dx2dy2  - 505*dx2dz2   +   8*dy4   -  75*dy2dz2   + 232*dz4;
+  double b7  =  -10*dx4  +  30*dx2dy2  -   5*dx2dz2   -  16*dy4   +  10*dy2dz2   -   2*dz4;
+  double b8  =  -30*dx4  +  55*dx2dy2  +  20*dx2dz2   +   8*dy4   -  75*dy2dz2   +  22*dz4;
+  double b9  =  -30*dx4  +  20*dx2dy2  +  55*dx2dz2   +  22*dy4   -  75*dy2dz2   +   8*dz4;
+  double b10 =  -10*dx4  -   5*dx2dy2  +  30*dx2dz2   -   2*dy4   +  10*dy2dz2   -  16*dz4;
 
     term7 = b1*sx6 + b2*sx4*sy2 + b3*sx4*sz2 + b4*sx2*sy4 + b5*sx2*sy2*sz2
       + b6*sx2*sz4 + b7*sy6 + b8*sy4*sz2 + b9*sy2*sz4 + b10*sz6;
@@ -468,6 +471,10 @@ double DemagNxyAsymptotic(double x, double y, double z,
   double dy4 = dy2*dy2;
   double dz4 = dz2*dz2;
 
+  double dx2dy2 = dx2*dy2;
+  double dy2dz2 = dy2*dz2;
+  double dx2dz2 = dx2*dz2;
+
   double term3 = 3;
 
   double term5 = 0.0;
@@ -481,12 +488,12 @@ double DemagNxyAsymptotic(double x, double y, double z,
 
   double term7 = 0.0;
   {
-    double b1  =   16*dx4  -  30*dx2*dy2  -  10*dx2*dz2   +  10*dy4   +   5*dy2*dz2   +   2*dz4;
-    double b2  =  -40*dx4  + 105*dx2*dy2  -   5*dx2*dz2   -  40*dy4   -   5*dy2*dz2   +   4*dz4;
-    double b3  =  -40*dx4  -  15*dx2*dy2  + 115*dx2*dz2   +  20*dy4   -  35*dy2*dz2   -  32*dz4;
-    double b4  =   10*dx4  -  30*dx2*dy2  +   5*dx2*dz2   +  16*dy4   -  10*dy2*dz2   +   2*dz4;
-    double b5  =   20*dx4  -  15*dx2*dy2  -  35*dx2*dz2   -  40*dy4   + 115*dy2*dz2   -  32*dz4;
-    double b6  =   10*dx4  +  15*dx2*dy2  -  40*dx2*dz2   +  10*dy4   -  40*dy2*dz2   +  32*dz4;
+    double b1  =   16*dx4  -  30*dx2dy2  -  10*dx2dz2   +  10*dy4   +   5*dy2dz2   +   2*dz4;
+    double b2  =  -40*dx4  + 105*dx2dy2  -   5*dx2dz2   -  40*dy4   -   5*dy2dz2   +   4*dz4;
+    double b3  =  -40*dx4  -  15*dx2dy2  + 115*dx2dz2   +  20*dy4   -  35*dy2dz2   -  32*dz4;
+    double b4  =   10*dx4  -  30*dx2dy2  +   5*dx2dz2   +  16*dy4   -  10*dy2dz2   +   2*dz4;
+    double b5  =   20*dx4  -  15*dx2dy2  -  35*dx2dz2   -  40*dy4   + 115*dy2dz2   -  32*dz4;
+    double b6  =   10*dx4  +  15*dx2dy2  -  40*dx2dz2   +  10*dy4   -  40*dy2dz2   +  32*dz4;
     term7 = b1*sx4 + b2*sx2*sy2 + b3*sx2*sz2
       + b4*sy4 + b5*sy2*sz2 + b6*sz4;
     term7 *= (7.0/16.0);
