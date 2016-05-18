@@ -33,7 +33,7 @@ from six.moves import range
 
 class CuboidMesh(object):
     def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0,
-                 periodicity=(False, False, False), unit_length=1.0):
+                 periodicity=(False, False, False), unit_length=1.0, pbc=None):
         """
         Create mesh with cells of size dx * dy * dz.
 
@@ -48,6 +48,8 @@ class CuboidMesh(object):
             mesh = CuboidMesh(2, 2, 2, 250, 25, 2, periodicity=(True, False, False))
             # create a mesh of dimensions 500 x 50 x 4 nm, with cellsize
             # of 2 nm in any direction and periodic along the x-axis.
+            # Alternatively, the periodicity can be set through the option 'pbc', 
+            # acceptable parameters could be '1d' or '2d'.
 
         """
         self.dx = dx
@@ -72,9 +74,15 @@ class CuboidMesh(object):
         self.mesh_type = "cuboid"
         self.unit_length = unit_length
 
+        if pbc == '1d':
+            self.periodicity = (True, False, False)
+        elif pbc == '2d':
+            self.periodicity = (True, True, False) 
+
         self.coordinates = self.init_coordinates()
         self.neighbours = self.init_neighbours()
         self.grid = self.init_grid()  # for vtk export
+
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))

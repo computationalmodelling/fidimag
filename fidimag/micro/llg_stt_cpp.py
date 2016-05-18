@@ -27,6 +27,7 @@ class LLG_STT_CPP(LLG):
         self.a_J = 1
         self.beta = 0
         self.J_time_fun = None
+        self.p = (0,0,1)
 
     def get_p(self):
         return self._p
