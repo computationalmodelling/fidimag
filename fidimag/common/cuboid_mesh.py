@@ -27,13 +27,14 @@ in the innermost loop, and the z-axis in the outermost loop!
 
 """
 import numpy as np
-
+from textwrap import dedent
 from six.moves import range
 
 
 class CuboidMesh(object):
+
     def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0,
-                 periodicity=(False, False, False), unit_length=1.0, pbc=None):
+                 periodicity=(False, False, False), unit_length=1.0):
         """
         Create mesh with cells of size dx * dy * dz.
 
@@ -48,8 +49,6 @@ class CuboidMesh(object):
             mesh = CuboidMesh(2, 2, 2, 250, 25, 2, periodicity=(True, False, False))
             # create a mesh of dimensions 500 x 50 x 4 nm, with cellsize
             # of 2 nm in any direction and periodic along the x-axis.
-            # Alternatively, the periodicity can be set through the option 'pbc', 
-            # acceptable parameters could be '1d' or '2d'.
 
         """
         self.dx = dx
@@ -74,15 +73,39 @@ class CuboidMesh(object):
         self.mesh_type = "cuboid"
         self.unit_length = unit_length
 
-        if pbc == '1d':
-            self.periodicity = (True, False, False)
-        elif pbc == '2d':
-            self.periodicity = (True, True, False) 
-
         self.coordinates = self.init_coordinates()
         self.neighbours = self.init_neighbours()
         self.grid = self.init_grid()  # for vtk export
 
+    def __repr__(self):
+        repres = dedent("""\
+    Cuboid Mesh
+    Dimensions = {} x {} x {}
+    Discretisation = ({}, {}, {})
+    (x0, y0, z0) = ({}, {}, {})
+    Periodicity = {}
+    Total number of cells = {}
+    """)
+        return repres.format(self.Lx, self.Ly, self.Lz,
+                             self.dx, self.dy, self.dz,
+                             self.x0, self.y0, self.z0,
+                             self.periodicity,
+                             self.n)
+
+    def _repr_html_(self):
+        repres = dedent("""\
+    <h3>Cuboid Mesh:</h3>
+    <b>Dimensions</b> = {} x {} x {} nm<br>
+    <b>Discretisation</b> = ({}, {}, {})<br>
+    <b>x0</b> = ({}, {}, {})<br>
+    <b>Periodicity</b> = {}<br>
+    <b>No. of Cells</b> = {}<br>
+    """)
+        return repres.format(self.dx, self.dy, self.dz,
+                             self.nx, self.ny, self.nz,
+                             self.x0, self.y0, self.z0,
+                             self.periodicity,
+                             self.n)
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
