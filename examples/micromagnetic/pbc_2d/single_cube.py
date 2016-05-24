@@ -34,7 +34,7 @@ def compute_field():
     demag = Demag(pbc_2d=True)
     sim.add(demag)
     field=demag.compute_field()
-    print field
+    print(field)
 
     np.save('m0.npy', sim.spin)
 
