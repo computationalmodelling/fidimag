@@ -57,7 +57,7 @@ def relax_system(mesh):
 if __name__ == '__main__':
 
     mesh = CuboidMesh(
-        nx=501, ny=501, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, pbc='xy')
+        nx=501, ny=501, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9, periodicity=(True, True, False))
 
     relax_system(mesh)
 
