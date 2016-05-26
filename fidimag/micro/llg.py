@@ -348,8 +348,8 @@ class LLG(object):
         return self.integrator.stat()
 
     def spin_length(self):
-        self.spin.shape = (3, -1)
-        length = np.sqrt(np.sum(self.spin**2, axis=0))
+        self.spin.shape = (-1, 3)
+        length = np.sqrt(np.sum(self.spin**2, axis=1))
         self.spin.shape = (-1,)
         return length
 
