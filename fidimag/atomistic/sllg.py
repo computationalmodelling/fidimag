@@ -82,7 +82,7 @@ class SLLG(LLG):
 				self.dt)
         self.spin += (self.theta1*self.dm1+self.theta2*self.dm2)
 
-        clib.normalise_spin(self.spin, self.n)
+        clib.normalise_spin(self.spin, self._pins, self.n)
         
 
 

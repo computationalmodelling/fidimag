@@ -69,7 +69,7 @@ void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
 			      double *alpha, int *pins, double *a_J, double beta, double gamma, int n);
 
 
-void normalise(double *m, int n);
+void normalise(double *m, int *pins, int n);
 
 double skyrmion_number(double *spin, double *charge,
                        int nx, int ny, int nz, int *ngbs);

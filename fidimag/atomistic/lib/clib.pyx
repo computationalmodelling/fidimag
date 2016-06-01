@@ -57,7 +57,7 @@ cdef extern from "clib.h":
                         double gamma, int n,
                         int do_precession, double default_c)
 
-    void normalise(double *m, int n)
+    void normalise(double *m, int *pins, int n)
 
     void compute_stt_field_c(double *spin, double *field,
                              double *jx, double *jy,
@@ -244,8 +244,9 @@ def compute_llg_stt_cpp(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 &alpha[0], &pin[0], &a_J[0], beta, gamma, n)
 
 
-def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin, n):
-    normalise(&spin[0], n)
+def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
+              np.ndarray[int, ndim=1, mode="c"] pins, n):
+    normalise(&spin[0], &pins[0], n)
 
 
 def init_random(seed):
