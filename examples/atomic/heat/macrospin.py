@@ -45,7 +45,7 @@ def single_spin(alpha=0.01):
         sim.run_until(t)
         sx.append(sim.spin[0])
         sy.append(sim.spin[1])
-        print t
+        print(t)
 
     plt.plot(sx, sy)
     plt.xlabel("$S_x$")
