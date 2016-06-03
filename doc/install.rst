@@ -9,7 +9,7 @@ On Ubuntu systems, we need to run the following commands::
   # required to compile fidimag
   apt-get install cython python-numpy
   # required for tests and running it
-  apt-get install python-pytest python-pyvtk ipython python-matplotlib mayavi2
+  apt-get install python-pytest python-pyvtk ipython python-matplotlib
 
 These are available in the script `bin/install-ubuntu-packages.sh` for convenience.
 
