@@ -4,10 +4,6 @@ set -e
 # This script installs the python bindings to SUNDIALS called scikit ODES.
 # It requires SUNDIALS 2.6.2 to be installed.
 
-echo "Installing dependencies."
-sudo apt-get install python-dev
-sudo pip install scipy numpy cython enum34
-
 HERE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FIDIMAG_DIR="$(dirname "$HERE_DIR")"
 LIBS_DIR=${FIDIMAG_DIR}/local
