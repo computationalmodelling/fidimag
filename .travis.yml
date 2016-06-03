@@ -4,6 +4,10 @@ python:
         - "3.4"
         - "2.7"
 sudo: false
+addons:
+  apt:
+    packages:
+      - gfortran
 # command to install dependencies
 before_install:
   # We do this conditionally because it saves us some downloading if the
