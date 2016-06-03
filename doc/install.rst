@@ -1,23 +1,30 @@
 How to install
 ===============
 
+The easiest way is to use the install script in the `bin` directory::
+
+  bash ubuntu_install.script.sh
+
+If you want to install by hand, or want to know what the script does, read on.
+
 Install prerequisites
 ---------------------
 
 On Ubuntu systems, we need to run the following command::
  
-  sudo apt-get install cython ipython python-dev python-matplotlib \
+  sudo apt-get install cython gfortran ipython python-dev python-matplotlib \
       python-numpy python-pip python-pytest python-pyvtk python-scipy 
 
 It is available in the script `bin/install-ubuntu-packages.sh` for convenience.
-
 
 Install external libraries (FFTW and Sundials)
 ----------------------------------------------
 
 Run the install.sh by using ::
 
-   bash install.sh
+   bash install-fftw.sh
+   bash install-sundials.sh
+   bash install-scikit-odes.sh
 
 in the fidimag/bin folder.
 
