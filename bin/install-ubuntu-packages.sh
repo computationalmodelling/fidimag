@@ -1,4 +1,6 @@
-# required to compile fidimag
-apt-get install python-numpy python-dev python-scipy
-# required for tests and running it
-apt-get install python-pytest python-pyvtk ipython python-matplotlib
+# dependencies
+apt-get install python-numpy python-dev python-scipy python-pip python-pyvtk
+# for tests
+apt-get install python-pytest ipython python-matplotlib
+# to compile fidimag
+pip install cython --upgrade
