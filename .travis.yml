@@ -1,18 +1,20 @@
 language: python
 python:
-        - "3.5"
-        - "3.4"
-        - "2.7"
+  - "3.5"
+  - "3.4"
+  - "2.7"
+
 sudo: false
+
 addons:
   apt:
     packages:
       - gfortran
-# command to install dependencies
+      - libopenblas-dev
+      - liblapack-dev
+
 before_install:
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - deactivate  # Deactivate virtualenv
+  - deactivate  # deactivate virtualenv
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -37,14 +39,14 @@ before_script:
         - export LD_RUN_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
         - export MPLBACKEND=Agg
-        # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
+        # tells ETS to use PyQt class v2 APIs, makes mayavi work with ipython
+        # but why do we need this here?
         - export QT_API=pyqt
 
-# command to run tests
+# runs tests
 script:
   - make test-without-run-oommf
   - make test-ipynb
-
 
 notifications:
   email:
