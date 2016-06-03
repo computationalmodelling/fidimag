@@ -4,14 +4,12 @@ How to install
 Install prerequisites
 ---------------------
 
-On Ubuntu systems, we need to run the following commands::
+On Ubuntu systems, we need to run the following command::
+ 
+  sudo apt-get install cython ipython python-dev python-matplotlib \
+      python-numpy python-pip python-pytest python-pyvtk python-scipy 
 
-  # required to compile fidimag
-  apt-get install cython python-numpy
-  # required for tests and running it
-  apt-get install python-pytest python-pyvtk ipython python-matplotlib
-
-These are available in the script `bin/install-ubuntu-packages.sh` for convenience.
+It is available in the script `bin/install-ubuntu-packages.sh` for convenience.
 
 
 Install external libraries (FFTW and Sundials)
