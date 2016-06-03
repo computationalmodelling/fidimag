@@ -7,12 +7,6 @@ set -e
 
 SUNDIALS=sundials-2.6.2
 
-# Make sure CMake is installed, since SUNDIALS requires it.
-command -v cmake --version >/dev/null 2>&1 || {
-    echo "CMake not found, will install."
-    sudo apt-get install cmake
-}
-
 HERE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FIDIMAG_DIR="$(dirname "$HERE_DIR")"
 LIBS_DIR=${FIDIMAG_DIR}/local
