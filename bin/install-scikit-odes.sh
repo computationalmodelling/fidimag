@@ -17,9 +17,16 @@ cd odes
 
 # Paths to SUNDIALS are hardcoded in odes/scikits/odes/sundials/setup.py.
 # The README recommends to edit that file if you want to change the paths...
+# I have patched a way to specify the dirs via environment variables 
+# in a fork of bmcage/odes, but it will probably take me
+# some time to get these changes merged upstream. -- MAB
 
 sed -i \
     "s|LIB_DIRS_SUNDIALS  = \[base_path\,|LIB_DIRS_SUNDIALS = [base_path, '${LIBS_DIR}\/lib',|g" \
+    scikits/odes/sundials/setup.py
+
+sed -i \
+    "s|INCL_DIRS_SUNDIALS  = \[base_path|INCL_DIRS_SUNDIALS = [base_path, '${LIBS_DIR}\/include\]',|g" \
     scikits/odes/sundials/setup.py
 
 python setup.py build
