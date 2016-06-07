@@ -140,7 +140,7 @@ def plot_m(mesh, npy, comp='x', based=None):
 
     fig = plt.figure()
     # norm=color.Normalize(-1,1)
-    plt.imshow(np.transpose(m), aspect=1, cmap=plt.cm.coolwarm,
+    plt.imshow(m, aspect=1, cmap=plt.cm.coolwarm,
                origin='lower', interpolation='none')
     plt.autoscale(False)
     plt.xticks([])
