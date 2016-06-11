@@ -47,12 +47,12 @@ def m_skyrmion_centre(pos):
     """
     Produces vector field mimicing a skyrmion of radius 30 nanometres.
     """
-    skyrmionRadius = 30.
+    skyrmionRadius = 20.
 
     loc = copy.deepcopy(pos)
 
     # Place it in the centre of our sample.
-    loc -= np.array([50, 50, 0])
+    loc -= np.array([25, 25, 0])
 
     # Find the radius component in cylindrical form.
     r = np.linalg.norm(loc)
@@ -87,7 +87,7 @@ def m_skyrmion_centre(pos):
 
 layers = 31  # Should be odd.
 mesh = fidimag.common.CuboidMesh(dx=1, dy=1, dz=1,
-                                 nx=100, ny=100, nz=layers,
+                                 nx=50, ny=50, nz=layers,
                                  x0=0, y0=0, z0=0, unit_length=1e-9,
                                  periodicity=[True, True, False])
 
