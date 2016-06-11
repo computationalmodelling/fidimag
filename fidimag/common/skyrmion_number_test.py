@@ -138,49 +138,89 @@ def m_skyrmion_centre(pos, skyrmionCentre, skyrmionRadius):
     return out / np.linalg.norm(out)
 
 
-layers = 3
-mesh = fidimag.common.CuboidMesh(dx=1, dy=1, dz=1,
-                                 nx=20, ny=20, nz=layers,
-                                 x0=0, y0=0, z0=0, unit_length=1e-9,
-                                 periodicity=[True, True, False])
+# Let the tests begin!
+class Case():
+    def __init__(self):
 
-sim = fidimag.micro.Sim(mesh)
-tolerance = 5e-2
+        # Building mesh and simulation objects.
+        layers = 3
+        self.mesh = fidimag.common.CuboidMesh(dx=1, dy=1, dz=1,
+                                              nx=20, ny=20, nz=layers,
+                                              x0=0, y0=0, z0=0,
+                                              unit_length=1e-9)
+        self.sim = fidimag.micro.Sim(self.mesh)
 
-# Check expected results for a skyrmion on one layer only.
-print("First case: skyrmion in one layer only.")
-sim.set_m(skyrmion_centre_z(mesh))
-sim.save_vtk()
-
-clibSk = sim.skyrmion_number()
-print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
-
-centreSk = skyrmion_number_at_centre(sim)
-print("I calculate the skyrmion number at the centre as: {:1.2f}."
-      .format(centreSk))
-
-leeSk = skyrmion_number_lee(sim)
-print("I calculate the 3d skyrmion number as: {:1.2f}.".format(leeSk))
-
-assert abs(clibSk - 0) < tolerance
-assert abs(centreSk - 1.) < tolerance
-assert abs(leeSk - 1 / float(layers)) < tolerance
+        # Absolute tolerance used for comparisons.
+        self.aTol = 5e-2
 
 
-# Check expected results for a skyrmion invariant in z.
-print("\nSecond case: skyrmion consistent across layers (skyrmion trouser " +
-      "leg).")
-sim.set_m(skyrmion_trouser_leg(mesh))
+def test_skyrmion_number_monolayer():
+    """
+    Tests skyrmion number function calculations with a mesh initialised uniform
+    everywhere, except a skyrmion in the centre z-layer.
 
-clibSk = sim.skyrmion_number()
-print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
-assert abs(clibSk - 1.) < tolerance
+    We expect that the clib skyrmion number calculation only finds the skyrmion
+    number for the first z-slice of a mesh, that the centre skyrmion number
+    function finds the skyrmion at the centre, and that the 3D skyrmion number
+    function takes an average.
 
-centreSk = skyrmion_number_at_centre(sim)
-print("I calculate the skyrmion number at the centre as: {:1.2f}."
-      .format(centreSk))
-assert abs(centreSk - 1.) < tolerance
+    Returns nothing.
+    """
 
-leeSk = skyrmion_number_lee(sim)
-print("I calculate the 3d skyrmion number as: {:1.2f}.".format(leeSk))
-assert abs(leeSk - 1.) < tolerance
+    testCase = Case()
+
+    print("Case: skyrmion in one layer only.")
+    testCase.sim.set_m(skyrmion_centre_z(testCase.mesh))
+
+    clibSk = testCase.sim.skyrmion_number()
+    print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
+
+    centreSk = skyrmion_number_at_centre(testCase.sim)
+    print("I calculate the skyrmion number at the centre as: {:1.2f}."
+          .format(centreSk))
+
+    leeSk = skyrmion_number_lee(testCase.sim)
+    print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
+
+    assert abs(clibSk - 0) < testCase.aTol
+    assert abs(centreSk - 1.) < testCase.aTol
+    assert abs(leeSk - 1 / float(testCase.sim.mesh.nz)) < testCase.aTol
+
+
+def test_skyrmion_number_multilayer():
+    """
+    Tests skyrmion number function calculations with a mesh initialised with a
+    skyrmion throughout all z-layers of the mesh.
+
+    We expect that the clib skyrmion number calculation only finds the skyrmion
+    number for the first z-slice of a mesh, that the centre skyrmion number
+    function finds the skyrmion at the centre, and that the 3D skyrmion number
+    function takes an average.
+
+    Returns nothing.
+    """
+
+    testCase = Case()
+
+    print("Case: skyrmion consistent across layers (skyrmion trouser leg)")
+    testCase.sim.set_m(skyrmion_trouser_leg(testCase.mesh))
+
+    clibSk = testCase.sim.skyrmion_number()
+    print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
+
+    centreSk = skyrmion_number_at_centre(testCase.sim)
+    print("I calculate the skyrmion number at the centre as: {:1.2f}."
+          .format(centreSk))
+
+    leeSk = skyrmion_number_lee(testCase.sim)
+    print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
+
+    assert abs(clibSk - 1.) < testCase.aTol
+    assert abs(centreSk - 1.) < testCase.aTol
+    assert abs(leeSk - 1.) < testCase.aTol
+
+
+# Run tests if this script was executed.
+if __name__ == "__main__":
+    test_skyrmion_number_monolayer()
+    test_skyrmion_number_multilayer()
