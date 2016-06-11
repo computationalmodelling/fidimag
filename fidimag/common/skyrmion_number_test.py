@@ -152,8 +152,8 @@ print("First case: skyrmion in one layer only.")
 sim.set_m(skyrmion_centre_z(mesh))
 sim.save_vtk()
 
-fidimagSk = sim.skyrmion_number()
-print("Fidimag calculates the skyrmion number as: {:1.2f}.".format(fidimagSk))
+clibSk = sim.skyrmion_number()
+print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
 centreSk = skyrmion_number_at_centre(sim)
 print("I calculate the skyrmion number at the centre as: {:1.2f}."
@@ -162,18 +162,19 @@ print("I calculate the skyrmion number at the centre as: {:1.2f}."
 leeSk = skyrmion_number_lee(sim)
 print("I calculate the 3d skyrmion number as: {:1.2f}.".format(leeSk))
 
-assert abs(fidimagSk - 0) < tolerance
+assert abs(clibSk - 0) < tolerance
 assert abs(centreSk - 1.) < tolerance
 assert abs(leeSk - 1 / float(layers)) < tolerance
 
 
 # Check expected results for a skyrmion invariant in z.
-print("\nSecond case: skyrmion consistent across layers.")
+print("\nSecond case: skyrmion consistent across layers (skyrmion trouser " +
+      "leg).")
 sim.set_m(skyrmion_trouser_leg(mesh))
 
-fidimagSk = sim.skyrmion_number()
-print("Fidimag calculates the skyrmion number as: {:1.2f}.".format(fidimagSk))
-assert abs(fidimagSk - 1.) < tolerance
+clibSk = sim.skyrmion_number()
+print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
+assert abs(clibSk - 1.) < tolerance
 
 centreSk = skyrmion_number_at_centre(sim)
 print("I calculate the skyrmion number at the centre as: {:1.2f}."
