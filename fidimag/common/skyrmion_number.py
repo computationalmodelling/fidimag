@@ -68,5 +68,5 @@ def skyrmion_number_lee(sim):
                                                       sim.mesh.nz,
                                                       sim.mesh.neighbours)
 
-    # Return the average.
+    # Return the average. This is equivalent to the integral in the equation.
     return skyrmionNumbers.mean()
