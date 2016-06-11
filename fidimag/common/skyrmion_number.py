@@ -30,7 +30,7 @@ def skyrmion_number_at_centre(sim):
     zCentre -= 0.5
 
     # Obtain slice of spins cleverly. This also works if the domain is flat.
-    spinSlice = sim.spin[xyLength * zCentre:xyLength * (zCentre + 1)]
+    spinSlice = sim.spin[int(xyLength * zCentre):int(xyLength * (zCentre + 1))]
 
     # Compute the skyrmion number for our spin slice instead.
     return compute_skyrmion_number(spinSlice, sim._skx_number, sim.mesh.nx,
