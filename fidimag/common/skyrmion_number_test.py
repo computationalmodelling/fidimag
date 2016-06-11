@@ -1,6 +1,7 @@
 #!/usr/local/bin/ipython
 
-from skyrmion_number_lib import skyrmion_number_at_centre, skyrmion_number_lee
+from fidimag.common.skyrmion_number import skyrmion_number_at_centre
+from fidimag.common.skyrmion_number import skyrmion_number_lee
 import copy
 import fidimag
 import numpy as np
@@ -96,7 +97,7 @@ sim = fidimag.micro.Sim(mesh)
 tolerance = 1e-1
 
 # Check expected results for a skyrmion on one layer only.
-print("\nFirst case: skyrmion in one layer only.")
+print("First case: skyrmion in one layer only.")
 sim.set_m(skyrmion_centre_z(sim))
 sim.save_vtk()
 
