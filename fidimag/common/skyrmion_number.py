@@ -59,7 +59,7 @@ def skyrmion_number_lee(sim):
     skyrmionNumbers = np.ndarray(sim.mesh.nz)
 
     # For each slice, compute the skyrmion number.
-    for zI in xrange(len(skyrmionNumbers)):
+    for zI in range(len(skyrmionNumbers)):
         spinSlice = sim.spin[xyLength * zI:xyLength * (zI + 1)]
 
         skyrmionNumbers[zI] = compute_skyrmion_number(spinSlice,
