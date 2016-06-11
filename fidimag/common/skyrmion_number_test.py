@@ -175,11 +175,11 @@ def test_skyrmion_number_monolayer():
     clibSk = testCase.sim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = skyrmion_number_at_centre(testCase.sim)
+    centreSk = testCase.sim.skyrmion_number_centre()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
-    leeSk = skyrmion_number_lee(testCase.sim)
+    leeSk = testCase.sim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 0) < testCase.aTol
@@ -208,11 +208,11 @@ def test_skyrmion_number_multilayer():
     clibSk = testCase.sim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = skyrmion_number_at_centre(testCase.sim)
+    centreSk = testCase.sim.skyrmion_number_centre()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
-    leeSk = skyrmion_number_lee(testCase.sim)
+    leeSk = testCase.sim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 1.) < testCase.aTol
