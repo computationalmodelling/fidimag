@@ -54,8 +54,8 @@ def m_skyrmion_centre(pos):
     # Place it in the centre of our sample.
     loc -= np.array([25, 25, 0])
 
-    # Find the radius component in cylindrical form.
-    r = np.linalg.norm(loc)
+    # Find the radius component in cylindrical form, ignoring the z component.
+    r = np.linalg.norm(loc[:2])
 
     # Check to see if this vector is within this circle. If it isn't,
     # check the next centre by skipping the rest of this iteration.
