@@ -30,7 +30,7 @@ def skyrmion_centre_z(sim):
         if abs(pos[2] - zCoord) < 1e-6:
             return m_skyrmion_centre(pos)
         else:
-            return np.array([0., 0., 1.], dtype="float64")
+            return np.array([0., 0., -1.], dtype="float64")
     return m_hackish
 
 
@@ -60,7 +60,7 @@ def m_skyrmion_centre(pos):
     # Check to see if this vector is within this circle. If it isn't,
     # check the next centre by skipping the rest of this iteration.
     if r > skyrmionRadius:
-        return np.array([0., 0., 1.], dtype="float64")
+        return np.array([0., 0., -1.], dtype="float64")
 
     # Convert position into cylindrical form, using r defined
     # previously, and "t" as the argument.
@@ -75,8 +75,8 @@ def m_skyrmion_centre(pos):
         t = np.arctan2(loc[1], loc[0])
 
     # Define vector components inside the skyrmion:
-    mz = -np.cos(np.pi * r / skyrmionRadius)
-    mt = np.sin(np.pi * r / skyrmionRadius)
+    mz = np.cos(np.pi * r / skyrmionRadius)
+    mt = -np.sin(np.pi * r / skyrmionRadius)
 
     # Convert to cartesian form and normalize.
     mx = -np.sin(t) * mt
