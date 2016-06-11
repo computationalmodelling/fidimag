@@ -1,5 +1,3 @@
-#!/usr/local/bin/ipython
-
 from fidimag.common.skyrmion_number import skyrmion_number_at_centre
 from fidimag.common.skyrmion_number import skyrmion_number_lee
 import copy
