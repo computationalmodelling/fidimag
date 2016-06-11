@@ -5,57 +5,110 @@ import fidimag
 import numpy as np
 
 
-def skyrmion_centre_z(sim):
+def skyrmion_centre_z(mesh):
     """
-    Produces a hackish skyrmion function, with a skyrmion on the centre later
-    only, and ferromagnetic otherwise.
+    Produces a function defining a magnetisation texture with a skyrmion on the
+    centre layer of the mesh only, and ferromagnetic otherwise.
+
+    Arguments:
+        mesh: Cuboid mesh object from Fidimag.
+
+    Returns a function object.
     """
 
-    def m_hackish(pos):
+    def m_skyrmion_unrealistic(pos):
         """
-        Produces a skyrmion on the centre layer only, and ferromagnetic
-        otherwise.
+        Produces a skyrmion on the centre layer of the mesh only, and
+        ferromagnetic otherwise.
+
+        Arguments:
+            pos: 3-element container of floats denoting the position to probe
+                 the magnetisation of the skyrmion.
+
+        Returns a three-element numpy array representing the magnetisation of
+        the skyrmion.
         """
 
         # Find the layer number that corresponds to the centre of the mesh,
         # preferring the lower layer in a tie.
-        zCentre = sim.mesh.nz / 2.
-        if sim.mesh.nz % 2 == 0:
+        zCentre = mesh.nz / 2.
+        if mesh.nz % 2 == 0:
             zCentre -= 0.5
 
         # Find the co-ordinate of that layer.
-        zCoord = sim.mesh.z0 + sim.mesh.dz * zCentre
+        zCoord = mesh.z0 + mesh.dz * zCentre
 
         # Logic as described in docstring.
         if abs(pos[2] - zCoord) < 1e-6:
-            return m_skyrmion_centre(pos)
+
+            # This skyrmion is centred in the centre of the mesh, and has
+            # radius big enough to fill the mesh, assuming the x and y lengths
+            # are the same.
+            skyrmionCentre = [mesh.x0 + mesh.dx * mesh.nx / 2.,
+                              mesh.y0 + mesh.dy * mesh.ny / 2.]
+            skyrmionRadius = min(mesh.dx * mesh.nx / 2.,
+                                 mesh.dy * mesh.ny / 2.)
+            return m_skyrmion_centre(pos, skyrmionCentre, skyrmionRadius)
+
         else:
             return np.array([0., 0., -1.], dtype="float64")
-    return m_hackish
+
+    # Return the function object, as promised.
+    return m_skyrmion_unrealistic
 
 
-def skyrmion_trouser_leg(sim):
+def skyrmion_trouser_leg(mesh):
     """
-    Produces a hackish skyrmion function, with a skyrmion invariant in
-    thickness.
+    Produces a magnetisation texture with a skyrmion invariant in thickness.
+
+    Arguments:
+        mesh: Cuboid mesh object from Fidimag.
+
+    Returns a function object.
     """
 
-    return m_skyrmion_centre
+    # This skyrmion is centred in the centre of the mesh, and has radius big
+    # enough to fill the mesh, assuming the x and y lengths are the same.
+    skyrmionCentre = [mesh.x0 + mesh.dx * mesh.nx / 2.,
+                      mesh.y0 + mesh.dy * mesh.ny / 2.]
+    skyrmionRadius = min(mesh.dx * mesh.nx / 2., mesh.dy * mesh.ny / 2.)
+
+    def m_skyrmion_trouser_leg(pos):
+        """
+        Produces a skyrmion invariant in thickness.
+
+        Arguments:
+            pos: 3-element container of floats denoting the position to probe
+                 the magnetisation of the skyrmion.
+
+        Returns a three-element numpy array representing the magnetisation of
+        the skyrmion.
+        """
+        return m_skyrmion_centre(pos, skyrmionCentre, skyrmionRadius)
+
+    # Return the function object, as promised.
+    return m_skyrmion_trouser_leg
 
 
-def m_skyrmion_centre(pos):
+def m_skyrmion_centre(pos, skyrmionCentre, skyrmionRadius):
     """
-    Produces vector field mimicing a skyrmion of radius 30 nanometres.
+    Returns the magnetisation of a skyrmion at a given position.
+
+    Arguments:
+        pos: 3-element container of floats denoting the position to probe the
+             magnetisation of the skyrmion.
+        skyrmionCentre: 2-element list of floats denoting the centre-point
+                        of the skyrmion.
+        skyrmionRadius: Float denoting the radius of the skyrmion.
+
+    Returns a three-element numpy array representing the magnetisation of the
+    skyrmion.
     """
-    skyrmionRadius = 10.
 
-    loc = copy.deepcopy(pos)
-
-    # Place it in the centre of our sample.
-    loc -= np.array([10, 10, 0])
-
-    # Find the radius component in cylindrical form, ignoring the z component.
-    r = np.linalg.norm(loc[:2])
+    # Convert co-ordinate to polar form centred around the skyrmion.
+    loc = copy.deepcopy(pos[:2])
+    loc -= np.array(skyrmionCentre)
+    r = np.linalg.norm(loc)
 
     # Check to see if this vector is within this circle. If it isn't,
     # check the next centre by skipping the rest of this iteration.
@@ -92,11 +145,11 @@ mesh = fidimag.common.CuboidMesh(dx=1, dy=1, dz=1,
                                  periodicity=[True, True, False])
 
 sim = fidimag.micro.Sim(mesh)
-tolerance = .5e-1
+tolerance = 5e-2
 
 # Check expected results for a skyrmion on one layer only.
 print("First case: skyrmion in one layer only.")
-sim.set_m(skyrmion_centre_z(sim))
+sim.set_m(skyrmion_centre_z(mesh))
 sim.save_vtk()
 
 fidimagSk = sim.skyrmion_number()
@@ -116,7 +169,7 @@ assert abs(leeSk - 1 / float(layers)) < tolerance
 
 # Check expected results for a skyrmion invariant in z.
 print("\nSecond case: skyrmion consistent across layers.")
-sim.set_m(skyrmion_trouser_leg(sim))
+sim.set_m(skyrmion_trouser_leg(mesh))
 
 fidimagSk = sim.skyrmion_number()
 print("Fidimag calculates the skyrmion number as: {:1.2f}.".format(fidimagSk))
