@@ -2,8 +2,8 @@
 
 from skyrmion_number_lib import skyrmion_number_at_centre, skyrmion_number_lee
 import copy
+import fidimag
 import numpy as np
-import fidimag  # Revision 9539fbc
 
 
 def skyrmion_centre_z(sim):
