@@ -17,7 +17,7 @@ class LLG(object):
         *Arguments*
           name : the Simulation name (used for writing data files, for examples)
         """
-
+        self._micromagnetic = False
         self.t = 0
         self.name = name
         self.mesh = mesh
@@ -296,6 +296,9 @@ class LLG(object):
         number = clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
+
+    skyrmion_number_centre = fidimag.common.skyrmion_number.skyrmion_number_at_centre
+    skyrmion_number_lee = fidimag.common.skyrmion_number.skyrmion_number_lee
 
     def spin_at(self, i, j, k):
         """

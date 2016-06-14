@@ -24,6 +24,7 @@ class LLG(object):
           name : the Simulation name (used for writing data files, for examples)
 
         """
+        self._micromagnetic = True
         self.t = 0
         self.name = name
         self.mesh = mesh

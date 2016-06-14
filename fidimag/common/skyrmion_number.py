@@ -1,4 +1,5 @@
-from fidimag.extensions.clib import compute_skyrmion_number
+import fidimag.extensions.clib
+import fidimag.extensions.micro_clib
 import numpy as np
 
 
@@ -33,9 +34,14 @@ def skyrmion_number_at_centre(sim):
     spinSlice = sim.spin[int(xyLength * zCentre):int(xyLength * (zCentre + 1))]
 
     # Compute the skyrmion number for our spin slice instead.
-    return compute_skyrmion_number(spinSlice, sim._skx_number, sim.mesh.nx,
-                                   sim.mesh.ny, sim.mesh.nz,
-                                   sim.mesh.neighbours)
+    if sim._micromagnetic is True:
+        return fidimag.extensions.micro_clib.compute_skyrmion_number(\
+               spinSlice, sim._skx_number, sim.mesh.nx, sim.mesh.ny,
+               sim.mesh.nz, sim.mesh.neighbours)
+    else:
+        return fidimag.extensions.compute_skyrmion_number(\
+               spinSlice, sim._skx_number, sim.mesh.nx, sim.mesh.ny,
+               sim.mesh.nz, sim.mesh.neighbours)
 
 
 def skyrmion_number_lee(sim):
@@ -62,11 +68,16 @@ def skyrmion_number_lee(sim):
     for zI in range(len(skyrmionNumbers)):
         spinSlice = sim.spin[xyLength * zI:xyLength * (zI + 1)]
 
-        skyrmionNumbers[zI] = compute_skyrmion_number(spinSlice,
-                                                      sim._skx_number,
-                                                      sim.mesh.nx, sim.mesh.ny,
-                                                      sim.mesh.nz,
-                                                      sim.mesh.neighbours)
+        if sim._micromagnetic is True:
+            skyrmionNumbers[zI] = fidimag.extensions.micro_clib.compute_skyrmion_number(\
+                                  spinSlice, sim._skx_number, sim.mesh.nx,
+                                  sim.mesh.ny, sim.mesh.nz,
+                                  sim.mesh.neighbours)
+        else:
+            skyrmionNumbers[zI] = fidimag.extensions.clib.compute_skyrmion_number(\
+                                  spinSlice, sim._skx_number, sim.mesh.nx,
+                                  sim.mesh.ny, sim.mesh.nz,
+                                  sim.mesh.neighbours)
 
     # Return the average. This is equivalent to the integral in the equation.
     return skyrmionNumbers.mean()
