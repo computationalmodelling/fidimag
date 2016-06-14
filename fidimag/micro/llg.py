@@ -310,7 +310,7 @@ class LLG(object):
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
-    skyrmion_number_centre_slice = fidimag.common.skyrmion_number.skyrmion_number_centre_slice
+    skyrmion_number_slice = fidimag.common.skyrmion_number.skyrmion_number_slice
     skyrmion_number_lee = fidimag.common.skyrmion_number.skyrmion_number_lee
 
     def spin_at(self, i, j, k):
