@@ -8,6 +8,7 @@ import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver
 from fidimag.common.save_vtk import SaveVTK
 import fidimag.common.constant as const
+import fidimag.common.skyrmion_number
 
 
 class LLG(object):
