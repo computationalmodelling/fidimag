@@ -148,7 +148,8 @@ class Case():
                                               nx=20, ny=20, nz=layers,
                                               x0=0, y0=0, z0=0,
                                               unit_length=1e-9)
-        self.sim = fidimag.micro.Sim(self.mesh)
+        self.microSim = fidimag.micro.Sim(self.mesh)
+        self.atomSim = fidimag.atomistic.Sim(self.mesh)
 
         # Absolute tolerance used for comparisons.
         self.aTol = 5e-2
@@ -169,22 +170,41 @@ def test_skyrmion_number_monolayer():
 
     testCase = Case()
 
-    print("Case: skyrmion in one layer only.")
-    testCase.sim.set_m(skyrmion_centre_z(testCase.mesh))
+    # Micromagnetic simulation
+    print("Case: skyrmion in one layer only (micromagnetics).")
+    testCase.microSim.set_m(skyrmion_centre_z(testCase.mesh))
 
-    clibSk = testCase.sim.skyrmion_number()
+    clibSk = testCase.microSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.sim.skyrmion_number_centre()
+    centreSk = testCase.microSim.skyrmion_number_centre()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
-    leeSk = testCase.sim.skyrmion_number_lee()
+    leeSk = testCase.microSim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 0) < testCase.aTol
-    assert abs(centreSk - 1.) < testCase.aTol
-    assert abs(leeSk - 1 / float(testCase.sim.mesh.nz)) < testCase.aTol
+    assert abs(centreSk - 1) < testCase.aTol
+    assert abs(leeSk - 1 / float(testCase.microSim.mesh.nz)) < testCase.aTol
+
+    # Atomistic simulation
+    print("Case: skyrmion in one layer only (atomistic).")
+    testCase.atomSim.set_m(skyrmion_centre_z(testCase.mesh))
+
+    clibSk = testCase.atomSim.skyrmion_number()
+    print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
+
+    centreSk = testCase.atomSim.skyrmion_number_centre()
+    print("I calculate the skyrmion number at the centre as: {:1.2f}."
+          .format(centreSk))
+
+    leeSk = testCase.atomSim.skyrmion_number_lee()
+    print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
+
+    assert abs(clibSk - 0) < testCase.aTol
+    assert abs(centreSk - 1) < testCase.aTol
+    assert abs(leeSk - 1 / float(testCase.atomSim.mesh.nz)) < testCase.aTol
 
 
 def test_skyrmion_number_multilayer():
@@ -202,22 +222,41 @@ def test_skyrmion_number_multilayer():
 
     testCase = Case()
 
-    print("Case: skyrmion consistent across layers (skyrmion trouser leg)")
-    testCase.sim.set_m(skyrmion_trouser_leg(testCase.mesh))
+    # Micromagnetic simulation
+    print("Case: skyrmion consistent across layers (micromagnetics).")
+    testCase.microSim.set_m(skyrmion_trouser_leg(testCase.mesh))
 
-    clibSk = testCase.sim.skyrmion_number()
+    clibSk = testCase.microSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.sim.skyrmion_number_centre()
+    centreSk = testCase.microSim.skyrmion_number_centre()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
-    leeSk = testCase.sim.skyrmion_number_lee()
+    leeSk = testCase.microSim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
-    assert abs(clibSk - 1.) < testCase.aTol
-    assert abs(centreSk - 1.) < testCase.aTol
-    assert abs(leeSk - 1.) < testCase.aTol
+    assert abs(clibSk - 1) < testCase.aTol
+    assert abs(centreSk - 1) < testCase.aTol
+    assert abs(leeSk - 1) < testCase.aTol
+
+    # Atomistic simulation
+    print("Case: skyrmion consistent across layers (atomistic).")
+    testCase.atomSim.set_m(skyrmion_trouser_leg(testCase.mesh))
+
+    clibSk = testCase.atomSim.skyrmion_number()
+    print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
+
+    centreSk = testCase.atomSim.skyrmion_number_centre()
+    print("I calculate the skyrmion number at the centre as: {:1.2f}."
+          .format(centreSk))
+
+    leeSk = testCase.atomSim.skyrmion_number_lee()
+    print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
+
+    assert abs(clibSk - 1) < testCase.aTol
+    assert abs(centreSk - 1) < testCase.aTol
+    assert abs(leeSk - 1) < testCase.aTol
 
 
 # Run tests if this script was executed.
