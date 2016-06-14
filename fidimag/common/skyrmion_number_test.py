@@ -1,4 +1,4 @@
-from fidimag.common.skyrmion_number import skyrmion_number_at_centre
+from fidimag.common.skyrmion_number import skyrmion_number_centre_slice
 from fidimag.common.skyrmion_number import skyrmion_number_lee
 import copy
 import fidimag
@@ -177,7 +177,7 @@ def test_skyrmion_number_monolayer():
     clibSk = testCase.microSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.microSim.skyrmion_number_centre()
+    centreSk = testCase.microSim.skyrmion_number_centre_slice()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
@@ -195,7 +195,7 @@ def test_skyrmion_number_monolayer():
     clibSk = testCase.atomSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.atomSim.skyrmion_number_centre()
+    centreSk = testCase.atomSim.skyrmion_number_centre_slice()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
@@ -229,7 +229,7 @@ def test_skyrmion_number_multilayer():
     clibSk = testCase.microSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.microSim.skyrmion_number_centre()
+    centreSk = testCase.microSim.skyrmion_number_centre_slice()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
@@ -247,7 +247,7 @@ def test_skyrmion_number_multilayer():
     clibSk = testCase.atomSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.atomSim.skyrmion_number_centre()
+    centreSk = testCase.atomSim.skyrmion_number_centre_slice()
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 

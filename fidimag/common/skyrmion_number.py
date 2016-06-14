@@ -3,7 +3,7 @@ import fidimag.extensions.micro_clib
 import numpy as np
 
 
-def skyrmion_number_at_centre(sim):
+def skyrmion_number_centre_slice(sim):
     """
     Returns the skyrmion number calculated on the x-y plane at the central z
     co-ordinate.
