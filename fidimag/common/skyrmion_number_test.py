@@ -1,8 +1,9 @@
-from fidimag.common.skyrmion_number import skyrmion_number_centre_slice
+from fidimag.common.skyrmion_number import skyrmion_number_slice
 from fidimag.common.skyrmion_number import skyrmion_number_lee
 import copy
 import fidimag
 import numpy as np
+import pytest
 
 
 def skyrmion_centre_z(mesh):
@@ -177,15 +178,25 @@ def test_skyrmion_number_monolayer():
     clibSk = testCase.microSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.microSim.skyrmion_number_centre_slice()
+    bottomSk = testCase.microSim.skyrmion_number_slice(at="bottom")
+    print("I calculate the skyrmion number at the bottom as: {:1.2f}."
+          .format(bottomSk))
+
+    centreSk = testCase.microSim.skyrmion_number_slice(at="centre")
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
+
+    topSk = testCase.microSim.skyrmion_number_slice(at="top")
+    print("I calculate the skyrmion number at the top as: {:1.2f}."
+          .format(topSk))
 
     leeSk = testCase.microSim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 0) < testCase.aTol
+    assert abs(bottomSk - clibSk) < testCase.aTol
     assert abs(centreSk - 1) < testCase.aTol
+    assert abs(topSk - 0) < testCase.aTol
     assert abs(leeSk - 1 / float(testCase.microSim.mesh.nz)) < testCase.aTol
 
     # Atomistic simulation
@@ -195,16 +206,26 @@ def test_skyrmion_number_monolayer():
     clibSk = testCase.atomSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.atomSim.skyrmion_number_centre_slice()
+    bottomSk = testCase.microSim.skyrmion_number_slice(at="bottom")
+    print("I calculate the skyrmion number at the bottom as: {:1.2f}."
+          .format(bottomSk))
+
+    centreSk = testCase.microSim.skyrmion_number_slice(at="centre")
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
 
-    leeSk = testCase.atomSim.skyrmion_number_lee()
+    topSk = testCase.microSim.skyrmion_number_slice(at="top")
+    print("I calculate the skyrmion number at the top as: {:1.2f}."
+          .format(topSk))
+
+    leeSk = testCase.microSim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 0) < testCase.aTol
+    assert abs(bottomSk - clibSk) < testCase.aTol
     assert abs(centreSk - 1) < testCase.aTol
-    assert abs(leeSk - 1 / float(testCase.atomSim.mesh.nz)) < testCase.aTol
+    assert abs(topSk - 0) < testCase.aTol
+    assert abs(leeSk - 1 / float(testCase.microSim.mesh.nz)) < testCase.aTol
 
 
 def test_skyrmion_number_multilayer():
@@ -229,15 +250,25 @@ def test_skyrmion_number_multilayer():
     clibSk = testCase.microSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.microSim.skyrmion_number_centre_slice()
+    bottomSk = testCase.microSim.skyrmion_number_slice(at="bottom")
+    print("I calculate the skyrmion number at the bottom as: {:1.2f}."
+          .format(bottomSk))
+
+    centreSk = testCase.microSim.skyrmion_number_slice(at="centre")
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
+
+    topSk = testCase.microSim.skyrmion_number_slice(at="top")
+    print("I calculate the skyrmion number at the top as: {:1.2f}."
+          .format(topSk))
 
     leeSk = testCase.microSim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 1) < testCase.aTol
+    assert abs(bottomSk - clibSk) < testCase.aTol
     assert abs(centreSk - 1) < testCase.aTol
+    assert abs(topSk - 1) < testCase.aTol
     assert abs(leeSk - 1) < testCase.aTol
 
     # Atomistic simulation
@@ -247,19 +278,64 @@ def test_skyrmion_number_multilayer():
     clibSk = testCase.atomSim.skyrmion_number()
     print("CLib calculates the skyrmion number as: {:1.2f}.".format(clibSk))
 
-    centreSk = testCase.atomSim.skyrmion_number_centre_slice()
+    bottomSk = testCase.microSim.skyrmion_number_slice(at="bottom")
+    print("I calculate the skyrmion number at the bottom as: {:1.2f}."
+          .format(bottomSk))
+
+    centreSk = testCase.microSim.skyrmion_number_slice(at="centre")
     print("I calculate the skyrmion number at the centre as: {:1.2f}."
           .format(centreSk))
+
+    topSk = testCase.microSim.skyrmion_number_slice(at="top")
+    print("I calculate the skyrmion number at the top as: {:1.2f}."
+          .format(topSk))
 
     leeSk = testCase.atomSim.skyrmion_number_lee()
     print("I calculate the 3D skyrmion number as: {:1.2f}.".format(leeSk))
 
     assert abs(clibSk - 1) < testCase.aTol
+    assert abs(bottomSk - clibSk) < testCase.aTol
     assert abs(centreSk - 1) < testCase.aTol
+    assert abs(topSk - 1) < testCase.aTol
     assert abs(leeSk - 1) < testCase.aTol
+
+
+def test_skyrmion_number_slice_errors():
+    """
+    Tests skyrmion number slice function for error conditions as described in
+    its docstring.
+
+    Returns nothing.
+    """
+
+    testCase = Case()
+
+    print("Test that an error is raised when no arguments are passed (due to "
+          "argument checks in the function).")
+    with pytest.raises(ValueError):
+        testCase.microSim.skyrmion_number_slice()
+
+    print("Test that an out of bounds Z-index raises an error.")
+    with pytest.raises(ValueError):
+        testCase.microSim.skyrmion_number_slice(zIndex=-1)
+    with pytest.raises(ValueError):
+        testCase.microSim.skyrmion_number_slice(\
+        zIndex=testCase.microSim.mesh.nz)
+
+    print("Test that a Z-index in bounds does not raise an error.")
+    testCase.microSim.skyrmion_number_slice(zIndex=0)
+    testCase.microSim.skyrmion_number_slice(\
+    zIndex=testCase.microSim.mesh.nz - 1)
+
+    print("Test that an invalid 'at' parameter raises an error.")
+    with pytest.raises(ValueError):
+        testCase.microSim.skyrmion_number_slice(at="center")
+    with pytest.raises(ValueError):
+        testCase.microSim.skyrmion_number_slice(at="middle")
 
 
 # Run tests if this script was executed.
 if __name__ == "__main__":
     test_skyrmion_number_monolayer()
     test_skyrmion_number_multilayer()
+    test_skyrmion_number_slice_errors()
