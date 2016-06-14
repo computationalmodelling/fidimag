@@ -39,7 +39,7 @@ def skyrmion_number_at_centre(sim):
                spinSlice, sim._skx_number, sim.mesh.nx, sim.mesh.ny,
                sim.mesh.nz, sim.mesh.neighbours)
     else:
-        return fidimag.extensions.compute_skyrmion_number(\
+        return fidimag.extensions.clib.compute_skyrmion_number(\
                spinSlice, sim._skx_number, sim.mesh.nx, sim.mesh.ny,
                sim.mesh.nz, sim.mesh.neighbours)
 
