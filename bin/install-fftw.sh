@@ -41,10 +41,6 @@ download_and_install() {
     fi;
 }
 
-if [ "$CC" == 'icc' ]; then
-	download_and_install ${FFTW} http://www.fftw.org "--enable-openmp CFLAGS=-xHost"
-else
-	download_and_install ${FFTW} http://www.fftw.org "--enable-openmp -msse2"
-fi
+download_and_install ${FFTW} http://www.fftw.org "--enable-openmp --enable-avx"
 
 echo "Installation succesful."
