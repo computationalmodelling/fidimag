@@ -43,6 +43,6 @@ download_and_install() {
 }
 
 download_and_install ${SUNDIALS} http://ftp.mcs.anl.gov/pub/petsc/externalpackages --disable-lapack
-download_and_install ${FFTW} http://www.fftw.org --enable-openmp
+# download_and_install ${FFTW} http://www.fftw.org --enable-openmp
 
 echo "Installation succesful."
