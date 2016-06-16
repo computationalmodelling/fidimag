@@ -2,7 +2,7 @@
 
 void uniform_random_sphere(double *phi, double *ct, int n){
 	for (int i=0;i<n;i++){
-		phi[i] = single_random()*2*M_PI;
+		phi[i] = single_random()*2*WIDE_PI;
 		ct[i] = 2*single_random()-1;
 	}
 }
@@ -13,7 +13,7 @@ void uniform_random_sphere(double *phi, double *ct, int n){
 void random_spin_uniform(double *spin, int n){
     for (int i=0;i<n;i++){
         int j=3*i;
-        double phi= single_random()*2*M_PI;
+        double phi= single_random()*2*WIDE_PI;
         double ct = 2*single_random()-1;
         double st = sqrt(1-ct*ct);
         spin[j] = st*cos(phi); //mx = sin(theta)*cos(phi)
