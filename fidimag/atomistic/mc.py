@@ -33,6 +33,7 @@ class MonteCarlo(object):
         self.vtk = SaveVTK(self.mesh, name=name)
 
         self.step = 0
+        self.skx_num = 0
         self.set_options()
 
     def set_options(self, J=50.0, D=0, H=None, seed=100, T=10.0):
@@ -104,6 +105,7 @@ class MonteCarlo(object):
         nz = self.mesh.nz
         number = clib.compute_skyrmion_number(
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
+        self.skx_num = number
         return number
 
 
@@ -127,7 +129,7 @@ class MonteCarlo(object):
         np.save(name, self.spin)
 
 
-    def run(self, steps=1000, save_m_steps=100, save_vtk_steps=100):
+    def run(self, steps=1000, save_m_steps=100, save_vtk_steps=100, save_data_steps=1):
 
         if save_m_steps is not None:
             self.save_m()
@@ -139,8 +141,9 @@ class MonteCarlo(object):
             self.step = step
             clib.run_mc_step(self.spin, self.random_spin, self.ngbs,
                 self.J, self.D, self._H, self.n, self.T)
-
-            self.saver.save()
+            if save_data_steps is not None:
+                if step % save_data_steps == 0:
+                    self.saver.save()
 
             if save_vtk_steps is not None:
                 if step % save_vtk_steps == 0:
@@ -149,7 +152,7 @@ class MonteCarlo(object):
                 if step % save_m_steps == 0:
                     self.save_m()
             
-    	    print("step=%d, skyrmion number=%0.4g"%(self.step, self.skyrmion_number()))
+    	    print("step=%d, skyrmion number=%0.9g"%(self.step, self.skx_num))
 
 
 

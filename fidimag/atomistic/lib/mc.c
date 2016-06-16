@@ -64,8 +64,8 @@ double compute_energy_difference(double *spin, double *new_spin, int *ngbs, doub
             energy1 -= J*dot(&spin[3*i], &spin[3*k]);
             energy1 += D*dmi_energy_site(&spin[3*i], &spin[3*k], j);
             
-            energy2 -= J*dot(&new_spin[3*i], &new_spin[3*k]);
-            energy2 += D*dmi_energy_site(&new_spin[3*i], &new_spin[3*k], j);
+            energy2 -= J*dot(&new_spin[3*i], &spin[3*k]);
+            energy2 += D*dmi_energy_site(&new_spin[3*i], &spin[3*k], j);
             
         }
     }
