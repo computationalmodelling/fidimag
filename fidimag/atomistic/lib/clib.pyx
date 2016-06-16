@@ -2,10 +2,11 @@ import numpy
 cimport numpy as np
 np.import_array()
 
-
 cdef extern from "clib.h":
     void initial_random(int seed)
+    double single_random()
     void gauss_random_vec(double *x, int n)
+    void random_spin_uniform(double *spin, int n)
 
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
@@ -250,13 +251,21 @@ def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
 
 
 def init_random(seed):
-    initial_random(seed);
+    initial_random(seed)
 
 def random_number_array(np.ndarray[double, ndim=1, mode="c"] v):
     
     cdef int n = len(v)
 
     gauss_random_vec(&v[0], n)
+
+def random_spin_uniform_sphere(np.ndarray[double, ndim=1, mode="c"] v, n):
+
+    random_spin_uniform(&v[0], n)
+
+def random_number():
+    cdef double res = single_random()
+    return res
 
 
 def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,
