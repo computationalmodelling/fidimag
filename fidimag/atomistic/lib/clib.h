@@ -8,6 +8,10 @@
 
 #define WIDE_PI 3.1415926535897932384626433832795L
 
+double single_random(void);
+void gauss_random_vec(double *x, int n);
+void random_spin_uniform(double *spin, int n);
+
 /* 3 components for the cross product calculations */
 inline double cross_x(double a0, double a1, double a2,
                       double b0, double b1, double b2) { return a1 * b2 - a2 * b1; }
@@ -83,6 +87,10 @@ void compute_px_py_c(double *spin, int nx, int ny, int nz,
 
 void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, 
                   double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt);
+
+//======================================================================
+void run_step_mc(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T);
+
 
 
 #endif

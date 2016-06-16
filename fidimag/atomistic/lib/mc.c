@@ -7,7 +7,6 @@ void uniform_random_sphere(double *phi, double *ct, int n){
 	}
 }
 
-
 /*
  * n is the total spin number
  */
@@ -79,7 +78,6 @@ double compute_energy_difference(double *spin, double *new_spin, int *ngbs, doub
 void run_step_mc(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T){
     
     random_spin_uniform(&new_spin[0], n);
-    
     
     double ed, r;
     int update=0;

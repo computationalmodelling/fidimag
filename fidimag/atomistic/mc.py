@@ -17,7 +17,7 @@ class MonteCarlo(object):
         self.n_nonzero = self.n
 
 
-        self.ngs = mesh.neighbours
+        self.ngbs = mesh.neighbours
 
         self._mu_s = np.zeros(self.n, dtype=np.float)
         self.spin = np.ones(3 * self.n, dtype=np.float)
@@ -51,12 +51,19 @@ class MonteCarlo(object):
 
     def create_tablewriter(self):
 
-        self.saver = DataSaver(self, self.name + '.txt')
+        entities = {
+            'step': {'unit': '<>',
+                     'get': lambda sim: sim.step,
+                     'header': 'step'},
+            'm': {'unit': '<>',
+                  'get': lambda sim: sim.compute_average(),
+                  'header': ('m_x', 'm_y', 'm_z')},
+            'skx_num':{'unit': '<>', 
+                      'get': lambda sim: sim.skyrmion_number(), 
+                      'header': 'skx_num'}
+        }
 
-        self.saver.entities['skx_num'] = {
-            'unit': '<>', 
-		    'get': lambda sim: sim.skyrmion_number(), 
-		    'header': 'skx_num'}
+        self.saver = DataSaver(self, self.name + '.txt', entities=entities)
 
         self.saver.update_entity_order()
 
@@ -130,7 +137,8 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
-            
+            clib.run_mc_step(self.spin, self.random_spin, self.ngbs,
+                self.J, self.D, self._H, self.n, self.T)
 
             self.saver.save()
 
@@ -141,7 +149,7 @@ class MonteCarlo(object):
                 if step % save_m_steps == 0:
                     self.save_m()
             
-    	    print(step)
+    	    print("step=%d, skyrmion number=%0.4g"%(self.step, self.skyrmion_number()))
 
 
 
