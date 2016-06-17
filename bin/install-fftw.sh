@@ -30,7 +30,7 @@ download_and_install() {
         tar -xzf ${1}.tar.gz
         cd ${1}
         echo "Configuring "${1}"."
-        ./configure --quiet --enable-shared --prefix=${LIBS_DIR} $3
+        ./configure --quiet --enable-shared --enable-openmp --prefix=${LIBS_DIR}
         echo "Compiling and installing "${1}"."
         {
             make
@@ -41,6 +41,6 @@ download_and_install() {
     fi;
 }
 
-download_and_install ${FFTW} http://www.fftw.org "--enable-openmp --enable-avx"
+download_and_install ${FFTW} http://www.fftw.org
 
 echo "Installation succesful."
