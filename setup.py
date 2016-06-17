@@ -87,7 +87,7 @@ if 'icc' in os.environ['CC']:
     com_link.append('-openmp')
 else:
     com_args.append('-fopenmp')
-    com_args.append('-fopenmp')
+    com_link.append('-fopenmp')
 
 
 com_inc = [numpy.get_include(), INCLUDE_DIR]
