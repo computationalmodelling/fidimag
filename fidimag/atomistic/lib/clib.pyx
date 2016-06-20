@@ -44,7 +44,10 @@ cdef class gsl_gaussian_generator:
 
 cdef extern from "clib.h":
     void initial_random(int seed)
+    double single_random()
     void gauss_random_vec(double *x, int n)
+    void random_spin_uniform(double *spin, int n)
+    void run_step_mc(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T)
 
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
@@ -289,13 +292,28 @@ def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
 
 
 def init_random(seed):
-    initial_random(seed);
+    initial_random(seed)
 
 def random_number_array(np.ndarray[double, ndim=1, mode="c"] v):
     
     cdef int n = len(v)
 
     gauss_random_vec(&v[0], n)
+
+def random_spin_uniform_sphere(np.ndarray[double, ndim=1, mode="c"] v, n):
+
+    random_spin_uniform(&v[0], n)
+
+def random_number():
+    cdef double res = single_random()
+    return res
+
+def run_mc_step(np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] new_spin,
+                np.ndarray[int, ndim=2, mode="c"] ngbs,
+                J, D, np.ndarray[double, ndim=1, mode="c"] h,
+                n, T):
+    run_step_mc(&spin[0], &new_spin[0], &ngbs[0,0], J, D, &h[0], n, T)
 
 
 def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,

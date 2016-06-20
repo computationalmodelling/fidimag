@@ -3,7 +3,6 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 import numpy
-import fnmatch
 import os
 import glob
 import re
@@ -22,7 +21,7 @@ NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
 ATOM_DIR = os.path.join(SRC_DIR, "atomistic", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
-DEMAG_DIR = os.path.join(SRC_DIR, "common","dipolar")
+DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
 
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
@@ -30,7 +29,10 @@ LIB_DIR = os.path.join(LOCAL_DIR, "lib")
 print("LIB_DIR={}".format(LIB_DIR))
 
 
-pkg_init_path = os.path.join(os.path.dirname(__file__), 'fidimag', '__init__.py')
+pkg_init_path = os.path.join(
+    os.path.dirname(__file__), 'fidimag', '__init__.py')
+
+
 def get_version():
     with open(pkg_init_path) as f:
         for line in f:
@@ -74,54 +76,93 @@ dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
 dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 
+com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
+            'sundials_nvecserial', 'gsl']
+
+com_args = ['-std=c99']
+com_link = ['-L%s' % LIB_DIR]
+
+if 'icc' in os.environ['CC']:
+    com_args.append('-openmp')
+    com_link.append('-openmp')
+else:
+    com_args.append('-fopenmp')
+    com_link.append('-fopenmp')
+
+
+com_inc = [numpy.get_include(), INCLUDE_DIR]
+
 ext_modules = [
     Extension("fidimag.extensions.clib",
               sources=sources,
-              include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3_omp', 'fftw3',
-                         'sundials_cvodes', 'sundials_nvecserial',
-                         'gsl'],
-              extra_compile_args=["-fopenmp", '-std=c99'],
-              extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
               ),
     Extension("fidimag.extensions.cvode",
               sources=cvode_sources,
-              include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=[
-                  'm', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
-              extra_compile_args=["-fopenmp", '-std=c99'],
-              extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
               ),
     Extension("fidimag.extensions.baryakhtar_clib",
               sources=baryakhtar_sources,
-              include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=[
-                  'm', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
-              extra_compile_args=["-fopenmp", '-std=c99'],
-              extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
               ),
     Extension("fidimag.extensions.micro_clib",
               sources=micro_sources,
-              include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=[
-                  'm', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial'],
-              extra_compile_args=["-fopenmp", '-std=c99'],
-              extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
               ),
     Extension("fidimag.extensions.neb_clib",
               sources=neb_sources,
-              include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3_omp', 'fftw3',
-                         'sundials_cvodes', 'sundials_nvecserial'],
-              extra_compile_args=["-fopenmp", '-std=c99'],
-              extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+>>>>>>> origin/master
+              ),
+    Extension("fidimag.extensions.cvode",
+              sources=cvode_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.baryakhtar_clib",
+              sources=baryakhtar_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.micro_clib",
+              sources=micro_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.neb_clib",
+              sources=neb_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
               ),
     Extension("fidimag.extensions.dipolar",
-              sources = dipolar_sources,
-              include_dirs=[numpy.get_include(), INCLUDE_DIR],
-              libraries=['m', 'fftw3_omp', 'fftw3'],
-              extra_compile_args=["-fopenmp", '-std=c99'],
-              extra_link_args=['-L%s' % LIB_DIR, '-fopenmp'],
+              sources=dipolar_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
               ),
 ]
 

@@ -43,21 +43,11 @@ static inline unsigned int int_rand(void) {
 }
 
 //temporary random generator
-void initial_random(int seed) {
-	//unsigned int seed = (unsigned int) time(NULL);
 
-	int i;
-	MT[0] = seed & 0xFFFFFFFFU;
-	for (i = 1; i < MT19937_N; i++) {
-		MT[i] = (MT[i - 1] ^ (MT[i - 1] >> 30)) + i;
-		MT[i] *= MT19937_INIT_MULT;
-		MT[i] &= 0xFFFFFFFFU;
-	}
-}
-
-inline double real_random(void) {
+static inline double real_random(void) {
 	return ((double) int_rand()) / (double) MT19973_RAND_MAX;
 }
+
 
 static inline double gauss_random(void) {
 	static int flag = 1;
@@ -102,7 +92,7 @@ static const double d[] = { 7.784695709041462e-03, 3.224671290700398e-01,
 #define P_HIGH 0.97575
 
 //norm random numbers, see http://home.online.no/~pjacklam/notes/invnorm/
-double ltqnorm(void) {
+static inline double ltqnorm(void) {
 	double q, r;
 	double p = real_random();
 
@@ -128,12 +118,7 @@ double ltqnorm(void) {
 	}
 }
 
-void gauss_random_vec(double *x, int n) {
-	int i;
-	for (i = 0; i < n; i++) {
-		x[i] = gauss_random();
-	}
 
-}
+
 
 #endif
