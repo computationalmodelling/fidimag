@@ -2,6 +2,45 @@ import numpy
 cimport numpy as np
 np.import_array()
 
+cdef extern from "time.h":
+    ctypedef int time_t
+    time_t time(time_t *timer)
+
+cdef extern from "gsl/gsl_randist.h":
+    # To see how this all works, the examples here are very helpful
+    # https://www.gnu.org/software/gsl/manual/html_node/Random-number-generator-initialization.html 
+    gsl_rng_type *gsl_rng_mt19937 # Expose the Mersenne Twister type
+    double gsl_ran_gaussian(const gsl_rng *r, double sigma) 
+    double gsl_ran_gaussian_ziggurat(const gsl_rng *r, double sigma)
+    double gsl_rng_uniform(const gsl_rng *r)
+    gsl_rng *gsl_rng_alloc(const gsl_rng_type *T)
+    void gsl_rng_set(const gsl_rng *r, unsigned long int s)
+    void gsl_rng_free(gsl_rng *r)    
+    ctypedef struct gsl_rng_type:
+        pass
+    ctypedef struct gsl_rng:
+        pass
+
+cdef class gsl_gaussian_generator:
+    cdef gsl_rng generator # Create the generator
+    cdef public int seed        
+    def __init__(self, seed=None):
+        if seed:
+            print('Seed = {}'.format(seed))
+            self.seed = int(seed)
+        else:
+            self.seed = time(NULL)
+        self.generator = gsl_rng_alloc(gsl_rng_mt19937)[0] # Dereference pointer to mt19937 generator
+        gsl_rng_set(&self.generator, self.seed) # Seed the generator
+
+    def fill_vector(self, np.ndarray[np.float64_t, ndim=1] vector):
+        cdef Py_ssize_t i
+        cdef double [:] narr_view = vector
+        for i in range(vector.shape[0]):
+            vector[i] = gsl_ran_gaussian(&self.generator, 1)
+
+    def __exit__(self):
+        gsl_rng_free(&self.generator)
 
 cdef extern from "clib.h":
     void initial_random(int seed)
