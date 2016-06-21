@@ -24,7 +24,7 @@ void initial_rng_mt19973(mt19937_state *state, int seed) {
     if (seed<0){
         state->seed = (unsigned int) time(NULL);
     }else{
-        state->seed = state->seed;
+        state->seed = seed;
     }
     
     state->MT[0] = state->seed & 0xFFFFFFFFU;
