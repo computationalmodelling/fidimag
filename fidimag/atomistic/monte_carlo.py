@@ -34,6 +34,7 @@ class MonteCarlo(object):
 
         self.step = 0
         self.skx_num = 0
+        self.mc = clib.monte_carlo()
         self.set_options()
 
     def set_options(self, J=50.0, D=0, H=None, seed=100, T=10.0):
@@ -41,7 +42,7 @@ class MonteCarlo(object):
         J and D in units of k_B
         H in units of Tesla.
         """
-        clib.init_random(seed)
+        self.mc.set_seed(seed)
         self.J = J
         self.D = D
         self.T = T
@@ -139,7 +140,7 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
-            clib.run_mc_step(self.spin, self.random_spin, self.ngbs,
+            self.mc.run_step(self.spin, self.random_spin, self.ngbs,
                 self.J, self.D, self._H, self.n, self.T)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:

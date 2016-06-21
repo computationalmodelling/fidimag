@@ -6,11 +6,9 @@
 #include<fftw3.h>
 //#include<omp.h>
 
-#define WIDE_PI 3.1415926535897932384626433832795L
+#include"fidimag_random.h"
 
-double single_random(void);
-void gauss_random_vec(double *x, int n);
-void random_spin_uniform(double *spin, int n);
+#define WIDE_PI 3.1415926535897932384626433832795L
 
 /* 3 components for the cross product calculations */
 inline double cross_x(double a0, double a1, double a2,
@@ -92,7 +90,7 @@ void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha,
                   double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt);
 
 //======================================================================
-void run_step_mc(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T);
+void run_step_mc(mt19937_state *state,double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T);
 
 
 
