@@ -22,6 +22,7 @@ ATOM_DIR = os.path.join(SRC_DIR, "atomistic", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
+RANDOM_DIR = os.path.join(SRC_DIR, "common", "random")
 
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
@@ -75,6 +76,10 @@ neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
 dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
+
+random_sources = []
+random_sources.append(os.path.join(RANDOM_DIR, 'random.pyx'))
+random_sources += glob_cfiles(DEMAG_DIR, excludes=["random.c"])
 
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial']
@@ -158,6 +163,13 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.dipolar",
               sources=dipolar_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.random",
+              sources=random_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               extra_compile_args=com_args,
