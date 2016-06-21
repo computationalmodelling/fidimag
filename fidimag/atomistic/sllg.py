@@ -1,7 +1,6 @@
 from __future__ import division
 import numpy as np
 import fidimag.extensions.clib as clib
-import fidimag.extensions.random as random
 import fidimag.common.helper as helper
 from .llg import LLG
 import fidimag.common.constant as const
@@ -27,7 +26,7 @@ class SLLG(LLG):
 
         
         self.minor_step =0
-        self.mt19937 = random.rng_mt19937()
+        self.mt19937 = clib.rng_mt19937()
 
         self.set_options()
 
