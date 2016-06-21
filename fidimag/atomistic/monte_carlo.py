@@ -153,8 +153,7 @@ class MonteCarlo(object):
                 if step % save_m_steps == 0:
                     self.save_m()
             
-    	    print("step=%d, skyrmion number=%0.9g"%(self.step, self.skx_num))
-
+            print("step=%d, skyrmion number=%0.9g"%(self.step, self.skx_num))
 
 
 if __name__ == '__main__':
