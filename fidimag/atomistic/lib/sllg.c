@@ -1,29 +1,4 @@
-#include "llg_random.h"
 #include "clib.h"
-
-double single_random(void) {
-    return ((double) int_rand()) / (double) MT19973_RAND_MAX;
-}
-
-void gauss_random_vec(double *x, int n) {
-	for (int i = 0; i < n; i++) {
-		x[i] = gauss_random();
-	}
-
-}
-
-void initial_random(int seed) {
-    //unsigned int seed = (unsigned int) time(NULL);
-    
-    int i;
-    MT[0] = seed & 0xFFFFFFFFU;
-    for (i = 1; i < MT19937_N; i++) {
-        MT[i] = (MT[i - 1] ^ (MT[i - 1] >> 30)) + i;
-        MT[i] *= MT19937_INIT_MULT;
-        MT[i] &= 0xFFFFFFFFU;
-    }
-}
-
 
 /*
 * n is the spin number
