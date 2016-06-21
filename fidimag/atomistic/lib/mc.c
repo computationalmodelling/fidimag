@@ -54,12 +54,11 @@ double compute_energy_difference(double *spin, double *new_spin, int *ngbs, doub
 
 
 void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T){
-    
-    
+
     double delta_E, r;
     int update=0;
     
-    uniform_random_sphere(state, spin, n);
+    uniform_random_sphere(state, new_spin, n);
     
     for(int i=0;i<n;i++){
         int j=3*i;
@@ -67,7 +66,7 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs
         
         if (delta_E<0) {update=1;}
         else{
-            r= random_double_half_open(state);
+            r = random_double_half_open(state);
             if (r<exp(-delta_E/T)) update=1;
         }
     
