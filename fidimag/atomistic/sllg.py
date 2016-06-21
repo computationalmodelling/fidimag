@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import fidimag.extensions.clib as clib
+import fidimag.extensions.random as random
 import fidimag.common.helper as helper
 from .llg import LLG
 import fidimag.common.constant as const
@@ -24,8 +25,11 @@ class SLLG(LLG):
         self.dm1 = np.zeros(3*self.n, dtype=np.float)
         self.dm2 = np.zeros(3*self.n, dtype=np.float)
 
-        self.set_options()
+        
         self.minor_step =0
+        self.mt19937 = random.rng_mt19937()
+
+        self.set_options()
 
     def get_T(self):
         return self._T
@@ -37,7 +41,7 @@ class SLLG(LLG):
 
     def set_options(self, dt=1e-15, theta=1.0, gamma=const.gamma, k_B=const.k_B, seed=100):
 
-        clib.init_random(seed)
+        self.mt19937.set_seed(seed)
         self.gamma = gamma
         self.k_B = k_B
         self.dt = dt
@@ -47,7 +51,7 @@ class SLLG(LLG):
 
     def run_step(self):
         
-        clib.random_number_array(self.eta)
+        self.mt19937.fill_vector_gaussian(self.eta)
         
         #step1
         self.update_effective_field(self.spin, self.t)

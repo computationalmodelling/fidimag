@@ -3,27 +3,39 @@
 #include <math.h>
 #include "fidimag_random.h"
 
-double single_random(void) {
-    return ((double) int_rand()) / (double) MT19973_RAND_MAX;
+mt19937_state *create_mt19937_state(void) {
+    
+    mt19937_state *state = (mt19937_state*) malloc(sizeof(mt19937_state));
+    state->seed = 1;
+    state->index_t = 0;
+    state->matrix[0] = 0;
+    state->matrix[1] = 0x9908b0dfU;
+    
+    return state;
 }
 
-void initial_rng_mt19973(mt19937_state *state) {
-    int i;
-    unsigned int seed;
-    if (state->seed<0){
-        seed = (unsigned int) time(NULL);
+void finalize_mt19937_state(mt19937_state *state) {
+    free(state);
+}
+
+
+void initial_rng_mt19973(mt19937_state *state, int seed) {
+    
+    if (seed<0){
+        state->seed = (unsigned int) time(NULL);
     }else{
-        seed = state->seed;
+        state->seed = state->seed;
     }
     
-    state->MT[0] = seed & 0xFFFFFFFFU;
-    for (i = 1; i < 624; i++) {
+    state->MT[0] = state->seed & 0xFFFFFFFFU;
+    for (int i = 1; i < 624; i++) {
         state->MT[i] = (state->MT[i - 1] ^ (state->MT[i - 1] >> 30)) + i;
         state->MT[i] *= 0x6c078965U;
         state->MT[i] &= 0xFFFFFFFFU;
     }
 }
 
+//return a integer in [0, MT19973_RAND_MAX]
 inline unsigned int rand_int(mt19937_state *state) {
     
     unsigned int x;
@@ -43,9 +55,14 @@ inline unsigned int rand_int(mt19937_state *state) {
     return x;
 }
 
+//return a double number in (0,1) with uniform distribution
+double random_double_open(mt19937_state *state) {
+	return (((double) rand_int(state))+0.5) / 4294967296.0;
+}
 
+//return a double number in [0,1] with uniform distribution
 double random_double(mt19937_state *state) {
-	return ((double) rand_int(state)) / (double) MT19973_RAND_MAX;
+    return ((double) rand_int(state)) / 4294967295.0;
 }
 
 
@@ -68,12 +85,7 @@ const double inv_d[] = { 7.784695709041462e-03, 3.224671290700398e-01,
 // or see https://github.com/stan-dev/stan/issues/1157 for another example
 inline double invnorm(mt19937_state *state) {
 	double q, r;
-	double p = random_double(state);
-
-    while (p <= 0 || p >= 1){
-    	// random could be 0 or 1 which is not accepted
-    	p = random_double(state);
-    }
+	double p = (((double) rand_int(state))+0.5) / 4294967296.0; //0<p<1
 
     if (p < 0.02425) {
 		q = sqrt(-2 * log(p));
