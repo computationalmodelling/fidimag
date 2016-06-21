@@ -1,27 +1,5 @@
 #include "clib.h"
-
-void uniform_random_sphere(double *phi, double *ct, int n){
-	for (int i=0;i<n;i++){
-		phi[i] = single_random()*2*WIDE_PI;
-		ct[i] = 2*single_random()-1;
-	}
-}
-
-/*
- * n is the total spin number
- */
-void random_spin_uniform(double *spin, int n){
-    for (int i=0;i<n;i++){
-        int j=3*i;
-        double phi= single_random()*2*WIDE_PI;
-        double ct = 2*single_random()-1;
-        double st = sqrt(1-ct*ct);
-        spin[j] = st*cos(phi); //mx = sin(theta)*cos(phi)
-        spin[j+1] = st*sin(phi); //my = sin(theta)*sin(phi)
-        spin[j+2] = ct; //mz = cos(theta)
-    }
-
-}
+#include "fidimag_random.h"
 
 inline double dot(double a[3], double b[3]){
     return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
@@ -75,20 +53,22 @@ double compute_energy_difference(double *spin, double *new_spin, int *ngbs, doub
 }
 
 
-void run_step_mc(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T){
+void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T){
     
-    random_spin_uniform(&new_spin[0], n);
     
-    double ed, r;
+    double delta_E, r;
     int update=0;
+    
+    uniform_random_sphere(state, spin, n);
+    
     for(int i=0;i<n;i++){
         int j=3*i;
-        ed = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], i, n);
+        delta_E = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], i, n);
         
-        if (ed<0) {update=1;}
+        if (delta_E<0) {update=1;}
         else{
-            r= single_random();
-            if (r<exp(-ed/T)) update=1;
+            r= random_double_half_open(state);
+            if (r<exp(-delta_E/T)) update=1;
         }
     
         if(update){

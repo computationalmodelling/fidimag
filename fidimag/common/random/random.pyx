@@ -1,7 +1,7 @@
 #import numpy
 cimport numpy as np
 np.import_array()
-
+#cimport random
 
 cdef extern from "fidimag_random.h":
     ctypedef struct mt19937_state:
@@ -11,8 +11,9 @@ cdef extern from "fidimag_random.h":
     void finalize_mt19937_state(mt19937_state *state)
 
     void initial_rng_mt19973(mt19937_state *state, int seed)
-    double random_double(mt19937_state *state)
+    double random_double_half_open(mt19937_state *state)
     void gauss_random_vector(mt19937_state *state, double *x, int n)
+    void uniform_random_sphere(mt19937_state *state, double *spin, int n)
 
 cdef extern from "time.h":
     ctypedef int time_t
@@ -39,13 +40,15 @@ cdef class rng_mt19937(object):
 
     def random(self):
         """
-            return a random number in [0,1]
+            return a random number in [0,1)
         """
-        return random_double(self._c_state)
+        return random_double_half_open(self._c_state)
     
     def fill_vector_gaussian(self, np.ndarray[np.float64_t, ndim=1] vector):
         gauss_random_vector(self._c_state, &vector[0], vector.shape[0])
-    
+
+    def fill_vector_uniform_sphere(self, np.ndarray[double, ndim=1, mode="c"] spin, n):
+        uniform_random_sphere(self._c_state,&spin[0], n)
 
 
     def __dealloc__(self):
