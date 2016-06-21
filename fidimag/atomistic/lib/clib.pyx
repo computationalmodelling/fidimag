@@ -343,6 +343,5 @@ cdef class monte_carlo(object):
                 J, D, np.ndarray[double, ndim=1, mode="c"] h,
                 n, T):
 
-        uniform_random_sphere(self._c_state,&spin[0], n)
         run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], J, D, &h[0], n, T)
 
