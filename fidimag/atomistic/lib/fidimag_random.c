@@ -70,6 +70,11 @@ inline double random_double(mt19937_state *state) {
     return ((double) rand_int(state)) / 4294967295.0;
 }
 
+//return a integer in [0, n-1]
+int rand_int_n(mt19937_state *state, int n){
+    double x = (double) rand_int(state) / 4294967296.0;
+    return (int)(n*x);
+}
 
 const double inv_a[] = { -3.969683028665376e+01, 2.209460984245205e+02,
 		-2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01,
@@ -112,6 +117,13 @@ inline double invnorm(mt19937_state *state) {
 void gauss_random_vector(mt19937_state *state, double *x, int n) {
     for (int i = 0; i < n; i++) {
         x[i] = invnorm(state);
+    }
+}
+
+//generate an array with numbers in [0, n-1]
+void random_integer_vector(mt19937_state *state, int *ids, int n) {
+    for (int i = 0; i < n; i++) {
+        ids[i] = rand_int_n(state, n);
     }
 }
 
