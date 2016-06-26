@@ -75,9 +75,10 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs
     
     for(int i=0;i<n;i++){
         
-        int j=3*rand_int_n(state, n);
+        int index = rand_int_n(state, n);
+        int j=3*index;
         
-        delta_E = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], Kc, i, n);
+        delta_E = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], Kc, index, n);
         
         if (delta_E<0) {update=1;}
         else{
