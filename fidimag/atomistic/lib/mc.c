@@ -27,20 +27,33 @@ inline double dmi_energy_site(double a[3], double b[3], int i){
 
 }
 
+inline double cubic_energy_site(double *m, double Kc){
+
+    double mx2 = m[0]*m[0];
+    double my2 = m[1]*m[1];
+    double mz2 = m[2]*m[2];
+    
+    return -Kc*(mx2*mx2+my2*my2+mz2*mz2);
+    
+}
+
 /*
  * n is the total spin number
  */
-double compute_energy_difference(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int i, int n){
+double compute_energy_difference(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int i, int n){
     
     int id_nn = 6 * i;
-    double energy1 = -dot(&spin[3*i], &h[3*i]);
+    double energy1 = -dot(&spin[3*i], &h[3*i]); //zeeman energy
     double energy2 = -dot(&new_spin[3*i], &h[3*i]);
+    
+    energy1 += cubic_energy_site(&spin[3*i], Kc); //cubic anisotropy energy
+    energy2 += cubic_energy_site(&new_spin[3*i], Kc);
     
     for (int j = 0; j < 6; j++) {
         int k = ngbs[id_nn + j];
         if (k >= 0) {
-            energy1 -= J*dot(&spin[3*i], &spin[3*k]);
-            energy1 += D*dmi_energy_site(&spin[3*i], &spin[3*k], j);
+            energy1 -= J*dot(&spin[3*i], &spin[3*k]);//exchange energy
+            energy1 += D*dmi_energy_site(&spin[3*i], &spin[3*k], j); //DMI energy
             
             energy2 -= J*dot(&new_spin[3*i], &spin[3*k]);
             energy2 += D*dmi_energy_site(&new_spin[3*i], &spin[3*k], j);
@@ -53,7 +66,7 @@ double compute_energy_difference(double *spin, double *new_spin, int *ngbs, doub
 }
 
 
-void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T){
+void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T){
 
     double delta_E, r;
     int update=0;
@@ -62,7 +75,7 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs
     
     for(int i=0;i<n;i++){
         int j=3*i;
-        delta_E = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], i, n);
+        delta_E = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], Kc, i, n);
         
         if (delta_E<0) {update=1;}
         else{

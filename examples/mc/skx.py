@@ -20,7 +20,7 @@ def run(mesh):
     
     mc = MonteCarlo(mesh, name='test1')
     mc.set_m(random_m)
-    mc.set_options(H=[0,0,0.0], J=50.0, D=0.27*50, T=5.0)
+    mc.set_options(H=[0,0,0.0], J=50.0, D=0.27*50, T=5.0, Kc=50*0.1)
     mc.run(steps=20000, save_m_steps=None, save_vtk_steps=1000, save_data_steps=10)
 
 if __name__=='__main__':
