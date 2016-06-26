@@ -37,19 +37,21 @@ class MonteCarlo(object):
         self.mc = clib.monte_carlo()
         self.set_options()
 
-    def set_options(self, J=50.0, D=0, H=None, seed=100, T=10.0):
+    def set_options(self, J=50.0, D=0, Kc=0, H=None, seed=100, T=10.0, S=1):
         """
-        J and D in units of k_B
+        J, D and Kc in units of k_B
         H in units of Tesla.
+        S is the spin length
         """
         self.mc.set_seed(seed)
         self.J = J
         self.D = D
         self.T = T
+        self.Kc = Kc
         self.mu_s =  1.0
         if H is not None:
             self._H[:] = helper.init_vector(H, self.mesh)
-            self._H[:] = self._H[:]*const.mu_s_1/const.k_B
+            self._H[:] = self._H[:]*const.mu_s_1*S/const.k_B  #We have set k_B = 1
 
     def create_tablewriter(self):
 
@@ -141,10 +143,11 @@ class MonteCarlo(object):
         for step in range(1, steps + 1):
             self.step = step
             self.mc.run_step(self.spin, self.random_spin, self.ngbs,
-                self.J, self.D, self._H, self.n, self.T)
+                self.J, self.D, self._H, self.Kc, self.n, self.T)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()
+                    print("step=%d, skyrmion number=%0.9g"%(self.step, self.skx_num))
 
             if save_vtk_steps is not None:
                 if step % save_vtk_steps == 0:
@@ -153,7 +156,7 @@ class MonteCarlo(object):
                 if step % save_m_steps == 0:
                     self.save_m()
             
-            print("step=%d, skyrmion number=%0.9g"%(self.step, self.skx_num))
+            
 
 
 if __name__ == '__main__':

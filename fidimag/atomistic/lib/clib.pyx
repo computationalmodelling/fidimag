@@ -19,7 +19,7 @@ cdef extern from "time.h":
     time_t time(time_t *timer)
 
 cdef extern from "clib.h":
-    void run_step_mc(mt19937_state *state,double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T)
+    void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T)
     
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
@@ -340,8 +340,8 @@ cdef class monte_carlo(object):
     def run_step(self,np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] new_spin,
                 np.ndarray[int, ndim=2, mode="c"] ngbs,
-                J, D, np.ndarray[double, ndim=1, mode="c"] h,
-                n, T):
+                J, D, np.ndarray[double, ndim=1, mode="c"] h, 
+                Kc, n, T):
 
-        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], J, D, &h[0], n, T)
+        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], J, D, &h[0], Kc, n, T)
 
