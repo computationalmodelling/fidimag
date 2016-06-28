@@ -12,6 +12,10 @@ cdef extern from "clib.h":
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
 
+
+    double skyrmion_number_BergLuscher(double *spin, double *charge,
+                                       int nx, int ny, int nz, int *ngbs)
+
     void compute_guiding_center(double *spin, int nx, int ny, int nz,
                                 double *res)
 
@@ -82,6 +86,15 @@ def compute_skyrmion_number(np.ndarray[double, ndim=1, mode="c"] spin,
                             ):
 
     return skyrmion_number(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0])
+
+
+def compute_skyrmion_number_BergLuscher(np.ndarray[double, ndim=1, mode="c"] spin,
+                            np.ndarray[double, ndim=1, mode="c"] charge,
+                            nx, ny, nz,
+                            np.ndarray[int, ndim=2, mode="c"] ngbs
+                            ):
+
+    return skyrmion_number_BergLuscher(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0])
 
 def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
                             nx, ny, nz):

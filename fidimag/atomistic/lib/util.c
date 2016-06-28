@@ -1,4 +1,6 @@
 #include "clib.h"
+#include "math.h"
+#include "complex.h"
 
 //compute the S \cdot (S_i \times S_j)
 inline double volume(double S[3], double Si[3], double Sj[3]) {
@@ -17,7 +19,7 @@ double skyrmion_number(double *spin, double *charge,
      *
      * The *spin array is the vector field for a two dimensional
      * lattice with dimensions nx * ny
-     * (we can take a slice of a bulk from Python and pass it here, 
+     * (we can take a slice of a bulk from Python and pass it here,
      *  remember to do the ame for the neighbours matrix)
      * The array follows the order:
      *   [Sx0 Sy0 Sz0 Sx1 Sy1 Sz1 ... ]
@@ -50,7 +52,7 @@ double skyrmion_number(double *spin, double *charge,
      *
      * Then, we use the follwing expression:
      *
-     * Q =  S_i \dot ( S_{i+1} \times S_{j+1} ) 
+     * Q =  S_i \dot ( S_{i+1} \times S_{j+1} )
      *      +  S_i \dot ( S_{i-1} \times S_{j-1} )
      *
      * This expression is based on the publication PRL 108, 017601 (2012)
@@ -58,9 +60,9 @@ double skyrmion_number(double *spin, double *charge,
      * discrete chiral quantities in Hall effect studies. For example, at
      * the end of page 3 in Rep. Prog. Phys. 78 (2015) 052502, it
      * is argued:
-     *     scalar chirality (...) , which measures the volume enclosed 
+     *     scalar chirality (...) , which measures the volume enclosed
      *     by the three spins of the elementary triangle and, similarly to
-     *     (the vector chirlity) is sensitive to the sense of spin's 
+     *     (the vector chirlity) is sensitive to the sense of spin's
      *     rotation in the x–y plane
      *
      *  Hence we are taking the triangles formed by (i, i+1, j+1)
@@ -72,12 +74,12 @@ double skyrmion_number(double *spin, double *charge,
      *
      *  Recently, other ways to calculate a discrete skyrmion number have
      *  been proposed: http://arxiv.org/pdf/1601.08212.pdf
-     *                 Phys. Rev. B 93, 024417 
-     *  
-     *  also based on using three spins using triangles. This could be
-     *  useful for applying to a hexagonal lattice in the future. 
+     *                 Phys. Rev. B 93, 024417
      *
-     */  
+     *  also based on using three spins using triangles. This could be
+     *  useful for applying to a hexagonal lattice in the future.
+     *
+     */
 
 	int i, j;
 	int index, id;
@@ -91,7 +93,7 @@ double skyrmion_number(double *spin, double *charge,
 	for (i = 0; i < nxy; i++) {
         index = 3 * i;
 
-        /* The starting index of the nearest neighbours for the 
+        /* The starting index of the nearest neighbours for the
          * i-th spin */
         int id_nn = 6 * i;
 
@@ -154,6 +156,64 @@ double skyrmion_number(double *spin, double *charge,
 
 	return sum;
 
+}
+
+double dot(double *a, double *b){
+    double dp = 0;
+    int i;
+
+    for(i = 0; i< 3; i++) dp += a[i] * b[i];
+    return dp;
+}
+
+double compute_BergLuscher_angle(double *s1, double *s2, double *s3){
+    double rho;
+    double complex exp;
+    double crossp[3];
+
+    crossp[0] = s2[1] * s3[2] - s2[2] * s3[1];
+    crossp[1] = s2[2] * s3[0] - s2[0] * s3[2];
+    crossp[2] = s2[0] * s3[1] - s2[1] * s3[0];
+
+    rho = sqrt(2 * (1 + dot(&s1[0], &s2[0]))
+                 * (1 + dot(&s2[0], &s3[0]))
+                 * (1 + dot(&s3[0], &s1[0]))
+               );
+
+    exp = (1 + dot(&s1[0], &s2[0]) 
+             + dot(&s2[0], &s3[0]) 
+             + dot(&s3[0], &s1[0])
+             + I * dot(&s1[0], &crossp[0])
+           ) / rho;
+
+    return 2 * cimagl(clog(exp)) / (4 * WIDE_PI);
+
+}
+
+double skyrmion_number_BergLuscher(double *spin, double *charge,
+                       int nx, int ny, int nz, int *ngbs) {
+
+    int n = nx * ny * nz;
+    int i, spin_index, nn_index;
+    double total_sum = 0;
+
+    for(i = 0; i < n; i++){
+
+        spin_index = 3 * i;
+        nn_index = 6 * ngbs[i];
+
+        charge[i] = compute_BergLuscher_angle(&spin[spin_index],
+                                              &spin[nn_index + 0],
+                                              &spin[nn_index + 2]
+                                              );
+        charge[i] += compute_BergLuscher_angle(&spin[spin_index],
+                                               &spin[nn_index + 1],
+                                               &spin[nn_index + 3]
+                                               );
+        total_sum += charge[i];
+    }
+
+    return total_sum;
 }
 
 //compute the first derivative respect to x and for the whole mesh

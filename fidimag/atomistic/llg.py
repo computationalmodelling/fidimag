@@ -297,6 +297,14 @@ class LLG(object):
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
+    def skyrmion_number_BergLuscher(self):
+        nx = self.mesh.nx
+        ny = self.mesh.ny
+        nz = self.mesh.nz
+        number = clib.compute_skyrmion_number_BergLuscher(
+            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
+        return number
+
     def spin_at(self, i, j, k):
         """
         Returns the spin components of the spin at

@@ -78,6 +78,9 @@ void normalise(double *m, int *pins, int n);
 double skyrmion_number(double *spin, double *charge,
                        int nx, int ny, int nz, int *ngbs);
 
+double skyrmion_number_BergLuscher(double *spin, double *charge,
+                                   int nx, int ny, int nz, int *ngbs);
+
 void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res);
 
 void compute_px_py_c(double *spin, int nx, int ny, int nz,
