@@ -194,22 +194,29 @@ double skyrmion_number_BergLuscher(double *spin, double *charge,
                        int nx, int ny, int nz, int *ngbs) {
 
     int n = nx * ny * nz;
-    int i, spin_index, nn_index;
+    int i, spin_index;
     double total_sum = 0;
 
     for(i = 0; i < n; i++){
 
         spin_index = 3 * i;
-        nn_index = 6 * ngbs[i];
 
-        charge[i] = compute_BergLuscher_angle(&spin[spin_index],
-                                              &spin[nn_index + 0],
-                                              &spin[nn_index + 2]
-                                              );
-        charge[i] += compute_BergLuscher_angle(&spin[spin_index],
-                                               &spin[nn_index + 1],
-                                               &spin[nn_index + 3]
-                                               );
+        charge[i] = 0;
+
+        if(ngbs[6 * i] > 0 && ngbs[6 * i + 2] > 0){
+            charge[i] += compute_BergLuscher_angle(&spin[spin_index],
+                                                   &spin[3 * ngbs[6 * i]],
+                                                   &spin[3 * ngbs[6 * i + 2]]
+                                                   );
+        }
+
+        if(ngbs[6 * i + 1] > 0 && ngbs[6 * i + 3] > 0){
+            charge[i] += compute_BergLuscher_angle(&spin[spin_index],
+                                                   &spin[3 * ngbs[6 * i + 1]],
+                                                   &spin[3 * ngbs[6 * i + 3]]
+                                                   );
+        }
+
         total_sum += charge[i];
     }
 
