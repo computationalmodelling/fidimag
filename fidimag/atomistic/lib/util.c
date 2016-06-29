@@ -1,4 +1,6 @@
 #include "clib.h"
+#include "math.h"
+#include "complex.h"
 
 //compute the S \cdot (S_i \times S_j)
 inline double volume(double S[3], double Si[3], double Sj[3]) {
@@ -17,7 +19,7 @@ double skyrmion_number(double *spin, double *charge,
      *
      * The *spin array is the vector field for a two dimensional
      * lattice with dimensions nx * ny
-     * (we can take a slice of a bulk from Python and pass it here, 
+     * (we can take a slice of a bulk from Python and pass it here,
      *  remember to do the ame for the neighbours matrix)
      * The array follows the order:
      *   [Sx0 Sy0 Sz0 Sx1 Sy1 Sz1 ... ]
@@ -50,7 +52,7 @@ double skyrmion_number(double *spin, double *charge,
      *
      * Then, we use the follwing expression:
      *
-     * Q =  S_i \dot ( S_{i+1} \times S_{j+1} ) 
+     * Q =  S_i \dot ( S_{i+1} \times S_{j+1} )
      *      +  S_i \dot ( S_{i-1} \times S_{j-1} )
      *
      * This expression is based on the publication PRL 108, 017601 (2012)
@@ -58,9 +60,9 @@ double skyrmion_number(double *spin, double *charge,
      * discrete chiral quantities in Hall effect studies. For example, at
      * the end of page 3 in Rep. Prog. Phys. 78 (2015) 052502, it
      * is argued:
-     *     scalar chirality (...) , which measures the volume enclosed 
+     *     scalar chirality (...) , which measures the volume enclosed
      *     by the three spins of the elementary triangle and, similarly to
-     *     (the vector chirlity) is sensitive to the sense of spin's 
+     *     (the vector chirlity) is sensitive to the sense of spin's
      *     rotation in the x–y plane
      *
      *  Hence we are taking the triangles formed by (i, i+1, j+1)
@@ -72,12 +74,12 @@ double skyrmion_number(double *spin, double *charge,
      *
      *  Recently, other ways to calculate a discrete skyrmion number have
      *  been proposed: http://arxiv.org/pdf/1601.08212.pdf
-     *                 Phys. Rev. B 93, 024417 
-     *  
-     *  also based on using three spins using triangles. This could be
-     *  useful for applying to a hexagonal lattice in the future. 
+     *                 Phys. Rev. B 93, 024417
      *
-     */  
+     *  also based on using three spins using triangles. This could be
+     *  useful for applying to a hexagonal lattice in the future.
+     *
+     */
 
 	int i, j;
 	int index, id;
@@ -91,7 +93,7 @@ double skyrmion_number(double *spin, double *charge,
 	for (i = 0; i < nxy; i++) {
         index = 3 * i;
 
-        /* The starting index of the nearest neighbours for the 
+        /* The starting index of the nearest neighbours for the
          * i-th spin */
         int id_nn = 6 * i;
 
@@ -154,6 +156,166 @@ double skyrmion_number(double *spin, double *charge,
 
 	return sum;
 
+}
+
+double dot(double *a, double *b){
+    /* Dot product for vectors of 3 components, given by arrays a and b.  If
+     * pointers are passed, it uses the first three components starting from
+     * that place in memory, i.e. if we pass &a[2], where a = {0, 1, 2, 3, 4},
+     * the dot product uses {2, 3, 4} as a vector (same for b)
+     */
+    double dp = 0;
+    int i;
+
+    for(i = 0; i< 3; i++) dp += a[i] * b[i];
+    return dp;
+}
+
+double compute_BergLuscher_angle(double *s1, double *s2, double *s3){
+
+    /* Compute the spherical angle given by the neighbouring spin 3-vectors s1,
+     * s2 and s3 (these are arrays that can be also passed as pointers; see the
+     * -dot- function). The spherical angle Omega, defined by the
+     *  vectors in a unit sphere, is computed using the imaginary exponential
+     *  defined by Berg and Luscher [Nucl Phys B 190, 412 (1981)]:
+
+     *   exp (i sigma Omega) = 1 + s1 * s2 + s2 * s3 + s3 * s1 + i s1 * (s2 X s3)
+     *                         ------------------------------------------------
+     *                            2 (1 + s1 * s2) (1 + s2 * s3) (1 + s3 * s1)
+
+     * The denominator is a normalisation factor which we call rho, and i
+     * stands for an imaginary number in the numerator. The factor sigma is an
+     * orientation given by sign(s1 * s2 X s3), however, we do not use it since
+     * we take counter clock wise directions for the (s1, s2, s3) triangle of
+     * spins, as pointed out by Yin et al. [PRB 93, 174403 (2016)].
+     *
+     * Therefore we use a complex logarithm:
+
+     *      clog( r * exp(i theta) ) = r + i theta
+
+     * to calculate the angle Omega, since the clog is well defined in the
+     * [-PI, PI] range, giving the correct sign for the topological number (we
+     * could also use the arcsin when decomposing the exp).
+     *
+     * Notice we normalise the angle by a 4 PI factor
+     *
+     */
+
+    double rho;
+    double complex exp;
+    double crossp[3];
+
+    crossp[0] = s2[1] * s3[2] - s2[2] * s3[1];
+    crossp[1] = s2[2] * s3[0] - s2[0] * s3[2];
+    crossp[2] = s2[0] * s3[1] - s2[1] * s3[0];
+
+    rho = sqrt(2 * (1 + dot(&s1[0], &s2[0]))
+                 * (1 + dot(&s2[0], &s3[0]))
+                 * (1 + dot(&s3[0], &s1[0]))
+               );
+
+    exp = (1 + dot(&s1[0], &s2[0])
+             + dot(&s2[0], &s3[0])
+             + dot(&s3[0], &s1[0])
+             + I * dot(&s1[0], &crossp[0])
+           ) / rho;
+
+    return 2 * cimagl(clog(exp)) / (4 * WIDE_PI);
+
+}
+
+double skyrmion_number_BergLuscher(double *spin, double *charge,
+                       int nx, int ny, int nz, int *ngbs) {
+
+    /* Compute the topological charge (or skyrmion number) by adding triangles
+     * of neighbouring spins for every lattice site, which cover triangle areas
+     * in a unit sphere (i.e. we map the lattice area into a unit sphere
+     * surface, using a triangulation). The exponential that defines every
+     * spherical angle was firstly mentioned by Berg and Luscher [Nucl Phys B
+     * 190, 412 (1981)] for a discrete square lattice but we generalise it here
+     * for hexagonal crystals.
+     *
+     * NEIGHBOURS DEFINITION:
+     *
+     * *ngbs is the array with the neighbours information for every lattice
+     * site. For cuboid meshes, the array is like:
+     *
+     *  NN:      j =0  j=1 ...                 j=0  j=1  ...
+     *         [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  ]
+     *  spin:   i=6 * 0                        i=6 * 1
+     * ...
+     *
+     * where  0-y  is the index of the neighbour of the 0th spin, in the -y
+     * direction, for example, so the neighbours of the i-th spin start at the
+     * (6 * i) position of the array. This is similar for hexagonal meshes.
+     *
+     * For a cuboid mesh,  for the i-th spin, we generate the nearest ngbs
+     * triangles using the triangles: [i, j=1, j=3] , [i, j=0, j=2]
+     *                                     +x   +y         -x   -y
+     * i.e. we cover the top right and bottom left areas ( we could also use
+     * the top left and bottom right)
+     *
+     * For a hexagonal mesh,  for the i-th spin, we generate the nearest ngbs
+     * triangles using the triangles: [i, j=0, j=2] , [i, j=0, j=2]
+     *                                     E    NE         W    SW
+     *                                   (East) ...
+     * whose area covers a unit cell in a hexagonal crystal arrangement.
+     *
+     *
+     * Since the neighbours agree in indexes we can use the same function
+     * for both meshes.
+     *
+     * ------------------------------------------------------------------------
+     *
+     * Having the triangles defined, we compute the spherical triangle area
+     * spanned by the three spins using the compute_BergLuscher_angle function.
+     *
+     * The total topological charge Q is computed summing all triangles:
+     *                 __
+     *         Q  =   \     1   [ Omega(S_i, S_0, S_2) + Omega(S_i, S_1, S_3) ]
+     *                /__  ---
+     *                    4 PI
+     *                 i
+     *
+     * ehich are normalised by 4 PI, so we get an integer number for the number
+     * of times the unit sphere is covered by the spin directions in every
+     * triangle, e.g. if we have two skyrmions we get approximately Q = 2.
+     *
+     */
+
+    int n = nx * ny * nz; int i, spin_index; double total_sum = 0;
+
+    // Sweep through every lattice site
+    for(i = 0; i < n; i++){
+
+        // x-y-z components for the i-th spin start at:
+        spin_index = 3 * i;
+
+        // Reset the charge array
+        charge[i] = 0;
+
+        // Compute the spherical triangle area for the triangle formed
+        // by the i-th spin and neighbours 0 and 2, i.e.
+        // [i j=0 j=2]. First check that the NNs exist:
+        if(ngbs[6 * i] > 0 && ngbs[6 * i + 2] > 0){
+            charge[i] += compute_BergLuscher_angle(&spin[spin_index],
+                                                   &spin[3 * ngbs[6 * i]],
+                                                   &spin[3 * ngbs[6 * i + 2]]
+                                                   );
+        }
+
+        // Triangle: [i j=1 j=3]
+        if(ngbs[6 * i + 1] > 0 && ngbs[6 * i + 3] > 0){
+            charge[i] += compute_BergLuscher_angle(&spin[spin_index],
+                                                   &spin[3 * ngbs[6 * i + 1]],
+                                                   &spin[3 * ngbs[6 * i + 3]]
+                                                   );
+        }
+
+        total_sum += charge[i];
+    }
+
+    return total_sum;
 }
 
 //compute the first derivative respect to x and for the whole mesh
