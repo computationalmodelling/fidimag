@@ -39,6 +39,9 @@ RUN py.test -v
 # install Jupyter
 RUN pip install jupyter
 
+# expose jupyter port - not working yet
+EXPOSE 8888 8888
+
 
 # Set up user so that we do not run as root
 RUN useradd -m -s /bin/bash -G sudo fidimag && \
@@ -51,6 +54,7 @@ RUN touch $FIDIMAG_HOME/.sudo_as_admin_successful
 
 # Print something nice on entry.
 #COPY WELCOME $FIDIMAG_HOME/WELCOME
+
 
 
 WORKDIR $FIDIMAG_HOME
