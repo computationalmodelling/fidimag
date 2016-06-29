@@ -300,6 +300,9 @@ class LLG(object):
         Calling this function will fill the _skx_number array with the skyrmion
         number density per lattice site.
 
+        It is important to mention that this calculation only works for a
+        2D layer in the XY plane.
+
         See the corresponding C code at fidimag/atomistic/lib/util.c for a
         detailed documentation about the methods.
 
