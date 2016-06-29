@@ -289,20 +289,41 @@ class LLG(object):
 
         return energy
 
-    def skyrmion_number(self):
-        nx = self.mesh.nx
-        ny = self.mesh.ny
-        nz = self.mesh.nz
-        number = clib.compute_skyrmion_number(
-            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
-        return number
+    def skyrmion_number(self, method='FiniteSpinChirality'):
+        """
+        Calculate the skyrmion number using different methods:
 
-    def skyrmion_number_BergLuscher(self):
+        method      :: 'FiniteSpinChirality', 'BergLuscher'
+
+        which are specifically defined for discrete spin lattices.
+
+        Calling this function will fill the _skx_number array with the skyrmion
+        number density per lattice site.
+
+        See the corresponding C code at fidimag/atomistic/lib/util.c for a
+        detailed documentation about the methods.
+
+        """
         nx = self.mesh.nx
         ny = self.mesh.ny
         nz = self.mesh.nz
-        number = clib.compute_skyrmion_number_BergLuscher(
-            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
+
+        if method == 'FiniteSpinChirality':
+            if self.mesh.mesh_type == 'cuboid':
+                number = clib.compute_skyrmion_number(
+                    self.spin, self._skx_number, nx, ny, nz,
+                    self.mesh.neighbours)
+            else:
+                raise ValueError('FiniteSpinChirality method only'
+                                 ' defined for cuboid meshes')
+
+        elif method == 'BergLuscher':
+            number = clib.compute_skyrmion_number_BergLuscher(
+                self.spin, self._skx_number, nx, ny, nz,
+                self.mesh.neighbours)
+        else:
+            raise ValueError('Specify a valid method')
+
         return number
 
     def spin_at(self, i, j, k):
