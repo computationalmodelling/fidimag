@@ -7,21 +7,46 @@ RUN apt-get -y install python-pytest python-pyvtk ipython python-matplotlib maya
 # standard tools for compilation
 RUN apt-get -y install wget make git
 
-RUN mkdir -p /mnt/install && cd /mnt/install
+ENV FIDIMAG_HOME /home/fidimag
+
+RUN mkdir -p $FIDIMAG_HOME
+WORKDIR $FIDIMAG_HOME
 RUN git clone https://github.com/computationalmodelling/fidimag.git
-RUN cd fidimag/bin
+RUN pwd
+RUN cd fidimag/bin && pwd
+WORKDIR $FIDIMAG_HOME/fidimag/bin
+RUN pwd
 
 RUN bash install-ubuntu-packages.sh
 RUN bash install-fftw.sh
-RUN bash install install-sundials-2.5.sh
+RUN bash install-sundials-2.5.sh
 # for pip
 RUN apt-get -y install python-pip
 RUN pip install cython --upgrade
-RUN cd ..
+WORKDIR $FIDIMAG_HOME/fidimag
 RUN make
-env PYTHONPATH=/mnt/install/fidimag
-env LD_LIBRARY_PATH=/mnt/install/fidimag/local/lib
-RUN cd tests
-CMD cd /mnt/install/fidimag/tests && py.test -v
+env PYTHONPATH=$FIDIMAG_HOME/fidimag
+env LD_LIBRARY_PATH=$FIDIMAG_HOME/fidimag/local/lib
+WORKDIR $FIDIMAG_HOME/fidimag/tests
+# check that tests run okay
+RUN py.test -v
 
+# Set up user so that we do not run as root
+RUN useradd -m -s /bin/bash -G sudo fidimag && \
+    echo "fidimag:docker" | chpasswd && \
+    echo "fidimag ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN chown -R fidimag $FIDIMAG_HOME
+
+USER fidimag
+RUN touch $FIDIMAG_HOME/.sudo_as_admin_successful
+
+# Print something nice on entry.
+#COPY WELCOME $FIDIMAG_HOME/WELCOME
+
+
+WORKDIR $FIDIMAG_HOME
+#USER root
+#ENTRYPOINT ["/sbin/my_init","--quiet","--","/sbin/setuser","fidimag","/bin/bash","-l","-c"]
+#ENTRYPOINT ["/sbin/setuser","fidimag","/bin/bash","-l","-c"]
+CMD ["/bin/bash","-i"]
 
