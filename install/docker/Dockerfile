@@ -36,11 +36,11 @@ WORKDIR $FIDIMAG_HOME/fidimag/tests
 RUN py.test -v
 
 
-# install Jupyter
-RUN pip install jupyter
+# install Jupyter, port exposing doesn't work yet
+#RUN pip install jupyter
 
 # expose jupyter port - not working yet
-EXPOSE 8888 8888
+#EXPOSE 8888 8888
 
 
 # Set up user so that we do not run as root
