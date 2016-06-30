@@ -43,13 +43,13 @@ test_anis.py:7: test_anis PASSED
 .
 </pre>
 
-## Creating the docker container
-
 ## Shortcomings
 
 - need to share directory between host and container (MOUNT or VOLUME)
 
 - make use of jupyter notebook work (as we have seen in FEniCS course): connect port in container to port on host machine (EXPOSE)
+
+
 
 ## Creating the docker container
 
