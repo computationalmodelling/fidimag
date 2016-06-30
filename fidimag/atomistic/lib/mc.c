@@ -5,6 +5,7 @@ inline double dot(double a[3], double b[3]){
     return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 }
 
+//the bulk DMI for a cuboid mesh
 inline double dmi_energy_site(double a[3], double b[3], int i){
     double res=0;
     switch (i) {
@@ -19,14 +20,37 @@ inline double dmi_energy_site(double a[3], double b[3], int i){
         case 4:
            res = -(a[0] * b[1] - a[1] * b[0]); break;//-z
         case 5:
-           res = (a[0] * b[1] - a[1] * b[0]); break;//-z
+           res = (a[0] * b[1] - a[1] * b[0]); break;//+z
         default:
         break;
     }
     return res;
-
 }
 
+//note that this DMI only works for a 2d hexagnoal mesh.
+inline double dmi_energy_hexagnoal_site(double a[3], double b[3], int i){
+    double res=0;
+    switch (i) {
+        case 0:
+            res=(a[1] * b[2] - a[2] * b[1]);break;//+x
+        case 1:
+            res=-(a[1] * b[2] - a[2] * b[1]); break;//-x
+        case 2:
+            res=0.5*(a[1] * b[2] - a[2] * b[1])+0.86602540378443864676*(a[2] * b[0] - a[0] * b[2]); break;//top right, r={1/2, sqrt(3)/2, 0}
+        case 3:
+            res=-0.5*(a[1] * b[2] - a[2] * b[1])-0.86602540378443864676*(a[2] * b[0] - a[0] * b[2]); break;//bottom left, r={-1/2, -sqrt(3)/2, 0}
+        case 4:
+            res=-0.5*(a[1] * b[2] - a[2] * b[1])+0.86602540378443864676*(a[2] * b[0] - a[0] * b[2]); break;//top left, r={-1/2, sqrt(3)/2, 0}
+        case 5:
+            res=0.5*(a[1] * b[2] - a[2] * b[1])-0.86602540378443864676*(a[2] * b[0] - a[0] * b[2]); break;//bottom right, r={1/2, -sqrt(3)/2, 0}
+        default:
+            break;
+    }
+    return res;
+}
+
+
+//helper function to compute the cubic energy
 inline double cubic_energy_site(double *m, double Kc){
 
     double mx2 = m[0]*m[0];
@@ -37,17 +61,46 @@ inline double cubic_energy_site(double *m, double Kc){
     
 }
 
-/*
- * n is the total spin number
- */
-double compute_energy_difference(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int i, int n){
-    
-    int id_nn = 6 * i;
+double compute_deltaE_anisotropy(double *spin, double *new_spin, double *h, double Kc, int i){
+
     double energy1 = -dot(&spin[3*i], &h[3*i]); //zeeman energy
     double energy2 = -dot(&new_spin[3*i], &h[3*i]);
     
     energy1 += cubic_energy_site(&spin[3*i], Kc); //cubic anisotropy energy
     energy2 += cubic_energy_site(&new_spin[3*i], Kc);
+    
+    return energy2-energy1;
+
+}
+
+/*
+ * n is the total spin number
+ */
+double compute_deltaE_exchange_DMI_hexagnoal(double *spin, double *new_spin, int *ngbs, double J, double D, int i){
+    
+    int id_nn = 6 * i;
+    double energy1=0, energy2=0;
+    
+    for (int j = 0; j < 6; j++) {
+        int k = ngbs[id_nn + j];
+        if (k >= 0) {
+            energy1 -= J*dot(&spin[3*i], &spin[3*k]);//exchange energy
+            energy1 += D*dmi_energy_hexagnoal_site(&spin[3*i], &spin[3*k], j); //DMI energy
+            
+            energy2 -= J*dot(&new_spin[3*i], &spin[3*k]);
+            energy2 += D*dmi_energy_hexagnoal_site(&new_spin[3*i], &spin[3*k], j);
+            
+        }
+    }
+
+    return energy2-energy1;
+
+}
+
+double compute_deltaE_exchange_DMI(double *spin, double *new_spin, int *ngbs, double J, double D, int i){
+    
+    int id_nn = 6 * i;
+    double energy1=0, energy2=0;
     
     for (int j = 0; j < 6; j++) {
         int k = ngbs[id_nn + j];
@@ -60,13 +113,13 @@ double compute_energy_difference(double *spin, double *new_spin, int *ngbs, doub
             
         }
     }
-
+    
     return energy2-energy1;
-
+    
 }
 
 
-void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T){
+void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T, int hexagnoal_mesh){
 
     double delta_E, r;
     int update=0;
@@ -78,7 +131,14 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs
         int index = rand_int_n(state, n);
         int j=3*index;
         
-        delta_E = compute_energy_difference(&spin[0], &new_spin[0], &ngbs[0], J, D, &h[0], Kc, index, n);
+        delta_E = compute_deltaE_anisotropy(&spin[0], &new_spin[0], &h[0], Kc, index);
+        
+        if(hexagnoal_mesh){
+           delta_E += compute_deltaE_exchange_DMI_hexagnoal(&spin[0], &new_spin[0], &ngbs[0], J, D, index);
+        }else{
+           delta_E += compute_deltaE_exchange_DMI(&spin[0], &new_spin[0], &ngbs[0], J, D, index);
+        }
+        
         
         if (delta_E<0) {update=1;}
         else{

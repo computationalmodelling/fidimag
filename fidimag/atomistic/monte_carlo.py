@@ -32,6 +32,10 @@ class MonteCarlo(object):
         self.create_tablewriter()
         self.vtk = SaveVTK(self.mesh, name=name)
 
+        self.hexagnoal_mesh = False
+        if mesh.mesh_type == 'hexagonal':
+            self.hexagnoal_mesh =  True
+
         self.step = 0
         self.skx_num = 0
         self.mc = clib.monte_carlo()
@@ -143,7 +147,7 @@ class MonteCarlo(object):
         for step in range(1, steps + 1):
             self.step = step
             self.mc.run_step(self.spin, self.random_spin, self.ngbs,
-                self.J, self.D, self._H, self.Kc, self.n, self.T)
+                self.J, self.D, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()

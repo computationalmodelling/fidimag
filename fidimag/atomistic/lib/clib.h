@@ -90,9 +90,7 @@ void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha,
                   double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt);
 
 //======================================================================
-//void run_step_mc(mt19937_state *state,double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T);
-void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T);
-
+void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T, int hexagnoal_mesh);
 
 
 #endif
