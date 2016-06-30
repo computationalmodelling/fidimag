@@ -15,7 +15,7 @@ import re
 
 class LLG(object):
 
-    def __init__(self, mesh, name='unnamed', integrator='sundials', use_jac=False):
+    def __init__(self, mesh, name='unnamed', integrator='sundials', use_jac=False, num_threads=1):
         """Simulation object.
 
         *Arguments*
@@ -41,6 +41,7 @@ class LLG(object):
         self.interactions = []
         self.integrator_tolerances_set = False
         self.step = 0
+        self.num_threads = num_threads
 
         if integrator == "sundials" and use_jac:
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs, self.sundials_jtimes)
@@ -52,13 +53,13 @@ class LLG(object):
             self.integrator = CvodeSolver(self.spin, self.step_rhs, integrator)
 
         elif integrator == "sundials_openmp" and use_jac:
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, self.sundials_jtimes)
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, self.sundials_jtimes, num_threads=self.num_threads)
         elif integrator == "sundials_diag_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, linear_solver="diag")
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, linear_solver="diag", num_threads=self.num_threads)
         elif integrator == "sundials_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, num_threads=self.num_threads)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs, integrator)
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs, integrator, num_threads=self.num_threads)
         else:
             raise NotImplemented("integrator must be sundials, euler or rk4")
 

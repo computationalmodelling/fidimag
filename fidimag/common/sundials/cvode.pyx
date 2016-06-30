@@ -324,8 +324,10 @@ cdef class CvodeSolver_OpenMP(object):
     cdef int has_jtimes
     cdef str linear_solver
     cdef str parellel_solver
+    cdef int num_threads
 
-    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8, num_threads=1):
+        self.num_threads = num_threads
         self.t = 0
         self.y0 = spins
         self.dm_dt = np.copy(spins)
@@ -372,7 +374,7 @@ cdef class CvodeSolver_OpenMP(object):
         self.y[:] = spin[:]
 
         cdef np.ndarray[double, ndim = 1, mode = "c"] y = self.y
-        self.u_y = N_VMake_Serial(y.size, & y[0])
+        self.u_y = N_VMake_OpenMP(y.size, & y[0], self.num_threads)
 
         if self.cvode_already_initialised:
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)
