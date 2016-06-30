@@ -28,7 +28,7 @@ fidimag@38fdd2a0feb4:~$
 One way to test the installation is to run the unit tests:
 
 <pre>
-cd fidimag/tests/
+fidimag@38fdd2a0feb4:~$ cd fidimag/tests/
 fidimag@38fdd2a0feb4:~/fidimag/tests$ py.test -v 
 ========== test session starts =======================
 platform linux2 -- Python 2.7.6 -- pytest-2.5.1 -- /usr/bin/python
