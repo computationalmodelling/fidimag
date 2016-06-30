@@ -16,7 +16,6 @@ class MonteCarlo(object):
         self.n = mesh.n
         self.n_nonzero = self.n
 
-
         self.ngbs = mesh.neighbours
 
         self._mu_s = np.zeros(self.n, dtype=np.float)
