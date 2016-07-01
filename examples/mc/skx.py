@@ -3,7 +3,7 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from fidimag.atomistic.mc import MonteCarlo
+from fidimag.atomistic import MonteCarlo
 from fidimag.common import DataReader, CuboidMesh
 
 
@@ -19,9 +19,9 @@ def random_m(pos):
 def run(mesh):
     
     mc = MonteCarlo(mesh, name='test1')
-    mc.set_m(init_m)
-    mc.set_options(H=[0,0,0.0], J=50.0, D=0.27*50, T=5.0)
-    mc.run(steps=200000, save_m_steps=None, save_vtk_steps=1000, save_data_steps=10)
+    mc.set_m(random_m)
+    mc.set_options(H=[0,0,0.0], J=50.0, D=0.27*50, T=5.0, Kc=50*0.1)
+    mc.run(steps=20000, save_m_steps=None, save_vtk_steps=1000, save_data_steps=10)
 
 if __name__=='__main__':
 

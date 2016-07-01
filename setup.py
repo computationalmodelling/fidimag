@@ -47,7 +47,8 @@ version = get_version()
 def glob_cfiles(path, excludes):
     cfiles = []
     for cfile in glob.glob(os.path.join(path, "*.c")):
-        if not cfile.endswith(tuple(excludes)):
+        filename = os.path.basename(cfile)
+        if not filename in tuple(excludes):
             cfiles.append(cfile)
     return cfiles
 
@@ -75,6 +76,7 @@ neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
 dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
+
 
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial']

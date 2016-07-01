@@ -2,13 +2,25 @@ import numpy
 cimport numpy as np
 np.import_array()
 
-cdef extern from "clib.h":
-    void initial_random(int seed)
-    double single_random()
-    void gauss_random_vec(double *x, int n)
-    void random_spin_uniform(double *spin, int n)
-    void run_step_mc(double *spin, double *new_spin, int *ngbs, double J, double D, double *h, int n, double T)
+cdef extern from "fidimag_random.h":
+    ctypedef struct mt19937_state:
+        pass
+    
+    mt19937_state *create_mt19937_state()
+    void finalize_mt19937_state(mt19937_state *state)
 
+    void initial_rng_mt19973(mt19937_state *state, int seed)
+    double random_double_half_open(mt19937_state *state)
+    void gauss_random_vector(mt19937_state *state, double *x, int n)
+    void uniform_random_sphere(mt19937_state *state, double *spin, int n)
+
+cdef extern from "time.h":
+    ctypedef int time_t
+    time_t time(time_t *timer)
+
+cdef extern from "clib.h":
+    void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs, 
+                    double J, double J1, double D, double D1, double *h, double Kc, int n, double T, int hexagnoal_mesh)
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
 
@@ -264,31 +276,6 @@ def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
     normalise(&spin[0], &pins[0], n)
 
 
-def init_random(seed):
-    initial_random(seed)
-
-def random_number_array(np.ndarray[double, ndim=1, mode="c"] v):
-    
-    cdef int n = len(v)
-
-    gauss_random_vec(&v[0], n)
-
-def random_spin_uniform_sphere(np.ndarray[double, ndim=1, mode="c"] v, n):
-
-    random_spin_uniform(&v[0], n)
-
-def random_number():
-    cdef double res = single_random()
-    return res
-
-def run_mc_step(np.ndarray[double, ndim=1, mode="c"] spin,
-                np.ndarray[double, ndim=1, mode="c"] new_spin,
-                np.ndarray[int, ndim=2, mode="c"] ngbs,
-                J, D, np.ndarray[double, ndim=1, mode="c"] h,
-                n, T):
-    run_step_mc(&spin[0], &new_spin[0], &ngbs[0,0], J, D, &h[0], n, T)
-
-
 def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,
                 np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] field,
@@ -298,3 +285,64 @@ def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,
                 np.ndarray[double, ndim=1, mode="c"] eta,
                 np.ndarray[int, ndim=1, mode="c"] pin, n, gamma, dt):
     llg_rhs_dw_c(&spin[0], &field[0], &dm[0], &T[0], &alpha[0],  &mu_s_inv[0], &pin[0], &eta[0], n, gamma, dt)
+
+
+cdef class rng_mt19937(object):
+    cdef mt19937_state *_c_state
+    cdef public int seed
+    def __init__(self, seed=None):
+        if seed:
+            self.seed = int(seed)
+        else:
+            self.seed = time(NULL)
+                
+        self._c_state = create_mt19937_state()
+        if self._c_state is NULL:
+            raise MemoryError()
+        
+        initial_rng_mt19973(self._c_state, self.seed)
+
+    def set_seed(self, seed):
+        self.seed = int(seed)
+        initial_rng_mt19973(self._c_state, self.seed)
+
+    def random(self):
+        """
+            return a random number in [0,1)
+        """
+        return random_double_half_open(self._c_state)
+    
+    def fill_vector_gaussian(self, np.ndarray[np.float64_t, ndim=1] vector):
+        gauss_random_vector(self._c_state, &vector[0], vector.shape[0])
+
+    def fill_vector_uniform_sphere(self, np.ndarray[double, ndim=1, mode="c"] spin, n):
+        uniform_random_sphere(self._c_state,&spin[0], n)
+
+    def __dealloc__(self):
+        if self._c_state is not NULL:
+            finalize_mt19937_state(self._c_state)
+            self._c_state = NULL
+
+cdef class monte_carlo(object):
+    cdef mt19937_state *_c_state            
+
+    def __init__(self, seed=-1):
+                
+        self._c_state = create_mt19937_state()
+        if self._c_state is NULL:
+            raise MemoryError()
+        
+        initial_rng_mt19973(self._c_state, seed)
+
+    def set_seed(self, seed):
+        initial_rng_mt19973(self._c_state, seed)
+ 
+    def run_step(self,np.ndarray[double, ndim=1, mode="c"] spin,
+                np.ndarray[double, ndim=1, mode="c"] new_spin,
+                np.ndarray[int, ndim=2, mode="c"] ngbs,
+                np.ndarray[int, ndim=2, mode="c"] nngbs,
+                J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h, 
+                Kc, n, T, hexagnoal_mesh):
+
+        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], J, J1, D, D1, &h[0], Kc, n, T, hexagnoal_mesh)
+
