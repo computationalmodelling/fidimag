@@ -34,13 +34,17 @@ class MonteCarlo(object):
         self.hexagnoal_mesh = False
         if mesh.mesh_type == 'hexagonal':
             self.hexagnoal_mesh =  True
+            #FIX ME !!!!
+            self.nngbs = np.copy(mesh.neighbours)
+        else:
+            self.nngbs = mesh.next_neighbours
 
         self.step = 0
         self.skx_num = 0
         self.mc = clib.monte_carlo()
         self.set_options()
 
-    def set_options(self, J=50.0, D=0, Kc=0, H=None, seed=100, T=10.0, S=1):
+    def set_options(self, J=50.0, J1=0, D=0, D1=0, Kc=0, H=None, seed=100, T=10.0, S=1):
         """
         J, D and Kc in units of k_B
         H in units of Tesla.
@@ -48,7 +52,9 @@ class MonteCarlo(object):
         """
         self.mc.set_seed(seed)
         self.J = J
+        self.J1 = J1
         self.D = D
+        self.D1 = D1
         self.T = T
         self.Kc = Kc
         self.mu_s =  1.0
@@ -145,8 +151,8 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
-            self.mc.run_step(self.spin, self.random_spin, self.ngbs,
-                self.J, self.D, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
+            self.mc.run_step(self.spin, self.random_spin, self.ngbs, self.nngbs, 
+                self.J, self.J1, self.D, self.D1, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()

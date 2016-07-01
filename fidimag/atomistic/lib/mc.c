@@ -97,7 +97,7 @@ double compute_deltaE_exchange_DMI_hexagnoal(double *spin, double *new_spin, int
 
 }
 
-double compute_deltaE_exchange_DMI(double *spin, double *new_spin, int *ngbs, double J, double D, int i){
+double compute_deltaE_exchange_DMI(double *spin, double *new_spin, int *ngbs, int *nngbs, double J, double J1, double D, double D1, int i){
     
     int id_nn = 6 * i;
     double energy1=0, energy2=0;
@@ -105,13 +105,21 @@ double compute_deltaE_exchange_DMI(double *spin, double *new_spin, int *ngbs, do
     for (int j = 0; j < 6; j++) {
         int k = ngbs[id_nn + j];
         if (k >= 0) {
-            energy1 -= J*dot(&spin[3*i], &spin[3*k]);//exchange energy
+            energy1 -= J*dot(&spin[3*i], &spin[3*k]) ;//exchange energy
             energy1 += D*dmi_energy_site(&spin[3*i], &spin[3*k], j); //DMI energy
             
             energy2 -= J*dot(&new_spin[3*i], &spin[3*k]);
             energy2 += D*dmi_energy_site(&new_spin[3*i], &spin[3*k], j);
-            
         }
+        k = nngbs[id_nn + j];
+        if (k >= 0) {
+            energy1 -= J1*dot(&spin[3*i], &spin[3*k]) ;//exchange energy
+            energy1 += D1*dmi_energy_site(&spin[3*i], &spin[3*k], j); //DMI energy
+            
+            energy2 -= J1*dot(&new_spin[3*i], &spin[3*k]);
+            energy2 += D1*dmi_energy_site(&new_spin[3*i], &spin[3*k], j);
+        }
+        
     }
     
     return energy2-energy1;
@@ -119,7 +127,7 @@ double compute_deltaE_exchange_DMI(double *spin, double *new_spin, int *ngbs, do
 }
 
 
-void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, double J, double D, double *h, double Kc, int n, double T, int hexagnoal_mesh){
+void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs, double J, double J1, double D, double D1, double *h, double Kc, int n, double T, int hexagnoal_mesh){
 
     double delta_E, r;
     int update=0;
@@ -136,7 +144,7 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs
         if(hexagnoal_mesh){
            delta_E += compute_deltaE_exchange_DMI_hexagnoal(&spin[0], &new_spin[0], &ngbs[0], J, D, index);
         }else{
-           delta_E += compute_deltaE_exchange_DMI(&spin[0], &new_spin[0], &ngbs[0], J, D, index);
+           delta_E += compute_deltaE_exchange_DMI(&spin[0], &new_spin[0], &ngbs[0], &nngbs[0], J, J1, D, D1, index);
         }
         
         
