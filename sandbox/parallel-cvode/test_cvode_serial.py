@@ -1,4 +1,5 @@
 import fidimag
+import time
 d = 300
 t = 10
 dx = dy = 2.5
@@ -58,5 +59,7 @@ sim.do_precession = False
 
 # Initialise the system.
 sim.set_m(init_m)
-
+a = time.time()
 sim.run_until(5e-9)
+b = time.time()
+print(b - a)
