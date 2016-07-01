@@ -1,8 +1,9 @@
 import numpy as np
+import os
 cimport numpy as np  # import special compile-time information about numpy
+cimport openmp
 np.import_array()  # don't remove or you'll segfault
 from libc.string cimport memcpy
-
 
 cdef extern from "../../atomistic/lib/clib.h":
     void normalise(double * m, int nxyz)
@@ -143,7 +144,6 @@ cdef class CvodeSolver(object):
     cdef int has_jtimes
     cdef str linear_solver
     cdef str parellel_solver
-
     def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
         self.t = 0
         self.y0 = spins
@@ -326,8 +326,15 @@ cdef class CvodeSolver_OpenMP(object):
     cdef str parellel_solver
     cdef int num_threads
 
-    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8, num_threads=1):
-        self.num_threads = num_threads
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
+        if os.environ['OMP_NUM_THREADS']:
+            try:
+                self.num_threads = int(os.environ['OMP_NUM_THREADS'])
+            except:
+                self.num_threads = 1
+        else:
+            self.num_threads = 1
+        print("Number of threads = {}".format(self.num_threads))
         self.t = 0
         self.y0 = spins
         self.dm_dt = np.copy(spins)
