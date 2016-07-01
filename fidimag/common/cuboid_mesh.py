@@ -147,7 +147,7 @@ class CuboidMesh(object):
                         self.index(k, j, i + 1),  # over
                     ]]
 
-                    n_neighbours = [other for other in [
+                    nngbs = [other for other in [
                         self.index(k - 2, j, i),  # left
                         self.index(k + 2, j, i),  # right
                         self.index(k, j - 2, i),  # behind
@@ -155,13 +155,16 @@ class CuboidMesh(object):
                         self.index(k, j, i - 2),  # under
                         self.index(k, j, i + 2),  # over
                     ]]
+                    
+                    # July 1st, 2016 Weiwei: I think it's okay for a cell with its neighbour is itself 
+                    # if periodic boundary conditions are used. For example, if we only have cell and enable 
+                    # periodic boundary condition in x-direction, then we got a rod.
+                    # therefore, I commented two lines below.
                     # no cell should be its own neighbour
-                    neighbours = [other if other != cell
-                                  else -1 for other in ngbs]
-                    next_neighbours = [other if other != cell
-                                  else -1 for other in n_neighbours]
-                    connectivity.append(neighbours)
-                    connectivity_next.append(next_neighbours)
+                    # neighbours = [other if other != cell
+                    #              else -1 for other in ngbs]
+                    connectivity.append(ngbs)
+                    connectivity_next.append(nngbs)
                     
         return np.array(connectivity, dtype=np.int32), np.array(connectivity_next, dtype=np.int32)
 
