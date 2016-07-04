@@ -297,7 +297,7 @@ double skyrmion_number_BergLuscher(double *spin, double *charge,
         // Compute the spherical triangle area for the triangle formed
         // by the i-th spin and neighbours 0 and 2, i.e.
         // [i j=0 j=2]. First check that the NNs exist:
-        if(ngbs[6 * i] > 0 && ngbs[6 * i + 2] > 0){
+        if(ngbs[6 * i] >= 0 && ngbs[6 * i + 2] >= 0){
             charge[i] += compute_BergLuscher_angle(&spin[spin_index],
                                                    &spin[3 * ngbs[6 * i]],
                                                    &spin[3 * ngbs[6 * i + 2]]
@@ -305,7 +305,7 @@ double skyrmion_number_BergLuscher(double *spin, double *charge,
         }
 
         // Triangle: [i j=1 j=3]
-        if(ngbs[6 * i + 1] > 0 && ngbs[6 * i + 3] > 0){
+        if(ngbs[6 * i + 1] >= 0 && ngbs[6 * i + 3] >= 0){
             charge[i] += compute_BergLuscher_angle(&spin[spin_index],
                                                    &spin[3 * ngbs[6 * i + 1]],
                                                    &spin[3 * ngbs[6 * i + 3]]
