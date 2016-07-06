@@ -153,6 +153,9 @@ class LLG(object):
             if self._mu_s[i] == 0.0:
                 self._pins[i] = 1
 
+                # Set the neighbour index to -1 for sites with mu_s = 0
+                self.mesh.neighbours[self.mesh.neighbours == i] = -1
+
     mu_s = property(get_mu_s, set_mu_s)
 
     def add(self, interaction, save_field=False):
