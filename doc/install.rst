@@ -222,16 +222,18 @@ Notes:
   failed without a working X server).
 
 Install on OS X
-===============
+=================
 
 The inbuilt OS X gcc compiler (actually clang) doesn't have OpenMP support. A workaround is to
 
 - install gcc5 (via homebrew, for example: ``brew install gcc --without-multilib``)
 - set CC environment variable to point to that compiler: ``export CC=gcc-5``
 
+Alternatively, gcc can be installed through ``sudo port install gcc5`` and CC environment 
+variable can be set via ``export CC=gcc-mp-5``
 
-Once this is done, run ``bin/install.sh`` which will compile fftw3 and
-sundials (in a local subdirectory) using this compiler.
+Once this is done, run ``bin/install-fftw.sh`` and ``bin/install-sundials.sh`` which will 
+compile fftw3 and sundials (in a local subdirectory) using this compiler.
 
 Also install pytest (``conda install pytest`` if using conda) and
 ``pyvtk`` via pip (``pip install pyvtk``).
