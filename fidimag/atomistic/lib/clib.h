@@ -6,6 +6,8 @@
 #include<fftw3.h>
 //#include<omp.h>
 
+#include"fidimag_random.h"
+
 #define WIDE_PI 3.1415926535897932384626433832795L
 
 /* 3 components for the cross product calculations */
@@ -74,6 +76,9 @@ void normalise(double *m, int *pins, int n);
 double skyrmion_number(double *spin, double *charge,
                        int nx, int ny, int nz, int *ngbs);
 
+double skyrmion_number_BergLuscher(double *spin, double *charge,
+                                   int nx, int ny, int nz, int *ngbs);
+
 void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res);
 
 void compute_px_py_c(double *spin, int nx, int ny, int nz,
@@ -83,6 +88,10 @@ void compute_px_py_c(double *spin, int nx, int ny, int nz,
 
 void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, 
                   double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt);
+
+//======================================================================
+
+void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs, double J, double J1, double D, double D1, double *h, double Kc, int n, double T, int hexagnoal_mesh);
 
 
 #endif

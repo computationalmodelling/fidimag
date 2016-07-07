@@ -26,7 +26,6 @@ before_install:
 install:
   - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython cmake matplotlib pytest scipy pytest-cov
   - source activate fidimag-test
-  - pip install pyvtk six nbval enum34
   # download and compile the dependencies we're installing locally
   - bash bin/install-fftw.sh
   - bash bin/install-sundials.sh

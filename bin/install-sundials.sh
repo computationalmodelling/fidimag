@@ -51,4 +51,4 @@ download_and_cmake_install() {
 download_and_cmake_install \
     ${SUNDIALS} \
     http://computation.llnl.gov/projects/sundials-suite-nonlinear-differential-algebraic-equation-solvers/download \
-    "-DBUILD_STATIC_LIBS=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="${LIBS_DIR}" -DEXAMPLES_ENABLE=OFF -DLAPACK_ENABLE=ON -DOPENMP_ENABLE=ON"
+    "-DBUILD_STATIC_LIBS=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="${LIBS_DIR}" -DEXAMPLES_ENABLE=OFF -DLAPACK_ENABLE=ON -DOPENMP_ENABLE=ON --enable-sse2"
