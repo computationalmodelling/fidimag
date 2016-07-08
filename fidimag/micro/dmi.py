@@ -12,7 +12,7 @@ class DMI(Energy):
         compute the DMI field in micromagnetics
     """
 
-    def __init__(self, D, name='dmi', dmi_type='bulk'):
+    def __init__(self, D, name='DMI', dmi_type='bulk'):
         """
         type could be 'interfacial' or 'bulk'
         """

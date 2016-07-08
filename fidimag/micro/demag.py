@@ -6,15 +6,17 @@ mu_0 = 4 * np.pi * 1e-7
 
 
 default_options={
-    'pbc_2d_error':1e-10, 
-    'sample_repeat_nx':-1,
-    'sample_repeat_ny':-1,
-    'tensor_file_name':'2dpbc_tensors',
+    'pbc_2d_error': 1e-10,
+    'sample_repeat_nx': -1,
+    'sample_repeat_ny': -1,
+    'tensor_file_name': '2dpbc_tensors',
 }
+
 
 class Demag(object):
 
-    def __init__(self, name='demag', pbc_2d=False, pbc_options=default_options):
+    def __init__(self, name='Demag', pbc_2d=False,
+                 pbc_options=default_options):
         self.name = name
         self.oommf = True
         self.pbc_2d = pbc_2d
@@ -36,7 +38,7 @@ class Demag(object):
 
         if self.pbc_2d is True:
 
-            self.demag = clib.FFTDemag(self.dx, self.dy, self.dz, 
+            self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                        self.nx, self.ny, self.nz, tensor_type='2d_pbc')
 
             nxyz = self.nx*self.ny*self.nz
@@ -65,7 +67,7 @@ class Demag(object):
 
             if len(tensor_file_name) > 0 :
                 if not (os.path.exists(tensor_file_name+'.npz')):
-                    
+
                     self.demag.compute_tensors_2dpbc(tensors, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
                 else:
                     npzfile = np.load(tensor_file_name+'.npz')
@@ -82,14 +84,15 @@ class Demag(object):
 
             else:
                 self.demag.compute_tensors_2dpbc(tensors, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
-            
+
             #print tensors
             self.demag.fill_demag_tensors(tensors)
 
-            
+
         else:
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
-                                       self.nx, self.ny, self.nz, tensor_type='demag')
+                                       self.nx, self.ny, self.nz, 
+                                       tensor_type='demag')
 
 
 

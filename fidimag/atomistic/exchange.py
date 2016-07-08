@@ -41,7 +41,7 @@ class UniformExchange(Energy):
 
     """
 
-    def __init__(self, J=0, name='exch'):
+    def __init__(self, J=0, name='UniformExchange'):
         self.J = J
         self.name = name
 
@@ -142,7 +142,7 @@ class Exchange(Energy):
 
     """
 
-    def __init__(self, J_fun, name='exch'):
+    def __init__(self, J_fun, name='Exchange'):
         self.J_fun = J_fun
         self.name = name
         self.jac = False
