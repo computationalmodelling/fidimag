@@ -137,36 +137,44 @@ class CuboidMesh(object):
         for i in range(self.nz):
             for j in range(self.ny):
                 for k in range(self.nx):
+                    # Unique index for the current lattice site
                     cell = self._index(k, j, i)
-                    ngbs = [other for other in [
+                    neighbours = [
                         self.index(k - 1, j, i),  # left
                         self.index(k + 1, j, i),  # right
                         self.index(k, j - 1, i),  # behind
                         self.index(k, j + 1, i),  # in front
                         self.index(k, j, i - 1),  # under
                         self.index(k, j, i + 1),  # over
-                    ]]
+                    ]
 
-                    nngbs = [other for other in [
+                    # If one of the neighbours is the cell itself, we
+                    # set its index to -1
+                    # neighbours = [other if other != cell
+                    #               else -1 for other in neighbours]
+
+                    next_neighbours = [
                         self.index(k - 2, j, i),  # left
                         self.index(k + 2, j, i),  # right
                         self.index(k, j - 2, i),  # behind
                         self.index(k, j + 2, i),  # in front
                         self.index(k, j, i - 2),  # under
                         self.index(k, j, i + 2),  # over
-                    ]]
-                    
-                    # July 1st, 2016 Weiwei: I think it's okay for a cell with its neighbour is itself 
-                    # if periodic boundary conditions are used. For example, if we only have cell and enable 
-                    # periodic boundary condition in x-direction, then we got a rod.
-                    # therefore, I commented two lines below.
+                    ]
+
+                    # July 1st, 2016 Weiwei: I think it's okay for a cell with
+                    # its neighbour is itself if periodic boundary conditions
+                    # are used. For example, if we only have one cell and
+                    # enable periodic boundary condition in x-direction, then
+                    # we got a rod.  therefore, I commented two lines below.
                     # no cell should be its own neighbour
-                    # neighbours = [other if other != cell
-                    #              else -1 for other in ngbs]
-                    connectivity.append(ngbs)
-                    connectivity_next.append(nngbs)
-                    
-        return np.array(connectivity, dtype=np.int32), np.array(connectivity_next, dtype=np.int32)
+
+                    connectivity.append(neighbours)
+                    connectivity_next.append(next_neighbours)
+
+        return (np.array(connectivity, dtype=np.int32),
+                np.array(connectivity_next, dtype=np.int32)
+                )
 
     def index(self, i, j, k):
         """
@@ -176,22 +184,22 @@ class CuboidMesh(object):
         i, j, k are the positions in the x, y and z directions, respectively
 
         """
-        if self.periodicity[0]: # if mesh is periodic in x-direction
-            if i < 0:           # then wrap the left side
-                i += self.nx    # to the right
-            elif i >= self.nx:  # and wrap the right side
-                i -= self.nx    # to the left
+        if self.periodicity[0]:  # if mesh is periodic in x-direction
+            if i < 0:            # then wrap the left side
+                i += self.nx     # to the right
+            elif i >= self.nx:   # and wrap the right side
+                i -= self.nx     # to the left
 
-        if self.periodicity[1]: 
-            if j < 0:           
-                j += self.ny    
-            elif j >= self.ny:  
-                j -= self.ny    
-        
-        if self.periodicity[2]: 
-            if k < 0:           
-                k += self.nz   
-            elif k >= self.nz:  
+        if self.periodicity[1]:
+            if j < 0:
+                j += self.ny
+            elif j >= self.ny:
+                j -= self.ny
+
+        if self.periodicity[2]:
+            if k < 0:
+                k += self.nz
+            elif k >= self.nz:
                 k -= self.nz
 
         return self._index(i, j, k)
@@ -199,7 +207,7 @@ class CuboidMesh(object):
     def _index(self, i, j, k):
         """
         Returns the index for the cell with ordinals i, j, k
-        or False if that cell would be out of bounds.
+        or -1 if that cell would be out of bounds.
 
         """
         if i < 0 or j < 0 or k < 0 or k >= self.nz or j >= self.ny or i >= self.nx:
