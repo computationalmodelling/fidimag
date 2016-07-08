@@ -163,6 +163,9 @@ class LLG(object):
             if self._Ms[i] == 0.0:
                 self._pins[i] = 1
 
+                # Set the neighbour index to -1 for sites with Ms = 0
+                self.mesh.neighbours[self.mesh.neighbours == i] = -1
+
         self.Ms_const = np.max(self._Ms)
 
     Ms = property(get_Ms, set_Ms)

@@ -14,7 +14,7 @@ class DemagFull(Energy):
     the energy density.
     """
 
-    def __init__(self, name='demag_full'):
+    def __init__(self, name='DemagFull'):
         self.name = name
         self.jac = True
 

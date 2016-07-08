@@ -19,5 +19,6 @@ Contents:
    install
    core_eqs
    extended_eqs
+   monte_carlo
    develop
    ipynb/tutorial-basics

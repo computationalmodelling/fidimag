@@ -1,5 +1,4 @@
 #include "clib.h"
-#include "llg_random.h"
 
 /*
 * n is the spin number
@@ -24,7 +23,7 @@ void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, do
 		}
 
 
-                double coeff = -gamma/ (1.0 + alpha[id] * alpha[id]);
+        double coeff = -gamma/ (1.0 + alpha[id] * alpha[id]);
 		double q = sqrt(Q * alpha[id] * T[id] * mu_s_inv[id]);
 		
 		double hi = h[i]*dt + eta[i]*q;

@@ -135,12 +135,15 @@ def plot_m(mesh, npy, comp='x', based=None):
 
     nx = mesh.nx
     ny = mesh.ny
+    nz = mesh.nz
 
-    m.shape = (ny, nx)
+    m.shape = (nz, ny, nx)
+
+    m2 = m[0,:,:]
 
     fig = plt.figure()
     # norm=color.Normalize(-1,1)
-    plt.imshow(m, aspect=1, cmap=plt.cm.coolwarm,
+    plt.imshow(m2, aspect=1, cmap=plt.cm.coolwarm,
                origin='lower', interpolation='none')
     plt.autoscale(False)
     plt.xticks([])

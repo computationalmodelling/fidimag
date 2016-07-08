@@ -33,7 +33,7 @@ class Demag(object):
 
     """
 
-    def __init__(self, name='demag'):
+    def __init__(self, name='Demag'):
         self.name = name
         self.jac = True
 
