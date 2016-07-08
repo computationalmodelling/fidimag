@@ -47,7 +47,7 @@ class DemagHexagonal(object):
 
     """
 
-    def __init__(self, name='demag_hex'):
+    def __init__(self, name='DemagHexagonal'):
         self.name = name
         self.jac = True
 

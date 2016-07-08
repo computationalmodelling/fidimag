@@ -11,7 +11,7 @@ class UniaxialAnisotropy(Energy):
         compute the anisotropy field with the energy density E = K[1- (m.u)^2]
     """
 
-    def __init__(self, Ku, axis=(1, 0, 0), name='anis'):
+    def __init__(self, Ku, axis=(1, 0, 0), name='Anisotropy'):
         self.Ku = Ku
         self.name = name
         self.jac = True
