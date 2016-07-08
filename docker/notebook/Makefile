@@ -6,11 +6,8 @@ build:
 run:
 	docker run -ti fidimag/notebook bash
 
-login:
-    docker login
-
 # to push the new docker image to dockerhub (need to login first)
-push: build login
+push: build
 	docker push fidimag/notebook:latest
 
 # to fetch image to local machine
