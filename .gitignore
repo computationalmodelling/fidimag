@@ -25,13 +25,7 @@ vtks
 
 
 # ignore *.so created by cython
-fidimag/extensions/baryakhtar_clib.so
-fidimag/extensions/clib.so
-fidimag/extensions/cvode.so
-fidimag/extensions/dipolar.so
-fidimag/extensions/micro_clib.so
-fidimag/extensions/neb_clib.so
-
+fidimag/extensions/*.so
 
 # ignore output from coverage
 htmlcov
@@ -39,3 +33,5 @@ htmlcov
 # ignore junit test output
 test-reports
 
+# ignore notebook checkpoint directory
+.ipynb_checkpoints/
