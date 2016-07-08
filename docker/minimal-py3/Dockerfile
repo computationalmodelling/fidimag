@@ -60,7 +60,5 @@ RUN touch $FIDIMAG_HOME/.sudo_as_admin_successful
 # Print something nice on entry.
 #COPY WELCOME $FIDIMAG_HOME/WELCOME
 
-
-
-WORKDIR $FIDIMAG_HOME
+WORKDIR /io
 CMD ["/bin/bash","-i"]
