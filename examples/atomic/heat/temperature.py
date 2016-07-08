@@ -64,7 +64,7 @@ def temperature_test(T):
         mz.append(av[2])
         me.append(np.sqrt(np.sum(av * av)))
         # time.sleep(0.001)
-        print av, me[-1]
+        #print av, me[-1]
         sim.save_vtk()
     name = 'nx%d_ny%d_nz%d_T%g.png' % (nx, ny, nz, T)
     plot_mxyz(ts, mx, my, mz, me, name)

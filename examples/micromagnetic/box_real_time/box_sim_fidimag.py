@@ -274,7 +274,7 @@ else:
                   dy=dy,
                   dz=dz,
                   unit_length=1e-9,
-                  pbc='xy'
+                  pbc=(True, True, False)
                   )
 
 

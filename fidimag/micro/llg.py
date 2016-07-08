@@ -161,6 +161,9 @@ class LLG(object):
             if self._Ms[i] == 0.0:
                 self._pins[i] = 1
 
+                # Set the neighbour index to -1 for sites with Ms = 0
+                self.mesh.neighbours[self.mesh.neighbours == i] = -1
+
         self.Ms_const = np.max(self._Ms)
 
     Ms = property(get_Ms, set_Ms)
@@ -348,8 +351,8 @@ class LLG(object):
         return self.integrator.stat()
 
     def spin_length(self):
-        self.spin.shape = (3, -1)
-        length = np.sqrt(np.sum(self.spin**2, axis=0))
+        self.spin.shape = (-1, 3)
+        length = np.sqrt(np.sum(self.spin**2, axis=1))
         self.spin.shape = (-1,)
         return length
 

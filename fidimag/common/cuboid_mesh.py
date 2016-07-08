@@ -27,13 +27,14 @@ in the innermost loop, and the z-axis in the outermost loop!
 
 """
 import numpy as np
-
+from textwrap import dedent
 from six.moves import range
 
 
 class CuboidMesh(object):
+
     def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0,
-                 periodicity=(False, False, False), unit_length=1.0, pbc=None):
+                 periodicity=(False, False, False), unit_length=1.0):
         """
         Create mesh with cells of size dx * dy * dz.
 
@@ -48,8 +49,6 @@ class CuboidMesh(object):
             mesh = CuboidMesh(2, 2, 2, 250, 25, 2, periodicity=(True, False, False))
             # create a mesh of dimensions 500 x 50 x 4 nm, with cellsize
             # of 2 nm in any direction and periodic along the x-axis.
-            # Alternatively, the periodicity can be set through the option 'pbc', 
-            # acceptable parameters could be '1d' or '2d'.
 
         """
         self.dx = dx
@@ -74,15 +73,39 @@ class CuboidMesh(object):
         self.mesh_type = "cuboid"
         self.unit_length = unit_length
 
-        if pbc == '1d':
-            self.periodicity = (True, False, False)
-        elif pbc == '2d':
-            self.periodicity = (True, True, False) 
-
         self.coordinates = self.init_coordinates()
-        self.neighbours = self.init_neighbours()
+        self.neighbours, self.next_neighbours = self.init_neighbours()
         self.grid = self.init_grid()  # for vtk export
 
+    def __repr__(self):
+        repres = dedent("""\
+    Cuboid Mesh
+    Dimensions = {} x {} x {}
+    Discretisation = ({}, {}, {})
+    (x0, y0, z0) = ({}, {}, {})
+    Periodicity = {}
+    Total number of cells = {}
+    """)
+        return repres.format(self.Lx, self.Ly, self.Lz,
+                             self.dx, self.dy, self.dz,
+                             self.x0, self.y0, self.z0,
+                             self.periodicity,
+                             self.n)
+
+    def _repr_html_(self):
+        repres = dedent("""\
+    <h3>Cuboid Mesh:</h3>
+    <b>Dimensions</b> = {} x {} x {} nm<br>
+    <b>Discretisation</b> = ({}, {}, {})<br>
+    <b>x0</b> = ({}, {}, {})<br>
+    <b>Periodicity</b> = {}<br>
+    <b>No. of Cells</b> = {}<br>
+    """)
+        return repres.format(self.dx, self.dy, self.dz,
+                             self.nx, self.ny, self.nz,
+                             self.x0, self.y0, self.z0,
+                             self.periodicity,
+                             self.n)
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
@@ -110,11 +133,12 @@ class CuboidMesh(object):
         # this way we get to use a 2d array which is convenient to use
         # in our C code instead of a list of lists
         connectivity = []
+        connectivity_next = []
         for i in range(self.nz):
             for j in range(self.ny):
                 for k in range(self.nx):
                     cell = self._index(k, j, i)
-                    neighbours = [other for other in [
+                    ngbs = [other for other in [
                         self.index(k - 1, j, i),  # left
                         self.index(k + 1, j, i),  # right
                         self.index(k, j - 1, i),  # behind
@@ -122,11 +146,27 @@ class CuboidMesh(object):
                         self.index(k, j, i - 1),  # under
                         self.index(k, j, i + 1),  # over
                     ]]
+
+                    nngbs = [other for other in [
+                        self.index(k - 2, j, i),  # left
+                        self.index(k + 2, j, i),  # right
+                        self.index(k, j - 2, i),  # behind
+                        self.index(k, j + 2, i),  # in front
+                        self.index(k, j, i - 2),  # under
+                        self.index(k, j, i + 2),  # over
+                    ]]
+                    
+                    # July 1st, 2016 Weiwei: I think it's okay for a cell with its neighbour is itself 
+                    # if periodic boundary conditions are used. For example, if we only have cell and enable 
+                    # periodic boundary condition in x-direction, then we got a rod.
+                    # therefore, I commented two lines below.
                     # no cell should be its own neighbour
-                    neighbours = [other if other != cell
-                                  else -1 for other in neighbours]
-                    connectivity.append(neighbours)
-        return np.array(connectivity, dtype=np.int32)
+                    # neighbours = [other if other != cell
+                    #              else -1 for other in ngbs]
+                    connectivity.append(ngbs)
+                    connectivity_next.append(nngbs)
+                    
+        return np.array(connectivity, dtype=np.int32), np.array(connectivity_next, dtype=np.int32)
 
     def index(self, i, j, k):
         """
@@ -136,21 +176,24 @@ class CuboidMesh(object):
         i, j, k are the positions in the x, y and z directions, respectively
 
         """
-        if self.periodicity[0]:  # if mesh is periodic in x-direction
-            if i == -1:          # then wrap the left side
-                i = self.nx - 1  # to the right
-            if i == self.nx:     # and wrap the right side
-                i = 0            # to the left
-        if self.periodicity[1]:
-            if j == -1:
-                j = self.ny - 1
-            elif j == self.ny:
-                j = 0
-        if self.periodicity[2]:
-            if k == -1:
-                k = self.nz - 1
-            if k == self.nz:
-                k = 0
+        if self.periodicity[0]: # if mesh is periodic in x-direction
+            if i < 0:           # then wrap the left side
+                i += self.nx    # to the right
+            elif i >= self.nx:  # and wrap the right side
+                i -= self.nx    # to the left
+
+        if self.periodicity[1]: 
+            if j < 0:           
+                j += self.ny    
+            elif j >= self.ny:  
+                j -= self.ny    
+        
+        if self.periodicity[2]: 
+            if k < 0:           
+                k += self.nz   
+            elif k >= self.nz:  
+                k -= self.nz
+
         return self._index(i, j, k)
 
     def _index(self, i, j, k):
