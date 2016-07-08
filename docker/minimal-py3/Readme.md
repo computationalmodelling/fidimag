@@ -1,10 +1,10 @@
 # Docker
 
-Run fidimag with Python 2 under Docker.
+Run fidimag with Python 3 under Docker.
 
 ## Using the docker container
 
-There is a fidimag container available under `fidimag/minimal-py2`.
+There is a fidimag container available under `fidimag/minimal-py3`.
 
 To use it, you can try this:
 
@@ -12,16 +12,16 @@ To use it, you can try this:
 
 2. Pull the container onto your machine using
 
-       docker pull fidimag/minimal-py2
+       docker pull fidimag/minimal-py3
 
 3. Start the container using
 
-       docker run -ti fidimag/minimal-py2
+       docker run -ti fidimag/minimal-py3
 
    This command should show a bash prompt inside the docker container:
 
     <pre>
-    bin:docker fangohr$ docker run -ti fidimag/minimal-py2
+    bin:docker fangohr$ docker run -ti fidimag/minimal-py3
     fidimag@38fdd2a0feb4:~$
     </pre>
 
@@ -29,9 +29,9 @@ One way to test the installation is to run the unit tests:
 
 <pre>
 fidimag@38fdd2a0feb4:~$ cd fidimag/tests/
-fidimag@38fdd2a0feb4:~/fidimag/tests$ py.test -v 
+fidimag@38fdd2a0feb4:~/fidimag/tests$ py.test-3 -v
 ========== test session starts =======================
-platform linux2 -- Python 2.7.6 -- pytest-2.5.1 -- /usr/bin/python
+platform linux2 -- Python 3.4.3 -- pytest-2.5.1 -- /usr/bin/python3
 collected 63 items 
 
 field_test.py:7: test_initialise_scalar PASSED
