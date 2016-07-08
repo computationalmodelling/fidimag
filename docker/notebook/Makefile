@@ -3,8 +3,8 @@ build:
 	time docker build -t fidimag/notebook:latest .
 
 # to run new image
-run:
-	docker run -ti fidimag/notebook bash
+run: build
+	docker run -v `pwd`:/io -d -p 30008:8888 fidimag/notebook
 
 # to push the new docker image to dockerhub (need to login first)
 push: build

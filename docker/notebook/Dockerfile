@@ -28,5 +28,10 @@ RUN conda install --quiet --yes icu
 RUN conda install --quiet --yes pytest
 RUN py.test -v
 
+# /io will be mounted from the host system
+USER root
+RUN mkdir /io
+RUN chown -R $NB_USER /io
+USER $NB_USER
 
-WORKDIR $HOME/work
+WORKDIR /io

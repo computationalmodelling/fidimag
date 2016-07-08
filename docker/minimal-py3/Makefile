@@ -4,7 +4,7 @@ build:
 
 # to run new image
 run: build
-	docker run -ti fidimag/minimal-py3
+	docker run -v `pwd`:/io -ti fidimag/minimal-py3
 	# try 'ipython3' and then 'import fidimag'
 
 # to push the new docker image to dockerhub (need to login first)

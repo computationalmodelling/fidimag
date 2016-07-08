@@ -50,6 +50,10 @@ RUN useradd -m -s /bin/bash -G sudo fidimag && \
     echo "fidimag ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 RUN chown -R fidimag $FIDIMAG_HOME
 
+# For bind mounts from host
+RUN mkdir /io
+RUN chown -R fidimag /io
+
 USER fidimag
 RUN touch $FIDIMAG_HOME/.sudo_as_admin_successful
 
