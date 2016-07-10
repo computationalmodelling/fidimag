@@ -6,7 +6,7 @@ from .llg_stt_cpp import LLG_STT_CPP
 
 KNOWN_DRIVERS = {'llg': LLG,
                  'sllg': SLLG,
-                 'llg_stt': SLLG_STT,
+                 'llg_stt': LLG_STT,
                  'llg_stt_cpp': LLG_STT_CPP
 		}
 

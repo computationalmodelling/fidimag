@@ -86,6 +86,7 @@ class LLG(object):
         self.default_c = -1
         self._alpha[:] = alpha
         self._mu_s[:] = mu_s
+        self.mu_s_const = mu_s
         self.gamma = gamma
         self.do_precession = True
 

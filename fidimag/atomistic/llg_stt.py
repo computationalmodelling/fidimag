@@ -30,7 +30,8 @@ class LLG_STT(LLG):
         self.update_j_fun = None
 
         # FIXME: change the u0 to spatial
-        self.u0 = const.g_e * const.mu_B / (2 * const.c_e)
+        v = self.mesh.dx* self.mesh.dy * self.mesh.dz * (self.mesh.unit_length**3)
+        self.u0 = const.g_e * const.mu_B / (2 * const.c_e) * v
 
     def get_jx(self):
         return self._jx
@@ -84,6 +85,6 @@ class LLG_STT(LLG):
                                  self.field_stt,
                                  self.alpha,
                                  self.beta,
-                                 self.u0 * self.p / self.Ms_const,
+                                 self.u0 * self.p / self.mu_s_const,
                                  self.gamma,
                                  self.n)
