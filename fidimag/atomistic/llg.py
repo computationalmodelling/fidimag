@@ -156,6 +156,8 @@ class LLG(object):
                 # Set the neighbour index to -1 for sites with mu_s = 0
                 self.mesh.neighbours[self.mesh.neighbours == i] = -1
 
+        self.mu_s_const = np.max(self._mu_s)
+
     mu_s = property(get_mu_s, set_mu_s)
 
     def add(self, interaction, save_field=False):

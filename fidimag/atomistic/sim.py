@@ -1,11 +1,13 @@
 from .llg import LLG
 from .sllg import SLLG
-from .llg_stt_slonczewski_type import LLG_STT_Slonczewski
+from .llg_stt import LLG_STT
+from .llg_stt_cpp import LLG_STT_CPP
 
 
 KNOWN_DRIVERS = {'llg': LLG,
                  'sllg': SLLG,
-                 'slonczewski': LLG_STT_Slonczewski
+                 'llg_stt': SLLG_STT,
+                 'llg_stt_cpp': LLG_STT_CPP
 		}
 
 
