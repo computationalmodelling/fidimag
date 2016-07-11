@@ -132,15 +132,15 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy, do
         
         
         // We do the same along the z direction
-        if(ngbs[nn_i + 4] != -1 && ngbs[nn_i + 5] != -1) {
+        if(ngbs[nn_i + 4] >= 0 && ngbs[nn_i + 5] >= 0) {
             factor_z = 2;
             nn_z1 = ngbs[nn_i + 4];
             nn_z2 = ngbs[nn_i + 5];
-        } else if(ngbs[nn_i + 4] == -1 && ngbs[nn_i + 5] != -1){
+        } else if(ngbs[nn_i + 4] >= 0 && ngbs[nn_i + 5] < 0){
             factor_z = 1;
             nn_z1 = ngbs[nn_i + 4];
             nn_z2 = i;
-        } else if(ngbs[nn_i + 4] == -1 && ngbs[nn_i + 5] != -1){
+        } else if(ngbs[nn_i + 4] < 0 && ngbs[nn_i + 5] >= 0 ){
             factor_z = 1;
             nn_z1 = i;
             nn_z2 = ngbs[nn_i + 5];
