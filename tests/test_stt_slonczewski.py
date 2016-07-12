@@ -9,7 +9,7 @@ def test_dynamic():
 
     mesh = CuboidMesh(nx=1, ny=1, nz=1)
 
-    sim = Sim(mesh, name='dyn_spin', driver='slonczewski')
+    sim = Sim(mesh, name='dyn_spin', driver='llg_stt_cpp')
     # sim.set_options(rtol=1e-10,atol=1e-14)
     sim.gamma = 1.0
     sim.mu_s = 1.0

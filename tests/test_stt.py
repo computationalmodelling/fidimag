@@ -53,7 +53,7 @@ def test_sst_field_1d():
     # The system is 1d with 4 spins.
     nx, ny, nz = 4, 1, 1
     n = nx * ny * nz
-    dx, dy = 1, 1
+    dx, dy, dz = 1, 1, 1
 
     # NO PBCs -----------------------------------------------------------------
     # We can manually construct the neighbours matrix,
@@ -81,6 +81,7 @@ def test_sst_field_1d():
     field = np.zeros(nxyz)
     jx = np.zeros(nxyz)
     jy = np.zeros(nxyz)
+    jz = np.zeros(nxyz)
     jx[:] = 1
     jy[:] = 2
 
@@ -94,8 +95,8 @@ def test_sst_field_1d():
 
     clib.compute_stt_field(spin,
                            field,
-                           jx, jy,
-                           dx, dy,
+                           jx, jy, jz,
+                           dx, dy, dz, 
                            ngbs,
                            n
                            )
@@ -118,8 +119,8 @@ def test_sst_field_1d():
 
     clib.compute_stt_field(spin,
                            field,
-                           jx, jy,
-                           dx, dy,
+                           jx, jy, jz,
+                           dx, dy, dz,
                            ngbs,
                            n
                            )

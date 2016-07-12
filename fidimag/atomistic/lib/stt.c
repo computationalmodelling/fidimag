@@ -4,7 +4,7 @@
  * is
  *          ( \vec{j}_s \cdot \nabla ) \vec{m}
  *
- * where j_s is the current vector in 2D
+ * where j_s is the current vector in 3D
  * For this computation we use the neighbours matrix to make easier the
  * derivative calculation at the boundaries.
  * ** For now this only works with the CUBOID mesh
@@ -17,6 +17,7 @@
  *  the derivatives are simply:
  *          f(x + 1, y, z) - f(x - 1, y, z) / 2 dx
  *          f(x, y + 1, z) - f(x, y - 1, z) / 2 dy
+ *          f(x, y, z + 1) - f(x, y, z - 1) / 2 dz
  *
  *  where x+-1 is the neighbour to the left or right.
  *
@@ -31,7 +32,7 @@
  * i-th site and nn_x2 for the NN to the right. These variables are simply
  * the i-th index (in the corresponding cases) when there is a single NN
  *
- * Similar for y
+ * Similar for y and z
  *
  * n is the number of spins or lattice sites in the system
  *
@@ -50,25 +51,24 @@
  *  Neighbouring sites where there is no material, has index -1
  *
  */
-void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
-		double dx, double dy, int *ngbs, int n) {
+void compute_stt_field_c(double *spin, double *field, double *jx, double *jy, double *jz,
+		double dx, double dy, double dz, int *ngbs, int n) {
 
-    int i, j;
-    float factor_x, factor_y;
-    int nn_i;
-    int nn_x1, nn_x2, nn_y1, nn_y2;
-
-	for (i = 0; i < 3 * n; i++) {
+    //#pragma omp parallel for
+	for (int i = 0; i < 3 * n; i++) {
 		field[i] = 0;
 	}
-
+    
+    #pragma omp parallel for
     /* Iterate through every lattice site */
-    for (i = 0; i < n; i++){
+    for (int i = 0; i < n; i++){
 
         /* Starting index for the NNs of the i-th site
          * i+0, i+1, i+2, i+3 ...  --> -x, +x, -y, +y ...
          */
-        nn_i = 6 * i;
+        int nn_i = 6 * i;
+        double factor_x, factor_y, factor_z;
+        int nn_x1, nn_x2, nn_y1, nn_y2, nn_z1, nn_z2;
 
         /* Here we distinguish if there are 2 NNs, no NN in the
          * -x direction, or no NN in the +x direction,
@@ -100,7 +100,7 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
          * This calculation is:  jx[i] * d m[i] / dx
          * */
         if (factor_x){
-            for(j = 0; j < 3; j++){
+            for(int j = 0; j < 3; j++){
                 field[3 * i + j] += jx[i] * (spin[3 * nn_x2 + j]
                                              - spin[3 * nn_x1 + j]) / (factor_x * dx);
             }
@@ -124,11 +124,37 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
         }
 
         if (factor_y){
-            for(j = 0; j < 3; j++){
+            for(int j = 0; j < 3; j++){
                 field[3 * i + j] += jy[i] * (spin[3 * nn_y2 + j]
                                              - spin[3 * nn_y1 + j]) / (factor_y * dy);
             }
         }
+        
+        
+        // We do the same along the z direction
+        if(ngbs[nn_i + 4] >= 0 && ngbs[nn_i + 5] >= 0) {
+            factor_z = 2;
+            nn_z1 = ngbs[nn_i + 4];
+            nn_z2 = ngbs[nn_i + 5];
+        } else if(ngbs[nn_i + 4] >= 0 && ngbs[nn_i + 5] < 0){
+            factor_z = 1;
+            nn_z1 = ngbs[nn_i + 4];
+            nn_z2 = i;
+        } else if(ngbs[nn_i + 4] < 0 && ngbs[nn_i + 5] >= 0 ){
+            factor_z = 1;
+            nn_z1 = i;
+            nn_z2 = ngbs[nn_i + 5];
+        } else {
+            factor_z = 0;
+        }
+        
+        if (factor_z){
+            for(int j = 0; j < 3; j++){
+                field[3 * i + j] += jz[i] * (spin[3 * nn_z2 + j]
+                                             - spin[3 * nn_z1 + j]) / (factor_z * dz);
+            }
+        }
+        
     }
 }
 
