@@ -372,7 +372,10 @@ class LLG(object):
     def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000,
               save_m_steps=100, save_vtk_steps=100):
 
-        ONE_DEGREE_PER_NS = 17453292.52
+        # OOMMF convention is to check if the spins have moved by
+        # ~1 degree in a nanosecond in order to stop a simulation,
+        # so we set this scale for dm/dt
+        ONE_DEGREE_PER_NS = (2 * np.pi / 360) / 1e-9
 
         for i in range(0, max_steps + 1):
 
