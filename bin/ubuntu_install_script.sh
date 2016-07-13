@@ -4,4 +4,4 @@ bash install-sundials-2.5.sh
 sudo pip install cython --upgrade
 cd ..
 make
-echo "export PYTHONPATH=$(dirname $PWD):$PYTHONPATH" >> /home/$USER/.bashrc
+echo "export PYTHONPATH=$(dirname $PWD):$PYTHONPATH" >> $HOME/.bashrc
