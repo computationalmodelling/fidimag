@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to fidimag's documentation!
-================================
+===================================
 
 The official webpage is
 http://computationalmodelling.github.io/fidimag/, the github
@@ -17,6 +17,7 @@ Contents:
    :maxdepth: 2
 
    install
+   ipynb/tutorial-docker-container
    core_eqs
    extended_eqs
    monte_carlo

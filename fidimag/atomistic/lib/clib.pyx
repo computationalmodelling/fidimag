@@ -78,8 +78,8 @@ cdef extern from "clib.h":
     void normalise(double *m, int *pins, int n)
 
     void compute_stt_field_c(double *spin, double *field,
-                             double *jx, double *jy,
-                             double dx, double dy, int *ngbs, int n)
+                             double *jx, double *jy, double *jz,
+                             double dx, double dy, double dz, int *ngbs, int n)
 
     void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
                      double *alpha,double beta, double u0, double gamma, int n)
@@ -241,12 +241,13 @@ def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] field,
                       np.ndarray[double, ndim=1, mode="c"] jx,
                       np.ndarray[double, ndim=1, mode="c"] jy,
-                      dx, dy,
+                      np.ndarray[double, ndim=1, mode="c"] jz,
+                      dx, dy, dz,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
                       n
                       ):
-    compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0],
-                        dx, dy, &ngbs[0, 0], n)
+    compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0],&jz[0],
+                        dx, dy, dz, &ngbs[0, 0], n)
 
 def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
                 np.ndarray[double, ndim=1, mode="c"] spin,

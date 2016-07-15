@@ -9,7 +9,7 @@ class UniformExchange(Energy):
     Compute the exchange field in micromagnetics.
     """
 
-    def __init__(self, A, name='exch'):
+    def __init__(self, A, name='UniformExchange'):
         self.A = A
         self.name = name
         self.jac = True

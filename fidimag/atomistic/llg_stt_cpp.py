@@ -9,7 +9,7 @@ from .llg import LLG
 import fidimag.common.helper as helper
 
 
-class LLG_STT_Slonczewski(LLG):
+class LLG_STT_CPP(LLG):
 
     def __init__(self, mesh, name='unnamed'):
         """Simulation object.
@@ -19,7 +19,7 @@ class LLG_STT_Slonczewski(LLG):
           name : the Simulation name (used for writing data files, for examples)
 
         """
-        super(LLG_STT_Slonczewski, self).__init__(mesh, name=name)
+        super(LLG_STT_CPP, self).__init__(mesh, name=name)
 
         self._p = np.zeros(3 * self.n, dtype=np.float)
         self._a_J = np.zeros(self.n, dtype=np.float)

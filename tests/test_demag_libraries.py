@@ -67,9 +67,9 @@ def test_hexagonal_demags_1Dchain():
     # Brute force demag calculation
     sim.add(DemagFull())
 
-    sim.get_interaction('demag_full').compute_field()
-    sim.get_interaction('demag_full').field
-    demag_full_energy = sim.compute_energy() / const.meV
+    sim.get_interaction('DemagFull').compute_field()
+    sim.get_interaction('DemagFull').field
+    DemagFull_energy = sim.compute_energy() / const.meV
 
     # Demag using the FFT approach and a larger mesh
     sim2 = Sim(mesh)
@@ -78,13 +78,13 @@ def test_hexagonal_demags_1Dchain():
     sim2.set_m(lambda pos: m_init_dw(pos, N, a))
 
     sim2.add(DemagHexagonal())
-    sim2.get_interaction('demag_hex').compute_field()
+    sim2.get_interaction('DemagHexagonal').compute_field()
     sim2.compute_energy()
 
     demag_2fft_energy = sim2.compute_energy() / const.meV
 
     # We compare both energies scaled in meV
-    assert (demag_full_energy - demag_2fft_energy) < 1e-10
+    assert (DemagFull_energy - demag_2fft_energy) < 1e-10
 
 
 def test_cuboid_demags_1Dchain():
@@ -108,9 +108,9 @@ def test_cuboid_demags_1Dchain():
     # Brute force demag calculation
     sim.add(DemagFull())
 
-    sim.get_interaction('demag_full').compute_field()
-    # print sim.get_interaction('demag_full').field
-    demag_full_energy = sim.compute_energy() / const.meV
+    sim.get_interaction('DemagFull').compute_field()
+    # print sim.get_interaction('DemagFull').field
+    DemagFull_energy = sim.compute_energy() / const.meV
 
     # Demag using the FFT approach
     sim2 = Sim(mesh)
@@ -119,13 +119,13 @@ def test_cuboid_demags_1Dchain():
     sim2.set_m(lambda pos: m_init_dw(pos, N, a))
 
     sim2.add(Demag())
-    sim2.get_interaction('demag').compute_field()
+    sim2.get_interaction('Demag').compute_field()
     sim2.compute_energy()
 
     demag_fft_energy = sim2.compute_energy() / const.meV
 
     # We compare both energies scaled in meV
-    assert (demag_full_energy - demag_fft_energy) < 1e-10
+    assert (DemagFull_energy - demag_fft_energy) < 1e-10
 
 
 def test_cuboid_demags_2D():
@@ -154,9 +154,9 @@ def test_cuboid_demags_2D():
     # Brute force demag calculation
     sim.add(DemagFull())
 
-    sim.get_interaction('demag_full').compute_field()
-    # print sim.get_interaction('demag_full').field
-    demag_full_energy = sim.compute_energy() / const.meV
+    sim.get_interaction('DemagFull').compute_field()
+    # print sim.get_interaction('DemagFull').field
+    DemagFull_energy = sim.compute_energy() / const.meV
 
     # Demag using the FFT approach
     sim2 = Sim(mesh)
@@ -165,13 +165,13 @@ def test_cuboid_demags_2D():
     sim2.set_m(lambda pos: m_init_2Dvortex(pos, (xc, yc)))
 
     sim2.add(Demag())
-    sim2.get_interaction('demag').compute_field()
+    sim2.get_interaction('Demag').compute_field()
     sim2.compute_energy()
 
     demag_fft_energy = sim2.compute_energy() / const.meV
 
     # We compare both energies scaled in meV
-    assert (demag_full_energy - demag_fft_energy) < 1e-10
+    assert (DemagFull_energy - demag_fft_energy) < 1e-10
 
 
 def test_hexagonal_demags_2D():
@@ -202,9 +202,9 @@ def test_hexagonal_demags_2D():
     # Brute force demag calculation
     sim.add(DemagFull())
 
-    sim.get_interaction('demag_full').compute_field()
-    sim.get_interaction('demag_full').field
-    demag_full_energy = sim.compute_energy() / const.meV
+    sim.get_interaction('DemagFull').compute_field()
+    sim.get_interaction('DemagFull').field
+    DemagFull_energy = sim.compute_energy() / const.meV
 
     # Demag using the FFT approach and a larger mesh
     sim2 = Sim(mesh)
@@ -213,13 +213,13 @@ def test_hexagonal_demags_2D():
     sim2.set_m(lambda pos: m_init_2Dvortex(pos, (xc, yc)))
 
     sim2.add(DemagHexagonal())
-    sim2.get_interaction('demag_hex').compute_field()
+    sim2.get_interaction('DemagHexagonal').compute_field()
     sim2.compute_energy()
 
     demag_2fft_energy = sim2.compute_energy() / const.meV
 
     # We compare both energies scaled in meV
-    assert (demag_full_energy - demag_2fft_energy) < 1e-10
+    assert (DemagFull_energy - demag_2fft_energy) < 1e-10
 
 
 if __name__ == '__main__':

@@ -44,7 +44,7 @@ class Anisotropy(Energy):
 
     """
 
-    def __init__(self, Ku, axis=(1, 0, 0), name='anis'):
+    def __init__(self, Ku, axis=(1, 0, 0), name='Anisotropy'):
         self.Ku = Ku
         self.name = name
         self.axis = axis

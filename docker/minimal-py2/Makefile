@@ -1,19 +1,16 @@
 # to build a new docker image
 build:
-	time docker build -t fangohr/fidimag:latest .
+	time docker build -t fidimag/minimal-py2:latest .
 
 # to run new image
-run:
-	docker run -ti fangohr/fidimag bash
+run: build
+	docker run -v `pwd`:/io -ti fidimag/minimal-py2
 	# try 'ipython' and then 'import fidimag'
 
-login:
-	docker login
-
 # to push the new docker image to dockerhub (need to login first)
-push:
-	docker push fangohr/fidimag:latest
+push: build
+	docker push fidimag/minimal-py2:latest
 
 # to fetch image to local machine
 pull:
-	docker pull fangohr/fidimag:latest
+	docker pull fidimag/minimal-py2:latest

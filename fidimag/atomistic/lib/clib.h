@@ -60,8 +60,8 @@ void llg_s_rhs(double * dm_dt, double * spin, double * h, double *alpha,
              double *chi, double gamma, int n);
 
 
-void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
-		double dx, double dy, int *ngbs, int n);
+void compute_stt_field_c(double *spin, double *field, double *jx, double *jy, double *jz,
+		double dx, double dy, double dz, int *ngbs, int n);
 
 void llg_stt_rhs(double *dm_dt, double *m, double *h,
                  double *h_stt, double *alpha,
