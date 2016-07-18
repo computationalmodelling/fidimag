@@ -8,6 +8,7 @@ import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver
 from fidimag.common.save_vtk import SaveVTK
 import fidimag.common.constant as const
+import fidimag.common.skyrmion_number
 
 
 class LLG(object):
@@ -17,7 +18,7 @@ class LLG(object):
         *Arguments*
           name : the Simulation name (used for writing data files, for examples)
         """
-
+        self._micromagnetic = False
         self.t = 0
         self.name = name
         self.mesh = mesh
@@ -334,6 +335,9 @@ class LLG(object):
             raise ValueError('Specify a valid method')
 
         return number
+
+    skyrmion_number_slice = fidimag.common.skyrmion_number.skyrmion_number_slice
+    skyrmion_number_lee = fidimag.common.skyrmion_number.skyrmion_number_lee
 
     def spin_at(self, i, j, k):
         """

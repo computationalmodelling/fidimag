@@ -242,3 +242,8 @@ def test_vector_field_shape():
     expected_shape_for_vector_field = (expected_nb_cells, 3)
     assert mesh.vector_shape() == expected_shape_for_vector_field
     m = np.zeros(mesh.vector_shape())  # usage example
+
+
+def test_check_size():
+    mesh = CuboidMesh(1, 1, 1, 2, 3, 4)
+    assert 1 == mesh.check_size(system_memory_fake_for_testing=0)

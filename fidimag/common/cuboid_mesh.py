@@ -26,6 +26,8 @@ N.B. This means that when iterating over the cells, the x-axis is traversed
 in the innermost loop, and the z-axis in the outermost loop!
 
 """
+from __future__ import print_function
+import os
 import numpy as np
 from textwrap import dedent
 from six.moves import range
@@ -69,6 +71,7 @@ class CuboidMesh(object):
         self.n = nx * ny * nz  # total number of cells
         self.nxy = nx * ny  # number of cells in the x-y plane
         self.size = (nx, ny, nz)
+        self.check_size()
 
         self.mesh_type = "cuboid"
         self.unit_length = unit_length
@@ -258,3 +261,25 @@ class CuboidMesh(object):
                     grid[i] = (x, y, z)
                     i += 1
         return grid
+
+    def check_size(self, system_memory_fake_for_testing=None):
+        """
+        Provide an estimate of how much system memory is needed and warn accordingly.
+
+        """
+        bytes_per_float_numpy = 8
+        size_coordinates_bytes = self.nx * self.ny * self.nz * 3 * bytes_per_float_numpy
+        size_coordinates_GiB = size_coordinates_bytes / (1024. ** 3)
+
+        if system_memory_fake_for_testing is None:
+            mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+            mem_GiB = mem_bytes / (1024. ** 3)
+        else:
+            mem_GiB = system_memory_fake_for_testing
+
+        if 2 * size_coordinates_GiB > mem_GiB:
+            # print because no logging yet
+            print("Warning! Size of mesh coordinates i {} GiB.".format(size_coordinates_GiB))
+            print("You have {} GiB system memory. Possible halt.".format(mem_GiB))
+            return 1
+        return 0
