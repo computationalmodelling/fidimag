@@ -11,6 +11,7 @@ make
 # there.
 FIDIMAG_PROFILE_PATH=/etc/profile.d/fidimag.sh
 if [ ! -e "$FIDIMAG_PROFILE_PATH" ]; then
+    echo "Warning: Adding Fidimag to path at $FIDIMAG_PROFILE_PATH."
     echo "Super user authentication required to add paths."
     sudo mkdir --parents "$(dirname $FIDIMAG_PROFILE_PATH)"
     sudo bash -c "echo \"export PYTHONPATH=$PWD/:\\\$PYTHONPATH\"\
