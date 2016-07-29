@@ -5,15 +5,22 @@ FIDIMAG
 [![Documentation Status](https://readthedocs.org/projects/fidimag/badge/?version=latest)](http://fidimag.readthedocs.org/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/computationalmodelling/fidimag/branch/master/graph/badge.svg)](https://codecov.io/gh/computationalmodelling/fidimag)
 
+FIDIMAG: a finite difference micromagnetic simulation environment
 
 Fidimag solves finite-difference micromagnetic problems and also
-does atomistic simulations, using a Python interface.
+supports atomistic simulations, both using a Python interface.
 
 The webpage of the project is http://computationalmodelling.github.io/fidimag/
 
 The github page of the project is https://github.com/computationalmodelling/fidimag
 
+The documentation is at http://fidimag.readthedocs.io/en/latest/?badge=latest
+
+Various options of installation are described in the documentation, mostly by compiling from source. The virtual micromagnetics project provides virtual machines and docker containers in which fidimag can be executed at http://virtualmicromagnetics.org
+
 The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
+
+This is a very early experimental version; contributions to tidy up code and documenation are welcome.
 
 You'll want to add the path this file is in to your $PYTHONPATH.
 Check the [documentation](http://fidimag.readthedocs.org) for more
