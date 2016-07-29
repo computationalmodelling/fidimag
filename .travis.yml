@@ -20,7 +20,7 @@ before_install:
 install:
   - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython matplotlib pytest scipy pytest-cov gcc
   - source activate fidimag-test
-  - pip install pyvtk six nbval
+  - pip install pyvtk six nbval ipywidgets
   # Download and compile FFTW & Sundials locally
   - bash bin/install-sundials-2.5.sh
   - bash bin/install-fftw.sh
