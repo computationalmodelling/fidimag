@@ -273,7 +273,7 @@ class CuboidMesh(object):
         size_coordinates_GiB = size_coordinates_bytes / (1024. ** 3)
 
         if system_memory_fake_for_testing is None:
-            mem = virtual_memory().total / (1024.0 ** 3)
+            mem_GiB = virtual_memory().total / (1024.0 ** 3)
         else:
             mem_GiB = system_memory_fake_for_testing
 
