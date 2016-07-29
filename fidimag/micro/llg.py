@@ -7,7 +7,7 @@ import fidimag.extensions.micro_clib as micro_clib
 import numpy as np
 from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.save_vtk import SaveVTK
-from fidimag.common.integrators import SundialsIntegrator, StepIntegrator
+from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
 import fidimag.common.constant as const
 import fidimag.common.helper as helper
 import fidimag.common.skyrmion_number
@@ -45,13 +45,22 @@ class LLG(object):
         self.step = 0
 
         if integrator == "sundials" and use_jac:
-            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs, self.sundials_jtimes)
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs, self.sundials_jtimes)
         elif integrator == "sundials_diag":
-            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs, linear_solver="diag")
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs, linear_solver="diag")
         elif integrator == "sundials":
-            self.integrator = SundialsIntegrator(self.spin, self.sundials_rhs)
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = StepIntegrator(self.spin, self.step_rhs, integrator)
+            self.integrator = CvodeSolver(self.spin, self.step_rhs, integrator)
+
+        elif integrator == "sundials_openmp" and use_jac:
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, self.sundials_jtimes)
+        elif integrator == "sundials_diag_openmp":
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, linear_solver="diag")
+        elif integrator == "sundials_openmp":
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
+        elif integrator == "euler" or integrator == "rk4":
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs, integrator)
         else:
             raise NotImplemented("integrator must be sundials, euler or rk4")
 

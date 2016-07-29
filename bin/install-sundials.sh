@@ -8,14 +8,8 @@ set -e
 SUNDIALS=sundials-2.6.2
 
 # Make sure CMake is installed, since SUNDIALS requires it.
-which cmake > /dev/null
-if [ $? -eq 0 ]
-then
-    echo "Found CMake."
-else
-    echo "CMake required to build SUNDIALS. Installing."
-    sudo apt-get install cmake
-fi
+type cmake >/dev/null 2>&1 || { printf "CMake required to build SUNDIALS. You can install it by typing: \nsudo apt install cmake\n"; exit 1;}
+
 
 HERE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FIDIMAG_DIR="$(dirname "$HERE_DIR")"

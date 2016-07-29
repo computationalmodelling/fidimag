@@ -43,18 +43,18 @@ for example, suppose fidimag is in the directory of ~/work, then::
 
    export PYTHONPATH=~/work/fidimag:$PYTHONPATH
 
-Add the library path to LD_LIBRARY_PATH
----------------------------------------
-
-By default, the libraries are installed in fidimag/local, so in order
-to run fidimag we need to include the libs path in LD_LIBRARY_PATH, so
-please add the following to your .bashrc file::
-
-   export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
-
-for instance::
-
-  export LD_LIBRARY_PATH=~/work/fidimag/local/lib:$LD_LIBRARY_PATH
+.. Add the library path to LD_LIBRARY_PATH
+.. -----------------------------------------
+..
+.. By default, the libraries are installed in fidimag/local, so in order
+.. to run fidimag we need to include the libs path in LD_LIBRARY_PATH, so
+.. please add the following to your .bashrc file::
+..
+..   export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
+..
+.. for instance::
+..
+..  export LD_LIBRARY_PATH=~/work/fidimag/local/lib:$LD_LIBRARY_PATH
 
 
 Adding OOMMF path to the system
@@ -217,7 +217,7 @@ Notes:
   failed without a working X server).
 
 Install on OS X
-=================
+==================
 
 The inbuilt OS X gcc compiler (actually clang) doesn't have OpenMP support. A workaround is to
 
@@ -236,3 +236,38 @@ Also install pytest (``conda install pytest`` if using conda) and
 Then run ``make``.
 
 Set the Pythonpath so that the fidimag source is in the path.
+
+
+Possible Issues on Mac OS 
+=============================
+ImportErrors may arise when loading fidimag if the version of sundials is 2.6, ::
+
+    ImportError: dlopen(/Users/ww1g11/Softwares/fidimag/fidimag/extensions/clib.so, 2): Library not loaded: libsundials_cvodes.2.dylib
+    Referenced from: /Users/ww1g11/Softwares/fidimag/fidimag/extensions/clib.so
+    Reason: image not found
+
+this is because the sundials library (libsundials_cvodes.2.dylib) in clib.so doesn't have a full path, 
+which can be seen by using ``otool -L fidimag/extensions/clib.so``, ::
+
+  fidimag/extensions/clib.so:
+    /Users/ww1g11/Softwares/fidimag/local/lib/libfftw3_omp.3.dylib (compatibility version 8.0.0, current version 8.4.0)
+    /opt/local/lib/libfftw3.3.dylib (compatibility version 8.0.0, current version 8.4.0)
+    libsundials_cvodes.2.dylib (compatibility version 2.0.0, current version 2.0.0)
+    libsundials_nvecserial.0.dylib (compatibility version 0.0.0, current version 0.0.2)
+    libsundials_nvecopenmp.0.dylib (compatibility version 0.0.0, current version 0.0.2)
+    /opt/local/lib/libgcc/libgomp.1.dylib (compatibility version 2.0.0, current version 2.0.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1213.0.0)
+    /opt/local/lib/libgcc/libgcc_s.1.dylib (compatibility version 1.0.0, current version 1.0.0)
+
+A solution is to change these path manually with ``install_name_tool``, so we have provided a python script (``fix_load_path_mac.py``) to do this.
+After run the script, the library path is fixed, for example, the output of the cmd ``otool -L fidimag/extensions/clib.so`` gives ::
+
+  fidimag/extensions/neb_clib.so:
+    /Users/ww1g11/Softwares/fidimag/local/lib/libfftw3_omp.3.dylib (compatibility version 8.0.0, current version 8.4.0)
+    /opt/local/lib/libfftw3.3.dylib (compatibility version 8.0.0, current version 8.4.0)
+    /Users/ww1g11/Softwares/fidimag/local/lib/libsundials_cvodes.2.dylib (compatibility version 2.0.0, current version 2.0.0)
+    /Users/ww1g11/Softwares/fidimag/local/lib/libsundials_nvecserial.0.dylib (compatibility version 0.0.0, current version 0.0.2)
+    /Users/ww1g11/Softwares/fidimag/local/lib/libsundials_nvecopenmp.0.dylib (compatibility version 0.0.0, current version 0.0.2)
+    /opt/local/lib/libgcc/libgomp.1.dylib (compatibility version 2.0.0, current version 2.0.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1213.0.0)
+    /opt/local/lib/libgcc/libgcc_s.1.dylib (compatibility version 1.0.0, current version 1.0.0)
