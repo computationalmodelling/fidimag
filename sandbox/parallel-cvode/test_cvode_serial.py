@@ -43,7 +43,7 @@ alpha = 1  # Gilbert damping
 gamma = 2.211e5  # gyromagnetic ration (m/As)
 
 # Create simulation object.
-sim = fidimag.micro.Sim(mesh, integrator='sundials')
+sim = fidimag.micro.Sim(mesh)
 sim.Ms = Ms_function(Ms)
 sim.alpha = alpha
 sim.gamma = gamma
@@ -53,13 +53,9 @@ sim.add(fidimag.micro.UniformExchange(A=A))
 sim.add(fidimag.micro.DMI(D=D))
 #sim.add(Demag())
 
-# Since the magnetisation dynamics is not important in this stage,
-# the precession term in LLG equation can be set to artificially zero.
-sim.do_precession = False
-
 # Initialise the system.
 sim.set_m(init_m)
 a = time.time()
 sim.run_until(5e-9)
 b = time.time()
-print(b - a)
+print('elpased time: %g'%(b - a))
