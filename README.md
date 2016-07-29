@@ -7,7 +7,13 @@ FIDIMAG
 
 
 Fidimag solves finite-difference micromagnetic problems and also
-does atomistic simulations.
+does atomistic simulations, using a Python interface.
+
+The webpage of the project is http://computationalmodelling.github.io/fidimag/
+
+The github page of the project is https://github.com/computationalmodelling/fidimag
+
+The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
 
 You'll want to add the path this file is in to your $PYTHONPATH.
 Check the [documentation](http://fidimag.readthedocs.org) for more
