@@ -71,9 +71,10 @@ def init_scalar(value, mesh):
             mesh_v[i] = value(mesh.coordinates[i])
 
     elif isinstance(value, np.ndarray):
-
         if value.shape == mesh_v.shape:
             mesh_v[:] = value[:]
+        else:
+            raise ValueError("Array size must match the mesh size")
 
     return mesh_v
 
