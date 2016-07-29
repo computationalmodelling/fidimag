@@ -27,7 +27,7 @@ in the innermost loop, and the z-axis in the outermost loop!
 
 """
 from __future__ import print_function
-from psutil import virtual_memory
+from psutil import 	virtual_memory
 import numpy as np
 from textwrap import dedent
 from six.moves import range
@@ -273,7 +273,7 @@ class CuboidMesh(object):
         size_coordinates_GiB = size_coordinates_bytes / (1024. ** 3)
 
         if system_memory_fake_for_testing is None:
-            mem = virtual_memory() / (1024.0 ** 3)
+            mem = virtual_memory().total / (1024.0 ** 3)
         else:
             mem_GiB = system_memory_fake_for_testing
 
