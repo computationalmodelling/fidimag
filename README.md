@@ -21,7 +21,7 @@ detailed installation help (but needs tidying up). The virtual micromagnetics pr
 
 The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
 
-This is a very early experimental version; contributions to tidy up code and documenation are welcome.
+This is a very early experimental version; contributions to tidy up code and documentation are welcome.
 
 Please cite as:
 
