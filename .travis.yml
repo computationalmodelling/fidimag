@@ -26,6 +26,7 @@ install:
   - bash bin/install-fftw.sh
 
 before_script:
+        - conda list
         - make build
         - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
         - export LD_LIBRARY_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_LIBRARY_PATH"
