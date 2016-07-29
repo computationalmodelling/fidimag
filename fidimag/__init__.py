@@ -12,7 +12,7 @@ except ImportError as e:
 from . import common
 from . import atomistic
 from . import micro
-
+from .gui import GUI
 
 citation = common.citation
 
