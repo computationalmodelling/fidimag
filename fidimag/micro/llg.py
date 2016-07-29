@@ -52,7 +52,7 @@ class LLG(object):
             self.integrator = CvodeSolver(self.spin, self.step_rhs, integrator)
 
         elif integrator == "sundials_openmp" and use_jac:
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, self.sundials_jtimes, num_threads)
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, self.sundials_jtimes)
         elif integrator == "sundials_diag_openmp":
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs, linear_solver="diag")
         elif integrator == "sundials_openmp":

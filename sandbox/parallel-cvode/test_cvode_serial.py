@@ -1,6 +1,6 @@
 import fidimag
 import time
-d = 300
+d = 100
 t = 10
 dx = dy = 2.5
 

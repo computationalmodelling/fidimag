@@ -20,6 +20,7 @@ cdef extern from "nvector/nvector_serial.h":
     cdef struct _N_VectorContent_Serial:
         long int length
         realtype *data
+        booleantype own_data
         
     ctypedef _N_VectorContent_Serial *N_VectorContent_Serial
 
@@ -30,6 +31,8 @@ cdef extern from "nvector/nvector_openmp.h":
     cdef struct _N_VectorContent_OpenMP:
         long int length
         realtype *data
+        booleantype own_data
+        int num_threads
         
     ctypedef _N_VectorContent_OpenMP *N_VectorContent_OpenMP
 

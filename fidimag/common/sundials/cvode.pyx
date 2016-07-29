@@ -76,7 +76,7 @@ cdef int cv_rhs_openmp(realtype t, N_Vector yv, N_Vector yvdot, void * user_data
 
     copy_nv2arr_openmp(yv, y_arr)
     (< object > ud.rhs_fun)(t, y_arr, ydot_arr)
-    copy_arr2nv(ydot_arr, yvdot)
+    copy_arr2nv_openmp(ydot_arr, yvdot)
     return 0
 
 
@@ -154,9 +154,9 @@ cdef class CvodeSolver(object):
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
-        self.jvn_fun = <void * >cv_jtimes_openmp
+        self.jvn_fun = <void * >cv_jtimes
         # wrapper for callback_fun (which is a Python function)
-        self.rhs_fun = <void * >cv_rhs_openmp
+        self.rhs_fun = <void * >cv_rhs
         if linear_solver == "spgmr" or linear_solver == "diag":
             # scaled preconditioned GMRES or diagonal approximate solver
             self.linear_solver = linear_solver
@@ -327,14 +327,8 @@ cdef class CvodeSolver_OpenMP(object):
     cdef int num_threads
 
     def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
-        if os.environ['OMP_NUM_THREADS']:
-            try:
-                self.num_threads = int(os.environ['OMP_NUM_THREADS'])
-            except:
-                self.num_threads = 1
-        else:
-            self.num_threads = 1
-        print("Number of threads = {}".format(self.num_threads))
+        self.num_threads = openmp.omp_get_max_threads()
+        print("Number of threads (CVODE) = {}".format(self.num_threads))
         self.t = 0
         self.y0 = spins
         self.dm_dt = np.copy(spins)
@@ -344,9 +338,9 @@ cdef class CvodeSolver_OpenMP(object):
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
-        self.jvn_fun = <void * >cv_jtimes
+        self.jvn_fun = <void * >cv_jtimes_openmp
         # wrapper for callback_fun (which is a Python function)
-        self.rhs_fun = <void * >cv_rhs
+        self.rhs_fun = <void * >cv_rhs_openmp
         if linear_solver == "spgmr" or linear_solver == "diag":
             # scaled preconditioned GMRES or diagonal approximate solver
             self.linear_solver = linear_solver
@@ -381,7 +375,7 @@ cdef class CvodeSolver_OpenMP(object):
         self.y[:] = spin[:]
 
         cdef np.ndarray[double, ndim = 1, mode = "c"] y = self.y
-        self.u_y = N_VMake_OpenMP(y.size, & y[0], self.num_threads)
+        self.u_y = N_VMake_OpenMP(y.size, &y[0], self.num_threads)
 
         if self.cvode_already_initialised:
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)

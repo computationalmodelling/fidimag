@@ -1,6 +1,6 @@
 import fidimag
 import time
-d = 50
+d = 100
 t = 10
 dx = dy = 2.5
 
@@ -58,4 +58,4 @@ sim.set_m(init_m)
 a = time.time()
 sim.run_until(5e-9)
 b = time.time()
-print(b - a)
+print('elpased time: %g'%(b - a))

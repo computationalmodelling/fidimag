@@ -91,9 +91,9 @@ def single_spin(alpha, gamma, H0, ts):
 
 def test_sim_single_spin(do_plot=False):
 
-    mesh = CuboidMesh(nx=1, ny=1, nz=1)
+    mesh = CuboidMesh(nx=80, ny=3, nz=3)
 
-    sim = Sim(mesh, name='spin')
+    sim = Sim(mesh, name='spin', integrator='sundials_openmp')
 
     alpha = 0.1
     gamma = 2.21e5
