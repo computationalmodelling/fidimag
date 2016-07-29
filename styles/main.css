@@ -1,0 +1,75 @@
+.nav {
+    font-family: 'Lato', sans-serif;
+    height: 100%;
+    margin-bottom: 0px;
+    height: 20vh;
+}
+
+.cover .container .top {
+    height: 88vh;
+    font-size: 10vh;
+    /* background-color: #000000; */
+}
+
+.cover .container .top p {
+    font-family: 'Lato', sans-serif;
+    font-size: 100%;
+    font-weight: 100;
+    text-align: center;
+}
+
+.cover{
+    height: 100vh;
+    overflow: hidden;
+    background: url("../figs/skyrmion.jpg") no-repeat scroll 0px 100% / cover transparent;
+    background-size: auto 80%;
+    background-position: center;
+    position: relative;
+    background-color: #EEEEEE;
+}
+
+.cover .container .bottom {
+    height: 6vh;
+    font-size: 3vh;
+    /* background-color: #000000; */
+}
+.cover .container .bottom p {
+    font-family: 'Lato', sans-serif;
+    font-size: 100%;
+    font-weight: 300;
+    text-align: center;
+}
+
+.cover .container .links {
+    height: 6vh;
+    font-size: 2vh;
+    /* background-color: #000000; */
+    text-align: center;
+}
+.cover .container .links a {
+    font-family: 'Lato', sans-serif;
+    font-size: 100%;
+    font-weight: 300;
+    padding: 0 10px;
+    color: black;
+    text-decoration: none;
+}
+
+.cover .container .links a {
+	display: inline-block;
+	position: relative;
+	padding-bottom: 3px;
+}
+.cover .container .links a:after {
+    content: '';
+	display: block;
+	margin: auto;
+	height: 1px;
+	width: 0px;
+	background: transparent;
+	transition: width .6s ease, background-color .6s ease;
+}
+.cover .container .links a:hover:after {
+	width: 100%;
+	background: black;
+}
