@@ -1,6 +1,6 @@
 import fidimag
 import time
-d = 300
+d = 50
 t = 10
 dx = dy = 2.5
 
@@ -52,10 +52,6 @@ sim.gamma = gamma
 sim.add(fidimag.micro.UniformExchange(A=A))
 sim.add(fidimag.micro.DMI(D=D))
 #sim.add(Demag())
-
-# Since the magnetisation dynamics is not important in this stage,
-# the precession term in LLG equation can be set to artificially zero.
-sim.do_precession = False
 
 # Initialise the system.
 sim.set_m(init_m)
