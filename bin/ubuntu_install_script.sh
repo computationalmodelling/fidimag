@@ -2,7 +2,7 @@ echo "Super user authentication required to add packages (you will be \
 prompted for confirmation)."
 sudo bash install-ubuntu-packages.sh
 bash install-fftw.sh
-bash install-sundials-2.5.sh
+bash install-sundials.sh
 sudo pip install cython --upgrade
 pushd .. > /dev/null
 make
