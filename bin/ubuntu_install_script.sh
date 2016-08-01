@@ -4,6 +4,7 @@ sudo bash install-ubuntu-packages.sh
 bash install-fftw.sh
 bash install-sundials.sh
 sudo pip install cython --upgrade
+sudo pip install psutil ipywidgets
 pushd .. > /dev/null
 make
 
