@@ -26,7 +26,7 @@ This is a very early experimental version; contributions to tidy up code and doc
 Please cite as:
 
     Fidimag 0.1: finite difference micromagnetic simulation environment,
-    Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, 
-    Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr, 
+    Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden,
+    Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr,
     University of Southampton, http://computationalmodelling.github.io/fidimag (2016).
 

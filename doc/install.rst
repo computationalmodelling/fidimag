@@ -200,10 +200,10 @@ The inbuilt OS X gcc compiler (actually clang) doesn't have OpenMP support. A wo
 - install gcc5 (via homebrew, for example: ``brew install gcc --without-multilib``)
 - set CC environment variable to point to that compiler: ``export CC=gcc-5``
 
-Alternatively, gcc can be installed through ``sudo port install gcc5`` and CC environment 
+Alternatively, gcc can be installed through ``sudo port install gcc5`` and CC environment
 variable can be set via ``export CC=gcc-mp-5``
 
-Once this is done, run ``bin/install-fftw.sh`` and ``bin/install-sundials.sh`` which will 
+Once this is done, run ``bin/install-fftw.sh`` and ``bin/install-sundials.sh`` which will
 compile fftw3 and sundials (in a local subdirectory) using this compiler.
 
 Also install pytest (``conda install pytest`` if using conda) and
@@ -214,7 +214,7 @@ Then run ``make``.
 Set the Pythonpath so that the fidimag source is in the path.
 
 
-Possible Issues on Mac OS 
+Possible Issues on Mac OS
 =============================
 ImportErrors may arise when loading fidimag if the version of sundials is 2.6, ::
 
@@ -222,7 +222,7 @@ ImportErrors may arise when loading fidimag if the version of sundials is 2.6, :
     Referenced from: /Users/ww1g11/Softwares/fidimag/fidimag/extensions/clib.so
     Reason: image not found
 
-this is because the sundials library (libsundials_cvodes.2.dylib) in clib.so doesn't have a full path, 
+this is because the sundials library (libsundials_cvodes.2.dylib) in clib.so doesn't have a full path,
 which can be seen by using ``otool -L fidimag/extensions/clib.so``, ::
 
   fidimag/extensions/clib.so:
