@@ -17,7 +17,7 @@ The github page of the project is https://github.com/computationalmodelling/fidi
 The documentation is at http://fidimag.readthedocs.io/en/latest/?badge=latest
 
 Various options of installation are described in the documentation, mostly by compiling from source. If you install from source, you'll want to add the path this file is in to your $PYTHONPATH. Check the [documentation](http://fidimag.readthedocs.org) for more
-detailed installation help (but needs tidying up). The virtual micromagnetics project at http://virtualmicromagnetics.org provides virtual machines and docker containers in which fidimag can be executed. 
+detailed installation help (but needs tidying up). The Virtual Micromagnetics project at http://virtualmicromagnetics.org provides virtual machines and docker containers for release versions of Fidimag (see http://fidimag.readthedocs.io/en/latest/install.html).
 
 The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
 
