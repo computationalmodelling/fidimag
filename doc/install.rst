@@ -173,48 +173,24 @@ OOMMF installed). The output should look something like::
   ============ 55 passed, 1 skipped, 3 deselected in 9.88 seconds ================
 
 
+Virtualization
+==============
 
-How to set up a virtual machine via vagrant
--------------------------------------------
+Fidimag is supported by the Virtual Micromagnetics project
+(http://virtualmicromagnetics.org/), which provides Docker images and virtual
+machines through Vagrant and VirtualBox. To start a Fidimag virtual machine,
+command in your shell of choice::
 
-- install vagrant on your host machine
-- run::
+  # Requires Vagrant >= 1.7.4 and VirtualBox >= 5.0
+  # See https://atlas.hashicorp.com/virtualmicromagnetics for more options.
+  vagrant init virtualmicromagnetics/fidimag
+  vagrant up --provider virtualbox
 
-    vagrant init ubuntu/trusty64
+To start a Bash process in a Fidimag-capable Docker container::
 
-  to set up a basic linux machine.
-
-- run::
-
-    vagrant up
-
-  to start the machine.
-
-- ssh into the machine with X-forwarding::
-
-    vagrant ssh -- -X
-
-Then within the virtual machine::
-
-  aptitude install git
-  git clone https://github.com/fangohr/fidimag.git
-  cd fidimag/bin
-  sudo sh install-ubuntu-packages.sh
-  sh install.sh
-  cd ..
-  make
-
-To run the tests::
-
-  cd /home/vagrant/fidimag/tests
-  py.test
-
-Notes:
-
-- some tests will fail as OOMMF is not installed
-- it seems that we need an active X server, on OS X, one may need to
-  install XQuartz before the tests can pass (even 'import fidimag'
-  failed without a working X server).
+  # Requires Docker >= 1.6.2
+  # See https://hub.docker.com/u/virtualmicromagnetics/ for more options.
+  docker run -ti virtualmicromagnetics/fidimag:release /bin/bash -l
 
 Install on OS X
 ==================
