@@ -65,6 +65,10 @@ double skyrmion_number(double *spin, double *charge,
      * in the order: [-x +x -y +y]
      */ 
     double S_nn[12];
+  
+        for(i=0;i<12;i++){
+          S_nn[i] = 0; //we have to set S_nn to zeros manually
+        }
 
 	for (i = 0; i < nxy; i++) {
         index = 3 * i;

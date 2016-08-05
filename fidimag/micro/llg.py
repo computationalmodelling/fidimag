@@ -3,12 +3,8 @@ from __future__ import print_function
 import os
 import time
 import fidimag.extensions.clib as clib
-import fidimag.extensions.micro_clib as micro_clib
 import numpy as np
 
-import fidimag.common.constant as const
-import fidimag.common.helper as helper
-import fidimag.common.skyrmion_number
 import re
 
 from micro_driver import MicroDriver

@@ -51,6 +51,7 @@ class VTK(object):
     def reset_data(self):
         self.vtk_data = pyvtk.VtkData(self.structure, self.header)
 
+    @ignore_stderr
     def save_scalar(self, s, name="my_field", step=0):
         self.vtk_data.cell_data.append(pyvtk.Scalars(s, name))
 

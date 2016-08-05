@@ -365,12 +365,11 @@ class NEB_Sundials(object):
         self.coords = np.zeros(2 * self.n * self.total_image_num)
         self.last_m = np.zeros(self.coords.shape)
 
-        # For the effective field we use the extremes (to fit the energies
-        # array length). We could save some memory if we don't consider them
-        # (CHECK this in the future)
-        self.Heff = np.zeros(self.coords.shape)
+        # For the effective field we do not consider the extremes
+        # since they are fixed
+        self.Heff = np.zeros(2 * self.n * self.image_num)
         # self.Heff = np.zeros(2 * self.n * self.total_image_num)
-        self.Heff.shape = (self.total_image_num, -1)
+        self.Heff.shape = (self.image_num, -1)
 
         # Tangent components in spherical coordinates
         self.tangents = np.zeros(2 * self.n * self.image_num)
@@ -548,8 +547,22 @@ class NEB_Sundials(object):
 
         self.coords.shape = (self.total_image_num, -1)
 
+        # We use Ms from the simulation assuming that all the
+        # images are the same
         for i in range(self.total_image_num):
-            self.vtk.save_vtk(spherical2cartesian(self.coords[i]), step=i, vtkname='m')
+            # We will try to save for the micromagnetic simulation (Ms)
+            # or an atomistic simulation (mu_s)
+            # TODO: maybe this can be done with an: isinstance
+            try:
+                self.vtk.save_vtk(spherical2cartesian(self.coords[i]).reshape(-1, 3),
+                                  self.sim.Ms,
+                                  step=i,
+                                  vtkname='m')
+            except:
+                self.vtk.save_vtk(spherical2cartesian(self.coords[i]).reshape(-1, 3),
+                                  self.sim._mu_s,
+                                  step=i,
+                                  vtkname='m')
 
         self.coords.shape = (-1, )
 
@@ -606,7 +619,7 @@ class NEB_Sundials(object):
 
             # Set the simulation magnetisation to the (i+1)-th image
             # spin components
-            self.sim.spin = spherical2cartesian(y[i + 1])
+            self.sim.spin[:] = spherical2cartesian(y[i + 1])
 
             # Compute the effective field using Fidimag's methods.
             # (we use the time=0 since we are only using the simulation
@@ -618,7 +631,7 @@ class NEB_Sundials(object):
             h = self.sim.field
             # Save the field components of the (i + 1)-th image
             # to the effective field array which is in spherical coords
-            self.Heff[i + 1, :] = cartesian2spherical_field(h, y[i + 1])
+            self.Heff[i, :] = cartesian2spherical_field(h, y[i + 1])
             # Compute and save the total energy for this image
             self.energy[i + 1] = self.sim.compute_energy()
 
@@ -674,7 +687,7 @@ class NEB_Sundials(object):
         #   D_climb = -nabla E + 2 * [nabla E * t] t
         for i in range(self.image_num):
             # The eff field has (i + 1) since it considers the extreme images
-            h = self.Heff[i + 1]
+            h = self.Heff[i]
             # Tangents and springs has length: total images -2 (no extremes)
             t = self.tangents[i]
             sf = self.springs[i]
