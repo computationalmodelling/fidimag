@@ -1,4 +1,5 @@
 import fidimag.common.helper as helper
+from fidimag.common.fileio import DataSaver, DataReader
 
 import numpy as np
 import os
@@ -20,13 +21,18 @@ class SimBase(object):
         self.unit_length = mesh.unit_length
 
         # self._Ms = np.zeros(self.n, dtype=np.float)
+        self._alpha = np.zeros(self.n, dtype=np.float)
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)
         self.field = np.zeros(3 * self.n, dtype=np.float)
         self._skx_number = np.zeros(self.n, dtype=np.float)
+        self.interactions = []
 
         # This is for old C files codes using the xperiodic variables
         self.xperiodic, self.yperiodic, self.zperiodic = mesh.periodicity
+
+        # To save the simulation data:
+        self.data_saver = DataSaver(self, name + '.txt')
 
     def set_m(self, m0=(1, 0, 0),
               normalise=True):
@@ -80,7 +86,7 @@ class SimBase(object):
 
         # Set the initial state for the Sundials integrator using the
         # spins array
-        self.integrator.set_initial_value(self.spin, self.t)
+        self.driver.integrator.set_initial_value(self.spin, self.driver.t)
 
     def get_pins(self):
         """
@@ -197,7 +203,7 @@ class SimBase(object):
         # When saving the energy values, we call the compute_energy() method
         # from the (micromagnetic/atomistic) Energy class (overhead?)
         energy_name = 'E_{0}'.format(interaction.name)
-        self.saver.entities[energy_name] = {
+        self.data_saver.entities[energy_name] = {
             'unit': '<J>',
             'get': lambda sim: sim.get_interaction(interaction.name).compute_energy(),
             'header': energy_name}
@@ -205,12 +211,12 @@ class SimBase(object):
         # Save the average values of the interaction vector field components
         if save_field:
             fn = '{0}'.format(interaction.name)
-            self.saver.entities[fn] = {
+            self.data_saver.entities[fn] = {
                 'unit': '<>',
                 'get': lambda sim: sim.get_interaction(interaction.name).average_field(),
                 'header': ('%s_x' % fn, '%s_y' % fn, '%s_z' % fn)}
 
-        self.saver.update_entity_order()
+        self.data_saver.update_entity_order()
 
     def get_interaction(self, name):
         """
@@ -225,27 +231,6 @@ class SimBase(object):
             raise ValueError("Failed to find the interaction with name '{0}', "
                              "available interactions: {1}.".format(
                                  name, [x.name for x in self.interactions]))
-
-    def compute_average(self):
-        """
-        Compute the average values of the 3 components of the magnetisation
-        vector field
-        """
-        self.spin.shape = (-1, 3)
-        average = np.sum(self.spin, axis=0) / self.n_nonzero
-        self.spin.shape = (3 * self.n)
-        return average
-
-    def compute_energy(self):
-        """
-        Compute the total energy of the magnetic system
-        """
-        energy = 0
-
-        for obj in self.interactions:
-            energy += obj.compute_energy()
-
-        return energy
 
     def skyrmion_number(self):
         pass
@@ -269,64 +254,12 @@ class SimBase(object):
         Save site spin with index (i,j,k) to txt file.
         """
 
-        self.saver.entities[name] = {
+        self.data_saver.entities[name] = {
             'unit': '<>',
             'get': lambda sim: sim.spin_at(i, j, k),
             'header': (name + '_x', name + '_y', name + '_z')}
 
-        self.saver.update_entity_order()
-
-    def save_vtk(self):
-        """
-        Save a VTK file with the magnetisation vector field (vector data)
-        and the saturation magnetisation values (scalar data) as
-        cell data
-        """
-        self.vtk.save_vtk(self.spin.reshape(-1, 3), self.Ms, step=self.step)
-
-    def save_m(self):
-        """
-        Save the magnetisation/spin vector field as a numpy array in
-        a NPY file. The files are saved in the `{name}_npys` folder, where
-        `{name}` is the simulation name, with the file name `m_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_npys' % self.name):
-            os.makedirs('%s_npys' % self.name)
-        name = '%s_npys/m_%g.npy' % (self.name, self.step)
-        np.save(name, self.spin)
-
-    def save_skx(self):
-        """
-        Save the skyrmion number density (sk number per mesh site)
-        as a numpy array in a NPY file.
-        The files are saved in the `{name}_skx_npys` folder, where
-        `{name}` is the simulation name, with the file name `skx_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_skx_npys' % self.name):
-            os.makedirs('%s_skx_npys' % self.name)
-        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
-        np.save(name, self._skx_number)
+        self.data_saver.update_entity_order()
 
     def stat(self):
-        return self.integrator.stat()
-
-    def spin_length(self):
-        self.spin.shape = (-1, 3)
-        length = np.sqrt(np.sum(self.spin**2, axis=1))
-        self.spin.shape = (-1,)
-        return length
-
-    def compute_spin_error(self):
-        length = self.spin_length() - 1.0
-        length[self._pins > 0] = 0
-        return np.max(abs(length))
-
-    def compute_dmdt(self, dt):
-        m0 = self.spin_last
-        m1 = self.spin
-        dm = (m1 - m0).reshape((3, -1))
-        max_dm = np.max(np.sqrt(np.sum(dm**2, axis=0)))
-        max_dmdt = max_dm / dt
-        return max_dmdt
+        return self.driver.integrator.stat()

@@ -3,22 +3,47 @@ from __future__ import division
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from .llg import LLG
+from micro_driver import MicroDriver
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 
 
-class LLG_STT(LLG):
+class LLG_STT(MicroDriver):
 
-    def __init__(self, mesh, name='unnamed'):
-        """Simulation object.
+    """
 
-        *Arguments*
+    This class is the driver to solve the Landau Lifshitz Gilbert equation
+    with a Spin Transfer Torque term, which has the form:
 
-          name : the Simulation name (used for writing data files, for examples)
+
+      dm        -gamma
+     ---- =    --------  ( m X H_eff  + a * m X ( m x H_eff ) + ... )
+      dt             2
+              ( 1 + a  )
+
+    by using the Sundials library with CVODE.
+
+    This class inherits common methods to evolve the system using CVODE, from
+    the micro_driver.MicroDriver class. Arrays with the system information
+    are taken as references from the main micromagnetic Simulation class
 
         """
-        super(LLG_STT, self).__init__(mesh, name=name)
+
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False
+                 ):
+
+        # Inherit from the driver class
+        super(LLG_STT, self).__init__(mesh, spin, Ms, field,
+                                      alpha, pins, interactions, name,
+                                      data_saver,
+                                      integrator='sundials',
+                                      use_jac=False
+                                      )
 
         self.field_stt = np.zeros(3 * self.n)
 
@@ -95,7 +120,7 @@ class LLG_STT(LLG):
                                  self.spin,
                                  self.field,
                                  self.field_stt,
-                                 self.alpha,
+                                 self._alpha,
                                  self.beta,
                                  self.u0 * self.p / self.Ms_const,
                                  self.gamma,

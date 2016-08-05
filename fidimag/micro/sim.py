@@ -9,7 +9,7 @@ from . import micro_driver
 import fidimag.extensions.micro_clib as micro_clib
 import fidimag.common.helper as helper
 
-from fidimag.common import SimBase
+from fidimag.common.sim_base import SimBase
 
 import numpy as np
 
@@ -48,13 +48,17 @@ class Sim(SimBase):
 
     """
 
-    def __init__(self, mesh, name='unnamed', driver='llg'):
+    def __init__(self, mesh, name='unnamed', driver='llg',
+                 # Integrator arguments:
+                 integrator='sundials', use_jac=False
+                 ):
 
         super(Sim, self).__init__(mesh, name)
 
         self._micromagnetic = True
 
         self._Ms = np.zeros(self.n, dtype=np.float)
+        self._Ms_inv = np.zeros(self.n, dtype=np.float)
 
         if driver not in KNOWN_DRIVERS:
             raise NotImplementedError("""Driver '{}' is not implemented.
@@ -62,9 +66,24 @@ class Sim(SimBase):
 
         self.driver = KNOWN_DRIVERS[driver](self.mesh,
                                             self.spin,
+                                            self._Ms,
                                             self.field,
+                                            self._alpha,
                                             self._pins,
+                                            self.interactions,
+                                            self.name,
+                                            self.data_saver,
+                                            integrator=integrator,
+                                            use_jac=use_jac
                                             )
+
+        # Some references to functions in the corresponding driver classes
+        self.relax = self.driver.relax
+        self.compute_energy = self.driver.compute_energy
+        self.compute_effective_field = self.driver.compute_effective_field
+        self.save_vtk = self.driver.save_vtk
+        self.save_m = self.driver.save_m
+        self.save_skx = self.driver.save_skx
 
     def get_Ms(self):
         """
@@ -127,7 +146,9 @@ class Sim(SimBase):
                 # Set the neighbour index to -1 for sites with Ms = 0
                 self.mesh.neighbours[self.mesh.neighbours == i] = -1
 
-        self.Ms_const = np.max(self._Ms)
+        # TODO: Check if this is necessary here, it is only defined
+        # for the LLG STT in the drivers
+        self.driver.Ms_const = np.max(self._Ms)
 
     Ms = property(get_Ms, set_Ms)
 
