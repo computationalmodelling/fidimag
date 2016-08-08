@@ -12,6 +12,22 @@ class MicroDriver(object):
     A class with shared methods and properties for different drivers to solve
     the Landau-Lifshitz-Gilbert equation
 
+    Variables that are proper of the driver class:
+
+        * Ms_const
+        * t
+        * spin_last
+        * dm_dt
+        * integrator_tolerances_set
+        * step
+        * n (from mesh)
+        * n_nonzero (from mesh and set_Ms method in Simulation)
+        * gamma
+        * do_precession
+        * default_c (correction factor to keep the magnetisation normalised
+                     during the LLG equation integration. See the
+                     fidimag/atomistic/lib/llg.c file for more details)
+
     """
 
     def __init__(self, mesh, spin, Ms, field, alpha, pins,
@@ -23,13 +39,15 @@ class MicroDriver(object):
                  ):
 
         # These are (ideally) references to arrays taken from the Simulation
-        # class:
-
+        # class. Variables with underscore are arrays changed by a property in
+        # the simulation class
         self.mesh = mesh
         self.spin = spin
         self._Ms = Ms
+
         # Only for LLG STT: (??)
         self.Ms_const = 0
+
         self.field = field
         self._alpha = alpha
         self._pins = pins
@@ -37,7 +55,9 @@ class MicroDriver(object):
         # Strings are not referenced, this is a copy:
         self.name = name
 
-        # The following are proper of the driver class:
+        # The following are proper of the driver class: -----------------------
+        # See also the set_default_options() function
+
         self.t = 0
         self.spin_last = np.ones(3 * self.mesh.n, dtype=np.float)
         self.dm_dt = np.zeros(3 * self.mesh.n, dtype=np.float)
@@ -45,7 +65,8 @@ class MicroDriver(object):
         self.step = 0
 
         self.n = self.mesh.n
-        self.n_nonzero = self.mesh.n  # (??) Check if this is necessary
+        self.n_nonzero = self.mesh.n  # number of spins that are not zero
+                                      # We check this in the set_Ms function
 
         # To save VTK files:
         self.vtk = SaveVTK(self.mesh, name=name)
@@ -55,7 +76,7 @@ class MicroDriver(object):
         # Integrator options --------------------------------------------------
 
         # Here we set up the CVODE integrator from Sundials to evolve a
-        # specific micromagnetic equation, which is specified in the
+        # specific micromagnetic equation. The equations are specified in the
         # sundials_rhs function from any of the micromagnetic drivers in the
         # micromagnetic folder (LLG, LLG_STT, etc.)
 
@@ -79,7 +100,7 @@ class MicroDriver(object):
                                                  linear_solver="diag")
         elif integrator == "sundials_openmp":
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
-        elif integrator == "euler" or integrator == "rk4":
+        elif integrator == "euler_openmp" or integrator == "rk4_openmp":
             self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
                                                  integrator)
         else:
@@ -122,6 +143,28 @@ class MicroDriver(object):
 
         # ---------------------------------------------------------------------
 
+    def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
+        """
+        Default option for the integrator
+        Default gamma is for a free electron
+        """
+        self.default_c = 1e11
+        self._alpha[:] = alpha
+
+        # When we create the simulation, Ms is set to the default value. This
+        # is overriden when calling the set_Ms method from the Siulation class
+        # or when setting Ms directly (property)
+        self._Ms[:] = Ms
+
+        self.gamma = gamma
+        self.do_precession = True
+
+    def sundials_rhs(self, t, y, ydot):
+        """
+        Defined in the corresponding driver class
+        """
+        pass
+
     def save_vtk(self):
         """
         Save a VTK file with the magnetisation vector field (vector data)
@@ -153,6 +196,8 @@ class MicroDriver(object):
         if not os.path.exists('%s_skx_npys' % self.name):
             os.makedirs('%s_skx_npys' % self.name)
         name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
+
+        # The _skx_number array is defined in the SimBase class in Common
         np.save(name, self._skx_number)
 
     def compute_average(self):
@@ -196,8 +241,12 @@ class MicroDriver(object):
                 self.field += obj.compute_field(t, spin=spin)
 
     def spin_length(self):
+        """
+        Returns an array with the length of every spin in the mesh. The
+        order is given by the mesh.coordinates order
+        """
         self.spin.shape = (-1, 3)
-        length = np.sqrt(np.sum(self.spin**2, axis=1))
+        length = np.sqrt(np.sum(self.spin ** 2, axis=1))
         self.spin.shape = (-1,)
         return length
 
@@ -210,20 +259,9 @@ class MicroDriver(object):
         m0 = self.spin_last
         m1 = self.spin
         dm = (m1 - m0).reshape((3, -1))
-        max_dm = np.max(np.sqrt(np.sum(dm**2, axis=0)))
+        max_dm = np.max(np.sqrt(np.sum(dm ** 2, axis=0)))
         max_dmdt = max_dm / dt
         return max_dmdt
-
-    def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
-        """
-        Default option for the integrator
-        Default gamma is for a free electron
-        """
-        self.default_c = 1e11
-        self._alpha[:] = alpha
-        self._Ms[:] = Ms
-        self.gamma = gamma
-        self.do_precession = True
 
     def reset_integrator(self, t=0):
         """
@@ -279,7 +317,7 @@ class MicroDriver(object):
               save_m_steps=100, save_vtk_steps=100):
         """
 
-        Evolve the system until meeting the dmdt < stopping_dmdt criteria We
+        Evolve the system until meeting the dmdt < stopping_dmdt criteria. We
         can specify to save VTK and NPY files with the magnetisation vector
         field, every certain number of the integrator steps
 
@@ -329,4 +367,3 @@ class MicroDriver(object):
 
         if save_vtk_steps is not None:
             self.save_vtk()
-

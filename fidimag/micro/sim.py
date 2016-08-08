@@ -57,9 +57,11 @@ class Sim(SimBase):
 
         self._micromagnetic = True
 
+        # Saturation magnetisation definitions:
         self._Ms = np.zeros(self.n, dtype=np.float)
         self._Ms_inv = np.zeros(self.n, dtype=np.float)
 
+        # Here we link one of the drivers to evolve the LLG equation
         if driver not in KNOWN_DRIVERS:
             raise NotImplementedError("""Driver '{}' is not implemented.
                                       Valid choices: one of '{}'.""".format(driver, KNOWN_DRIVERS.keys()))
@@ -78,12 +80,15 @@ class Sim(SimBase):
                                             )
 
         # Some references to functions in the corresponding driver classes
+        # that can be accessed through the Simulation class
         self.relax = self.driver.relax
         self.compute_energy = self.driver.compute_energy
         self.compute_effective_field = self.driver.compute_effective_field
         self.save_vtk = self.driver.save_vtk
         self.save_m = self.driver.save_m
         self.save_skx = self.driver.save_skx
+        self.compute_average = self.driver.compute_average
+        self.spin_length = self.driver.spin_length
 
     def get_Ms(self):
         """
@@ -137,7 +142,8 @@ class Sim(SimBase):
                 self._Ms_inv = 1.0 / self._Ms[i]
                 nonzero += 1
 
-        self.n_nonzero = nonzero
+        # We moved this variable to the micro_driver class
+        self.driver.n_nonzero = nonzero
 
         for i in range(len(self._Ms)):
             if self._Ms[i] == 0.0:
@@ -164,5 +170,6 @@ class Sim(SimBase):
             self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
         return number
 
+    # We need to change these in the future so we can document them:
     skyrmion_number_slice = fidimag.common.skyrmion_number.skyrmion_number_slice
     skyrmion_number_lee = fidimag.common.skyrmion_number.skyrmion_number_lee

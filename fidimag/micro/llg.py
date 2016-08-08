@@ -1,5 +1,8 @@
 from __future__ import division
 from __future__ import print_function
+
+# We use the atomistic/lib/llg.c file to calculate the LLG equation for
+# the micromagnetic case -> Move this library to Common in the future
 import fidimag.extensions.clib as clib
 
 from micro_driver import MicroDriver
@@ -13,7 +16,7 @@ class LLG(MicroDriver):
 
 
           dm        -gamma
-         ---- =    --------  ( m X H_eff  + a * m X ( m x H_eff ) )
+         ---- =    --------  ( m X H_eff  + a * m X ( m X H_eff ) )
           dt             2
                   ( 1 + a  )
 
@@ -61,7 +64,8 @@ class LLG(MicroDriver):
                              self.gamma,
                              self.mesh.n,
                              self.do_precession,
-                             self.default_c)
+                             self.default_c
+                             )
 
         # ydot[:] = self.dm_dt[:]
 
@@ -79,7 +83,8 @@ class LLG(MicroDriver):
                                 self.gamma,
                                 self.n,
                                 self.do_precession,
-                                self.default_c)
+                                self.default_c
+                                )
         return 0
 
     def step_rhs(self, t, y):
@@ -97,7 +102,8 @@ class LLG(MicroDriver):
                              self.gamma,
                              self.n,
                              self.do_precession,
-                             self.default_c)
+                             self.default_c
+                             )
         return self.dm_dt
 
 if __name__ == '__main__':

@@ -203,7 +203,7 @@ def test_skx_num_micromagnetic():
                       periodicity=(True, True, False))
 
     sim = microSim(mesh, name='skx_num_micro')
-    sim.set_tols(rtol=1e-6, atol=1e-6)
+    sim.driver.set_tols(rtol=1e-6, atol=1e-6)
     sim.alpha = 1.0
     sim.gamma = 1.0
     sim.Ms = 1.1e6

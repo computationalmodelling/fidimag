@@ -115,8 +115,8 @@ def excite_system(mesh, time=5, snaps=501):
 
     # Set the current in the x direction, in A / m
     # beta is the parameter in the STT torque
-    sim.jx = -1e12
-    sim.beta = 1
+    sim.driver.jx = -1e12
+    sim.driver.beta = 1
 
     # The simulation will run for x ns and save
     # 'snaps' snapshots of the system in the process
