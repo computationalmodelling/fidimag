@@ -32,7 +32,7 @@ def test_sim_pin():
     sim = Sim(mesh, integrator='sundials_openmp')
     sim.set_m((0, 0.8, 0.6))
     sim.alpha = 0.1
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.pins = pin_fun
 
     anis = UniaxialAnisotropy(Ku=1, axis=[0, 0, 1], name='Dx')
@@ -98,7 +98,7 @@ def test_sim_single_spin(do_plot=False):
     alpha = 0.1
     gamma = 2.21e5
     sim.alpha = alpha
-    sim.gamma = gamma
+    sim.driver.gamma = gamma
     sim.mu_s = 1.0
 
     sim.set_m((1, 0, 0))

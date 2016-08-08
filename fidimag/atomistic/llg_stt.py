@@ -3,22 +3,46 @@ from __future__ import division
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from .llg import LLG
+from .atomistic_driver import AtomisticDriver
+
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 
 
-class LLG_STT(LLG):
+class LLG_STT(AtomisticDriver):
 
-    def __init__(self, mesh, name='unnamed'):
-        """Simulation object.
+    """
 
-        *Arguments*
+    This class is the driver to solve the Landau Lifshitz Gilbert equation
+    with a current, which follows the formalism
+    of Spin Transfer Torque. The equation is given by:
 
-          name : the Simulation name (used for writing data files, for examples)
 
-        """
-        super(LLG_STT, self).__init__(mesh, name=name)
+          ds        -gamma
+         ---- =    --------  ( s X H_eff  + a * s X ( s X H_eff ) ) + .... ADD
+          dt             2
+                  ( 1 + a  )
+
+
+    This class inherits common methods to evolve the system using CVODE, from
+    the micro_driver.MicroDriver class. Arrays with the system information
+    are taken as references from the main micromagnetic Simulation class
+
+    """
+
+    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 use_jac=False
+                 ):
+
+        # Inherit from the driver class
+        super(LLG_STT, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
+                                      alpha, pins, interactions, name,
+                                      data_saver,
+                                      use_jac=False
+                                      )
 
         self.field_stt = np.zeros(3 * self.n)
 
@@ -31,7 +55,7 @@ class LLG_STT(LLG):
         self.update_j_fun = None
 
         # FIXME: change the u0 to spatial
-        v = self.mesh.dx* self.mesh.dy * self.mesh.dz * (self.mesh.unit_length**3)
+        v = self.mesh.dx * self.mesh.dy * self.mesh.dz * (self.mesh.unit_length ** 3)
         self.u0 = const.g_e * const.mu_B / (2 * const.c_e) * v
 
     def get_jx(self):
@@ -96,7 +120,7 @@ class LLG_STT(LLG):
                                  self.spin,
                                  self.field,
                                  self.field_stt,
-                                 self.alpha,
+                                 self._alpha,
                                  self.beta,
                                  self.u0 * self.p / self.mu_s_const,
                                  self.gamma,

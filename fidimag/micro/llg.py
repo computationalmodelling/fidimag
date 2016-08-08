@@ -5,7 +5,7 @@ from __future__ import print_function
 # the micromagnetic case -> Move this library to Common in the future
 import fidimag.extensions.clib as clib
 
-from micro_driver import MicroDriver
+from .micro_driver import MicroDriver
 
 
 class LLG(MicroDriver):

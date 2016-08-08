@@ -2,7 +2,6 @@ import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver, DataReader
 
 import numpy as np
-import os
 
 
 class SimBase(object):
@@ -20,7 +19,7 @@ class SimBase(object):
         self.n_nonzero = mesh.n
         self.unit_length = mesh.unit_length
 
-        # self._Ms = np.zeros(self.n, dtype=np.float)
+        self._magnetisation = np.zeros(self.n, dtype=np.float)
         self._alpha = np.zeros(self.n, dtype=np.float)
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)
@@ -29,10 +28,28 @@ class SimBase(object):
         self.interactions = []
 
         # This is for old C files codes using the xperiodic variables
-        self.xperiodic, self.yperiodic, self.zperiodic = mesh.periodicity
+        try:
+            self.xperiodic, self.yperiodic, self.zperiodic = mesh.periodicity
+        except ValueError:
+            self.xperiodic, self.yperiodic = mesh.periodicity
 
-        # To save the simulation data:
+        # To save the simulation data: ----------------------------------------
+
         self.data_saver = DataSaver(self, name + '.txt')
+
+        self.data_saver.entities['E_total'] = {
+            'unit': '<J>',
+            'get': lambda sim: self.compute_energy(),
+            'header': 'E_total'}
+
+        self.data_saver.entities['m_error'] = {
+            'unit': '<>',
+            'get': lambda sim: self.compute_spin_error(),
+            'header': 'm_error'}
+
+        self.data_saver.update_entity_order()
+
+        # ---------------------------------------------------------------------
 
     def set_m(self, m0=(1, 0, 0),
               normalise=True):
@@ -80,7 +97,7 @@ class SimBase(object):
         # TODO: Check for atomistic and micromagnetic cases
         self.spin.shape = (-1, 3)
         for i in range(self.spin.shape[0]):
-            if self._Ms[i] == 0:
+            if self._magnetisation[i] == 0:
                 self.spin[i, :] = 0
         self.spin.shape = (-1,)
 
@@ -126,8 +143,8 @@ class SimBase(object):
 
         # Sites with no material, i.e. Mu_s or mu_s equal to zero,
         # will be pinned
-        for i in range(len(self._Ms)):
-            if self._Ms[i] == 0.0:
+        for i in range(len(self._magnetisation)):
+            if self._magnetisation[i] == 0.0:
                 self._pins[i] = 1
 
     pins = property(get_pins, set_pins)
@@ -187,7 +204,11 @@ class SimBase(object):
 
         """
 
-        interaction.setup(self.mesh, self.spin, Ms=self._Ms)
+        # magnetisation is Ms for the micromagnetic Sim class, and it is
+        # mu_s for the atomistic Sim class
+        interaction.setup(self.mesh, self.spin,
+                          self._magnetisation
+                          )
 
         # TODO: FIX  --> ??
         # When adding an interaction that was previously added, using
@@ -261,5 +282,38 @@ class SimBase(object):
 
         self.data_saver.update_entity_order()
 
-    def stat(self):
-        return self.driver.integrator.stat()
+    def spin_length(self):
+        """
+        Returns an array with the length of every spin in the mesh. The
+        order is given by the mesh.coordinates order
+        """
+        self.spin.shape = (-1, 3)
+        length = np.sqrt(np.sum(self.spin ** 2, axis=1))
+        self.spin.shape = (-1,)
+        return length
+
+    def compute_spin_error(self):
+        length = self.spin_length() - 1.0
+        length[self._pins > 0] = 0
+        return np.max(abs(length))
+
+    def compute_average(self):
+        """
+        Compute the average values of the 3 components of the magnetisation
+        vector field
+        """
+        self.spin.shape = (-1, 3)
+        average = np.sum(self.spin, axis=0) / self.n_nonzero
+        self.spin.shape = (3 * self.n)
+        return average
+
+    def compute_energy(self):
+        """
+        Compute the total energy of the magnetic system
+        """
+        energy = 0
+
+        for obj in self.interactions:
+            energy += obj.compute_energy()
+
+        return energy

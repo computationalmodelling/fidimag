@@ -28,6 +28,9 @@ class MicroDriver(object):
                      during the LLG equation integration. See the
                      fidimag/atomistic/lib/llg.c file for more details)
 
+                     TODO: Check default_c units in the micromagnetic
+                           context
+
     """
 
     def __init__(self, mesh, spin, Ms, field, alpha, pins,
@@ -111,35 +114,25 @@ class MicroDriver(object):
         # Initialise the table for the data file with the simulation
         # information:
 
-        self.saver = DataSaver(self, name + '.txt')
-
-        self.saver.entities['E_total'] = {
-            'unit': '<J>',
-            'get': lambda sim: sim.compute_energy(),
-            'header': 'E_total'}
-
-        self.saver.entities['m_error'] = {
-            'unit': '<>',
-            'get': lambda sim: sim.compute_spin_error(),
-            'header': 'm_error'}
+        self.data_saver = data_saver
 
         # This should not be necessary:
-        # self.saver.entities['skx_num'] = {
+        # self.data_saver.entities['skx_num'] = {
         #     'unit': '<>',
         #     'get': lambda sim: sim.skyrmion_number(),
         #     'header': 'skx_num'}
 
-        self.saver.entities['rhs_evals'] = {
+        self.data_saver.entities['rhs_evals'] = {
             'unit': '<>',
             'get': lambda sim: self.integrator.rhs_evals(),
             'header': 'rhs_evals'}
 
-        self.saver.entities['real_time'] = {
+        self.data_saver.entities['real_time'] = {
             'unit': '<s>',
             'get': lambda _: time.time(),  # seconds since epoch
             'header': 'real_time'}
 
-        self.saver.update_entity_order()
+        self.data_saver.update_entity_order()
 
         # ---------------------------------------------------------------------
 
@@ -165,62 +158,6 @@ class MicroDriver(object):
         """
         pass
 
-    def save_vtk(self):
-        """
-        Save a VTK file with the magnetisation vector field (vector data)
-        and the saturation magnetisation values (scalar data) as
-        cell data
-        """
-        self.vtk.save_vtk(self.spin.reshape(-1, 3), self._Ms, step=self.step)
-
-    def save_m(self):
-        """
-        Save the magnetisation/spin vector field as a numpy array in
-        a NPY file. The files are saved in the `{name}_npys` folder, where
-        `{name}` is the simulation name, with the file name `m_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_npys' % self.name):
-            os.makedirs('%s_npys' % self.name)
-        name = '%s_npys/m_%g.npy' % (self.name, self.step)
-        np.save(name, self.spin)
-
-    def save_skx(self):
-        """
-        Save the skyrmion number density (sk number per mesh site)
-        as a numpy array in a NPY file.
-        The files are saved in the `{name}_skx_npys` folder, where
-        `{name}` is the simulation name, with the file name `skx_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_skx_npys' % self.name):
-            os.makedirs('%s_skx_npys' % self.name)
-        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
-
-        # The _skx_number array is defined in the SimBase class in Common
-        np.save(name, self._skx_number)
-
-    def compute_average(self):
-        """
-        Compute the average values of the 3 components of the magnetisation
-        vector field
-        """
-        self.spin.shape = (-1, 3)
-        average = np.sum(self.spin, axis=0) / self.n_nonzero
-        self.spin.shape = (3 * self.n)
-        return average
-
-    def compute_energy(self):
-        """
-        Compute the total energy of the magnetic system
-        """
-        energy = 0
-
-        for obj in self.interactions:
-            energy += obj.compute_energy()
-
-        return energy
-
     def compute_effective_field(self, t):
         """
         Compute the effective field from the simulation interactions,
@@ -240,21 +177,6 @@ class MicroDriver(object):
             if obj.jac:
                 self.field += obj.compute_field(t, spin=spin)
 
-    def spin_length(self):
-        """
-        Returns an array with the length of every spin in the mesh. The
-        order is given by the mesh.coordinates order
-        """
-        self.spin.shape = (-1, 3)
-        length = np.sqrt(np.sum(self.spin ** 2, axis=1))
-        self.spin.shape = (-1,)
-        return length
-
-    def compute_spin_error(self):
-        length = self.spin_length() - 1.0
-        length[self._pins > 0] = 0
-        return np.max(abs(length))
-
     def compute_dmdt(self, dt):
         m0 = self.spin_last
         m1 = self.spin
@@ -262,6 +184,9 @@ class MicroDriver(object):
         max_dm = np.max(np.sqrt(np.sum(dm ** 2, axis=0)))
         max_dmdt = max_dm / dt
         return max_dmdt
+
+    def stat(self):
+        return self.integrator.stat()
 
     def reset_integrator(self, t=0):
         """
@@ -297,7 +222,7 @@ class MicroDriver(object):
         if t <= self.t:
             if t == self.t and self.t == 0.0:
                 self.compute_effective_field(t)
-                self.saver.save()
+                self.data_saver.save()
             return
 
         self.spin_last[:] = self.spin[:]
@@ -311,7 +236,7 @@ class MicroDriver(object):
         self.step += 1
 
         self.compute_effective_field(t)  # update fields before saving data
-        self.saver.save()
+        self.data_saver.save()
 
     def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000,
               save_m_steps=100, save_vtk_steps=100):
@@ -367,3 +292,42 @@ class MicroDriver(object):
 
         if save_vtk_steps is not None:
             self.save_vtk()
+
+    # -------------------------------------------------------------------------
+    # Save functions ----------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+    def save_vtk(self):
+        """
+        Save a VTK file with the magnetisation vector field (vector data)
+        and the saturation magnetisation values (scalar data) as
+        cell data
+        """
+        self.vtk.save_vtk(self.spin.reshape(-1, 3), self._Ms, step=self.step)
+
+    def save_m(self):
+        """
+        Save the magnetisation/spin vector field as a numpy array in
+        a NPY file. The files are saved in the `{name}_npys` folder, where
+        `{name}` is the simulation name, with the file name `m_{step}.npy`
+        where `{step}` is the simulation step (from the integrator)
+        """
+        if not os.path.exists('%s_npys' % self.name):
+            os.makedirs('%s_npys' % self.name)
+        name = '%s_npys/m_%g.npy' % (self.name, self.step)
+        np.save(name, self.spin)
+
+    def save_skx(self):
+        """
+        Save the skyrmion number density (sk number per mesh site)
+        as a numpy array in a NPY file.
+        The files are saved in the `{name}_skx_npys` folder, where
+        `{name}` is the simulation name, with the file name `skx_{step}.npy`
+        where `{step}` is the simulation step (from the integrator)
+        """
+        if not os.path.exists('%s_skx_npys' % self.name):
+            os.makedirs('%s_skx_npys' % self.name)
+        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
+
+        # The _skx_number array is defined in the SimBase class in Common
+        np.save(name, self._skx_number)

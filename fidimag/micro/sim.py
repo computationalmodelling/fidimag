@@ -5,7 +5,6 @@ from . import llg_stt
 from . import llg_stt_cpp
 from . import baryakhtar
 
-from . import micro_driver
 import fidimag.extensions.micro_clib as micro_clib
 import fidimag.common.helper as helper
 
@@ -58,7 +57,8 @@ class Sim(SimBase):
         self._micromagnetic = True
 
         # Saturation magnetisation definitions:
-        self._Ms = np.zeros(self.n, dtype=np.float)
+        # self._Ms = np.zeros(self.n, dtype=np.float)
+        self._Ms = self._magnetisation
         self._Ms_inv = np.zeros(self.n, dtype=np.float)
 
         # Here we link one of the drivers to evolve the LLG equation
@@ -82,13 +82,10 @@ class Sim(SimBase):
         # Some references to functions in the corresponding driver classes
         # that can be accessed through the Simulation class
         self.relax = self.driver.relax
-        self.compute_energy = self.driver.compute_energy
         self.compute_effective_field = self.driver.compute_effective_field
         self.save_vtk = self.driver.save_vtk
         self.save_m = self.driver.save_m
         self.save_skx = self.driver.save_skx
-        self.compute_average = self.driver.compute_average
-        self.spin_length = self.driver.spin_length
 
     def get_Ms(self):
         """
@@ -114,7 +111,8 @@ class Sim(SimBase):
                      * In addition, you can specify a function that returns
                        values in A /m, which depends on the spatial
                        coordinates. For example, a 2 nm wide cylinder centered
-                       at (x, y) = (1, 1) can be specified with:
+                       at (x, y) = (1, 1) can be specified with (if you set the
+                       unit_length to 1e-9 in the mesh):
 
                             Ms = 1e6  # A / m
 
@@ -127,12 +125,13 @@ class Sim(SimBase):
                             Sim.set_Ms(Ms_profile)
 
                      * You can also manually specify an array with n values
-                     ranging from 0 to 1 with the magnetisation values, in the
-                     same order than the mesh coordinates array.
+                     with the magnetisation magnitudes, in the same order than
+                     the mesh coordinates array.
 
-                     * Alternatively, if you previously saved the damping
-                     field array to a numpy file, you can load it using
+                     * Alternatively, if you previously saved the magnetisation
+                     array to a numpy file, you can load it using
                      numpy.load(my_array).
+
         """
 
         self._Ms[:] = helper.init_scalar(value, self.mesh)

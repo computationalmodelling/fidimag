@@ -11,7 +11,7 @@ def test_dynamic():
 
     sim = Sim(mesh, name='dyn_spin', driver='llg_stt_cpp')
     # sim.set_options(rtol=1e-10,atol=1e-14)
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.mu_s = 1.0
 
     sim.set_m((0.8,0,-1))
@@ -26,7 +26,7 @@ def test_dynamic():
 
     ts = np.linspace(0, 1200, 401)
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
 
 
     mz = sim.spin[2]
