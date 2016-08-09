@@ -98,6 +98,7 @@ def excite_system(mesh, time=0.1, snaps=11):
         #sim.save_vtk()
     np.save('m1.npy', sim.spin)
 
+    print(np.load('m1.npy')[:100])
 
 def test_stt_dw_atomistic():
     mesh = Mesh(nx=1, ny=1, nz=1000,

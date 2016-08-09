@@ -31,14 +31,14 @@ class LLG(AtomisticDriver):
                  interactions,
                  name,
                  data_saver,
-                 use_jac=False
+                 use_jac
                  ):
 
         # Inherit from the driver class
         super(LLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
                                   alpha, pins, interactions, name,
                                   data_saver,
-                                  use_jac=False
+                                  use_jac
                                   )
 
     def sundials_rhs(self, t, y, ydot):

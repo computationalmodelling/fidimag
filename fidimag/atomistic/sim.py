@@ -172,7 +172,7 @@ class Sim(SimBase):
 
         # TODO: Check if this is necessary here, it is only defined
         # for the LLG STT in the drivers
-        self.mu_s_const = np.max(self._mu_s)
+        self.driver.mu_s_const = np.max(self._mu_s)
 
     mu_s = property(get_mu_s, set_mu_s)
 

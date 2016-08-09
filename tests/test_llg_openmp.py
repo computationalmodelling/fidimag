@@ -124,7 +124,7 @@ def test_sim_single_spin(do_plot=False):
     # print mz
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
-    print(sim.stat())
+    print(sim.driver.stat())
 
     if do_plot:
         ts_ns = np.array(real_ts) * 1e9

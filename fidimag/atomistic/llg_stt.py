@@ -34,14 +34,14 @@ class LLG_STT(AtomisticDriver):
                  interactions,
                  name,
                  data_saver,
-                 use_jac=False
+                 use_jac
                  ):
 
         # Inherit from the driver class
         super(LLG_STT, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
                                       alpha, pins, interactions, name,
                                       data_saver,
-                                      use_jac=False
+                                      use_jac
                                       )
 
         self.field_stt = np.zeros(3 * self.n)

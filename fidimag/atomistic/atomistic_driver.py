@@ -38,7 +38,7 @@ class AtomisticDriver(object):
                  interactions,
                  name,
                  data_saver,
-                 use_jac=False
+                 use_jac
                  ):
 
         # These are (ideally) references to arrays taken from the Simulation
@@ -63,10 +63,10 @@ class AtomisticDriver(object):
         # See also the set_default_options() function
 
         self.t = 0
+        self.step = 0
         self.spin_last = np.ones(3 * self.mesh.n, dtype=np.float)
         self.dm_dt = np.zeros(3 * self.mesh.n, dtype=np.float)
         self.integrator_tolerances_set = False
-        self.step = 0
 
         self.n = self.mesh.n
         self.n_nonzero = self.mesh.n  # number of spins that are not zero
