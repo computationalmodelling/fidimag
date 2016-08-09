@@ -1,11 +1,10 @@
 from __future__ import division
 
-from micro_driver import MicroDriver
+from .micro_driver import MicroDriver
 
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from .llg import LLG
 import fidimag.common.helper as helper
 
 
