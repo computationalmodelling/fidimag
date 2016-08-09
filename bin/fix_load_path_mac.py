@@ -1,3 +1,8 @@
+"""
+Creates working dylibs on Mac OS X by adding the full path to referenced libraries.
+This fixes ImportErrors that may appear starting with SUNDIALS 2.6.
+
+"""
 import os
 import glob
 import re
