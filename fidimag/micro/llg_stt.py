@@ -3,7 +3,7 @@ from __future__ import division
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from micro_driver import MicroDriver
+from .micro_driver import MicroDriver
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 
