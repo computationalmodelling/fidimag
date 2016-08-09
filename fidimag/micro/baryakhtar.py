@@ -1,6 +1,6 @@
 import numpy as np
 import fidimag.extensions.baryakhtar_clib as clib
-from micro_driver import MicroDriver
+from .micro_driver import MicroDriver
 from .relax import Relaxation
 from .relax import Laplace
 
