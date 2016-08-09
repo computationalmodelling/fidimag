@@ -1,12 +1,16 @@
+from __future__ import division
+from __future__ import print_function
+
+from fidimag.common.driver_base import DriverBase
+
 import numpy as np
 from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
-from fidimag.common.fileio import DataSaver, DataReader
-from fidimag.common.save_vtk import SaveVTK
+# from fidimag.common.fileio import DataSaver, DataReader
+from fidimag.common.vtk import VTK
 import time
-import os
 
 
-class MicroDriver(object):
+class MicroDriver(DriverBase):
     """
 
     A class with shared methods and properties for different drivers to solve
@@ -41,6 +45,8 @@ class MicroDriver(object):
                  use_jac=False
                  ):
 
+        super(MicroDriver, self).__init__()
+
         # These are (ideally) references to arrays taken from the Simulation
         # class. Variables with underscore are arrays changed by a property in
         # the simulation class
@@ -70,9 +76,6 @@ class MicroDriver(object):
         self.n = self.mesh.n
         self.n_nonzero = self.mesh.n  # number of spins that are not zero
                                       # We check this in the set_Ms function
-
-        # To save VTK files:
-        self.vtk = SaveVTK(self.mesh, name=name)
 
         self.set_default_options()
 
@@ -109,11 +112,16 @@ class MicroDriver(object):
         else:
             raise NotImplemented("integrator must be sundials, euler or rk4")
 
-        # ---------------------------------------------------------------------
+        # Savers --------------------------------------------------------------
+
+        # VTK saver for the magnetisation/spin field
+        self.VTK = VTK(self.mesh,
+                       directory='{}_vtks'.format(self.name),
+                       filename='m'
+                       )
 
         # Initialise the table for the data file with the simulation
         # information:
-
         self.data_saver = data_saver
 
         # This should not be necessary:
@@ -135,6 +143,13 @@ class MicroDriver(object):
         self.data_saver.update_entity_order()
 
         # ---------------------------------------------------------------------
+
+        # OOMMF convention is to check if the spins have moved by ~1 degree in
+        # a nanosecond in order to stop a simulation, so we set this scale for
+        # dm/dt
+
+        # ONE_DEGREE_PER_NANOSECOND:
+        self._dmdt_factor = (2 * np.pi / 360) / 1e-9
 
     def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
         """
@@ -158,45 +173,6 @@ class MicroDriver(object):
         """
         pass
 
-    def compute_effective_field(self, t):
-        """
-        Compute the effective field from the simulation interactions,
-        calling the method from the micromagnetic Energy class
-        """
-
-        # self.spin[:] = y[:]
-
-        self.field[:] = 0
-
-        for obj in self.interactions:
-            self.field += obj.compute_field(t)
-
-    def compute_effective_field_jac(self, t, spin):
-        self.field[:] = 0
-        for obj in self.interactions:
-            if obj.jac:
-                self.field += obj.compute_field(t, spin=spin)
-
-    def compute_dmdt(self, dt):
-        m0 = self.spin_last
-        m1 = self.spin
-        dm = (m1 - m0).reshape((3, -1))
-        max_dm = np.max(np.sqrt(np.sum(dm ** 2, axis=0)))
-        max_dmdt = max_dm / dt
-        return max_dmdt
-
-    def stat(self):
-        return self.integrator.stat()
-
-    def reset_integrator(self, t=0):
-        """
-        Reset the CVODE integrator and set the simulation time to `t`
-        The simulation step is reset to zero
-        """
-        self.integrator.reset(self.spin, t)
-        self.t = t  # also reinitialise the simulation time and step
-        self.step = 0
-
     def set_tols(self, rtol=1e-8, atol=1e-10, max_ord=None, reset=True):
         """
         Set the relative and absolute tolerances for the CVODE integrator
@@ -210,89 +186,6 @@ class MicroDriver(object):
         if reset:
             self.reset_integrator(self.t)
 
-    def run_until(self, t):
-        """
-        Evolve the system with a micromagnetic driver (LLG, LLG_STT, etc.)
-        until a specific time `t`, using the specified integrator.
-        The integrator was specified with the right hand side of the
-        driver equation
-
-        """
-
-        if t <= self.t:
-            if t == self.t and self.t == 0.0:
-                self.compute_effective_field(t)
-                self.data_saver.save()
-            return
-
-        self.spin_last[:] = self.spin[:]
-
-        flag = self.integrator.run_until(t)
-        if flag < 0:
-            raise Exception("Run run_until failed!!!")
-
-        self.spin[:] = self.integrator.y[:]
-        self.t = t
-        self.step += 1
-
-        self.compute_effective_field(t)  # update fields before saving data
-        self.data_saver.save()
-
-    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000,
-              save_m_steps=100, save_vtk_steps=100):
-        """
-
-        Evolve the system until meeting the dmdt < stopping_dmdt criteria. We
-        can specify to save VTK and NPY files with the magnetisation vector
-        field, every certain number of the integrator steps
-
-        TODO: Check what dt is exactly doing
-
-        """
-
-        # OOMMF convention is to check if the spins have moved by
-        # ~1 degree in a nanosecond in order to stop a simulation,
-        # so we set this scale for dm/dt
-        ONE_DEGREE_PER_NS = (2 * np.pi / 360) / 1e-9
-
-        for i in range(0, max_steps + 1):
-
-            cvode_dt = self.integrator.get_current_step()
-
-            increment_dt = dt
-
-            if cvode_dt > dt:
-                increment_dt = cvode_dt
-
-            self.run_until(self.t + increment_dt)
-
-            if save_vtk_steps is not None:
-                if i % save_vtk_steps == 0:
-                    self.save_vtk()
-            if save_m_steps is not None:
-                if i % save_m_steps == 0:
-                    self.save_m()
-
-            dmdt = self.compute_dmdt(increment_dt)
-
-            print(('step=%d ' +
-                   'time=%0.3g ' +
-                   'max_dmdt=%0.3g ' +
-                   'ode_step=%0.3g') % (self.step,
-                                        self.t,
-                                        dmdt / ONE_DEGREE_PER_NS,
-                                        cvode_dt)
-                  )
-
-            if dmdt < stopping_dmdt * ONE_DEGREE_PER_NS:
-                break
-
-        if save_m_steps is not None:
-            self.save_m()
-
-        if save_vtk_steps is not None:
-            self.save_vtk()
-
     # -------------------------------------------------------------------------
     # Save functions ----------------------------------------------------------
     # -------------------------------------------------------------------------
@@ -303,31 +196,10 @@ class MicroDriver(object):
         and the saturation magnetisation values (scalar data) as
         cell data
         """
-        self.vtk.save_vtk(self.spin.reshape(-1, 3), self._Ms, step=self.step)
+        self.VTK.reset_data()
 
-    def save_m(self):
-        """
-        Save the magnetisation/spin vector field as a numpy array in
-        a NPY file. The files are saved in the `{name}_npys` folder, where
-        `{name}` is the simulation name, with the file name `m_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_npys' % self.name):
-            os.makedirs('%s_npys' % self.name)
-        name = '%s_npys/m_%g.npy' % (self.name, self.step)
-        np.save(name, self.spin)
+        # Here we save both Ms and spins as cell data
+        self.VTK.save_scalar(self._Ms, name='mu_s')
+        self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
 
-    def save_skx(self):
-        """
-        Save the skyrmion number density (sk number per mesh site)
-        as a numpy array in a NPY file.
-        The files are saved in the `{name}_skx_npys` folder, where
-        `{name}` is the simulation name, with the file name `skx_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_skx_npys' % self.name):
-            os.makedirs('%s_skx_npys' % self.name)
-        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
-
-        # The _skx_number array is defined in the SimBase class in Common
-        np.save(name, self._skx_number)
+        self.VTK.write_file(step=self.step)
