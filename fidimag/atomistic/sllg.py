@@ -4,10 +4,9 @@ import fidimag.extensions.clib as clib
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 
-from .atomistic_driver import AtomisticDriver
+from fidimag.common.llg_driver import LLG_Driver
 
-
-class SLLG(AtomisticDriver):
+class SLLG(LLG_Driver):
     """
 
     This class is the driver to solve the Stochastic Landau Lifshitz Gilbert
@@ -25,20 +24,18 @@ class SLLG(AtomisticDriver):
     are taken as references from the main micromagnetic Simulation class
 
     """
-
-    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
-                 interactions,
-                 name,
-                 data_saver,
-                 use_jac=False
-                 ):
-
+    def __init__(self, mesh, spin, magnitude, pins, 
+                interactions, 
+                field, 
+                data_saver, integrator = "stochastic", 
+                use_jac=False):
         # Inherit from the driver class
-        super(SLLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
-                                   alpha, pins, interactions, name,
-                                   data_saver,
-                                   use_jac=False
-                                   )
+        super(SLLG, self).__init__(mesh, spin, magnitude, pins, 
+                                        interactions, field, 
+                                        data_saver,
+                                        integrator = "stochastic", 
+                                        use_jac=False)
+
 
         self._T = np.zeros(self.n, dtype=np.float)
         self.next_spin = np.zeros(3*self.n, dtype=np.float)
@@ -73,7 +70,7 @@ class SLLG(AtomisticDriver):
         self.theta1 = 1-0.5/theta
         self.theta2 = 0.5/theta
 
-    def run_step(self):
+    def run_minor_step(self):
 
         self.mt19937.fill_vector_gaussian(self.eta)
 
@@ -119,20 +116,10 @@ class SLLG(AtomisticDriver):
         for obj in self.interactions:
             self.field += obj.compute_field(t, spin=y)
 
-    def run_until(self, t):
-
-        if t <= self.t:
-            if t == self.t and self.t == 0.0:
-                self.compute_effective_field(t)
-                self.data_saver.save()
-            return
-
-        self.spin_last[:] = self.spin[:]
-
-        while (self.t < t):
-            self.run_step()
-        self.step += 1
-
-        # update field before saving data
-        self.compute_effective_field(t)
-        self.data_saver.save()
+    def next_step(self, t=None):
+        if t is None:
+            self.run_minor_step()
+        else:
+            while (self.t < t):
+                self.run_minor_step()
+            self.step += 1

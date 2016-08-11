@@ -66,14 +66,12 @@ class Sim(SimBase):
             raise NotImplementedError("""Driver '{}' is not implemented.
                                       Valid choices: one of '{}'.""".format(driver, KNOWN_DRIVERS.keys()))
 
-        self.driver = KNOWN_DRIVERS[driver](self.mesh,
+        self.driver = KNOWN_DRIVERS[driver](mesh,
                                             self.spin,
                                             self._Ms,
-                                            self.field,
-                                            self._alpha,
                                             self._pins,
                                             self.interactions,
-                                            self.name,
+                                            self.field,
                                             self.data_saver,
                                             integrator=integrator,
                                             use_jac=use_jac
@@ -81,11 +79,7 @@ class Sim(SimBase):
 
         # Some references to functions in the corresponding driver classes
         # that can be accessed through the Simulation class
-        self.relax = self.driver.relax
         self.compute_effective_field = self.driver.compute_effective_field
-        self.save_vtk = self.driver.save_vtk
-        self.save_m = self.driver.save_m
-        self.save_skx = self.driver.save_skx
 
     def get_Ms(self):
         """

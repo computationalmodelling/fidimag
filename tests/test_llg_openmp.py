@@ -38,7 +38,7 @@ def test_sim_pin():
     anis = UniaxialAnisotropy(Ku=1, axis=[0, 0, 1], name='Dx')
     sim.add(anis)
 
-    sim.driver.run_until(1.0)
+    sim.run_until(1.0)
     print(sim.spin)
     assert sim.spin[0] == 0
     assert sim.spin[2] != 0
@@ -113,7 +113,7 @@ def test_sim_single_spin(do_plot=False):
     mz = []
     real_ts = []
     for t in ts:
-        sim.driver.run_until(t)
+        sim.run_until(t)
         real_ts.append(sim.driver.t)
         print(sim.driver.t, abs(sim.spin_length()[0] - 1))
         mx.append(sim.spin[0])

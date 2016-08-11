@@ -5,11 +5,11 @@ import types
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from .atomistic_driver import AtomisticDriver
+from fidimag.common.llg_driver import LLG_Driver
 import fidimag.common.helper as helper
 
 
-class LLG_STT_CPP(AtomisticDriver):
+class LLG_STT_CPP(LLG_Driver):
 
     """
 
@@ -30,19 +30,18 @@ class LLG_STT_CPP(AtomisticDriver):
 
     """
 
-    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
-                 interactions,
-                 name,
-                 data_saver,
-                 use_jac
-                 ):
-
+    def __init__(self, mesh, spin, magnitude, pins, 
+                interactions, 
+                field, 
+                data_saver, integrator = "sundials", 
+                use_jac=False):
+    
         # Inherit from the driver class
-        super(LLG_STT_CPP, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
-                                          alpha, pins, interactions, name,
-                                          data_saver,
-                                          use_jac
-                                          )
+        super(LLG_STT_CPP, self).__init__(mesh, spin, magnitude, pins, 
+                                        interactions, field, 
+                                        data_saver,
+                                        integrator = integrator, 
+                                        use_jac=False)
 
         self._p = np.zeros(3 * self.n, dtype=np.float)
         self._a_J = np.zeros(self.n, dtype=np.float)

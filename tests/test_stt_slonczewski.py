@@ -26,7 +26,7 @@ def test_dynamic():
 
     ts = np.linspace(0, 1200, 401)
     for t in ts:
-        sim.driver.run_until(t)
+        sim.run_until(t)
 
 
     mz = sim.spin[2]
