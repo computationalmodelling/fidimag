@@ -1,3 +1,4 @@
+import os
 import fidimag.common.helper as helper
 from fidimag.common.fileio import DataSaver, DataReader
 
@@ -19,8 +20,10 @@ class SimBase(object):
         self.n_nonzero = mesh.n
         self.unit_length = mesh.unit_length
 
+        self.t = 0
+        self.step = 0
+
         self._magnetisation = np.zeros(self.n, dtype=np.float)
-        self._alpha = np.zeros(self.n, dtype=np.float)
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)
         self.field = np.zeros(3 * self.n, dtype=np.float)
@@ -103,7 +106,8 @@ class SimBase(object):
 
         # Set the initial state for the Sundials integrator using the
         # spins array
-        self.driver.integrator.set_initial_value(self.spin, self.driver.t)
+        # we probably need to change this line in the future.
+        self.driver.set_initial_value(self.t)
 
     def get_pins(self):
         """
@@ -154,7 +158,7 @@ class SimBase(object):
         Returns the array with the spatially dependent Gilbert damping
         per mesh/lattice site
         """
-        return self._alpha
+        return self.driver._alpha
 
     def set_alpha(self, value):
         """
@@ -186,7 +190,8 @@ class SimBase(object):
                      field array to a numpy file, you can load it using
                      numpy.load(my_array)
         """
-        self._alpha[:] = helper.init_scalar(value, self.mesh)
+        self.driver._alpha[:] = helper.init_scalar(value, self.mesh)
+        #TODO: will encourge the users to set alpha through driver.alpha
 
     alpha = property(get_alpha, set_alpha)
 
@@ -317,3 +322,117 @@ class SimBase(object):
             energy += obj.compute_energy()
 
         return energy
+
+    # -------------------------------------------------------------------------
+    # Save functions ----------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+    def save_vtk(self):
+        pass
+
+    def save_m(self):
+        """
+        Save the magnetisation/spin vector field as a numpy array in
+        a NPY file. The files are saved in the `{name}_npys` folder, where
+        `{name}` is the simulation name, with the file name `m_{step}.npy`
+        where `{step}` is the simulation step (from the integrator)
+        """
+        if not os.path.exists('%s_npys' % self.name):
+            os.makedirs('%s_npys' % self.name)
+        name = '%s_npys/m_%g.npy' % (self.name, self.step)
+        np.save(name, self.spin)
+
+    def save_skx(self):
+        """
+        Save the skyrmion number density (sk number per mesh site)
+        as a numpy array in a NPY file.
+        The files are saved in the `{name}_skx_npys` folder, where
+        `{name}` is the simulation name, with the file name `skx_{step}.npy`
+        where `{step}` is the simulation step (from the integrator)
+        """
+        if not os.path.exists('%s_skx_npys' % self.name):
+            os.makedirs('%s_skx_npys' % self.name)
+        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
+
+        # The _skx_number array is defined in the SimBase class in Common
+        np.save(name, self._skx_number)
+
+    def run_until(self, t):
+        """
+        Evolve the system with a micromagnetic driver (LLG, LLG_STT, etc.)
+        until a specific time `t`, using the specified integrator.
+        The integrator was specified with the right hand side of the
+        driver equation
+
+        """
+
+        if t <= self.t:
+            if t == self.t and self.t == 0.0:
+                self.compute_effective_field(t)
+                self.data_saver.save()
+            return
+
+        self.driver.next_step(t)
+
+        self.t = self.driver.t
+        self.step = self.driver.step
+        #print(t, self.t, self.step)
+
+        # Update field before saving data
+        self.compute_effective_field(t)
+        self.data_saver.save()
+
+    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000,
+              save_m_steps=100, save_vtk_steps=100
+              ):
+        """
+
+        Evolve the system until meeting the dmdt < stopping_dmdt criteria. We
+        can specify to save VTK and NPY files with the magnetisation vector
+        field, every certain number of the integrator steps
+
+        TODO: Check what dt is exactly doing
+
+        """
+
+        for i in range(0, max_steps + 1):
+
+            cvode_dt = self.driver.cvode_dt()
+
+            increment_dt = dt
+            if dt < cvode_dt:
+                increment_dt = cvode_dt
+                self.driver.next_step()
+            else:
+                self.driver.next_step(self.t+dt)
+            
+            self.t = self.driver.t
+            self.step = self.driver.step
+
+            if save_vtk_steps is not None:
+                if i % save_vtk_steps == 0:
+                    self.save_vtk()
+            if save_m_steps is not None:
+                if i % save_m_steps == 0:
+                    self.save_m()
+
+            dmdt = self.driver.compute_dmdt(increment_dt)
+
+            print(('step=%d ' +
+                   'time=%0.3g ' +
+                   'max_dmdt=%0.3g ' +
+                   'ode_step=%0.3g') % (self.step,
+                                        self.t,
+                                        dmdt / self.driver._dmdt_factor,
+                                        cvode_dt)
+                  )
+
+
+            if dmdt < stopping_dmdt * self.driver._dmdt_factor:
+                break
+
+        if save_m_steps is not None:
+            self.save_m()
+
+        if save_vtk_steps is not None:
+            self.save_vtk()

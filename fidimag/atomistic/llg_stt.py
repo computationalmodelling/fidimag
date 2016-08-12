@@ -3,13 +3,12 @@ from __future__ import division
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from .atomistic_driver import AtomisticDriver
-
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 
+from fidimag.common.llg_driver import LLG_Driver
 
-class LLG_STT(AtomisticDriver):
+class LLG_STT(LLG_Driver):
 
     """
 
@@ -30,19 +29,18 @@ class LLG_STT(AtomisticDriver):
 
     """
 
-    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
-                 interactions,
-                 name,
-                 data_saver,
-                 use_jac
-                 ):
-
+    def __init__(self, mesh, spin, magnitude, pins, 
+                interactions, 
+                field, 
+                data_saver, integrator = "sundials", 
+                use_jac=False):
         # Inherit from the driver class
-        super(LLG_STT, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
-                                      alpha, pins, interactions, name,
-                                      data_saver,
-                                      use_jac
-                                      )
+        super(LLG_STT, self).__init__(mesh, spin, magnitude, pins, 
+                                        interactions, field, 
+                                        data_saver,
+                                        integrator = integrator, 
+                                        use_jac=False)
+
 
         self.field_stt = np.zeros(3 * self.n)
 
