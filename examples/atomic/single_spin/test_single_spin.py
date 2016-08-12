@@ -38,7 +38,7 @@ def relax_system(rtol=1e-10, atol=1e-12):
     ts = np.linspace(0, 1e-9, 1001)
 
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
 
 
 def custom_legend(legend):
@@ -108,7 +108,6 @@ def test_single_moment_analytic():
     My = data['m_y']
     Mz = data['m_z']
 
-    print(mx-Mx)
     # check absolute tolerance is < 1e-8
     assert np.allclose(mx, Mx, rtol=0, atol=1e-8)
     assert np.allclose(my, My, rtol=0, atol=1e-8)
@@ -124,4 +123,3 @@ if __name__ == '__main__':
 
     relax_system()
     plot_all()
-    test_single_moment_analytic()

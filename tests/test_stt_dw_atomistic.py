@@ -94,7 +94,7 @@ def excite_system(mesh, time=0.1, snaps=11):
 
     for t in ts:
         print('time', t)
-        sim.run_until(t)
+        sim.driver.run_until(t)
         #sim.save_vtk()
     np.save('m1.npy', sim.spin)
 

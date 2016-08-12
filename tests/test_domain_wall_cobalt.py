@@ -46,7 +46,7 @@ def setup_domain_wall_cobalt(node_count=NODE_COUNT, A=A_Co, Ms=Ms_Co, K1=K1_Co, 
 def compute_domain_wall_cobalt(end_time):
     print("will compute until {}".format(end_time))
     sim = setup_domain_wall_cobalt()
-    sim.run_until(end_time)
+    sim.driver.run_until(end_time)
     return sim.mesh.coordinates[:, 0], sim.spin
 
 
