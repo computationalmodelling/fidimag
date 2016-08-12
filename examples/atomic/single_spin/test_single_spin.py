@@ -38,7 +38,7 @@ def relax_system(rtol=1e-10, atol=1e-12):
     ts = np.linspace(0, 1e-9, 1001)
 
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
 
 
 def custom_legend(legend):

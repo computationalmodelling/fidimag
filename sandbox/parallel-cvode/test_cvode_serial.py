@@ -56,6 +56,6 @@ sim.add(fidimag.micro.DMI(D=D))
 # Initialise the system.
 sim.set_m(init_m)
 a = time.time()
-sim.run_until(5e-9)
+sim.driver.run_until(5e-9)
 b = time.time()
 print('elpased time: %g'%(b - a))

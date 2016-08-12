@@ -210,7 +210,7 @@ def test_skx_num_micromagnetic():
 
     sim.set_m(lambda pos: init_m(pos, x0=3, y0=3, r=1))
 
-    sim.driver.do_precession = False
+    sim..driver.do_precession = False
 
     A = 2e-12
     exch = microUniformExchange(A)
