@@ -1,6 +1,6 @@
 from __future__ import division
 
-from .llg import LLG
+from .micro_driver import MicroDriver
 
 import fidimag.extensions.clib as clib
 import numpy as np
@@ -8,7 +8,7 @@ import numpy as np
 import fidimag.common.helper as helper
 
 
-class LLG_STT_CPP(LLG):
+class LLG_STT_CPP(MicroDriver):
 
     """
 
@@ -30,18 +30,21 @@ class LLG_STT_CPP(LLG):
 
         """
 
-    def __init__(self, mesh, spin, magnitude, pins, 
-                interactions, 
-                field, 
-                data_saver, integrator = "sundials", 
-                use_jac=False):
-    
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False
+                 ):
+
         # Inherit from the driver class
-        super(LLG_STT_CPP, self).__init__(mesh, spin, magnitude, pins, 
-                                        interactions, field, 
-                                        data_saver,
-                                        integrator = integrator, 
-                                        use_jac=False)
+        super(LLG_STT_CPP, self).__init__(mesh, spin, Ms, field,
+                                          alpha, pins, interactions, name,
+                                          data_saver,
+                                          integrator='sundials',
+                                          use_jac=False
+                                          )
 
         self._p = np.zeros(3 * self.n, dtype=np.float)
         self._a_J = np.zeros(self.n, dtype=np.float)

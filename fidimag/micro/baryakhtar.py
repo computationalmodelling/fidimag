@@ -1,24 +1,28 @@
 import numpy as np
 import fidimag.extensions.baryakhtar_clib as clib
-from fidimag.common.llg_driver import LLG_Driver
+from .micro_driver import MicroDriver
 from .relax import Relaxation
 from .relax import Laplace
 
 
-class LLBarFull(LLG_Driver):
+class LLBarFull(MicroDriver):
 
-    def __init__(self, mesh, spin, magnitude, pins, 
-                interactions, 
-                field, 
-                data_saver, integrator = "sundials", 
-                use_jac=False,
-                chi=1e-3):
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False,
+                 chi=1e-3
+                 ):
+
         # Inherit from the driver class
-        super(LLBarFull, self).__init__(mesh, spin, magnitude, pins, 
-                                        interactions, field, 
+        super(LLBarFull, self).__init__(mesh, spin, Ms, field,
+                                        alpha, pins, interactions, name,
                                         data_saver,
-                                        integrator = integrator, 
-                                        use_jac=False)
+                                        integrator='sundials',
+                                        use_jac=False
+                                        )
 
         self.chi = chi
         self.lap = Laplace(mesh)
@@ -52,21 +56,23 @@ class LLBarFull(LLG_Driver):
         return 0
 
 
-class LLBar(LLG_Driver):
+class LLBar(MicroDriver):
 
-    def __init__(self, mesh, spin, magnitude, pins, 
-                interactions, 
-                field, 
-                data_saver, integrator = "sundials", 
-                use_jac=False,
-                chi=1e-3):
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False,
+                 ):
+
         # Inherit from the driver class
-        super(LLBar, self).__init__(mesh, spin, magnitude, pins, 
-                                        interactions, field, 
-                                        data_saver,
-                                        integrator = integrator, 
-                                        use_jac=False)
-
+        super(LLBar, self).__init__(mesh, spin, Ms, field,
+                                    alpha, pins, interactions, name,
+                                    data_saver,
+                                    integrator='sundials',
+                                    use_jac=False
+                                    )
 
         self.lap = Laplace(mesh)
 

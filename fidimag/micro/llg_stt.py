@@ -3,12 +3,12 @@ from __future__ import division
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from fidimag.common.llg_driver import LLG_Driver
+from .micro_driver import MicroDriver
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 
 
-class LLG_STT(LLG_Driver):
+class LLG_STT(MicroDriver):
 
     """
 
@@ -29,17 +29,21 @@ class LLG_STT(LLG_Driver):
 
         """
 
-    def __init__(self, mesh, spin, magnitude, pins, 
-                interactions, 
-                field, 
-                data_saver, integrator = "sundials", 
-                use_jac=False):
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False
+                 ):
+
         # Inherit from the driver class
-        super(LLG_STT, self).__init__(mesh, spin, magnitude, pins, 
-                                        interactions, field, 
-                                        data_saver,
-                                        integrator = integrator, 
-                                        use_jac=False)
+        super(LLG_STT, self).__init__(mesh, spin, Ms, field,
+                                      alpha, pins, interactions, name,
+                                      data_saver,
+                                      integrator='sundials',
+                                      use_jac=False
+                                      )
 
         self.field_stt = np.zeros(3 * self.n)
 
@@ -53,18 +57,6 @@ class LLG_STT(LLG_Driver):
 
         # FIXME: change the u0 to spatial
         self.u0 = const.g_e * const.mu_B / (2 * const.c_e)
-
-    def set_default_options(self, gamma=2.21e5, Ms=8.0e5, alpha=0.1):
-        self.default_c = 1e11
-        self._alpha[:] = alpha
-
-        # When we create the simulation, Ms is set to the default value. This
-        # is overriden when calling the set_Ms method from the Siulation class
-        # or when setting Ms directly (property)
-        self._magnitude[:] = Ms
-
-        self.gamma = gamma
-        self.do_precession = True
 
     def get_jx(self):
         return self._jx

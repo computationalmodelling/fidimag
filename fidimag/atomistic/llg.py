@@ -3,10 +3,10 @@ from __future__ import print_function
 
 import fidimag.extensions.clib as clib
 
-from fidimag.common.llg_driver import LLG_Driver
+from .atomistic_driver import AtomisticDriver
 
 
-class LLG(LLG_Driver):
+class LLG(AtomisticDriver):
 
     """
 
@@ -26,22 +26,20 @@ class LLG(LLG_Driver):
     are taken as references from the main micromagnetic Simulation class
 
     """
-    def set_default_options(self, gamma=1.0, mu_s=1.0, alpha=0.1):
-        """
-        Default option for the integrator
-        Default gamma is for a free electron
-        """
-        self.default_c = -1.0
-        self._alpha[:] = alpha
 
-        # When we create the simulation, mu_s is set to the default value. This
-        # is overriden when calling the set_ms method from the Siulation class
-        # or when setting Ms directly (property)
-        self._magnitude[:] = mu_s
+    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 use_jac
+                 ):
 
-        self.gamma = gamma
-        self.do_precession = True
-        self._dmdt_factor = 1.0
+        # Inherit from the driver class
+        super(LLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
+                                  alpha, pins, interactions, name,
+                                  data_saver,
+                                  use_jac
+                                  )
 
     def sundials_rhs(self, t, y, ydot):
 
