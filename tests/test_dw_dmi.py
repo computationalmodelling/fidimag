@@ -77,7 +77,7 @@ def test_dw_dmi(mesh=mesh, do_plot=False):
     sim.add(DMI(D))
     sim.add(UniaxialAnisotropy(Kx, axis=[1, 0, 0], name='Kx'))
 
-    sim.driver.relax(stopping_dmdt=0.01)
+    sim.relax(stopping_dmdt=0.01)
 
     xs = np.array([p[0] for p in mesh.coordinates])
     mx, my, mz = analytical(xs, A=A, D=D, K=Kx)
