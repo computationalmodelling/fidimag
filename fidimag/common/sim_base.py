@@ -376,7 +376,6 @@ class SimBase(object):
 
         self.t = self.driver.t
         self.step = self.driver.step
-        #print(t, self.t, self.step)
 
         # Update field before saving data
         self.compute_effective_field(t)

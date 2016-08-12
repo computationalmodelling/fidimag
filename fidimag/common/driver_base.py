@@ -29,4 +29,4 @@ class DriverBase(object):
     
     def next_step(self, time=None):
 
-        raise Exception('Derived classes should override this method!')
+        return None
