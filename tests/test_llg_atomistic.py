@@ -42,7 +42,7 @@ def test_sim_pin():
     anis = Anisotropy(Ku=1.0, axis=[0, 0, 1], name='Dx')
     sim.add(anis)
 
-    sim.run_until(1.0)
+    sim.driver.run_until(1.0)
     assert sim.spin[0] == 0
     assert sim.spin[2] != 0
 
@@ -137,7 +137,7 @@ def test_sim_single_spin_vode(do_plot=False):
     mz = []
     real_ts = []
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
         real_ts.append(sim.driver.t)
         #print sim.driver.t, abs(sim.spin_length()[0] - 1)
         mx.append(sim.spin[0])
@@ -184,7 +184,7 @@ def test_sim_spins(do_plot=False):
     real_ts = []
 
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
         real_ts.append(sim.driver.t)
         #print sim.driver.t, abs(sim.spin_length()[0] - 1)
         av = sim.compute_average()
@@ -220,8 +220,8 @@ def test_sim_single_spin_sllg(do_plot=False):
 
     sim.driver.set_options(dt=5e-15, gamma=gamma)
 
-    sim.mu_s = 1.0
     sim.alpha = alpha
+    sim.mu_s = 1.0
 
     sim.set_m((1, 0, 0))
 
@@ -235,7 +235,7 @@ def test_sim_single_spin_sllg(do_plot=False):
     mz = []
     real_ts = []
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
         real_ts.append(sim.driver.t)
         print(sim.driver.t, abs(sim.spin_length()[0] - 1))
         mx.append(sim.spin[0])

@@ -60,7 +60,7 @@ def relax_system(mesh):
     sim.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.6e5
-    sim.driver.do_precession = False
+    sim.do_precession = False
 
     # The initial state passed as a function
     sim.set_m(init_m)
@@ -95,7 +95,7 @@ def excite_system(mesh, time=5, snaps=501):
     # Set the simulation parameters
     sim.driver.set_tols(rtol=1e-12, atol=1e-14)
     sim.alpha = 0.05
-    sim.driver.gamma = 2.211e5
+    sim.gamma = 2.211e5
     sim.Ms = 8.6e5
 
     # Load the initial state from the npy file saved
@@ -124,7 +124,7 @@ def excite_system(mesh, time=5, snaps=501):
 
     for t in ts:
         print('time', t)
-        sim.run_until(t)
+        sim.driver.run_until(t)
         sim.save_vtk()
         sim.save_m()
 
@@ -148,7 +148,7 @@ def test_stt_dw():
     x = np.arange(len(m0_z))
     index_max = np.argmax(np.abs(m0_z))
 
-    #assert x[index_max] == 225
+    assert x[index_max] == 225
     assert np.abs(m0_z[index_max] - 0.705740362679) < 1e-8
 
     # Excite the system for 1.5 ns
@@ -158,11 +158,11 @@ def test_stt_dw():
     x = np.arange(len(m0_z))
     # Check that the DW is at the 242th x-position in the 100th snapshot
     print(x[np.argmax(np.abs(m0_z))])
-    assert x[np.argmax(np.abs(m0_z))] == 243
+    assert x[np.argmax(np.abs(m0_z))] == 242
 
     # Check that the DW is at the 251th x-position in the 150th snapshot
     m0_z = load_mz_npy('dyn_npys/m_150.npy')
-    assert x[np.argmax(np.abs(m0_z))] == 252
+    assert x[np.argmax(np.abs(m0_z))] == 251
 
 if __name__ == '__main__':
     test_stt_dw()

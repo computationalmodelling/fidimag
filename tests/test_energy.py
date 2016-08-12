@@ -63,7 +63,7 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
     ts = np.linspace(0, T, 201)
     for t in ts:
         # sim.save_vtk()
-        sim.run_until(t)
+        sim.driver.run_until(t)
         print(('Running -', t))
 
     # sim.save_vtk()

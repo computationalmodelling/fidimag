@@ -48,8 +48,10 @@ class Sim(SimBase):
     """
 
     def __init__(self, mesh, name='unnamed', driver='llg',
-                 integrator="sundials",
-                 use_jac=False):
+                 # Integrator arguments:
+                 # integrator='sundials',
+                 use_jac=False
+                 ):
 
         super(Sim, self).__init__(mesh, name)
 
@@ -72,20 +74,27 @@ class Sim(SimBase):
                                                                             KNOWN_DRIVERS.keys())
                                       )
 
-        self.driver = KNOWN_DRIVERS[driver](mesh,
+        self.driver = KNOWN_DRIVERS[driver](self.mesh,
                                             self.spin,
                                             self._mu_s,
+                                            self._mu_s_inv,
+                                            self.field,
+                                            self._alpha,
                                             self._pins,
                                             self.interactions,
-                                            self.field,
+                                            self.name,
                                             self.data_saver,
-                                            integrator=integrator,
+                                            # integrator=integrator,
                                             use_jac=use_jac
                                             )
 
-        
+        # Some references to functions in the corresponding driver classes
+        # that can be accessed through the Simulation class
+        self.relax = self.driver.relax
         self.compute_effective_field = self.driver.compute_effective_field
-
+        self.save_vtk = self.driver.save_vtk
+        self.save_m = self.driver.save_m
+        self.save_skx = self.driver.save_skx
 
     # -------------------------------------------------------------------------
 
@@ -164,7 +173,6 @@ class Sim(SimBase):
         # TODO: Check if this is necessary here, it is only defined
         # for the LLG STT in the drivers
         self.driver.mu_s_const = np.max(self._mu_s)
-        self.driver._mu_s_inv = self._mu_s_inv
 
     mu_s = property(get_mu_s, set_mu_s)
 
