@@ -6,7 +6,7 @@
 }
 
 .cover .container .top {
-    height: 88vh;
+    height: 85vh;
     font-size: 10vh;
     /* background-color: #000000; */
 }
@@ -25,11 +25,11 @@
     background-size: auto 80%;
     background-position: center;
     position: relative;
-    background-color: #EEEEEE;
+    background-color: #FFFFFF;
 }
 
 .cover .container .bottom {
-    height: 6vh;
+    height: 9vh;
     font-size: 3vh;
     /* background-color: #000000; */
 }
