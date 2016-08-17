@@ -2,6 +2,10 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 
+import fidimag.extensions.cvode as cvode
+import fidimag.extensions.neb_method_clib as nebm_clib
+from fidimag.common.vtk import VTK
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
@@ -27,7 +31,7 @@ class NEBMethod(object):
     """
     def __init__(self, sim,
                  initial_images, interpolations=None,
-                 coordinates='Spherical'
+                 coordinates='Spherical', k=1e5
                  ):
 
         self.coordinates = coordinates
@@ -42,6 +46,8 @@ class NEBMethod(object):
 
         # Number of spins in the system
         self.n_spins = len(self.mesh)
+
+        self.k = k
 
         # Initial states ------------------------------------------------------
 
@@ -97,7 +103,17 @@ class NEBMethod(object):
 
         self.band = self.band.reshape(-1)
 
+        self.initialise_integrator()
+
         # ---------------------------------------------------------------------
+
+    def initialise_integrator(self, rtol=1e-6, atol=1e-6):
+        self.t = 0
+        self.iterations = 0
+        self.ode_count = 1
+
+        self.integrator = cvode.CvodeSolver(self.coords, self.sundials_rhs)
+        self.integrator.set_options(rtol, atol)
 
     def cartesian2spherical(self, y_cartesian):
         """
@@ -278,11 +294,10 @@ class NEBMethod(object):
 
         y = y.reshape(-1)
 
-    def compute_tangents(self):
-        # neb_clib.compute_tangents(self.band, self.effectie_field,
-        #                           self.n_images, self.dof
-        #                           )
-        pass
+    def compute_tangents(self, y):
+        nebm_clib.compute_tangents(self.tangents, y, self.energies,
+                                   self.n_dofs_image, self.n_images
+                                   )
 
     def compute_spring_force(self):
         pass
