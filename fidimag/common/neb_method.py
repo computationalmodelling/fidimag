@@ -5,6 +5,7 @@ import numpy as np
 import fidimag.extensions.cvode as cvode
 import fidimag.extensions.neb_method_clib as nebm_clib
 from fidimag.common.vtk import VTK
+from .fileio import DataSaver, DataReader
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -31,7 +32,8 @@ class NEBMethod(object):
     """
     def __init__(self, sim,
                  initial_images, interpolations=None,
-                 coordinates='Spherical', k=1e5
+                 coordinates='Spherical', k=1e5,
+                 name='unnamed'
                  ):
 
         self.coordinates = coordinates
@@ -43,9 +45,10 @@ class NEBMethod(object):
 
         self.sim = sim
         self.mesh = self.sim.mesh
+        self.name = name
 
         # Number of spins in the system
-        self.n_spins = len(self.mesh)
+        self.n_spins = len(self.mesh.coordinates)
 
         # Spring constant (we could use an array in the future)
         self.k = k
@@ -61,7 +64,7 @@ class NEBMethod(object):
         # We assume the extremes are fixed
         self.initial_images = initial_images
 
-        if self.interpolations:
+        if interpolations:
             self.interpolations = interpolations
         else:
             self.interpolations = [0 for i in len(initial_images) - 1]
@@ -74,7 +77,7 @@ class NEBMethod(object):
         self.n_dofs_image = (self.dof * self.n_spins)
 
         # Total number of degrees of freedom in the NEBM band
-        self.n_band = self.n_images * self.n_spins_image
+        self.n_band = self.n_images * self.n_dofs_image
 
         # NEBM Arrays ---------------------------------------------------------
         # We will initialise every array using the total number of images,
@@ -88,7 +91,7 @@ class NEBMethod(object):
         self.band = np.zeros(self.n_band)
 
         # The gradient with respect to the magnetisation (effective field)
-        self.H_eff = np.zeros_like(self.band)
+        self.gradientE = np.zeros_like(self.band)
 
         # The effective force
         self.G = np.zeros_like(self.band)
@@ -105,22 +108,82 @@ class NEBMethod(object):
         # Energy of the images at the extremes, which are kept fixed
         self.band = self.band.reshape(self.n_images, -1)
         for i in [0, self.n_images - 1]:
-            self.sim.set_m(self.band[i])
-            self.energy[i] = self.sim.compute_energy()
-
+            self.sim.set_m(spherical2cartesian(self.band[i]))
+            self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
         self.initialise_integrator()
 
+        self.create_tablewriter()
+
         # ---------------------------------------------------------------------
+
+    def save_VTKs(self):
+        """
+
+        Save VTK files in different folders, according to the simulation name
+        and step. Files are saved as vtks/simname_simstep_vtk/image_00000x.vtk
+
+        """
+        # Create the directory
+        directory = 'vtks/%s_%d' % (self.name, self.iterations)
+        self.VTK.directory = directory
+
+        self.band.shape = (self.n_images, -1)
+
+        # We use Ms from the simulation assuming that all the images are the
+        # same
+        for i in range(self.n_images):
+            self.VTK.reset_data()
+            # We will try to save for the micromagnetic simulation (Ms) or an
+            # atomistic simulation (mu_s) TODO: maybe this can be done with an:
+            # isinstance
+            try:
+                self.VTK.save_scalar(self.sim.Ms, name='M_s')
+            except:
+                self.VTK.save_scalar(self.sim.mu_s, name='mu_s')
+
+            self.VTK.save_vector(
+                spherical2cartesian(self.band[i]).reshape(-1, 3),
+                name='spins'
+                )
+
+            self.VTK.write_file(step=i)
+
+        self.band.shape = (-1, )
 
     def initialise_integrator(self, rtol=1e-6, atol=1e-6):
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
-        self.integrator = cvode.CvodeSolver(self.coords, self.sundials_rhs)
+        self.integrator = cvode.CvodeSolver(self.band, self.Sundials_RHS)
         self.integrator.set_options(rtol, atol)
+
+    def create_tablewriter(self):
+        entities_energy = {
+            'step': {'unit': '<1>',
+                     'get': lambda sim: sim.iterations,
+                     'header': 'iterations'},
+            'energy': {'unit': '<J>',
+                       'get': lambda sim: sim.energies,
+                       'header': ['image_%d' % i for i in range(self.n_images)]}
+        }
+
+        self.tablewriter = DataSaver(
+            self, '%s_energy.ndt' % (self.name),  entities=entities_energy)
+
+        entities_dm = {
+            'step': {'unit': '<1>',
+                     'get': lambda sim: sim.iterations,
+                     'header': 'iterations'},
+            'dms': {'unit': '<1>',
+                    'get': lambda sim: sim.distances,
+                    'header': ['image_%d_%d' % (i, i + 1) for i in range(self.n_images -1)]}
+        }
+
+        self.tablewriter_dm = DataSaver(
+            self, '%s_dms.ndt' % (self.name), entities=entities_dm)
 
     def generate_initial_band(self):
 
@@ -132,7 +195,10 @@ class NEBMethod(object):
         # band, for the specified initial images
         i_initial_images = [0]
         for i in range(1, len(self.initial_images)):
-            i_initial_images.append(i + i_initial_images[i - 1])
+            i_initial_images.append(i_initial_images[-1]
+                                    + self.interpolations[i - 1]
+                                    + 1
+                                    )
 
         for i, m_field in enumerate(self.initial_images[:-1]):
 
@@ -178,7 +244,7 @@ class NEBMethod(object):
 
         """
 
-        self.H_eff = self.H_eff.reshape(self.n_images, -1)
+        self.gradientE = self.gradientE.reshape(self.n_images, -1)
 
         y = y.reshape(self.n_images, -1)
 
@@ -191,32 +257,67 @@ class NEBMethod(object):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradE[i][:] = energygradient2spherical(self.sim.field)
+            self.gradientE[i][:] = energygradient2spherical(self.sim.field,
+                                                            y[i]
+                                                            )
             # elif self.coordinates == 'Cartesian':
             #     self.H_eff[i][:] = self.sim.spin
 
-            self.energy[i] = self.sim.compute_energy()
+            self.energies[i] = self.sim.compute_energy()
 
         y = y.reshape(-1)
+        self.gradientE = self.gradientE.reshape(-1)
 
-    def compute_tangents(self, y):
+    def compute_tangents(self, y, project=None):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
                                    self.n_dofs_image, self.n_images
                                    )
 
-    def compute_spring_force(self):
-        pass
+        if project:
+            _filter = slice(self.n_dofs_image, -self.n_dofs_image)
+            self.tangents[_filter] = (self.tangents[_filter] -
+                                      np.dot(self.tangents[_filter],
+                                             y[_filter]) * y[_filter]
+                                      )
+            self.redefine_angles(self.tangents[_filter])
+
+    def compute_spring_force(self, y):
+        nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
+                                       self.k, self.n_images, self.n_dofs_image
+                                       )
 
     def nebm_step(self, y):
 
+        # The convergence of the algorithm depends on how we redefine the
+        # angles: Redefining the tangents and spring force helps a little
+        self.correct_angles(y)
         self.compute_effective_field_and_energy(y)
-        self.compute_tangents()
-        self.compute_spring_force()
+        self.compute_tangents(y, project=False)
+        self.compute_spring_force(y)
+        # self.correct_angles(y)
+        # self.correct_angles(self.tangents)
+        # self.correct_angles(self.spring_force)
 
-        self.G = (-self.gradE
-                  + np.dot(self.gradE, self.tangents) * self.tangents
+        self.G = (-self.gradientE
+                  + np.dot(self.gradientE, self.tangents) * self.tangents
                   + self.spring_force
                   )
+
+    def compute_distances(self):
+        self.band.shape = (self.n_images, -1)
+
+        distances = self.band[1:] - self.band[:-1]
+        self.redefine_angles(distances)
+
+        distances = np.apply_along_axis(
+            lambda y: self.compute_norm(y, scale=self.n_dofs_image),
+            axis=1,
+            arr=distances
+            )
+
+        self.distances = distances
+
+        self.band.shape = (-1)
 
     # -------------------------------------------------------------------------
     # CVODE solver ------------------------------------------------------------
@@ -248,13 +349,26 @@ class NEBMethod(object):
 
         return 0
 
-    def compute_norm(self, y):
+    def correct_angles(self, A):
+        # A[::2][A[::2] > np.pi] = 2 * np.pi - A[::2][A[::2] > np.pi]
+        # A[::2][A[::2] < 0] = np.abs(A[::2][A[::2] < 0])
+        A[::2][A[::2] > np.pi] = np.pi
+        A[::2][A[::2] < 0] = 0
+
+        A[1::2][A[1::2] > np.pi] = A[1::2][A[1::2] > np.pi] - 2 * np.pi
+        A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
+
+    def redefine_angles(self, A):
+        A[1::2][A[1::2] > np.pi] = 2 * np.pi - A[1::2][A[1::2] > np.pi]
+        A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
+
+    def compute_norm(self, A, scale=None):
         """
 
-        Compute the norm of the *y* array, which contains spin directions in
+        Compute the norm of the *A* array, which contains spin directions in
         Spherical coordinates,
 
-        y = [ y_theta0 y_phi0 y_theta1 y_phi1 ... y_thetaN y_phiN]
+        A = [ A_theta0 A_phi0 A_theta1 A_phi1 ... A_thetaN A_phiN]
 
         If the absolute value of a component is larger than PI, we redefine the
         difference to be smaller than PI
@@ -263,9 +377,13 @@ class NEBMethod(object):
 
         """
 
-        y[y > np.pi] = 2 * np.pi - y[y > np.pi]
-        y[y < -np.pi] = 2 * np.pi + y[y < -np.pi]
-        y = np.sqrt(np.sum(y ** 2.)) / len(y)
+        y = np.copy(A)
+
+        if scale:
+            y = np.sqrt(np.sum(y ** 2.)) / len(y)
+        else:
+            y = np.sqrt(np.sum(y ** 2.))
+
         return y
 
     def compute_maximum_dYdt(self, y, dt):
@@ -310,8 +428,15 @@ class NEBMethod(object):
                 self.band[band_no_extremes]
                 ).reshape(self.n_images_inner_band, -1)
 
+        self.redefine_angles(dYdt)
+
         # Compute the norm of the difference dY for every image in the array
-        dYdt = np.apply_along_axis(self.compute_norm, dYdt, axis=1)
+        dYdt = np.apply_along_axis(
+            lambda y: self.compute_norm(y, scale=self.n_dofs_image),
+            axis=1,
+            arr=dYdt,
+            )
+
         dYdt /= dt
 
         return np.max(dYdt)
@@ -329,6 +454,13 @@ class NEBMethod(object):
                   "time_step={} s, max_iterations={}.".format(stopping_dYdt,
                                                               dt,
                                                               max_iterations))
+
+        self.save_VTKs()
+
+        # Save the initial state i=0
+        self.compute_distances()
+        self.tablewriter.save()
+        self.tablewriter_dm.save()
 
         for i in range(max_iterations):
 
@@ -357,6 +489,16 @@ class NEBMethod(object):
             # Copy the updated energy band to our local array
             self.band[:] = self.integrator.y[:]
 
+            # Save data
+            self.compute_distances()
+            self.tablewriter.save()
+            self.tablewriter_dm.save()
+            log.debug("step: {:.3g}, step_size: {:.3g}"
+                      " and max_dmdt: {:.3g}.".format(self.iterations,
+                                                      increment_dt,
+                                                      max_dYdt)
+                      )
+
             # Stop criteria:
             if max_dYdt < stopping_dYdt:
                 break
@@ -366,11 +508,13 @@ class NEBMethod(object):
 
         log.info("Relaxation finished at time step = {:.4g}, "
                  "t = {:.2g}, call rhs = {:.4g} "
-                 "and max_dYdt = {:.3g}".format(self.step,
+                 "and max_dYdt = {:.3g}".format(self.iterations,
                                                 self.t,
                                                 self.ode_count,
                                                 max_dYdt)
                  )
+
+        self.save_VTKs()
 
 
 def cartesian2spherical(y_cartesian):
@@ -380,7 +524,7 @@ def cartesian2spherical(y_cartesian):
     theta_phi = np.zeros((len(y_cartesian.reshape(-1, 3)), 2))
 
     # r = sqrt (m_x ** 2 + m_y ** 2)
-    r = np.sqrt(y_cartesian[::3] ** 2 + y_cartesian[1::3])
+    r = np.sqrt(y_cartesian[::3] ** 2 + y_cartesian[1::3] ** 2)
 
     # Only works if rho = sqrt(x**2 + y**2 + z**2) = 1
     # theta_phi[:, 0] = np.arccos(y_cartesian[2::3])  # theta
@@ -434,17 +578,18 @@ def energygradient2spherical(Hxyz, spin):
     INPUTS:
 
     Hxyz    :: Effective field in Cartesian coordinates
-    spin    :: The magnetisation/spin field in Cartesian coordinates
+    spin    :: The magnetisation/spin field in Spherical coordinates
 
     """
     Hxyz = Hxyz.reshape(-1, 3)
 
-    theta_phi = cartesian2spherical(spin)
-    t, p = theta_phi[::2], theta_phi[1::2]
+    # theta_phi = cartesian2spherical(spin)
+    # t, p = theta_phi[::2], theta_phi[1::2]
+    t, p = spin[::2], spin[1::2]
 
     # The gradient is just a vector field, thus we use the spin field size
     # in spherical coordinates
-    gradientE = np.zeros_like(theta_phi).reshape(-1, 2)
+    gradientE = np.zeros_like(spin).reshape(-1, 2)
 
     # Theta components
     gradientE[:, 0] = (np.cos(t) * np.cos(p) * (-Hxyz[:, 0]) +
@@ -464,6 +609,13 @@ def energygradient2spherical(Hxyz, spin):
 
 def linear_interpolation(y_initial, y_final, n, pins=None):
     """
+
+    This function returns a (n, len(y_initial)) array, where every row is an
+    interpolation of the coordinates in y_initial to y_final. The interpolation
+    is made in spherical coordinates
+
+    ARGUMENTS:
+
     y_initial, y_final      :: In Spherical coordinates with the structure:
 
                                     [ theta0 phi0 theta1 phi1 ...]

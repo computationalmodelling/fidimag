@@ -8,6 +8,7 @@ inline double compute_norm(double *a, int n, int scale) {
      */
 
     double norm = 0;
+    double scale_db = (double) scale;
 
     for(int i = 0; i < n; i++){
 
@@ -21,7 +22,7 @@ inline double compute_norm(double *a, int n, int scale) {
     }
 
     if (scale == 0) norm = sqrt(norm);
-    else norm = sqrt(norm) / scale;
+    else norm = sqrt(norm) / scale_db;
     
     return norm;
 }
