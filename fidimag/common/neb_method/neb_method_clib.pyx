@@ -15,6 +15,7 @@ cdef extern from "neb_method_lib.h":
                                 double *y,
                                 double *tangents,
                                 double k,
+                                int n_images,
                                 int n_dofs_image
                                 )
 
@@ -34,9 +35,10 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                          np.ndarray[double, ndim=1, mode="c"] y,
                          np.ndarray[double, ndim=1, mode="c"] tangents,
                          k,
+                         n_images,
                          n_dofs_image,
                          ):
 
     compute_spring_force_C(&spring_force[0], &y[0], &tangents[0],
-                           k, n_dofs_image
+                           k, n_images, n_dofs_image
                            )

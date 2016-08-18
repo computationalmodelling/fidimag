@@ -77,7 +77,7 @@ neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
 neb_method_sources = []
 neb_method_sources.append(os.path.join(NEB_METHOD_DIR, 'neb_method_clib.pyx'))
 neb_method_sources += glob_cfiles(NEB_METHOD_DIR,
-                                  excludes=["neb_method_lib.c"])
+                                  excludes=["neb_method_clib.c"])
 
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))

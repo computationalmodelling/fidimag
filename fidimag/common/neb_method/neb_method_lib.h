@@ -8,5 +8,6 @@ void compute_spring_force_C(double *spring_force,
                             double *y,
                             double *tangents,
                             double k,
+                            int n_images,
                             int n_dofs_image
                             );

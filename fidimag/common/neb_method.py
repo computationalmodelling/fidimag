@@ -47,7 +47,14 @@ class NEBMethod(object):
         # Number of spins in the system
         self.n_spins = len(self.mesh)
 
+        # Spring constant (we could use an array in the future)
         self.k = k
+
+        # VTK saver for the magnetisation/spin field
+        self.VTK = VTK(self.mesh,
+                       directory='vtks'.format(self.name),
+                       filename='m'
+                       )
 
         # Initial states ------------------------------------------------------
 
@@ -115,109 +122,6 @@ class NEBMethod(object):
         self.integrator = cvode.CvodeSolver(self.coords, self.sundials_rhs)
         self.integrator.set_options(rtol, atol)
 
-    def cartesian2spherical(self, y_cartesian):
-        """
-        y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ...]
-        """
-        theta_phi = np.zeros((len(y_cartesian.reshape(-1, 3)), 2))
-
-        # r = sqrt (m_x ** 2 + m_y ** 2)
-        # r = np.sqrt(y_cartesian[::3] ** 2 + y_cartesian[1::3])
-
-        theta_phi[:, 0] = np.arccos(y_cartesian[2::3])  # theta
-        theta_phi[:, 1] = np.arctan2(y_cartesian[1::3],
-                                     y_cartesian[::3]
-                                     )                  # phi
-
-        return theta_phi.reshape(-1)
-
-    def spherical2cartesian(self, y_spherical):
-        y_cartesian = np.zeros((len(y_spherical.reshape(-1, 2)), 3))
-
-        theta, phi = y_spherical[::2], y_spherical[1::2]
-        y_cartesian[:, 0] = np.sin(theta) * np.cos(phi)
-        y_cartesian[:, 1] = np.sin(theta) * np.sin(phi)
-        y_cartesian[:, 2] = np.cos(theta)
-
-        return y_cartesian.reshape(-1)
-
-    def energygradient2spherical(self, Hxyz, spin):
-        """
-
-        Transform the gradient of the energy (with respect to the
-        magnetisation) in Cartesian coordinates, into the gradient in spherical
-        coordinates (r, t, p) using the transformation matrix:
-
-        | sin t cos p  | sin t sin p | cos t  | | dE/dm_x |   | dE/dm_r |
-        | cos t cos p  | cos t sin p | -sin t | | dE/dm_y | = | dE/dm_t |
-        | -sin p sin t | cos p sin t |   0    | | dE/dm_z |   | dE/dm_p |
-
-        Notice that the gradient is the negative of the effective field, i.e.
-        dE/dm_i = - Heff_i , thus we can use the effective field components in
-        Cartesian coordinates as input instead of computing the gradient
-        numerically
-
-        This formula can be derived from the chain rule applied to the energy
-        derivative to obtain the effective field: d E / d M, with M = M_s (sin
-        t cos p, sin t sin p, cos t)
-
-        (see Suss et al., Magnetics, IEEE Transactions 36 (5) pp.3282-3284,
-        2000)
-
-        The function only returns the (t, p) = (theta, phi) coordinates of
-        dE/dm since we asume that the r component is fixed
-
-
-        INPUTS:
-
-        Hxyz    :: Effective field in Cartesian coordinates
-        spin    :: The magnetisation/spin field in Cartesian coordinates
-
-        """
-        Hxyz = Hxyz.reshape(-1, 3)
-
-        theta_phi = self.cartesian2spherical(spin)
-        t, p = theta_phi[::2], theta_phi[1::2]
-
-        # The gradient is just a vector field, thus we use the spin field size
-        # in spherical coordinates
-        gradientE = np.zeros_like(theta_phi).reshape(-1, 2)
-
-        # Theta components
-        gradientE[:, 0] = (np.cos(t) * np.cos(p) * (-Hxyz[:, 0]) +
-                           np.cos(t) * np.sin(p) * (-Hxyz[:, 1]) +
-                           np.sin(t) * Hxyz[:, 2]
-                           )
-
-        # Phi components
-        gradientE[:, 1] = np.sin(t) * (np.sin(p) * Hxyz[:, 0] +
-                                       np.cos(p) * (-Hxyz[:, 1])
-                                       )
-
-        Hxyz = Hxyz.reshape(-1)
-
-        return gradientE.reshape(-1)
-
-    def linear_interpolation(self, y_initial, y_final, n):
-        """
-        y_initial, y_final      :: In Spherical coordinates
-        """
-        interpolations = np.tile(y_initial, (n, 1))
-
-        # We will not interpolate pinned spins
-        _filter = self.sim.pins == 0
-
-        # y_initial_spherical = self.cartesian2spherical(y_initial)
-        # y_final_spherical = self.cartesian2spherical(y_final)
-
-        # dy_spherical = ((y_final_spherical - y_initial_spherical) / (n + 1))
-        dy = (y_final - y_initial) / (n + 1)
-
-        for i in range(1, n + 1):
-            interpolations[i - 1][_filter] = (y_initial + i * dy)[_filter]
-
-        return interpolations
-
     def generate_initial_band(self):
 
         # Every row will be an image of the band, i.e. the i-th row is
@@ -238,19 +142,20 @@ class NEBMethod(object):
             # change according to the number of interpolations. Accordingly,
             # we use the list with the indexes of the initial images
             self.sim.set_m(self.initial_images[i])
-            self.band[i_initial_images[i]] = self.cartesian2spherical(self.sim.spin)
+            self.band[i_initial_images[i]] = cartesian2spherical(self.sim.spin)
 
             self.sim.set_m(self.initial_images[i + 1])
-            self.band[i_initial_images[i + 1]] = self.cartesian2spherical(self.sim.spin)
+            self.band[i_initial_images[i + 1]] = cartesian2spherical(self.sim.spin)
 
             # interpolation is an array with *self.interpolations[i]* rows
             # We copy these rows to the corresponding images in the energy
             # band array
             if self.interpolations[i] != 0:
-                interpolation = self.linear_interpolation(
+                interpolation = linear_interpolation(
                     self.band[i_initial_images[i]],
                     self.band[i_initial_images[i + 1]],
-                    self.interpolations[i]
+                    self.interpolations[i],
+                    self.sim.pins
                     )
 
                 # We then set the interpolated spins fields at once
@@ -280,13 +185,13 @@ class NEBMethod(object):
         # Only update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.set_m(self.spherical2cartesian(y[i]))
+            self.sim.set_m(spherical2cartesian(y[i]))
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradE[i][:] = self.energygradient2spherical(self.sim.field)
+            self.gradE[i][:] = energygradient2spherical(self.sim.field)
             # elif self.coordinates == 'Cartesian':
             #     self.H_eff[i][:] = self.sim.spin
 
@@ -466,3 +371,140 @@ class NEBMethod(object):
                                                 self.ode_count,
                                                 max_dYdt)
                  )
+
+
+def cartesian2spherical(y_cartesian):
+    """
+    y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ...]
+    """
+    theta_phi = np.zeros((len(y_cartesian.reshape(-1, 3)), 2))
+
+    # r = sqrt (m_x ** 2 + m_y ** 2)
+    r = np.sqrt(y_cartesian[::3] ** 2 + y_cartesian[1::3])
+
+    # Only works if rho = sqrt(x**2 + y**2 + z**2) = 1
+    # theta_phi[:, 0] = np.arccos(y_cartesian[2::3])  # theta
+
+    theta_phi[:, 0] = np.arctan2(r, y_cartesian[2::3])  # theta
+    theta_phi[:, 1] = np.arctan2(y_cartesian[1::3],
+                                 y_cartesian[::3]
+                                 )                      # phi
+
+    return theta_phi.reshape(-1)
+
+
+def spherical2cartesian(y_spherical):
+    y_cartesian = np.zeros((len(y_spherical.reshape(-1, 2)), 3))
+
+    theta, phi = y_spherical[::2], y_spherical[1::2]
+    y_cartesian[:, 0] = np.sin(theta) * np.cos(phi)
+    y_cartesian[:, 1] = np.sin(theta) * np.sin(phi)
+    y_cartesian[:, 2] = np.cos(theta)
+
+    return y_cartesian.reshape(-1)
+
+
+def energygradient2spherical(Hxyz, spin):
+    """
+
+    Transform the gradient of the energy (with respect to the
+    magnetisation) in Cartesian coordinates, into the gradient in spherical
+    coordinates (r, t, p) using the transformation matrix:
+
+    | sin t cos p  | sin t sin p | cos t  | | dE/dm_x |   | dE/dm_r |
+    | cos t cos p  | cos t sin p | -sin t | | dE/dm_y | = | dE/dm_t |
+    | -sin p sin t | cos p sin t |   0    | | dE/dm_z |   | dE/dm_p |
+
+    Notice that the gradient is the negative of the effective field, i.e.
+    dE/dm_i = - Heff_i , thus we can use the effective field components in
+    Cartesian coordinates as input instead of computing the gradient
+    numerically
+
+    This formula can be derived from the chain rule applied to the energy
+    derivative to obtain the effective field: d E / d M, with M = M_s (sin
+    t cos p, sin t sin p, cos t)
+
+    (see Suss et al., Magnetics, IEEE Transactions 36 (5) pp.3282-3284,
+    2000)
+
+    The function only returns the (t, p) = (theta, phi) coordinates of
+    dE/dm since we asume that the r component is fixed
+
+
+    INPUTS:
+
+    Hxyz    :: Effective field in Cartesian coordinates
+    spin    :: The magnetisation/spin field in Cartesian coordinates
+
+    """
+    Hxyz = Hxyz.reshape(-1, 3)
+
+    theta_phi = cartesian2spherical(spin)
+    t, p = theta_phi[::2], theta_phi[1::2]
+
+    # The gradient is just a vector field, thus we use the spin field size
+    # in spherical coordinates
+    gradientE = np.zeros_like(theta_phi).reshape(-1, 2)
+
+    # Theta components
+    gradientE[:, 0] = (np.cos(t) * np.cos(p) * (-Hxyz[:, 0]) +
+                       np.cos(t) * np.sin(p) * (-Hxyz[:, 1]) +
+                       np.sin(t) * Hxyz[:, 2]
+                       )
+
+    # Phi components
+    gradientE[:, 1] = np.sin(t) * (np.sin(p) * Hxyz[:, 0] +
+                                   np.cos(p) * (-Hxyz[:, 1])
+                                   )
+
+    Hxyz = Hxyz.reshape(-1)
+
+    return gradientE.reshape(-1)
+
+
+def linear_interpolation(y_initial, y_final, n, pins=None):
+    """
+    y_initial, y_final      :: In Spherical coordinates with the structure:
+
+                                    [ theta0 phi0 theta1 phi1 ...]
+
+    OPTIONAL:
+
+    pins                    :: An array or list with 0s and 1s, representing
+                               unpinned/pinned coordinates of any of the *y*
+                               arrays, respectively. Thus, the *pins* array
+                               must have HALF the length of *y*:
+
+                                    [pin0 pin1  ...  ]
+
+    """
+
+    # We will generate n copies of the y_initial array, using rows
+    # For this, we use Numpy's broadcasting. For example,
+    # if y_initial=[1, 3 4, 5], then:
+    #
+    #        [ [0]     + [1 3 4 5]  = [ [1  3  4  5]
+    #          [0] ]                    [1  3  4  5] ]
+    interpolations = np.zeros((n, 1))
+    interpolations = interpolations + y_initial
+
+    # We will not interpolate pinned spins
+    if pins is None:
+        #  Just use half the length of y_initial
+        pins = np.zeros(len(y_initial[::2]))
+
+    # Since we have a pin index per every PAIR of coordinates, we copy very
+    # entry. For example: [1 0] --> [1 1 0 0]
+    # and we change only unpinned spins (0)
+    _filter = np.repeat(pins, 2) == 0
+
+    # y_initial_spherical = self.cartesian2spherical(y_initial)
+    # y_final_spherical = self.cartesian2spherical(y_final)
+
+    # dy_spherical = ((y_final_spherical - y_initial_spherical) / (n + 1))
+    dy = (y_final - y_initial) / (n + 1)
+
+    for i in range(1, n + 1):
+        interpolations[i - 1][_filter] = (y_initial + i * dy)[_filter]
+
+    return interpolations

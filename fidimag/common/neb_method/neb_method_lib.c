@@ -12,7 +12,7 @@ inline double compute_norm(double *a, int n, int scale) {
     for(int i = 0; i < n; i++){
 
         if (a[i] > WIDE_PI){
-            a[i] = 2 * WIDE_PI - res[i];
+            a[i] = 2 * WIDE_PI - a[i];
         } else if(a[i] < -WIDE_PI){
             a[i] += 2 * WIDE_PI;
         }
@@ -30,11 +30,11 @@ inline void normalise(double *a, int n){
 
     /* Normalise the *a array, whose length is n (3 * number of nodes in
      * cartesian, and 2 * number of nodes in spherical) To do this we compute
-     * the length of res:
+     * the length of *a :
      *
-     *      SQRT[ res[0] ** 2 + res[1] ** 2 + ... ]
+     *      SQRT[ a[0] ** 2 + a[1] ** 2 + ... ]
      *
-     *  and divide every res entry by that length
+     *  and divide every *a entry by that length
      */
 
     double length;
@@ -145,9 +145,9 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
 /* ------------------------------------------------------------------------- */
 
-void project_tangents(double *tangents, double *y){
-
-}
+// void project_tangents(double *tangents, double *y){
+// 
+// }
 
 /* ------------------------------------------------------------------------- */
 
@@ -155,7 +155,9 @@ void compute_spring_force_C(double *spring_force,
                             double *y,
                             double *tangents,
                             double k,
-                            int n_dofs_image) {
+                            int n_images,
+                            int n_dofs_image
+                            ) {
 
     int i, j;
 
