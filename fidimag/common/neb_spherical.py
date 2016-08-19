@@ -700,6 +700,8 @@ class NEB_Sundials(object):
             # D vector for the i-th image (no extreme images)
             ydot[i + 1, :] = h3[:]
 
+        print(ydot[2][:30])
+
         # Extreme images do not have dynamics
         ydot[0, :] = 0
         ydot[-1, :] = 0

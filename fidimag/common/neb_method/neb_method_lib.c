@@ -68,14 +68,14 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
     double deltaE_plus, deltaE_minus;
     double deltaE_MAX, deltaE_MIN;
 
-    for(i = 1; i < n_images -1; i++){
+    for(i = 1; i < n_images - 1; i++){
 
         im_idx = i * (n_dofs_image);
         next_im_idx = (i + 1) * (n_dofs_image);
         prev_im_idx = (i - 1) * (n_dofs_image);
 
         // Tangents of the i-th image
-        double *t = &tangents[im_idx];
+        double * t = &tangents[im_idx];
 
         for(j = 0; j < n_dofs_image; j++){
             t_plus[j]  = y[next_im_idx + j] - y[im_idx + j];
@@ -138,9 +138,7 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
         /* ----------------------------------------------------------------- */
 
         normalise(t, n_dofs_image);
-
     } // Close loop in images
-
 } // Close main function
 
 
@@ -172,7 +170,7 @@ void compute_spring_force_C(double *spring_force,
 
     double dY_plus_norm, dY_minus_norm;
 
-    for(i = 1; i < n_images -1; i++){
+    for(i = 1; i < n_images - 1; i++){
 
         im_idx = i * (n_dofs_image);
         next_im_idx = (i + 1) * (n_dofs_image);

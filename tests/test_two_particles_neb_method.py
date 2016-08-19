@@ -103,14 +103,14 @@ def mid_m(pos):
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
-    interp = [20, 20]
+    interp = [6, 6]
 
     # Define different ks for multiple simulations
     krange = ['1e8']
 
     for k in krange:
         # Relax the same system using spherical coordinates
-        relax_neb(float(k), 2000,
+        relax_neb(float(k), 2,
                   'neb_2particles_k{}_10-10int_spherical'.format(k),
                   init_im,
                   interp,

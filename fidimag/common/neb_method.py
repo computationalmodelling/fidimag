@@ -101,13 +101,15 @@ class NEBMethod(object):
         self.spring_force = np.zeros_like(self.band)
         self.distances = np.zeros(self.n_images - 1)
 
+        self.last_Y = np.zeros_like(self.band)
+
         # Initialisation ------------------------------------------------------
 
         self.generate_initial_band()
 
-        # Energy of the images at the extremes, which are kept fixed
+        # Energy of the images
         self.band = self.band.reshape(self.n_images, -1)
-        for i in [0, self.n_images - 1]:
+        for i in range(self.n_images):
             self.sim.set_m(spherical2cartesian(self.band[i]))
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
@@ -275,6 +277,9 @@ class NEBMethod(object):
 
         if project:
             _filter = slice(self.n_dofs_image, -self.n_dofs_image)
+
+            # We cannot do a dot product here, since it will sum the whole
+            # band: we ned to loop for every image!!
             self.tangents[_filter] = (self.tangents[_filter] -
                                       np.dot(self.tangents[_filter],
                                              y[_filter]) * y[_filter]
@@ -294,14 +299,27 @@ class NEBMethod(object):
         self.compute_effective_field_and_energy(y)
         self.compute_tangents(y, project=False)
         self.compute_spring_force(y)
+
         # self.correct_angles(y)
         # self.correct_angles(self.tangents)
         # self.correct_angles(self.spring_force)
 
-        self.G = (-self.gradientE
-                  + np.dot(self.gradientE, self.tangents) * self.tangents
-                  + self.spring_force
-                  )
+        self.G = self.G.reshape(self.n_images, -1)
+        self.gradientE = self.gradientE.reshape(self.n_images, -1)
+        self.tangents = self.tangents.reshape(self.n_images, -1)
+        self.spring_force = self.spring_force.reshape(self.n_images, -1)
+
+        for i in range(1, self.n_images - 1):
+
+            self.G[i] = (-self.gradientE[i]
+                         + np.dot(self.gradientE[i], self.tangents[i]) * self.tangents[i]
+                         + self.spring_force[i] * self.tangents[i]
+                         )
+
+        self.G = self.G.reshape(-1)
+        self.gradientE = self.gradientE.reshape(-1)
+        self.tangents = self.tangents.reshape(-1)
+        self.spring_force = self.spring_force.reshape(-1)
 
     def compute_distances(self):
         self.band.shape = (self.n_images, -1)
@@ -386,7 +404,7 @@ class NEBMethod(object):
 
         return y
 
-    def compute_maximum_dYdt(self, y, dt):
+    def compute_maximum_dYdt(self, y0, y1, dt):
         """
 
         Compute the maximum difference from the images of the *y* array with
@@ -424,8 +442,8 @@ class NEBMethod(object):
         # Since we removed the extremes, we only have *n_images_inner_band*
         # images
         band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
-        dYdt = (y[band_no_extremes] -
-                self.band[band_no_extremes]
+        dYdt = (y0[band_no_extremes] -
+                y1[band_no_extremes]
                 ).reshape(self.n_images_inner_band, -1)
 
         self.redefine_angles(dYdt)
@@ -439,7 +457,31 @@ class NEBMethod(object):
 
         dYdt /= dt
 
-        return np.max(dYdt)
+        if np.max(dYdt) > 0:
+            return np.max(dYdt)
+        else:
+            return 0
+
+    def run_until(self, t):
+
+        if (t) <= self.t:
+            return
+
+        self.integrator.run_until(t)
+
+        # Copy the updated energy band to our local array
+        self.band[:] = self.integrator.y[:]
+
+        # Compute the maximum change in the integrator step
+        max_dYdt = self.compute_maximum_dYdt(self.integrator.y, self.last_Y,
+                                             t - self.t)
+
+        self.last_Y[:] = self.band[:]
+
+        # Update the current step
+        self.t = t
+
+        return max_dYdt
 
     def relax(self, dt=1e-8, stopping_dYdt=1, max_iterations=1000,
               save_npys_every=100, save_vtks_every=100
@@ -480,14 +522,7 @@ class NEBMethod(object):
             else:
                 increment_dt = dt
 
-            self.integrator.run_until(self.t + increment_dt)
-
-            # Compute the maximum change in the integrator step
-            max_dYdt = self.compute_maximum_dYdt(self.integrator.y,
-                                                 increment_dt)
-
-            # Copy the updated energy band to our local array
-            self.band[:] = self.integrator.y[:]
+            max_dYdt = self.run_until(self.t + increment_dt)
 
             # Save data
             self.compute_distances()
@@ -502,9 +537,6 @@ class NEBMethod(object):
             # Stop criteria:
             if max_dYdt < stopping_dYdt:
                 break
-
-            # Update the current step
-            self.t = self.t + increment_dt
 
         log.info("Relaxation finished at time step = {:.4g}, "
                  "t = {:.2g}, call rhs = {:.4g} "
