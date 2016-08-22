@@ -144,9 +144,37 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
 /* ------------------------------------------------------------------------- */
 
-// void project_tangents(double *tangents, double *y){
-// 
-// }
+inline double dot_product(double A, double B, n){
+    
+    double dotp = 0;
+    for(int i = 0; i < n; i++){
+        dotp += A[i] * B[i];
+    }
+
+    return dotp;
+}
+
+void project_tangents(double *tangents, double *y,
+                      int n_images, int n_dofs_image){
+
+    int i, j;
+    double t_times_y_i = 0;;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+
+        im_idx = i * (n_dofs_image);
+
+        double * t = &tangents[im_idx];
+        double * y_i = &y[im_idx];
+
+        t_times_y_i = dot_product(t, y, n_dofs_image);
+        for(j = 0; j < n_dofs_image; j++) {
+            t[j] = t[j] - t_times_y_i * y_i[j];
+        }
+}
 
 /* ------------------------------------------------------------------------- */
 

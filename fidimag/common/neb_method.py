@@ -276,15 +276,21 @@ class NEBMethod(object):
                                    )
 
         if project:
-            _filter = slice(self.n_dofs_image, -self.n_dofs_image)
+            self.tangents.shape = (self.n_images, -1)
+            y.shape = (self.n_images, -1)
 
-            # We cannot do a dot product here, since it will sum the whole
-            # band: we ned to loop for every image!!
-            self.tangents[_filter] = (self.tangents[_filter] -
-                                      np.dot(self.tangents[_filter],
-                                             y[_filter]) * y[_filter]
-                                      )
-            self.redefine_angles(self.tangents[_filter])
+            for i in range(1, self.n_images - 1):
+                # We cannot do a dot product here, since it will sum the whole
+                # band: we ned to loop for every image!!
+                self.tangents[i] = (self.tangents[i] -
+                                    np.dot(self.tangents[i], y[i]) * y[i]
+                                    )
+                self.redefine_angles(self.tangents[i])
+
+                self.tangents[i] = self.tangents[i] / self.compute_norm(self.tangents[i])
+
+            self.tangents.shape = (-1)
+            y.shape = (-1)
 
     def compute_spring_force(self, y):
         nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
@@ -297,7 +303,7 @@ class NEBMethod(object):
         # angles: Redefining the tangents and spring force helps a little
         self.correct_angles(y)
         self.compute_effective_field_and_energy(y)
-        self.compute_tangents(y, project=False)
+        self.compute_tangents(y, project=True)
         self.compute_spring_force(y)
 
         # self.correct_angles(y)
@@ -313,7 +319,7 @@ class NEBMethod(object):
 
             self.G[i] = (-self.gradientE[i]
                          + np.dot(self.gradientE[i], self.tangents[i]) * self.tangents[i]
-                         + self.spring_force[i] * self.tangents[i]
+                         + self.spring_force[i]
                          )
 
         self.G = self.G.reshape(-1)
