@@ -11,3 +11,14 @@ void compute_spring_force_C(double *spring_force,
                             int n_images,
                             int n_dofs_image
                             );
+
+void project_tangents_C(double *tangents, double *y,
+                        int n_images, int n_dofs_image
+                        );
+
+void compute_effective_force_C(double * G,
+                               double * tangents,
+                               double * gradientE,
+                               double * spring_force,
+                               int n_images,
+                               int n_dofs_image);

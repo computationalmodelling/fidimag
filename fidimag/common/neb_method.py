@@ -276,21 +276,9 @@ class NEBMethod(object):
                                    )
 
         if project:
-            self.tangents.shape = (self.n_images, -1)
-            y.shape = (self.n_images, -1)
-
-            for i in range(1, self.n_images - 1):
-                # We cannot do a dot product here, since it will sum the whole
-                # band: we ned to loop for every image!!
-                self.tangents[i] = (self.tangents[i] -
-                                    np.dot(self.tangents[i], y[i]) * y[i]
-                                    )
-                self.redefine_angles(self.tangents[i])
-
-                self.tangents[i] = self.tangents[i] / self.compute_norm(self.tangents[i])
-
-            self.tangents.shape = (-1)
-            y.shape = (-1)
+            nebm_clib.project_tangents(self.tangents, y,
+                                       self.n_images, self.n_dofs_image
+                                       )
 
     def compute_spring_force(self, y):
         nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
@@ -303,29 +291,36 @@ class NEBMethod(object):
         # angles: Redefining the tangents and spring force helps a little
         self.correct_angles(y)
         self.compute_effective_field_and_energy(y)
-        self.compute_tangents(y, project=True)
+        self.compute_tangents(y, project=False)
         self.compute_spring_force(y)
 
+        nebm_clib.compute_effective_force(self.G,
+                                          self.tangents,
+                                          self.gradientE,
+                                          self.spring_force,
+                                          self.n_images,
+                                          self.n_dofs_image
+                                          )
         # self.correct_angles(y)
         # self.correct_angles(self.tangents)
         # self.correct_angles(self.spring_force)
 
-        self.G = self.G.reshape(self.n_images, -1)
-        self.gradientE = self.gradientE.reshape(self.n_images, -1)
-        self.tangents = self.tangents.reshape(self.n_images, -1)
-        self.spring_force = self.spring_force.reshape(self.n_images, -1)
+        # self.G = self.G.reshape(self.n_images, -1)
+        # self.gradientE = self.gradientE.reshape(self.n_images, -1)
+        # self.tangents = self.tangents.reshape(self.n_images, -1)
+        # self.spring_force = self.spring_force.reshape(self.n_images, -1)
 
-        for i in range(1, self.n_images - 1):
+        # for i in range(1, self.n_images - 1):
 
-            self.G[i] = (-self.gradientE[i]
-                         + np.dot(self.gradientE[i], self.tangents[i]) * self.tangents[i]
-                         + self.spring_force[i]
-                         )
+        #     self.G[i] = (-self.gradientE[i]
+        #                  + np.dot(self.gradientE[i], self.tangents[i]) * self.tangents[i]
+        #                  + self.spring_force[i]
+        #                  )
 
-        self.G = self.G.reshape(-1)
-        self.gradientE = self.gradientE.reshape(-1)
-        self.tangents = self.tangents.reshape(-1)
-        self.spring_force = self.spring_force.reshape(-1)
+        # self.G = self.G.reshape(-1)
+        # self.gradientE = self.gradientE.reshape(-1)
+        # self.tangents = self.tangents.reshape(-1)
+        # self.spring_force = self.spring_force.reshape(-1)
 
     def compute_distances(self):
         self.band.shape = (self.n_images, -1)
