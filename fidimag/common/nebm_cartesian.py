@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Spherical(NEBMBase):
+class NEBM_Cartesian(NEBMBase):
     """
 
     NEB Method equations:
@@ -37,17 +37,13 @@ class NEBM_Spherical(NEBMBase):
                  name='unnamed'
                  ):
 
-        super(NEBM_Spherical, self).__init__(sim,
+        super(NEBM_Cartesian, self).__init__(sim,
                                              initial_images,
                                              interpolations=interpolations,
                                              k=k,
                                              name=name,
-                                             dof=2
+                                             dof=3
                                              )
-
-        # Since we use Spherical coordinates for the energy band (dof=2), when
-        # saving files we convert the coordinates to Cartesian
-        self.files_convert_f = spherical2cartesian
 
         # Initialisation ------------------------------------------------------
         # See the NEBMBase class for details
@@ -66,7 +62,7 @@ class NEBM_Spherical(NEBMBase):
         # Energy of the images
         self.band = self.band.reshape(self.n_images, -1)
         for i in range(self.n_images):
-            self.sim.set_m(spherical2cartesian(self.band[i]))
+            self.sim.set_m(self.band[i])
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
@@ -96,21 +92,25 @@ class NEBM_Spherical(NEBMBase):
             # change according to the number of interpolations. Accordingly,
             # we use the list with the indexes of the initial images
             self.sim.set_m(self.initial_images[i])
-            self.band[i_initial_images[i]] = cartesian2spherical(self.sim.spin)
+            self.band[i_initial_images[i]] = self.sim.spin
 
             self.sim.set_m(self.initial_images[i + 1])
-            self.band[i_initial_images[i + 1]] = cartesian2spherical(self.sim.spin)
+            self.band[i_initial_images[i + 1]] = self.sim.spin
 
             # interpolation is an array with *self.interpolations[i]* rows
             # We copy these rows to the corresponding images in the energy
             # band array
             if self.interpolations[i] != 0:
                 interpolation = linear_interpolation_spherical(
-                    self.band[i_initial_images[i]],
-                    self.band[i_initial_images[i + 1]],
+                    cartesian2spherical(self.band[i_initial_images[i]]),
+                    cartesian2spherical(self.band[i_initial_images[i + 1]]),
                     self.interpolations[i],
                     self.sim.pins
                     )
+
+                interpolation = np.apply_along_axis(spherical2cartesian,
+                                                    axis=1,
+                                                    arr=interpolation)
 
                 # We then set the interpolated spins fields at once
                 self.band[i_initial_images[i] + 1:
@@ -145,11 +145,7 @@ class NEBM_Spherical(NEBMBase):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = energygradient2spherical(self.sim.field,
-                                                            y[i]
-                                                            )
-            # elif self.coordinates == 'Cartesian':
-            #     self.H_eff[i][:] = self.sim.spin
+            self.gradientE[i][:] = -self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
 
@@ -170,7 +166,6 @@ class NEBM_Spherical(NEBMBase):
 
         # The convergence of the algorithm depends on how we redefine the
         # angles: Redefining the tangents and spring force helps a little
-        correct_angles(y)
         self.compute_effective_field_and_energy(y)
         self.compute_tangents(y)
         self.compute_spring_force(y)
@@ -200,7 +195,6 @@ class NEBM_Spherical(NEBMBase):
         """
 
         A_minus_B = A - B
-        redefine_angles(A_minus_B)
 
         A_minus_B.shape = (-1, self.n_dofs_image)
         A_minus_B = np.apply_along_axis(
@@ -210,85 +204,3 @@ class NEBM_Spherical(NEBMBase):
             )
 
         return A_minus_B.reshape(-1)
-
-
-# -----------------------------------------------------------------------------
-
-def correct_angles(A):
-    """
-    Correct PI and PHI angles
-    """
-    A[::2][A[::2] > np.pi] = 2 * np.pi - A[::2][A[::2] > np.pi]
-    A[::2][A[::2] < 0] = np.abs(A[::2][A[::2] < 0])
-    # A[::2][A[::2] > np.pi] = np.pi
-    # A[::2][A[::2] < 0] = 0
-
-    A[1::2][A[1::2] > np.pi] = A[1::2][A[1::2] > np.pi] - 2 * np.pi
-    A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
-
-
-def redefine_angles(A):
-    """
-    This redefines PHI angles to lie in the [-PI, PI] range
-    """
-    A[1::2][A[1::2] > np.pi] = 2 * np.pi - A[1::2][A[1::2] > np.pi]
-    A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
-
-
-def energygradient2spherical(Hxyz, spin):
-    """
-
-    Transform the gradient of the energy (with respect to the
-    magnetisation) in Cartesian coordinates, into the gradient in spherical
-    coordinates (r, t, p) using the transformation matrix:
-
-    | sin t cos p  | sin t sin p | cos t  | | dE/dm_x |   | dE/dm_r |
-    | cos t cos p  | cos t sin p | -sin t | | dE/dm_y | = | dE/dm_t |
-    | -sin p sin t | cos p sin t |   0    | | dE/dm_z |   | dE/dm_p |
-
-    Notice that the gradient is the negative of the effective field, i.e.
-    dE/dm_i = - Heff_i , thus we can use the effective field components in
-    Cartesian coordinates as input instead of computing the gradient
-    numerically
-
-    This formula can be derived from the chain rule applied to the energy
-    derivative to obtain the effective field: d E / d M, with M = M_s (sin
-    t cos p, sin t sin p, cos t)
-
-    (see Suss et al., Magnetics, IEEE Transactions 36 (5) pp.3282-3284,
-    2000)
-
-    The function only returns the (t, p) = (theta, phi) coordinates of
-    dE/dm since we asume that the r component is fixed
-
-
-    INPUTS:
-
-    Hxyz    :: Effective field in Cartesian coordinates
-    spin    :: The magnetisation/spin field in Spherical coordinates
-
-    """
-    Hxyz = Hxyz.reshape(-1, 3)
-
-    # theta_phi = cartesian2spherical(spin)
-    # t, p = theta_phi[::2], theta_phi[1::2]
-    t, p = spin[::2], spin[1::2]
-
-    # The gradient is just a vector field, thus we use the spin field size
-    # in spherical coordinates
-    gradientE = np.zeros_like(spin).reshape(-1, 2)
-
-    # Theta components
-    gradientE[:, 0] = (np.cos(t) * np.cos(p) * (-Hxyz[:, 0]) +
-                       np.cos(t) * np.sin(p) * (-Hxyz[:, 1]) +
-                       np.sin(t) * Hxyz[:, 2]
-                       )
-
-    # Phi components
-    gradientE[:, 1] = (np.sin(p) * Hxyz[:, 0] +
-                       np.cos(p) * (-Hxyz[:, 1])
-                       )
-
-    Hxyz = Hxyz.reshape(-1)
-
-    return gradientE.reshape(-1)

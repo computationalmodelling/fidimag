@@ -1,10 +1,12 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
+import os
 
 import fidimag.extensions.cvode as cvode
-import fidimag.extensions.nebm_spherical_clib as nebm_clib
 from fidimag.common.vtk import VTK
+# from .nebm_tools import compute_norm
+# from .nebm_tools import linear_interpolation_spherical
 from .fileio import DataSaver
 
 import logging
@@ -53,11 +55,16 @@ class NEBMBase(object):
         # Spring constant (we could use an array in the future)
         self.k = k
 
-        # VTK saver for the magnetisation/spin field
+        # VTK saver for the magnetisation/spin field --------------------------
         self.VTK = VTK(self.mesh,
                        directory='vtks'.format(self.name),
                        filename='m'
                        )
+
+        # Functions to convert the energy band coordinates to Cartesian
+        # coordinates when saving VTK and NPY files We assume Cartesian
+        # coordinates by default, i.e. we do not transform anything
+        self.files_convert_f = None
 
         # Initial states ------------------------------------------------------
 
@@ -103,28 +110,22 @@ class NEBMBase(object):
 
         self.last_Y = np.zeros_like(self.band)
 
-        # Initialisation ------------------------------------------------------
-
-        self.generate_initial_band()
-
-        # Energy of the images
-        self.band = self.band.reshape(self.n_images, -1)
-        for i in range(self.n_images):
-            self.sim.set_m(self.spherical2cartesian(self.band[i]))
-            self.energies[i] = self.sim.compute_energy()
-        self.band = self.band.reshape(-1)
-
-        self.initialise_integrator()
-
-        self.create_tablewriter()
-
         # ---------------------------------------------------------------------
 
-    def save_VTKs(self):
+    def initialise_energies(self):
+        pass
+
+    def save_VTKs(self, coordinates_function=None):
         """
 
         Save VTK files in different folders, according to the simulation name
         and step. Files are saved as vtks/simname_simstep_vtk/image_00000x.vtk
+
+        coordinates_function    :: A function to transform the coordinates of
+                                   the band to Cartesian coordinates. For
+                                   example, in spherical coordinates we need
+                                   the spherical2cartesian function from
+                                   nebm_tools
 
         """
         # Create the directory
@@ -145,14 +146,43 @@ class NEBMBase(object):
             except:
                 self.VTK.save_scalar(self.sim.mu_s, name='mu_s')
 
-            self.VTK.save_vector(
-                self.spherical2cartesian(self.band[i]).reshape(-1, 3),
-                name='spins'
-                )
+            if coordinates_function:
+                self.VTK.save_vector(
+                    coordinates_function(self.band[i]).reshape(-1, 3),
+                    name='spins'
+                    )
+            else:
+                self.VTK.save_vector(
+                    self.band[i].reshape(-1, 3),
+                    name='spins'
+                    )
 
             self.VTK.write_file(step=i)
 
         self.band.shape = (-1, )
+
+    def save_npys(self, coordinates_function=None):
+        """
+        Save npy files in different folders according to
+        the simulation name and step
+        Files are saved as: npys/simname_simstep/image_x.npy
+        """
+        # Create directory as simname_simstep
+        directory = 'npys/%s_%d' % (self.name, self.iterations)
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        # Save the images with the format: 'image_{}.npy'
+        # where {} is the image number, starting from 0
+        self.band.shape = (self.n_images, -1)
+        for i in range(self.n_images):
+            name = os.path.join(directory, 'image_%d.npy' % i)
+            if coordinates_function:
+                np.save(name, coordinates_function(self.band[i, :]))
+            else:
+                np.save(name, self.band[i])
+        self.band.shape = (-1)
 
     def initialise_integrator(self, rtol=1e-6, atol=1e-6):
         self.t = 0
@@ -187,64 +217,19 @@ class NEBMBase(object):
         self.tablewriter_dm = DataSaver(
             self, '%s_dms.ndt' % (self.name), entities=entities_dm)
 
+        # ---------------------------------------------------------------------
+
     def generate_initial_band(self):
-
-        # Every row will be an image of the band, i.e. the i-th row is
-        # the i-t image
-        self.band = self.band.reshape(self.n_images, -1)
-
-        # Indexes indicating the image number (position of the images) in the
-        # band, for the specified initial images
-        i_initial_images = [0]
-        for i in range(1, len(self.initial_images)):
-            i_initial_images.append(i_initial_images[-1]
-                                    + self.interpolations[i - 1]
-                                    + 1
-                                    )
-
-        for i, m_field in enumerate(self.initial_images[:-1]):
-
-            # Copy the magnetisation field from the i-th and (i + 1)-th to the
-            # corresponding rows of the nebm band array To do this, we need to
-            # know in which positions are these images in the band, which
-            # change according to the number of interpolations. Accordingly,
-            # we use the list with the indexes of the initial images
-            self.sim.set_m(self.initial_images[i])
-            self.band[i_initial_images[i]] = self.cartesian2spherical(self.sim.spin)
-
-            self.sim.set_m(self.initial_images[i + 1])
-            self.band[i_initial_images[i + 1]] = self.cartesian2spherical(self.sim.spin)
-
-            # interpolation is an array with *self.interpolations[i]* rows
-            # We copy these rows to the corresponding images in the energy
-            # band array
-            if self.interpolations[i] != 0:
-                interpolation = self.linear_interpolation(
-                    self.band[i_initial_images[i]],
-                    self.band[i_initial_images[i + 1]],
-                    self.interpolations[i],
-                    self.sim.pins
-                    )
-
-                # We then set the interpolated spins fields at once
-                self.band[i_initial_images[i] + 1:
-                          i_initial_images[i + 1]] = interpolation
-
-        # expand the energy band array
-        self.band = self.band.reshape(-1)
+        pass
 
     def compute_effective_field_and_energy(self, y):
         pass
 
     def compute_tangents(self, y):
-        nebm_clib.compute_tangents(self.tangents, y, self.energies,
-                                   self.n_dofs_image, self.n_images
-                                   )
+        pass
 
     def compute_spring_force(self, y):
-        nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
-                                       self.k, self.n_images, self.n_dofs_image
-                                       )
+        pass
 
     def compute_distances(self):
         pass
@@ -278,16 +263,12 @@ class NEBMBase(object):
         ydot[-self.n_dofs_image:] = 0
 
         return 0
-    
-    def compute_distance(self):
-        pass
 
-    def compute_maximum_dYdt(self, y0, y1, dt):
+    def compute_maximum_dYdt(self, A, B, dt):
         """
 
-        Compute the maximum difference from the images of the *y* array with
-        the images of the *self.band* array, divided by the last time step
-        size, i.e.  (t - self.t)
+        Compute the maximum difference from the images of the *A* array with
+        the images of the *B* array, divided by dt
 
         The differences are not computed for the images at the extremes, since
         these images are fixed and do not change with the iterator
@@ -295,10 +276,10 @@ class NEBMBase(object):
         For instance, in spherical coordinates, if we have a band of (N + 1)
         images, labeled from 0 to N, we start by
 
-        dY = [y1_theta0 y1_phi0 y1_theta1 ... y(N-1)_theta0 y(N-1)_phi0 y(N-1)_theta1 ... ]
-            - [G1_theta0 G1_phi0 G1_theta1 ... G(N-1)_theta0 G(N-1)_phi0 G(N-1)_theta1 ... ]
+        dY = [A1_theta0 A1_phi0 A1_theta1 ... A(N-1)_theta0 A(N-1)_phi0 A(N-1)_theta1 ... ]
+            - [B1_theta0 B1_phi0 B1_theta1 ... B(N-1)_theta0 B(N-1)_phi0 B(N-1)_theta1 ... ]
 
-        where y(i)_theta(j) is the theta componenet of the j-th spin of the
+        where A(i)_theta(j) is the theta componenet of the j-th spin of the
         i-th image in the band
 
         Then we calculate the norm of every difference:
@@ -320,9 +301,9 @@ class NEBMBase(object):
         # Since we removed the extremes, we only have *n_images_inner_band*
         # images
         band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
-        dYdt = self.compute_distance(
-            y0[band_no_extremes],
-            y1[band_no_extremes]).reshape(self.n_inner_band, -1)
+        dYdt = self.compute_distances(
+            A[band_no_extremes],
+            B[band_no_extremes]).reshape(self.n_images_inner_band, -1)
 
         dYdt /= dt
 
@@ -366,10 +347,13 @@ class NEBMBase(object):
                                                               dt,
                                                               max_iterations))
 
-        self.save_VTKs()
+        self.save_VTKs(coordinates_function=self.files_convert_f)
+        self.save_npys(coordinates_function=self.files_convert_f)
 
         # Save the initial state i=0
-        self.compute_distances()
+        self.distances = self.compute_distances(self.band[self.n_dofs_image:],
+                                                self.band[:-self.n_dofs_image]
+                                                )
         self.tablewriter.save()
         self.tablewriter_dm.save()
 
@@ -393,15 +377,26 @@ class NEBMBase(object):
 
             max_dYdt = self.run_until(self.t + increment_dt)
 
-            # Save data
-            self.compute_distances()
+            # Save data -------------------------------------------------------
+
+            if self.iterations % save_vtks_every == 0:
+                self.save_VTKs(coordinates_function=self.files_convert_f)
+            if self.iterations % save_npys_every == 0:
+                self.save_npys(coordinates_function=self.files_convert_f)
+
+            self.distances = self.compute_distances(
+                self.band[self.n_dofs_image:],
+                self.band[:-self.n_dofs_image]
+                )
             self.tablewriter.save()
             self.tablewriter_dm.save()
             log.debug("step: {:.3g}, step_size: {:.3g}"
-                      " and max_dmdt: {:.3g}.".format(self.iterations,
+                      " and max_dYdt: {:.3g}.".format(self.iterations,
                                                       increment_dt,
                                                       max_dYdt)
                       )
+
+            # -----------------------------------------------------------------
 
             # Stop criteria:
             if max_dYdt < stopping_dYdt:
@@ -418,112 +413,3 @@ class NEBMBase(object):
         self.save_VTKs()
 
     # -------------------------------------------------------------------------
-    # Methods -----------------------------------------------------------------
-    # -------------------------------------------------------------------------
-
-    def cartesian2spherical(self, y_cartesian):
-        """
-        y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ...]
-        """
-        theta_phi = np.zeros((len(y_cartesian.reshape(-1, 3)), 2))
-
-        # r = sqrt (m_x ** 2 + m_y ** 2)
-        r = np.sqrt(y_cartesian[::3] ** 2 + y_cartesian[1::3] ** 2)
-
-        # Only works if rho = sqrt(x**2 + y**2 + z**2) = 1
-        # theta_phi[:, 0] = np.arccos(y_cartesian[2::3])  # theta
-
-        theta_phi[:, 0] = np.arctan2(r, y_cartesian[2::3])  # theta
-        theta_phi[:, 1] = np.arctan2(y_cartesian[1::3],
-                                     y_cartesian[::3]
-                                     )                      # phi
-
-        return theta_phi.reshape(-1)
-
-    def spherical2cartesian(self, y_spherical):
-        y_cartesian = np.zeros((len(y_spherical.reshape(-1, 2)), 3))
-
-        theta, phi = y_spherical[::2], y_spherical[1::2]
-        y_cartesian[:, 0] = np.sin(theta) * np.cos(phi)
-        y_cartesian[:, 1] = np.sin(theta) * np.sin(phi)
-        y_cartesian[:, 2] = np.cos(theta)
-
-        return y_cartesian.reshape(-1)
-
-    def linear_interpolation(self, y_initial, y_final, n, pins=None):
-        """
-
-        This function returns a (n, len(y_initial)) array, where every row is an
-        interpolation of the coordinates in y_initial to y_final. The interpolation
-        is made in spherical coordinates
-
-        ARGUMENTS:
-
-        y_initial, y_final      :: In Spherical coordinates with the structure:
-
-                                        [ theta0 phi0 theta1 phi1 ...]
-
-        OPTIONAL:
-
-        pins                    :: An array or list with 0s and 1s, representing
-                                   unpinned/pinned coordinates of any of the *y*
-                                   arrays, respectively. Thus, the *pins* array
-                                   must have HALF the length of *y*:
-
-                                        [pin0 pin1  ...  ]
-
-        """
-
-        # We will generate n copies of the y_initial array, using rows
-        # For this, we use Numpy's broadcasting. For example,
-        # if y_initial=[1, 3 4, 5], then:
-        #
-        #        [ [0]     + [1 3 4 5]  = [ [1  3  4  5]
-        #          [0] ]                    [1  3  4  5] ]
-        interpolations = np.zeros((n, 1))
-        interpolations = interpolations + y_initial
-
-        # We will not interpolate pinned spins
-        if pins is None:
-            #  Just use half the length of y_initial
-            pins = np.zeros(len(y_initial[::2]))
-
-        # Since we have a pin index per every PAIR of coordinates, we copy very
-        # entry. For example: [1 0] --> [1 1 0 0]
-        # and we change only unpinned spins (0)
-        _filter = np.repeat(pins, 2) == 0
-
-        # y_initial_spherical = self.cartesian2spherical(y_initial)
-        # y_final_spherical = self.cartesian2spherical(y_final)
-
-        # dy_spherical = ((y_final_spherical - y_initial_spherical) / (n + 1))
-        dy = (y_final - y_initial) / (n + 1)
-
-        for i in range(1, n + 1):
-            interpolations[i - 1][_filter] = (y_initial + i * dy)[_filter]
-
-        return interpolations
-
-    def compute_norm(self, A, scale=None):
-        """
-
-        Compute the norm of the *A* array, which contains spin directions in
-        Spherical coordinates,
-
-        A = [ A_theta0 A_phi0 A_theta1 A_phi1 ... A_thetaN A_phiN]
-
-        If the absolute value of a component is larger than PI, we redefine the
-        difference to be smaller than PI
-
-        We scale the norm by the array size
-
-        """
-
-        y = np.copy(A)
-
-        if scale:
-            y = np.sqrt(np.sum(y ** 2.)) / len(y)
-        else:
-            y = np.sqrt(np.sum(y ** 2.))
-
-        return y

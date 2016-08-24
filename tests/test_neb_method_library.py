@@ -6,7 +6,8 @@ Tests for the NEB Method implementation
 
 """
 
-import fidimag.common.neb_method as nebm
+import fidimag.common.nebm_tools as nebm_tools
+import fidimag.common.nebm_spherical as nebm_spherical
 import numpy as np
 
 
@@ -16,7 +17,7 @@ def test_cartesian2spherical():
                             0, 1, 1,
                             1, 0, 0
                             ])
-    y_spherical = nebm.cartesian2spherical(y_cartesian)
+    y_spherical = nebm_tools.cartesian2spherical(y_cartesian)
     theta, phi = y_spherical[::2], y_spherical[1::2]
 
     assert np.abs(theta[0]) < 1e-8
@@ -40,7 +41,7 @@ def test_spherical2cartesian():
                             np.pi * 0.5, 3 * np.pi * 0.5,   # (0, -1, 0)
                             ])
 
-    A_cartesian = nebm.spherical2cartesian(A_spherical)
+    A_cartesian = nebm_tools.spherical2cartesian(A_spherical)
     A_x, A_y, A_z = A_cartesian[::3], A_cartesian[1::3], A_cartesian[2::3]
 
     print('A_x', A_x)
@@ -98,7 +99,8 @@ def test_linearinterpolation():
     pins = np.array([0, 0, 1])
 
     # Interpolate the coordinates
-    interps = nebm.linear_interpolation(y_initial, y_final, 3, pins=pins)
+    interps = nebm_tools.linear_interpolation_spherical(y_initial, y_final,
+                                                        3, pins=pins)
 
     # Expected angles:
     expected_theta_0 = np.array([np.pi * 0.5 + np.pi * 0.125,
