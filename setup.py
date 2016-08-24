@@ -18,7 +18,8 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
 NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
-NEB_METHOD_DIR = os.path.join(SRC_DIR, "common", "neb_method")
+NEBM_SPHERICAL_DIR = os.path.join(SRC_DIR, "common", 
+                                  "neb_method", "nebm_spherical")
 ATOM_DIR = os.path.join(SRC_DIR, "atomistic", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
@@ -74,10 +75,11 @@ neb_sources = []
 neb_sources.append(os.path.join(NEB_DIR, 'neb_clib.pyx'))
 neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
 
-neb_method_sources = []
-neb_method_sources.append(os.path.join(NEB_METHOD_DIR, 'neb_method_clib.pyx'))
-neb_method_sources += glob_cfiles(NEB_METHOD_DIR,
-                                  excludes=["neb_method_clib.c"])
+nebm_spherical_sources = []
+nebm_spherical_sources.append(os.path.join(NEBM_SPHERICAL_DIR,
+                                           'nebm_spherical_clib.pyx'))
+nebm_spherical_sources += glob_cfiles(NEBM_SPHERICAL_DIR,
+                                      excludes=["nebm_spherical_clib.c"])
 
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
@@ -136,8 +138,8 @@ ext_modules = [
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
-    Extension("fidimag.extensions.neb_method_clib",
-              sources=neb_method_sources,
+    Extension("fidimag.extensions.nebm_spherical_clib",
+              sources=nebm_spherical_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               extra_compile_args=com_args,

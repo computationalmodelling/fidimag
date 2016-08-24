@@ -3,7 +3,7 @@ cimport numpy as np
 np.import_array()
 
 
-cdef extern from "neb_method_lib.h":
+cdef extern from "nebm_spherical_lib.h":
     void compute_tangents_C(double *tangents, 
                             double *y,
                             double *energies,
@@ -18,9 +18,6 @@ cdef extern from "neb_method_lib.h":
                                 int n_images,
                                 int n_dofs_image
                                 )
-
-    void project_tangents_C(double *tangents, double *y,
-                            int n_images, int n_dofs_image)
 
     void compute_effective_force_C(double * G,
                                    double * tangents,
@@ -52,16 +49,6 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
     compute_spring_force_C(&spring_force[0], &y[0], &tangents[0],
                            k, n_images, n_dofs_image
                            )
-
-def project_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
-                     np.ndarray[double, ndim=1, mode="c"] y,
-                     n_images,
-                     n_dofs_image
-                     ):
-
-    project_tangents_C(&tangents[0], &y[0],
-                       n_images, n_dofs_image
-                       )
 
 def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
                             np.ndarray[double, ndim=1, mode="c"] tangents,

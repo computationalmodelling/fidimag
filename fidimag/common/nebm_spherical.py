@@ -3,9 +3,9 @@ from __future__ import division
 import numpy as np
 
 import fidimag.extensions.cvode as cvode
-import fidimag.extensions.neb_method_clib as nebm_clib
+import fidimag.extensions.nebm_spherical_clib as nebm_clib
 from fidimag.common.vtk import VTK
-from .fileio import DataSaver, DataReader
+from .fileio import DataSaver
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -270,15 +270,10 @@ class NEBMethod(object):
         y = y.reshape(-1)
         self.gradientE = self.gradientE.reshape(-1)
 
-    def compute_tangents(self, y, project=None):
+    def compute_tangents(self, y):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
                                    self.n_dofs_image, self.n_images
                                    )
-
-        if project:
-            nebm_clib.project_tangents(self.tangents, y,
-                                       self.n_images, self.n_dofs_image
-                                       )
 
     def compute_spring_force(self, y):
         nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
@@ -291,7 +286,7 @@ class NEBMethod(object):
         # angles: Redefining the tangents and spring force helps a little
         self.correct_angles(y)
         self.compute_effective_field_and_energy(y)
-        self.compute_tangents(y, project=False)
+        self.compute_tangents(y)
         self.compute_spring_force(y)
 
         nebm_clib.compute_effective_force(self.G,
@@ -301,26 +296,6 @@ class NEBMethod(object):
                                           self.n_images,
                                           self.n_dofs_image
                                           )
-        # self.correct_angles(y)
-        # self.correct_angles(self.tangents)
-        # self.correct_angles(self.spring_force)
-
-        # self.G = self.G.reshape(self.n_images, -1)
-        # self.gradientE = self.gradientE.reshape(self.n_images, -1)
-        # self.tangents = self.tangents.reshape(self.n_images, -1)
-        # self.spring_force = self.spring_force.reshape(self.n_images, -1)
-
-        # for i in range(1, self.n_images - 1):
-
-        #     self.G[i] = (-self.gradientE[i]
-        #                  + np.dot(self.gradientE[i], self.tangents[i]) * self.tangents[i]
-        #                  + self.spring_force[i]
-        #                  )
-
-        # self.G = self.G.reshape(-1)
-        # self.gradientE = self.gradientE.reshape(-1)
-        # self.tangents = self.tangents.reshape(-1)
-        # self.spring_force = self.spring_force.reshape(-1)
 
     def compute_distances(self):
         self.band.shape = (self.n_images, -1)
@@ -329,7 +304,7 @@ class NEBMethod(object):
         self.redefine_angles(distances)
 
         distances = np.apply_along_axis(
-            lambda y: self.compute_norm(y, scale=self.n_dofs_image),
+            lambda y: compute_norm(y, scale=self.n_dofs_image),
             axis=1,
             arr=distances
             )
@@ -337,6 +312,25 @@ class NEBMethod(object):
         self.distances = distances
 
         self.band.shape = (-1)
+
+    def correct_angles(self, A):
+        """
+        Correct PI and PHI angles
+        """
+        A[::2][A[::2] > np.pi] = 2 * np.pi - A[::2][A[::2] > np.pi]
+        A[::2][A[::2] < 0] = np.abs(A[::2][A[::2] < 0])
+        # A[::2][A[::2] > np.pi] = np.pi
+        # A[::2][A[::2] < 0] = 0
+
+        A[1::2][A[1::2] > np.pi] = A[1::2][A[1::2] > np.pi] - 2 * np.pi
+        A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
+
+    def redefine_angles(self, A):
+        """
+        This redefines PHI angles to lie in the [-PI, PI] range
+        """
+        A[1::2][A[1::2] > np.pi] = 2 * np.pi - A[1::2][A[1::2] > np.pi]
+        A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
 
     # -------------------------------------------------------------------------
     # CVODE solver ------------------------------------------------------------
@@ -367,43 +361,6 @@ class NEBMethod(object):
         ydot[-self.n_dofs_image:] = 0
 
         return 0
-
-    def correct_angles(self, A):
-        # A[::2][A[::2] > np.pi] = 2 * np.pi - A[::2][A[::2] > np.pi]
-        # A[::2][A[::2] < 0] = np.abs(A[::2][A[::2] < 0])
-        A[::2][A[::2] > np.pi] = np.pi
-        A[::2][A[::2] < 0] = 0
-
-        A[1::2][A[1::2] > np.pi] = A[1::2][A[1::2] > np.pi] - 2 * np.pi
-        A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
-
-    def redefine_angles(self, A):
-        A[1::2][A[1::2] > np.pi] = 2 * np.pi - A[1::2][A[1::2] > np.pi]
-        A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
-
-    def compute_norm(self, A, scale=None):
-        """
-
-        Compute the norm of the *A* array, which contains spin directions in
-        Spherical coordinates,
-
-        A = [ A_theta0 A_phi0 A_theta1 A_phi1 ... A_thetaN A_phiN]
-
-        If the absolute value of a component is larger than PI, we redefine the
-        difference to be smaller than PI
-
-        We scale the norm by the array size
-
-        """
-
-        y = np.copy(A)
-
-        if scale:
-            y = np.sqrt(np.sum(y ** 2.)) / len(y)
-        else:
-            y = np.sqrt(np.sum(y ** 2.))
-
-        return y
 
     def compute_maximum_dYdt(self, y0, y1, dt):
         """
@@ -451,7 +408,7 @@ class NEBMethod(object):
 
         # Compute the norm of the difference dY for every image in the array
         dYdt = np.apply_along_axis(
-            lambda y: self.compute_norm(y, scale=self.n_dofs_image),
+            lambda y: compute_norm(y, scale=self.n_dofs_image),
             axis=1,
             arr=dYdt,
             )
@@ -631,9 +588,9 @@ def energygradient2spherical(Hxyz, spin):
                        )
 
     # Phi components
-    gradientE[:, 1] = np.sin(t) * (np.sin(p) * Hxyz[:, 0] +
-                                   np.cos(p) * (-Hxyz[:, 1])
-                                   )
+    gradientE[:, 1] = (np.sin(p) * Hxyz[:, 0] +
+                       np.cos(p) * (-Hxyz[:, 1])
+                       )
 
     Hxyz = Hxyz.reshape(-1)
 
@@ -693,3 +650,28 @@ def linear_interpolation(y_initial, y_final, n, pins=None):
         interpolations[i - 1][_filter] = (y_initial + i * dy)[_filter]
 
     return interpolations
+
+
+def compute_norm(A, scale=None):
+    """
+
+    Compute the norm of the *A* array, which contains spin directions in
+    Spherical coordinates,
+
+    A = [ A_theta0 A_phi0 A_theta1 A_phi1 ... A_thetaN A_phiN]
+
+    If the absolute value of a component is larger than PI, we redefine the
+    difference to be smaller than PI
+
+    We scale the norm by the array size
+
+    """
+
+    y = np.copy(A)
+
+    if scale:
+        y = np.sqrt(np.sum(y ** 2.)) / len(y)
+    else:
+        y = np.sqrt(np.sum(y ** 2.))
+
+    return y

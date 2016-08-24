@@ -1,8 +1,7 @@
-#include "neb_method_lib.h"
+#include "nebm_spherical_lib.h"
 #include "math.h"
 
-
-double dot_product(double *A, double *B, int n){
+double dot_product(double * A, double * B, int n){
     /* Dot product between arrays A and B , assuming they
      * have length n */
 
@@ -15,9 +14,28 @@ double dot_product(double *A, double *B, int n){
 }
 
 double compute_norm(double *a, int n, int scale) {
-    /* a        :: array
+    /* Compute the norm of an array *a. *a is assumed to have spherical
+     * coordinates as:
+           
+     *      a = [ theta_0 phi_0 theta_1 phi_1 ... ]
+     
+     * This function is necessary to either normalise a vector or compute the
+     * distance between two images (see below)
+     *
+     * To compute the norm, we redefine the angles, so they always lie on the
+     * [-PI, PI] range, rather than [0, 2PI] for phi. 
+     *
+     * ARGUMENTS:
+     
      * n        :: length of a
+     *
      * scale    :: If scale is zero, we do not scale the norm
+     
+     * Notice that, when computing the DISTANCE between two images, Y_i, Y_i+1
+     * for example, we just do the difference (Y_i - Y_(i+1)) and then compute
+     * its norm (using this function) but RESCALING the length by the number
+     * of componentsm, thus we use scale=n
+     *
      */
 
     double norm = 0;
@@ -205,37 +223,12 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
         /* ----------------------------------------------------------------- */
 
+        // Normalise the tangent by redefining the angles and dividing by
+        // its norm
         normalise(t, n_dofs_image);
     } // Close loop in images
 } // Close main function
 
-
-/* ------------------------------------------------------------------------- */
-
-void project_tangents_C(double *tangents, double *y,
-                        int n_images, int n_dofs_image){
-
-    int i, j;
-    double t_dot_y_i = 0;
-
-    // Index where the components of an image start in the *y array,
-    int im_idx;
-
-    for(i = 1; i < n_images - 1; i++){
-
-        im_idx = i * (n_dofs_image);
-
-        double * t = &tangents[im_idx];
-        double * y_i = &y[im_idx];
-
-        t_dot_y_i = dot_product(t, y_i, n_dofs_image);
-        for(j = 0; j < n_dofs_image; j++) {
-            t[j] = t[j] - t_dot_y_i * y_i[j];
-        }
-
-        normalise(t, n_dofs_image);
-    }
-}
 
 /* ------------------------------------------------------------------------- */
 
@@ -292,7 +285,7 @@ void compute_spring_force_C(double *spring_force,
         // Compute the distances between the i-th image, Y_i, and its
         // neighbours, the (i+1)-th and (i-1)-th images. The distance between
         // two images is just the norm of their difference scaled by the length
-        // of the array
+        // of the array (see the compute_norm function)
         for(j = 0; j < n_dofs_image; j++) {
             dY_plus[j]  = y[next_im_idx + j] - y[im_idx + j];
             dY_minus[j] = y[im_idx + j]      - y[prev_im_idx + j];
