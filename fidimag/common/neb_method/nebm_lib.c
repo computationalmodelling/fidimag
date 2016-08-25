@@ -10,34 +10,34 @@ void cross_product(double * output, double * A, double * B){
     output[2] = A[0] * B[1] - A[1] * B[0];
 }
 
-// void geodesic_distance(double * A, double * B, int n_spins){
-//     /* We will use Vicenty's formula 
-//      *
-//      * A, B         :: Arrays in Cartesian coordinates
-//      *
-//      */
-// 
-//     int i, j;
-//     int spin_i;
-//     double * A_cross_B;
-//     double A_cross_B_norm;
-//     double A_dot_B;
-//     double distance = 0;
-// 
-//     for(int i = 0; i < n_spins; i++){
-//         spin_i = 3 * i;
-//         
-//         A_cross_B = cross_product(&A[spin_i], &B[spin_i]);
-//         A_cross_B_norm = normalise(A_cross_B, 3);
-// 
-//         A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
-// 
-//         distance += atan2(A_cross_B_norm, A_dot_B);
-//     }
-//     
-//     distance = sqrt(distance);
-// 
-// }
+void project_vector_C(double * vector, double * y,
+                      int n_images, int n_dofs_image,
+                      void (* normalise)(double *, int)
+                      ){
+
+    int i, j;
+    double v_dot_m_i = 0;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+
+        im_idx = i * (n_dofs_image);
+
+        double * v = &vector[im_idx];
+        double * y_i = &y[im_idx];
+
+        for(j = 0; j < n_dofs_image; j++) {
+            if (j % 2 == 0) v_dot_m_i = dot_product(&v[j], &y_i[j], 3);
+            v[j] = v[j] - v_dot_m_i * y_i[j];
+        }
+
+        normalise(v, n_dofs_image);
+    }
+}
+
+/* ------------------------------------------------------------------------- */
 
 double dot_product(double * A, double * B, int n){
     /* Dot product between arrays A and B , assuming they
@@ -89,29 +89,29 @@ double compute_norm(double *a, int n, int scale) {
     return norm;
 }
 
-// void normalise(double *a, int n){
-// 
-//     /* Normalise the *a array, whose length is n (3 * number of nodes in
-//      * cartesian, and 2 * number of nodes in spherical) To do this we compute
-//      * the length of *a :
-//      *
-//      *      SQRT[ a[0] ** 2 + a[1] ** 2 + ... ]
-//      *
-//      *  and divide every *a entry by that length
-//      */
-// 
-//     double length;
-// 
-//     length = compute_norm(a, n, 0);
-// 
-//     if (length > 0){
-//         length = 1.0 / length;
-//     }
-// 
-//     for(int i = 0; i < n; i++){
-//         a[i] *= length;
-//     }
-// }
+void normalise(double *a, int n){
+
+    /* Normalise the *a array, whose length is n (3 * number of nodes in
+     * cartesian, and 2 * number of nodes in spherical) To do this we compute
+     * the length of *a :
+     *
+     *      SQRT[ a[0] ** 2 + a[1] ** 2 + ... ]
+     *
+     *  and divide every *a entry by that length
+     */
+
+    double length;
+
+    length = compute_norm(a, n, 0);
+
+    if (length > 0){
+        length = 1.0 / length;
+    }
+
+    for(int i = 0; i < n; i++){
+        a[i] *= length;
+    }
+}
 
 void compute_tangents_C(double *tangents, double *y, double *energies,
                         int n_dofs_image, int n_images,
@@ -261,35 +261,6 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
     } // Close loop in images
 } // Close main function
 
-
-/* ------------------------------------------------------------------------- */
-
-void project_vector_C(double * vector, double * y,
-                      int n_images, int n_dofs_image,
-                      void (* normalise)(double *, int)
-                      ){
-
-    int i, j;
-    double v_dot_m_i = 0;
-
-    // Index where the components of an image start in the *y array,
-    int im_idx;
-
-    for(i = 1; i < n_images - 1; i++){
-
-        im_idx = i * (n_dofs_image);
-
-        double * v = &vector[im_idx];
-        double * y_i = &y[im_idx];
-
-        for(j = 0; j < n_dofs_image; j++) {
-            if (j % 2 == 0) v_dot_m_i = dot_product(&v[j], &y_i[j], 3);
-            v[j] = v[j] - v_dot_m_i * y_i[j];
-        }
-
-        normalise(v, n_dofs_image);
-    }
-}
 
 /* ------------------------------------------------------------------------- */
 

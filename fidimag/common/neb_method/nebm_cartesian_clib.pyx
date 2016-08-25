@@ -3,14 +3,12 @@ cimport numpy as np
 np.import_array()
 
 
-cdef extern from "nebm_spherical_lib.h":
+cdef extern from "nebm_cartesian_lib.h":
 
-    void normalise_spherical(double * a, int n)
-
-    double compute_distance_spherical(double * A, double * B, int n);
+    double compute_distance_cartesian(double * A, double * B, int n);
     
-
 cdef extern from "nebm_lib.h":
+    void normalise(double * a, int n)
 
     void compute_tangents_C(double *tangents,
                             double *y,
@@ -45,7 +43,7 @@ def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
 
     compute_tangents_C(&tangents[0], &y[0], &energies[0],
                        n_dofs_image, n_images,
-                       normalise_spherical
+                       normalise
                        )
 
 def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
@@ -58,7 +56,7 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
 
     compute_spring_force_C(&spring_force[0], &y[0], &tangents[0],
                            k, n_images, n_dofs_image,
-                           compute_distance_spherical
+                           compute_distance_cartesian
                            )
 
 def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,

@@ -2,18 +2,6 @@
 #include "nebm_lib.h"
 #include "math.h"
 
-// double dot_product(double * A, double * B, int n){
-//     /* Dot product between arrays A and B , assuming they
-//      * have length n */
-// 
-//     double dotp = 0;
-//     for(int i = 0; i < n; i++){
-//         dotp += A[i] * B[i];
-//     }
-// 
-//     return dotp;
-// }
-
 double compute_norm_spherical(double *a, int n, int scale) {
     /* Compute the norm of an array *a. *a is assumed to have spherical
      * coordinates as:
@@ -59,7 +47,7 @@ double compute_norm_spherical(double *a, int n, int scale) {
     return norm;
 }
 
-void normalise(double *a, int n){
+void normalise_spherical(double *a, int n){
 
     /* Normalise the *a array, whose length is n (3 * number of nodes in
      * cartesian, and 2 * number of nodes in spherical) To do this we compute
