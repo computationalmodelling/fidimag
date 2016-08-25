@@ -1,5 +1,43 @@
-#include "nebm_spherical_lib.h"
+#include "nebm_lib.h"
 #include "math.h"
+
+void cross_product(double * output, double * A, double * B){
+    /* Dot product between arrays A and B, assuming they
+     * have length n */
+
+    output[0] = A[1] * B[2] - A[2] * B[1];
+    output[1] = A[2] * B[0] - A[0] * B[2];
+    output[2] = A[0] * B[1] - A[1] * B[0];
+}
+
+// void geodesic_distance(double * A, double * B, int n_spins){
+//     /* We will use Vicenty's formula 
+//      *
+//      * A, B         :: Arrays in Cartesian coordinates
+//      *
+//      */
+// 
+//     int i, j;
+//     int spin_i;
+//     double * A_cross_B;
+//     double A_cross_B_norm;
+//     double A_dot_B;
+//     double distance = 0;
+// 
+//     for(int i = 0; i < n_spins; i++){
+//         spin_i = 3 * i;
+//         
+//         A_cross_B = cross_product(&A[spin_i], &B[spin_i]);
+//         A_cross_B_norm = normalise(A_cross_B, 3);
+// 
+//         A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
+// 
+//         distance += atan2(A_cross_B_norm, A_dot_B);
+//     }
+//     
+//     distance = sqrt(distance);
+// 
+// }
 
 double dot_product(double * A, double * B, int n){
     /* Dot product between arrays A and B , assuming they
@@ -42,13 +80,6 @@ double compute_norm(double *a, int n, int scale) {
     double scale_db = (double) scale;
 
     for(int i = 0; i < n; i++){
-
-        if (a[i] > WIDE_PI){
-            a[i] = 2 * WIDE_PI - a[i];
-        } else if(a[i] < -WIDE_PI){
-            a[i] += 2 * WIDE_PI;
-        }
-
         norm += a[i] * a[i];
     }
 
@@ -58,32 +89,33 @@ double compute_norm(double *a, int n, int scale) {
     return norm;
 }
 
-void normalise(double *a, int n){
-
-    /* Normalise the *a array, whose length is n (3 * number of nodes in
-     * cartesian, and 2 * number of nodes in spherical) To do this we compute
-     * the length of *a :
-     *
-     *      SQRT[ a[0] ** 2 + a[1] ** 2 + ... ]
-     *
-     *  and divide every *a entry by that length
-     */
-
-    double length;
-
-    length = compute_norm(a, n, 0);
-
-    if (length > 0){
-        length = 1.0 / length;
-    }
-
-    for(int i = 0; i < n; i++){
-        a[i] *= length;
-    }
-}
+// void normalise(double *a, int n){
+// 
+//     /* Normalise the *a array, whose length is n (3 * number of nodes in
+//      * cartesian, and 2 * number of nodes in spherical) To do this we compute
+//      * the length of *a :
+//      *
+//      *      SQRT[ a[0] ** 2 + a[1] ** 2 + ... ]
+//      *
+//      *  and divide every *a entry by that length
+//      */
+// 
+//     double length;
+// 
+//     length = compute_norm(a, n, 0);
+// 
+//     if (length > 0){
+//         length = 1.0 / length;
+//     }
+// 
+//     for(int i = 0; i < n; i++){
+//         a[i] *= length;
+//     }
+// }
 
 void compute_tangents_C(double *tangents, double *y, double *energies,
-                        int n_dofs_image, int n_images
+                        int n_dofs_image, int n_images,
+                        void (* normalise)(double *, int)
                         ) {
 
     /* Compute the tangents for every degree of freedom of a NEBM band,
@@ -232,12 +264,42 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
 /* ------------------------------------------------------------------------- */
 
+void project_vector_C(double * vector, double * y,
+                      int n_images, int n_dofs_image,
+                      void (* normalise)(double *, int)
+                      ){
+
+    int i, j;
+    double v_dot_m_i = 0;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+
+        im_idx = i * (n_dofs_image);
+
+        double * v = &vector[im_idx];
+        double * y_i = &y[im_idx];
+
+        for(j = 0; j < n_dofs_image; j++) {
+            if (j % 2 == 0) v_dot_m_i = dot_product(&v[j], &y_i[j], 3);
+            v[j] = v[j] - v_dot_m_i * y_i[j];
+        }
+
+        normalise(v, n_dofs_image);
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+
 void compute_spring_force_C(double *spring_force,
                             double *y,
                             double *tangents,
                             double k,
                             int n_images,
-                            int n_dofs_image
+                            int n_dofs_image,
+                            double (* compute_distance)(double *, double *, int)
                             ) {
 
     /* Compute the spring force for every image of an energy band, which is
@@ -268,9 +330,6 @@ void compute_spring_force_C(double *spring_force,
     // And also the previous and next images:
     int next_im_idx, prev_im_idx;
 
-    double dY_plus[n_dofs_image];
-    double dY_minus[n_dofs_image];
-
     double dY_plus_norm, dY_minus_norm;
 
     for(i = 1; i < n_images - 1; i++){
@@ -286,12 +345,8 @@ void compute_spring_force_C(double *spring_force,
         // neighbours, the (i+1)-th and (i-1)-th images. The distance between
         // two images is just the norm of their difference scaled by the length
         // of the array (see the compute_norm function)
-        for(j = 0; j < n_dofs_image; j++) {
-            dY_plus[j]  = y[next_im_idx + j] - y[im_idx + j];
-            dY_minus[j] = y[im_idx + j]      - y[prev_im_idx + j];
-        }
-        dY_plus_norm  = compute_norm(dY_plus,  n_dofs_image, n_dofs_image);
-        dY_minus_norm = compute_norm(dY_minus, n_dofs_image, n_dofs_image);
+        dY_plus_norm  = compute_distance(&y[next_im_idx], &y[im_idx], n_dofs_image);
+        dY_minus_norm = compute_distance(&y[im_idx], &y[prev_im_idx], n_dofs_image);
 
         // Now compute the spring force
         for(j = 0; j < n_dofs_image; j++) {

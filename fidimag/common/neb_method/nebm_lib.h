@@ -1,15 +1,21 @@
 #include "math.h"
 #define WIDE_PI 3.1415926535897932384626433832795L
 
+
+double dot_product(double * A, double * B, int n);
+
 void compute_tangents_C(double *ys, double *energy,
-                        double *tangents, int image_num, int nodes);
+                        double *tangents, int image_num, int nodes,
+                        void (* normalise)(double *, int)
+                        );
 
 void compute_spring_force_C(double *spring_force,
                             double *y,
                             double *tangents,
                             double k,
                             int n_images,
-                            int n_dofs_image
+                            int n_dofs_image,
+                            double (* compute_distance)(double *, double *, int)
                             );
 
 void compute_effective_force_C(double * G,
@@ -17,4 +23,5 @@ void compute_effective_force_C(double * G,
                                double * gradientE,
                                double * spring_force,
                                int n_images,
-                               int n_dofs_image);
+                               int n_dofs_image
+                               );

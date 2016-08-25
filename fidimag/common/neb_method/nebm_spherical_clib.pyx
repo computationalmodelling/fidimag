@@ -4,11 +4,20 @@ np.import_array()
 
 
 cdef extern from "nebm_spherical_lib.h":
-    void compute_tangents_C(double *tangents, 
+
+    void normalise(double * a, int n)
+
+    double compute_distance_spherical(double * A, double * B, int n);
+    
+
+cdef extern from "nebm_lib.h":
+
+    void compute_tangents_C(double *tangents,
                             double *y,
                             double *energies,
                             int n_dofs_image,
-                            int n_images
+                            int n_images,
+                            void (* normalise)(double *, int)
                             )
 
     void compute_spring_force_C(double *spring_force,
@@ -16,7 +25,8 @@ cdef extern from "nebm_spherical_lib.h":
                                 double *tangents,
                                 double k,
                                 int n_images,
-                                int n_dofs_image
+                                int n_dofs_image,
+                                double (* compute_distance)(double *, double *, int)
                                 )
 
     void compute_effective_force_C(double * G,
@@ -26,7 +36,6 @@ cdef extern from "nebm_spherical_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
-
 def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
                      np.ndarray[double, ndim=1, mode="c"] y,
                      np.ndarray[double, ndim=1, mode="c"] energies,
@@ -35,7 +44,8 @@ def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
                      ):
 
     compute_tangents_C(&tangents[0], &y[0], &energies[0],
-                       n_dofs_image, n_images
+                       n_dofs_image, n_images,
+                       normalise
                        )
 
 def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
@@ -47,7 +57,8 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                          ):
 
     compute_spring_force_C(&spring_force[0], &y[0], &tangents[0],
-                           k, n_images, n_dofs_image
+                           k, n_images, n_dofs_image,
+                           compute_distance_spherical
                            )
 
 def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
