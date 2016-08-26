@@ -36,13 +36,13 @@ def test_sim_pin():
     sim = Sim(mesh)
     sim.set_m((0, 0.8, 0.6))
     sim.alpha = 0.1
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.pins = pin_fun
 
     anis = Anisotropy(Ku=1.0, axis=[0, 0, 1], name='Dx')
     sim.add(anis)
 
-    sim.run_until(1.0)
+    sim.driver.run_until(1.0)
     assert sim.spin[0] == 0
     assert sim.spin[2] != 0
 
@@ -122,7 +122,7 @@ def test_sim_single_spin_vode(do_plot=False):
     alpha = 0.1
     gamma = 2.21e5
     sim.alpha = alpha
-    sim.gamma = gamma
+    sim.driver.gamma = gamma
     sim.mu_s = 1.0
 
     sim.set_m((1, 0, 0))
@@ -137,9 +137,9 @@ def test_sim_single_spin_vode(do_plot=False):
     mz = []
     real_ts = []
     for t in ts:
-        sim.run_until(t)
-        real_ts.append(sim.t)
-        #print sim.t, abs(sim.spin_length()[0] - 1)
+        sim.driver.run_until(t)
+        real_ts.append(sim.driver.t)
+        #print sim.driver.t, abs(sim.spin_length()[0] - 1)
         mx.append(sim.spin[0])
         my.append(sim.spin[1])
         mz.append(sim.spin[2])
@@ -147,7 +147,7 @@ def test_sim_single_spin_vode(do_plot=False):
     mz = np.array(mz)
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
-    print(sim.stat())
+    print(sim.driver.stat())
 
     if do_plot:
         plot(real_ts, mx, my, mz, a_mx, a_my, a_mz)
@@ -167,7 +167,7 @@ def test_sim_spins(do_plot=False):
     alpha = 0.1
     gamma = 2.21e5
     sim.alpha = alpha
-    sim.gamma = gamma
+    sim.driver.gamma = gamma
     sim.mu_s = 1.0
 
     sim.set_m((1, 0, 0))
@@ -184,9 +184,9 @@ def test_sim_spins(do_plot=False):
     real_ts = []
 
     for t in ts:
-        sim.run_until(t)
-        real_ts.append(sim.t)
-        #print sim.t, abs(sim.spin_length()[0] - 1)
+        sim.driver.run_until(t)
+        real_ts.append(sim.driver.t)
+        #print sim.driver.t, abs(sim.spin_length()[0] - 1)
         av = sim.compute_average()
         mx.append(av[0])
         my.append(av[1])
@@ -198,7 +198,7 @@ def test_sim_spins(do_plot=False):
     # print mz
     a_mx, a_my, a_mz = single_spin(alpha, gamma, H0, ts)
 
-    print(sim.stat())
+    print(sim.driver.stat())
 
     if do_plot:
         plot(real_ts, mx, my, mz, a_mx, a_my, a_mz, name='spins.pdf', title='integrating spins')
@@ -218,7 +218,7 @@ def test_sim_single_spin_sllg(do_plot=False):
     alpha = 0.1
     gamma = 2.21e5
 
-    sim.set_options(dt=5e-15, gamma=gamma)
+    sim.driver.set_options(dt=5e-15, gamma=gamma)
 
     sim.alpha = alpha
     sim.mu_s = 1.0
@@ -235,9 +235,9 @@ def test_sim_single_spin_sllg(do_plot=False):
     mz = []
     real_ts = []
     for t in ts:
-        sim.run_until(t)
-        real_ts.append(sim.t)
-        print(sim.t, abs(sim.spin_length()[0] - 1))
+        sim.driver.run_until(t)
+        real_ts.append(sim.driver.t)
+        print(sim.driver.t, abs(sim.spin_length()[0] - 1))
         mx.append(sim.spin[0])
         my.append(sim.spin[1])
         mz.append(sim.spin[2])
@@ -277,10 +277,10 @@ def disable_test_sim_single_spin_llg_stt(do_plot=False):
     real_ts = []
 
     for t in ts:
-        sim.run_until(t)
-        real_ts.append(sim.t)
-        print(sim.t, abs(sim.spin_length()[0] - 1), sim.spin)
-        mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.t))
+        sim.driver.run_until(t)
+        real_ts.append(sim.driver.t)
+        print(sim.driver.t, abs(sim.spin_length()[0] - 1), sim.spin)
+        mz_ref.append(np.tanh(precession * ni.alpha * H0 * sim.driver.t))
         mxyz.append(np.copy(sim.spin))
 
     mxyz = np.array(mxyz)

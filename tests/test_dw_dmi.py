@@ -63,7 +63,7 @@ def test_dw_dmi(mesh=mesh, do_plot=False):
 
     sim.set_m(m_init_dw)
 
-    sim.set_tols(rtol=1e-8, atol=1e-12)
+    sim.driver.set_tols(rtol=1e-8, atol=1e-12)
     sim.Ms = Ms
     sim.alpha = 0.5
     sim.do_precession = False
@@ -77,7 +77,7 @@ def test_dw_dmi(mesh=mesh, do_plot=False):
     sim.add(DMI(D))
     sim.add(UniaxialAnisotropy(Kx, axis=[1, 0, 0], name='Kx'))
 
-    sim.relax(stopping_dmdt=0.01)
+    sim.driver.relax(stopping_dmdt=0.01)
 
     xs = np.array([p[0] for p in mesh.coordinates])
     mx, my, mz = analytical(xs, A=A, D=D, K=Kx)
