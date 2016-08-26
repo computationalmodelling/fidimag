@@ -410,6 +410,7 @@ class NEBMBase(object):
                                                 max_dYdt)
                  )
 
-        self.save_VTKs()
+        self.save_VTKs(coordinates_function=self.files_convert_f)
+        self.save_npys(coordinates_function=self.files_convert_f)
 
     # -------------------------------------------------------------------------

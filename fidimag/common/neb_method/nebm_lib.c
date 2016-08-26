@@ -29,7 +29,7 @@ void project_vector_C(double * vector, double * y,
         double * y_i = &y[im_idx];
 
         for(j = 0; j < n_dofs_image; j++) {
-            if (j % 2 == 0) v_dot_m_i = dot_product(&v[j], &y_i[j], 3);
+            if (j % 3 == 0) v_dot_m_i = dot_product(&v[j], &y_i[j], 3);
             v[j] = v[j] - v_dot_m_i * y_i[j];
         }
 
@@ -60,9 +60,6 @@ double compute_norm(double *a, int n, int scale) {
      * This function is necessary to either normalise a vector or compute the
      * distance between two images (see below)
      *
-     * To compute the norm, we redefine the angles, so they always lie on the
-     * [-PI, PI] range, rather than [0, 2PI] for phi. 
-     *
      * ARGUMENTS:
      
      * n        :: length of a
@@ -77,14 +74,13 @@ double compute_norm(double *a, int n, int scale) {
      */
 
     double norm = 0;
-    double scale_db = (double) scale;
 
     for(int i = 0; i < n; i++){
         norm += a[i] * a[i];
     }
 
     if (scale == 0) norm = sqrt(norm);
-    else norm = sqrt(norm) / scale_db;
+    else norm = sqrt(norm) / ((double) scale);
 
     return norm;
 }
@@ -255,8 +251,7 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
         /* ----------------------------------------------------------------- */
 
-        // Normalise the tangent by redefining the angles and dividing by
-        // its norm
+        // Normalise the tangent
         normalise(t, n_dofs_image);
     } // Close loop in images
 } // Close main function

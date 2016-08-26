@@ -2,7 +2,13 @@
 #define WIDE_PI 3.1415926535897932384626433832795L
 
 
+void cross_product(double * output, double * A, double * B);
+
 double dot_product(double * A, double * B, int n);
+
+double compute_norm(double *a, int n, int scale);
+
+void normalise(double *a, int n);
 
 void compute_tangents_C(double *ys, double *energy,
                         double *tangents, int image_num, int nodes,
@@ -25,3 +31,8 @@ void compute_effective_force_C(double * G,
                                int n_images,
                                int n_dofs_image
                                );
+
+void project_vector_C(double * vector, double * y,
+                      int n_images, int n_dofs_image,
+                      void (* normalise)(double *, int)
+                      );

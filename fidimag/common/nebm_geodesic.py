@@ -141,13 +141,13 @@ class NEBM_Cartesian(NEBMBase):
         # Only update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.spin[:] = y[i][:]
+            self.sim.set_m(y[i])
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = -self.sim.field[:]
+            self.gradientE[i][:] = -self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
 
@@ -158,13 +158,15 @@ class NEBM_Cartesian(NEBMBase):
         nebm_cartesian.compute_tangents(self.tangents, y, self.energies,
                                         self.n_dofs_image, self.n_images
                                         )
+        # nebm_cartesian.project_vector(self.tangents, y,
+        #                               self.n_images, self.n_dofs_image
+        #                               )
 
     def compute_spring_force(self, y):
-        nebm_cartesian.compute_spring_force(self.spring_force, y,
-                                            self.tangents,
-                                            self.k, self.n_images,
-                                            self.n_dofs_image
-                                            )
+        nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
+                                           self.k, self.n_images,
+                                           self.n_dofs_image
+                                           )
 
     def nebm_step(self, y):
 
@@ -181,12 +183,41 @@ class NEBM_Cartesian(NEBMBase):
                                                self.n_images,
                                                self.n_dofs_image
                                                )
+        # nebm_cartesian.project_vector(self.G, y,
+        #                               self.n_images, self.n_dofs_image
+        #                               )
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------
     # -------------------------------------------------------------------------
 
     def compute_distances(self, A, B):
+        """
+        Compute the distance between corresponding images of the bands A and B
+
+                A                   B
+            [ [image_0]         [ [image_0]
+              [image_1]     -     [image_1]
+              ..self.               ...
+            ]                     ]
+
+        """
+
+        A.shape = (-1, self.n_dofs_image)
+        B.shape = (-1, self.n_dofs_image)
+
+        distances = np.zeros(len(A))
+
+        for i in range(len(distances)):
+            distances[i] = nebm_geodesic.geodesic_distance(A[i], B[i],
+                                                           self.n_dofs_image)
+
+        A.shape = (-1)
+        B.shape = (-1)
+
+        return distances
+
+    def compute_norms(self, A, B):
         """
         Compute the distance between corresponding images of the bands A and B
 
@@ -208,6 +239,25 @@ class NEBM_Cartesian(NEBMBase):
             )
 
         return A_minus_B.reshape(-1)
+
+    def compute_maximum_dYdt(self, A, B, dt):
+        """
+        """
+
+        # We will not consider the images at the extremes to compute dY
+        # Since we removed the extremes, we only have *n_images_inner_band*
+        # images
+        band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
+        dYdt = self.compute_norms(
+            A[band_no_extremes],
+            B[band_no_extremes]).reshape(self.n_images_inner_band, -1)
+
+        dYdt /= dt
+
+        if np.max(dYdt) > 0:
+            return np.max(dYdt)
+        else:
+            return 0
 
     def Sundials_RHS(self, t, y, ydot):
         """

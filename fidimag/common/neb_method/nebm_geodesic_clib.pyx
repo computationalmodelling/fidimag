@@ -5,7 +5,7 @@ np.import_array()
 
 cdef extern from "nebm_geodesic_lib.h":
 
-    double compute_distance_geodesic(double * A, double * B, int n_spins);
+    double compute_distance_geodesic(double * A, double * B, int n_dofs_image);
     
 cdef extern from "nebm_lib.h":
 
@@ -31,3 +31,10 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                            k, n_images, n_dofs_image,
                            compute_distance_geodesic
                            )
+
+def geodesic_distance(np.ndarray[double, ndim=1, mode="c"] A,
+                      np.ndarray[double, ndim=1, mode="c"] B,
+                      n_dofs_image):
+
+    return compute_distance_geodesic(&A[0], &B[0], n_dofs_image)
+
