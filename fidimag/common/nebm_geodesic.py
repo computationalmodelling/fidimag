@@ -65,6 +65,7 @@ class NEBM_Cartesian(NEBMBase):
         self.band = self.band.reshape(self.n_images, -1)
         for i in range(self.n_images):
             self.sim.set_m(self.band[i])
+            self.sim.compute_effective_field(t=0)
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
@@ -94,10 +95,10 @@ class NEBM_Cartesian(NEBMBase):
             # change according to the number of interpolations. Accordingly,
             # we use the list with the indexes of the initial images
             self.sim.set_m(self.initial_images[i])
-            self.band[i_initial_images[i]] = self.sim.spin
+            self.band[i_initial_images[i]] = np.copy(self.sim.spin)
 
             self.sim.set_m(self.initial_images[i + 1])
-            self.band[i_initial_images[i + 1]] = self.sim.spin
+            self.band[i_initial_images[i + 1]] = np.copy(self.sim.spin)
 
             # interpolation is an array with *self.interpolations[i]* rows
             # We copy these rows to the corresponding images in the energy
@@ -158,9 +159,9 @@ class NEBM_Cartesian(NEBMBase):
         nebm_cartesian.compute_tangents(self.tangents, y, self.energies,
                                         self.n_dofs_image, self.n_images
                                         )
-        # nebm_cartesian.project_vector(self.tangents, y,
-        #                               self.n_images, self.n_dofs_image
-        #                               )
+        nebm_cartesian.project_vector(self.tangents, y,
+                                      self.n_images, self.n_dofs_image
+                                      )
 
     def compute_spring_force(self, y):
         nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,

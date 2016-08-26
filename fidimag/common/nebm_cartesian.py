@@ -65,6 +65,7 @@ class NEBM_Cartesian(NEBMBase):
         self.band = self.band.reshape(self.n_images, -1)
         for i in range(self.n_images):
             self.sim.set_m(self.band[i])
+            self.sim.compute_effective_field(t=0)
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
