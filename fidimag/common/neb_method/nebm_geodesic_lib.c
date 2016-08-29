@@ -3,7 +3,7 @@
 #include "math.h"
 
 double compute_distance_geodesic(double * A, double * B, int n_dofs_image){
-    /* We will use Vicenty's formula 
+    /* We will use Vicenty's formula
      *
      * A, B         :: Arrays in Cartesian coordinates
      *
@@ -26,9 +26,8 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image){
 
         distance += atan2(A_cross_B_norm, A_dot_B);
     }
-    
+
     distance = sqrt(distance);
 
     return distance;
 }
-

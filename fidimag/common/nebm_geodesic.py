@@ -159,9 +159,12 @@ class NEBM_Cartesian(NEBMBase):
         nebm_cartesian.compute_tangents(self.tangents, y, self.energies,
                                         self.n_dofs_image, self.n_images
                                         )
-        nebm_cartesian.project_vector(self.tangents, y,
+        nebm_cartesian.project_images(self.tangents, y,
                                       self.n_images, self.n_dofs_image
                                       )
+        nebm_cartesian.normalise_images(self.tangents,
+                                        self.n_images, self.n_dofs_image
+                                        )
 
     def compute_spring_force(self, y):
         nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
@@ -184,9 +187,9 @@ class NEBM_Cartesian(NEBMBase):
                                                self.n_images,
                                                self.n_dofs_image
                                                )
-        # nebm_cartesian.project_vector(self.G, y,
-        #                               self.n_images, self.n_dofs_image
-        #                               )
+        nebm_cartesian.project_images(self.G, y,
+                                      self.n_images, self.n_dofs_image
+                                      )
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------

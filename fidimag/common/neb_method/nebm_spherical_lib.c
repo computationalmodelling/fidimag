@@ -71,6 +71,22 @@ void normalise_spherical(double *a, int n){
     }
 }
 
+
+void normalise_images_spherical_C(double * y, int n_images, int n_dofs_image){
+
+    int i;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+        im_idx = i * n_dofs_image;
+        double * y_i = &y[im_idx];
+
+        normalise_spherical(y_i, n_dofs_image);
+    }
+}
+
 /* ------------------------------------------------------------------------- */
 
 double compute_distance_spherical(double * A, double * B, int n) {

@@ -6,7 +6,7 @@ np.import_array()
 cdef extern from "nebm_geodesic_lib.h":
 
     double compute_distance_geodesic(double * A, double * B, int n_dofs_image);
-    
+
 cdef extern from "nebm_lib.h":
 
     void compute_spring_force_C(double *spring_force,

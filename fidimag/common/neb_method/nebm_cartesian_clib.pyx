@@ -19,8 +19,7 @@ cdef extern from "nebm_lib.h":
                             double *y,
                             double *energies,
                             int n_dofs_image,
-                            int n_images,
-                            void (* normalise)(double *, int)
+                            int n_images
                             )
 
     void compute_spring_force_C(double *spring_force,
@@ -39,10 +38,12 @@ cdef extern from "nebm_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
-    void project_vector_C(double * vector, double * y,
+    void project_images_C(double * vector, double * y,
                           int n_images, int n_dofs_image,
-                          void (* normalise)(double *, int)
                           )
+
+    void normalise_images_C(double * y, int n_images, 
+                            int n_dofs_image)
 
 def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
                      np.ndarray[double, ndim=1, mode="c"] y,
@@ -52,8 +53,7 @@ def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
                      ):
 
     compute_tangents_C(&tangents[0], &y[0], &energies[0],
-                       n_dofs_image, n_images,
-                       normalise
+                       n_dofs_image, n_images
                        )
 
 def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
@@ -82,16 +82,20 @@ def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
                               n_images, n_dofs_image
                               )
 
-def project_vector(np.ndarray[double, ndim=1, mode="c"] vector,
+def project_images(np.ndarray[double, ndim=1, mode="c"] vector,
                    np.ndarray[double, ndim=1, mode="c"] y,
-                   n_images,
-                   n_dofs_image
+                   n_images, n_dofs_image
                    ):
 
-    project_vector_C(&vector[0], &y[0],
-                     n_images, n_dofs_image,
-                     normalise
+    project_images_C(&vector[0], &y[0],
+                     n_images, n_dofs_image
                      )
+
+def normalise_images(np.ndarray[double, ndim=1, mode="c"] y,
+                     n_images, n_dofs_image
+                     ):
+
+    normalise_images_C(&y[0], n_images, n_dofs_image)
 
 def compute_dYdt(np.ndarray[double, ndim=1, mode="c"] y,
                  np.ndarray[double, ndim=1, mode="c"] G,

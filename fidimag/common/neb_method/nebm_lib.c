@@ -10,12 +10,28 @@ void cross_product(double * output, double * A, double * B){
     output[2] = A[0] * B[1] - A[1] * B[0];
 }
 
-void project_vector_C(double * vector, double * y,
-                      int n_images, int n_dofs_image,
-                      void (* normalise)(double *, int)
+void project_vector_C(double * vector, double * y_i,
+                      int n_dofs_image
                       ){
 
-    int i, j;
+    int j;
+    double v_dot_m_i = 0;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(j = 0; j < n_dofs_image; j++) {
+        if (j % 3 == 0) v_dot_m_i = dot_product(&vector[j], &y_i[j], 3);
+        vector[j] = vector[j] - v_dot_m_i * y_i[j];
+    }
+}
+
+
+void project_images_C(double * vector, double * y,
+                      int n_images, int n_dofs_image
+                      ){
+
+    int i;
     double v_dot_m_i = 0;
 
     // Index where the components of an image start in the *y array,
@@ -28,12 +44,8 @@ void project_vector_C(double * vector, double * y,
         double * v = &vector[im_idx];
         double * y_i = &y[im_idx];
 
-        for(j = 0; j < n_dofs_image; j++) {
-            if (j % 3 == 0) v_dot_m_i = dot_product(&v[j], &y_i[j], 3);
-            v[j] = v[j] - v_dot_m_i * y_i[j];
-        }
+        project_vector_C(v, y_i, n_dofs_image);
 
-        normalise(v, n_dofs_image);
     }
 }
 
@@ -109,9 +121,23 @@ void normalise(double *a, int n){
     }
 }
 
+void normalise_images_C(double * y, int n_images, int n_dofs_image){
+
+    int i;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+        im_idx = i * n_dofs_image;
+        double * y_i = &y[im_idx];
+
+        normalise(y_i, n_dofs_image);
+    }
+}
+
 void compute_tangents_C(double *tangents, double *y, double *energies,
-                        int n_dofs_image, int n_images,
-                        void (* normalise)(double *, int)
+                        int n_dofs_image, int n_images
                         ) {
 
     /* Compute the tangents for every degree of freedom of a NEBM band,
@@ -251,8 +277,6 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
         /* ----------------------------------------------------------------- */
 
-        // Normalise the tangent
-        normalise(t, n_dofs_image);
     } // Close loop in images
 } // Close main function
 

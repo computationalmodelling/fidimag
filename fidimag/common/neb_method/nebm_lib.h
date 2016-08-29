@@ -11,8 +11,7 @@ double compute_norm(double *a, int n, int scale);
 void normalise(double *a, int n);
 
 void compute_tangents_C(double *ys, double *energy,
-                        double *tangents, int image_num, int nodes,
-                        void (* normalise)(double *, int)
+                        double *tangents, int image_num, int nodes
                         );
 
 void compute_spring_force_C(double *spring_force,
@@ -32,7 +31,8 @@ void compute_effective_force_C(double * G,
                                int n_dofs_image
                                );
 
-void project_vector_C(double * vector, double * y,
-                      int n_images, int n_dofs_image,
-                      void (* normalise)(double *, int)
+void project_images_C(double * vector, double * y,
+                      int n_images, int n_dofs_image
                       );
+
+void normalise_images_C(double * y, int n_images, int n_dofs_image);

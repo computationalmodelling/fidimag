@@ -160,6 +160,10 @@ class NEBM_Cartesian(NEBMBase):
                                         self.n_dofs_image, self.n_images
                                         )
 
+        nebm_cartesian.normalise_images(self.tangents,
+                                        self.n_images, self.n_dofs_image
+                                        )
+
     def compute_spring_force(self, y):
         nebm_cartesian.compute_spring_force(self.spring_force, y,
                                             self.tangents,
