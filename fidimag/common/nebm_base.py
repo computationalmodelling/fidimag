@@ -17,11 +17,84 @@ log = logging.getLogger(name="fidimag")
 class NEBMBase(object):
     """
 
-    NEB Method equations:
+    Base Class for the NEBM codes.
 
-        G =
+    Abstract Methods: ---------------------------------------------------------
 
-    ARGUMENTS
+        compute_distances          :: Function to compute the distances between
+                                      corresponding images of two bands. So the
+                                      inputs are two arrays with at least one
+                                      full image. The output is a 1D array with
+                                      the distances. So if the inputs have x
+                                      images we must return an array with x
+                                      entries.
+
+        compute_effective_field_and_energy   :: Calculate effective field and
+                                                the energies of the images for
+                                                the energy band, according to
+                                                the number of degrees of
+                                                freedom (total number of spin
+                                                components). Effective field is
+                                                stored in the self.gradient and
+                                                the enrgies in self.energies
+
+        initialise_energies        :: Populate the self.energies array with the
+                                      energies of every image for the 0th step
+                                      of the algorithm
+
+        Sundials_RHS               :: Right hand side of the NEB equation for
+                                      Sundials
+
+    Methods -------------------------------------------------------------------
+
+        compute_spring_force       :: Compute the spring force for every degree
+                                      of freedom of the band (we usually do
+                                      this using the C library)
+        compute_tangents           :: Compute the tangents of the system (use
+                                      the function defined  in
+                                      neb_method/nebm_clib.c). This tangents
+                                      need to be normalised / projected
+                                      according to the variation of the NEB
+                                      method.
+
+        compute_maximum_dYdt       :: Compute the maximum distance between the
+                                      images (not counting the extremes) of the
+                                      last computed band in the evolver
+                                      (self.integrator.y) with the band of the
+                                      previous step (stored in self.last_Y)
+                                      divided by the last time step of the
+                                      evolver.
+
+        create_tablewriter         :: Start the data frameworks to output the
+                                      energies ( *_energy.ndt) and distances
+                                      (*_dYs.ndt) for every step of the
+                                      integrator
+        generate_initial_band      :: Use the initial states and inteprolations
+                                      lists to generate the initial band. The
+                                      interpolations are linearly made in
+                                      spherical coordinates, using the
+                                      nebm_tools.linear_interpolation_spherical
+                                      function. We may change this in the
+                                      future to generate an inteprolation using
+                                      a geodesic path
+
+        initialise_integrator      :: Start the CVODE integrator and define it
+                                      in self.integrator
+        relax                      :: Relax the band for a specific number of
+                                      steps. Arguments of this function
+                                      includes saving VTK and NPY files every
+                                      certain number of steps and some criteria
+                                      for stopping the integrator
+        run_until                  :: This function is called from the relax
+                                      function (maybe is not very useful, we
+                                      may check this in the future)
+        save_VTKs                  :: Function to save a VTK of every image for
+                                      the current step of the integrator, which
+                                      is defined in the self.iterations
+                                      variable
+        save_npys                  :: Same for NPY files
+
+    ARGUMENTS -----------------------------------------------------------------
 
     sim                 :: An instance of a micromagnetic or an atomistic
                            simulation
@@ -33,6 +106,50 @@ class NEBMBase(object):
 
     dof                 :: Degrees of freedom per spin. Spherical coordinates
                            have dof=2 and Cartesian have dof=3
+
+    VARIABLES -----------------------------------------------------------------
+
+        self.dof              :: Degree of freedom for the coordinates used in
+                                 the band (e.g. Spherical has self.dof=2)
+        self.sim              :: Fidimag atomistic or micromagnetic simulation
+                                 object
+        self.mesh             :: Fidimag simulation mesh object
+        self.name             :: Name of the NEBM simulation
+        self.n_spins          :: Number of spins per image
+        self.k                :: Spring constant
+        self.VTK              :: Fidimag VTK object to save VTK files
+        self.files_convert_f  :: Function to convert the coordinates from the
+                                 band to Cartesian coordinates
+        self.initial_images   :: List with the initial images for the band
+                                 (Numpy arrays or space functions with the
+                                 magnetisation/spin field)
+        self.interpolations   :: Optional List with integers indicating
+                                 interpolations between images
+        self.n_images         :: Number of images in the band calculated from
+                                 the number of initial images and
+                                 interpolations between them
+        self.n_images_inner_band :: Number of images without considering the
+                                    images at the extremes
+        self.n_dofs_image     :: Number of degrees of freedom per image, which
+                                 is the total number of spins multiplied by the
+                                 self.dof
+        self.n_band           :: Total number of degrees of freedom in the
+                                 whole band
+        self.band             :: The array containing all the degrees of
+                                 freedom (spin directions). It is ordered in
+                                 the XYZ format
+        self.gradientE        :: Array with the components of the energy
+                                 gradient
+        self.G                :: Array with the effective force from the NEB
+                                 method definition
+        self.tangents         :: Array with the NEBM tangents
+        self.energies         :: Array with the energies of every image in the
+                                 band (length = self.n_images)
+        self.spring_force     :: Array with the spring force components
+        self.distances        :: Array with the distances between adjacent
+                                 images: [0-1 1-2 2-3 .. etc ]
+        self.last_Y           :: Array with the last computed band (like
+                                 self.band) from the integrator
 
     """
     def __init__(self, sim,
@@ -199,7 +316,8 @@ class NEBMBase(object):
                      'header': 'iterations'},
             'energy': {'unit': '<J>',
                        'get': lambda sim: sim.energies,
-                       'header': ['image_%d' % i for i in range(self.n_images)]}
+                       'header': ['image_%d' % i
+                                  for i in range(self.n_images)]}
         }
 
         self.tablewriter = DataSaver(
@@ -209,13 +327,14 @@ class NEBMBase(object):
             'step': {'unit': '<1>',
                      'get': lambda sim: sim.iterations,
                      'header': 'iterations'},
-            'dms': {'unit': '<1>',
+            'dYs': {'unit': '<1>',
                     'get': lambda sim: sim.distances,
-                    'header': ['image_%d_%d' % (i, i + 1) for i in range(self.n_images -1)]}
+                    'header': ['image_%d_%d' % (i, i + 1)
+                               for i in range(self.n_images - 1)]}
         }
 
         self.tablewriter_dm = DataSaver(
-            self, '%s_dms.ndt' % (self.name), entities=entities_dm)
+            self, '%s_dYs.ndt' % (self.name), entities=entities_dm)
 
         # ---------------------------------------------------------------------
 
@@ -342,7 +461,7 @@ class NEBMBase(object):
         """
 
         log.debug("Relaxation parameters: "
-                  "stopping_dmdt={} (degrees per nanosecond), "
+                  "stopping_dYdt={} (degrees per nanosecond), "
                   "time_step={} s, max_iterations={}.".format(stopping_dYdt,
                                                               dt,
                                                               max_iterations))

@@ -3,9 +3,38 @@
 #include "math.h"
 
 double compute_distance_geodesic(double * A, double * B, int n_dofs_image){
-    /* We will use Vicenty's formula
+
+    /* Compute the Geodesic distance between two images: A and B,  of an energy
+     * band. For this, we use Vicenty's formula, which is defined in
+     * [Computer Physics Communications 196 (2015) 335–347]
      *
-     * A, B         :: Arrays in Cartesian coordinates
+     * INPUTS:
+     *
+     * A, B         :: Arrays in Cartesian coordinates, i.e.
+     *                      A = [ mx_0 my_0 mz_0 mx_1 my_1 mz_1 mx_2...]
+     *                 where mx_i is the x component of the i-th spin of image
+     *                 A
+     *
+     * n_dofs_image :: Number of degrees of freedom (total number of spin
+     *                 components) per image, which is basically the length of
+     *                 the A or B arrays. Since we assume Cartesian
+     *                 coordinates, the number of spins is just:
+     *                      n_dofs_image / 3
+     *
+     * Vicenty's formula is defined by computing the distance between
+     * corresponding spins of the images A and B. So, if we have m(A)_i as
+     * the i-th spin of the A image, then the geodesic distance L is defined
+     * as:
+     *                _____________________________________________________
+     *               /
+     *      L = /\  / l(A, B)_0 ^ 2 + l(A, B)_0 ^ 2 + ... + l(A, B)_(N) ^ 2
+     *            \/
+     *
+     *  where N = (n_dofs_image - 1) and
+     *
+     *                                 ->       ->        ->       ->
+     *          l(A, B)_i = arctan2( | m(A)_i X m(B)_i |, m(A)_i o m(B)_i )
+     *                                                     (dot product)
      *
      */
 
@@ -14,17 +43,22 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image){
     double A_cross_B[3];
     double A_cross_B_norm;
     double A_dot_B;
+    double geo_dist = 0;
     double distance = 0;
     int n_spins = n_dofs_image / 3;
 
+    // For every spin we will compute the corresponding cross and dot products
+    // of A and B. The i-th spin components start at the 3 * i position
+    // in the arrays
     for(int i = 0; i < n_spins; i++){
         spin_i = 3 * i;
+
         cross_product(A_cross_B, &A[spin_i], &B[spin_i]);
         A_cross_B_norm = compute_norm(A_cross_B, 3, 0);
-
         A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
 
-        distance += atan2(A_cross_B_norm, A_dot_B);
+        geo_dist = atan2(A_cross_B_norm, A_dot_B);
+        distance += geo_dist * geo_dist;
     }
 
     distance = sqrt(distance);

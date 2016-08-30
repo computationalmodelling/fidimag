@@ -15,10 +15,11 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Cartesian(NEBMBase):
+class NEBM_Geodesic(NEBMBase):
     """
 
-    NEB Method equations:
+    NEB Method using geodesic distances and Cartesian coordinates with
+    CVODE:
 
         G =
 
@@ -39,13 +40,13 @@ class NEBM_Cartesian(NEBMBase):
                  name='unnamed'
                  ):
 
-        super(NEBM_Cartesian, self).__init__(sim,
-                                             initial_images,
-                                             interpolations=interpolations,
-                                             k=k,
-                                             name=name,
-                                             dof=3
-                                             )
+        super(NEBM_Geodesic, self).__init__(sim,
+                                            initial_images,
+                                            interpolations=interpolations,
+                                            k=k,
+                                            name=name,
+                                            dof=3
+                                            )
 
         # Initialisation ------------------------------------------------------
         # See the NEBMBase class for details

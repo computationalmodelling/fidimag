@@ -2,8 +2,10 @@
 #include "math.h"
 
 void cross_product(double * output, double * A, double * B){
-    /* Dot product between arrays A and B, assuming they
-     * have length n */
+    /* Cross product between arrays A and B, assuming they
+     * have length = 3
+     * Every resulting component is stored in the *output array
+     */
 
     output[0] = A[1] * B[2] - A[2] * B[1];
     output[1] = A[2] * B[0] - A[0] * B[2];
@@ -14,13 +16,39 @@ void project_vector_C(double * vector, double * y_i,
                       int n_dofs_image
                       ){
 
+    /* Project a vector into the space of the y_i image in an energy band. We
+     * assume that *image and *y_i have the same length. The vector and the
+     * image are in Cartesian coordinates. Thus, remembering that an image y_i
+     * has the components:
+
+     *      [ spin0_x spin0_y spin0_z spin1_x ...]
+
+     * and assuming that *vector has the same order, the projection is made
+     * through the components of every 3 component vector in the arrays. This
+     * means, if V_i is the i-th vector of the *vector array and m_i is the
+     * i-th spin in the y_i array, we have to compute
+
+     *                          ->      ->    ->   ->
+     *      Projection( V_i ) = V_i - ( V_i o m_i) m_i
+     *                               (dot product)
+
+     * for every V_i in vector. The components of the V_i vector start at the
+     * (3 * i) position of the *vector array, and the i-th spin components
+     * start at the (3 * i) position of the y_i array
+     *
+     * - Remember that an image has n_dofs_image elements, thus the number of
+     *   spins is n_dofs_image / 3
+     *
+     */
+
     int j;
     double v_dot_m_i = 0;
 
-    // Index where the components of an image start in the *y array,
-    int im_idx;
-
     for(j = 0; j < n_dofs_image; j++) {
+        // Every 3 components of the *vector and *y_i array, compute the
+        // dot product of the i-th vector (i.e. using
+        //      ( vector[j], vector[j+1], vector[j+2] ) , j=0,3,6, ... )
+        // and then compute the projection for the 3 components of the vector
         if (j % 3 == 0) v_dot_m_i = dot_product(&vector[j], &y_i[j], 3);
         vector[j] = vector[j] - v_dot_m_i * y_i[j];
     }
@@ -30,6 +58,30 @@ void project_vector_C(double * vector, double * y_i,
 void project_images_C(double * vector, double * y,
                       int n_images, int n_dofs_image
                       ){
+
+    /* Compute the projections of the vectors in the *vector array into the
+     * space formed by the spin vectors in the array *y
+     *
+     * We assume that the *vector array is made of n_images images, i.e.
+     
+     *      vector = [ vector(0)0_x vector(0)0_y vector(0)0_z vector(0)1_x ... ] IMAGE 0
+                       vector(1)0_x vector(1)0_y vector(1)0_z vector(1)1_x ... ] IMAGE 1
+                       ...                                                        ...  
+     *                ]
+     
+     * where vector(i)j_x is the x component of the j-th vector of the i-th
+     * image (similar for y_i, only that vectors are spins). Thus, every image
+     * starts at the i * n_dofs_image position of the *vector and *y_i array
+     *
+     * - Notice that we could have just computed the projections using the
+     *   whole vector array, without separating it into images, but the
+     *   approach taken here is clearer if we use the project_vector_C
+     *   function. In addition, we can parallelise the calculation in the
+     *   future, computing the projection of images in different threads.
+     *
+     * - An image is simply a copy of the magnetic system, i.e. every image has
+     *   n_dofs_image elements
+     */
 
     int i;
     double v_dot_m_i = 0;
@@ -66,18 +118,18 @@ double dot_product(double * A, double * B, int n){
 double compute_norm(double *a, int n, int scale) {
     /* Compute the norm of an array *a. *a is assumed to have spherical
      * coordinates as:
-           
+
      *      a = [ theta_0 phi_0 theta_1 phi_1 ... ]
-     
+
      * This function is necessary to either normalise a vector or compute the
      * distance between two images (see below)
      *
      * ARGUMENTS:
-     
+
      * n        :: length of a
      *
      * scale    :: If scale is zero, we do not scale the norm
-     
+
      * Notice that, when computing the DISTANCE between two images, Y_i, Y_i+1
      * for example, we just do the difference (Y_i - Y_(i+1)) and then compute
      * its norm (using this function) but RESCALING the length by the number
