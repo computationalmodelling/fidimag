@@ -4,5 +4,5 @@
 double compute_distance_cartesian(double * A, double * B, int n);
 
 void compute_dYdt_C(double * y, double * G, double * dYdt,
-                    // int *pins, 
+                    int * pins,
                     int n_images, int n_dofs_image);

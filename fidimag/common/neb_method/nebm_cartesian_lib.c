@@ -17,20 +17,20 @@ double compute_distance_cartesian(double * A, double * B, int n_dofs_image) {
 }
 
 inline void compute_dYdt(double * m, double * h, double * dm_dt,
+                         int * pins,
                          int n_dofs_image
-                         // int *pins, 
                          ){
 
     int n_spins = n_dofs_image / 3;
     for(int i = 0; i < n_spins; i++){
        	int j = 3 * i;
 
-        // if (pins[i]>0){
-        //      dm_dt[j] = 0;
-		// 	 dm_dt[j + 1] = 0;
-		// 	 dm_dt[j + 2] = 0;
-		// 	 continue;
-		// }
+        if (pins[i] > 0){
+            dm_dt[j] = 0;
+		    dm_dt[j + 1] = 0;
+		    dm_dt[j + 2] = 0;
+		    continue;
+		}
 
         double mm = m[j] * m[j] + m[j + 1] * m[j + 1] + m[j + 2] * m[j + 2];
        	double mh = m[j] * h[j] + m[j + 1] * h[j + 1] + m[j + 2] * h[j + 2];
@@ -50,15 +50,14 @@ inline void compute_dYdt(double * m, double * h, double * dm_dt,
 
 }
 
-void compute_dYdt_C(double * y, double * G, double * dYdt,
-                    // int *pins, 
+void compute_dYdt_C(double * y, double * G, double * dYdt, int * pins, 
                     int n_images, int n_dofs_image) {
 
 	for(int i = 1; i < n_images - 1; i++){
 
 		int j = i * n_dofs_image;
 
-		compute_dYdt(&y[j], &G[j], &dYdt[j], n_dofs_image);
+		compute_dYdt(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
 
         }
 

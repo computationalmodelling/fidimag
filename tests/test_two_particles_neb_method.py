@@ -5,7 +5,9 @@ import pytest
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, UniaxialAnisotropy
-from fidimag.common.neb_method import NEBMethod
+from fidimag.common.nebm_cartesian import NEBM_Cartesian
+from fidimag.common.nebm_spherical import NEBM_Spherical
+from fidimag.common.nebm_geodesic import NEBM_Geodesic
 import numpy as np
 
 # Material Parameters
@@ -79,13 +81,27 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
     # equal to 'the number of initial states specified', minus one.
     interpolations = interp
 
+    if coordinates == 'Cartesian':
+        neb = NEBM_Cartesian(sim,
+                             init_images,
+                             interpolations=interpolations,
+                             k=k,
+                             name=simname
+                             )
     if coordinates == 'Spherical':
-        neb = NEBMethod(sim,
-                        init_images,
-                        interpolations=interpolations,
-                        k=k,
-                        name=simname
-                        )
+        neb = NEBM_Spherical(sim,
+                             init_images,
+                             interpolations=interpolations,
+                             k=k,
+                             name=simname
+                             )
+    if coordinates == 'Geodesic':
+        neb = NEBM_Geodesic(sim,
+                            init_images,
+                            interpolations=interpolations,
+                            k=k,
+                            name=simname
+                            )
 
     neb.relax(max_iterations=maxst,
               save_vtks_every=save_every,
@@ -105,19 +121,25 @@ def test_energy_barrier_2particles():
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [6, 6]
 
-    # Define different ks for multiple simulations
-    krange = ['1e8']
+    coord_list = ['Spherical', 'Cartesian', 'Geodesic']
+    barriers = []
 
-    for k in krange:
-        # Relax the same system using spherical coordinates
-        relax_neb(float(k), 2,
-                  'neb_2particles_k{}_10-10int_spherical'.format(k),
+    # Define different ks for multiple simulations
+    # krange = ['1e8']
+
+    for coordinates in coord_list:
+        relax_neb(1e8, 1000,
+                  'neb_2particles_k1e8_10-10int_{}'.format(coordinates),
                   init_im,
                   interp,
                   save_every=5000,
-                  coordinates='Spherical'
+                  coordinates=coordinates
                   )
 
+        _file = np.loadtxt('neb_2particles_k1e8_10-10int_{}_energy.ndt'.format(coordinates))
+        barriers.append((np.max(_file[-1][1:]) - _file[-1][1]) / 1.602e-19)
+
+    print(barriers)
 
 if __name__ == '__main__':
     test_energy_barrier_2particles()

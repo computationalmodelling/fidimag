@@ -359,9 +359,7 @@ void compute_spring_force_C(double *spring_force,
      * i.e. (i=0, (n_images-1))
      *
      * The norm  | . | between two neighbouring images is calculated as an
-     * Euclidean distance, which is basically the difference in components
-     * between corresponding degrees of freedom (spins), scaled by the
-     * number of degrees of freedom per image
+     * distance, which depends on the coordinate system chosen.
      *
      */
 

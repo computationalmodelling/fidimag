@@ -166,6 +166,9 @@ class NEBM_Spherical(NEBMBase):
         nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
                                        self.k, self.n_images, self.n_dofs_image
                                        )
+        nebm_clib.normalise_images(self.tangents,
+                                   self.n_images, self.n_dofs_image
+                                   )
 
     def nebm_step(self, y):
 

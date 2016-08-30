@@ -287,7 +287,7 @@ class NEBM_Geodesic(NEBMBase):
         # case we use: dY /dt = Y x Y x D - correction-factor
         # (check the C code in common/)
         nebm_cartesian.compute_dYdt(
-            y, self.G, ydot, self.n_images, self.n_dofs_image)
+            y, self.G, ydot, self.sim.pins, self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value

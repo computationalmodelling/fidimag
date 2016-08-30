@@ -7,7 +7,7 @@ cdef extern from "nebm_cartesian_lib.h":
 
     double compute_distance_cartesian(double * A, double * B, int n_dofs_image)
 
-    void compute_dYdt_C(double * y, double * G, double * dYdt,
+    void compute_dYdt_C(double * y, double * G, double * dYdt, int * pins,
                         int n_images, int n_dofs_image)
     
 cdef extern from "nebm_lib.h":
@@ -100,9 +100,10 @@ def normalise_images(np.ndarray[double, ndim=1, mode="c"] y,
 def compute_dYdt(np.ndarray[double, ndim=1, mode="c"] y,
                  np.ndarray[double, ndim=1, mode="c"] G,
                  np.ndarray[double, ndim=1, mode="c"] dYdt,
+                 np.ndarray[int, ndim=1, mode="c"] pins,
                  n_images,
                  n_dofs_image
                  ):
 
-    compute_dYdt_C(&y[0], &G[0], &dYdt[0],
+    compute_dYdt_C(&y[0], &G[0], &dYdt[0], &pins[0],
                    n_images, n_dofs_image)
