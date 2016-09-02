@@ -164,7 +164,9 @@ class NEBM_Spherical(NEBMBase):
 
     def compute_spring_force(self, y):
         nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
-                                       self.k, self.n_images, self.n_dofs_image
+                                       self.k, self.n_images, self.n_dofs_image,
+                                       self._material_int,
+                                       self.n_dofs_image_material
                                        )
         nebm_clib.normalise_images(self.tangents,
                                    self.n_images, self.n_dofs_image
@@ -208,7 +210,8 @@ class NEBM_Spherical(NEBMBase):
 
         A_minus_B.shape = (-1, self.n_dofs_image)
         A_minus_B = np.apply_along_axis(
-            lambda y: compute_norm(y, scale=self.n_dofs_image),
+            lambda y: compute_norm(y[self._material],
+                                   scale=self.n_dofs_image),
             axis=1,
             arr=A_minus_B
             )

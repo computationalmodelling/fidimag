@@ -109,7 +109,7 @@ class NEBM_Geodesic(NEBMBase):
                     cartesian2spherical(self.band[i_initial_images[i]]),
                     cartesian2spherical(self.band[i_initial_images[i + 1]]),
                     self.interpolations[i],
-                    self.sim.pins
+                    self.sim._pins
                     )
 
                 interpolation = np.apply_along_axis(spherical2cartesian,
@@ -170,7 +170,9 @@ class NEBM_Geodesic(NEBMBase):
     def compute_spring_force(self, y):
         nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
                                            self.k, self.n_images,
-                                           self.n_dofs_image
+                                           self.n_dofs_image,
+                                           self._material_int,
+                                           self.n_dofs_image_material
                                            )
 
     def nebm_step(self, y):
@@ -215,7 +217,10 @@ class NEBM_Geodesic(NEBMBase):
 
         for i in range(len(distances)):
             distances[i] = nebm_geodesic.geodesic_distance(A[i], B[i],
-                                                           self.n_dofs_image)
+                                                           self.n_dofs_image,
+                                                           self._material_int,
+                                                           self.n_dofs_image_material
+                                                           )
 
         A.shape = (-1)
         B.shape = (-1)
@@ -287,7 +292,7 @@ class NEBM_Geodesic(NEBMBase):
         # case we use: dY /dt = Y x Y x D - correction-factor
         # (check the C code in common/)
         nebm_cartesian.compute_dYdt(
-            y, self.G, ydot, self.sim.pins, self.n_images, self.n_dofs_image)
+            y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value

@@ -2,7 +2,9 @@
 #include "nebm_lib.h"
 #include "math.h"
 
-double compute_distance_geodesic(double * A, double * B, int n_dofs_image){
+double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
+                                 int * material, int n_dofs_image_material
+                                 ) {
 
     /* Compute the Geodesic distance between two images: A and B,  of an energy
      * band. For this, we use Vicenty's formula, which is defined in
@@ -50,15 +52,18 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image){
     // For every spin we will compute the corresponding cross and dot products
     // of A and B. The i-th spin components start at the 3 * i position
     // in the arrays
+    // We do not sum sites without material
     for(int i = 0; i < n_spins; i++){
-        spin_i = 3 * i;
+        if (material[i] > 0) {
+            spin_i = 3 * i;
 
-        cross_product(A_cross_B, &A[spin_i], &B[spin_i]);
-        A_cross_B_norm = compute_norm(A_cross_B, 3, 0);
-        A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
+            cross_product(A_cross_B, &A[spin_i], &B[spin_i]);
+            A_cross_B_norm = compute_norm(A_cross_B, 3, 0);
+            A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
 
-        geo_dist = atan2(A_cross_B_norm, A_dot_B);
-        distance += geo_dist * geo_dist;
+            geo_dist = atan2(A_cross_B_norm, A_dot_B);
+            distance += geo_dist * geo_dist;
+        }
     }
 
     distance = sqrt(distance);

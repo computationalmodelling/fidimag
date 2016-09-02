@@ -121,14 +121,14 @@ def test_energy_barrier_2particles():
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [6, 6]
 
-    coord_list = ['Spherical', 'Cartesian', 'Geodesic']
+    coord_list = ['Cartesian', 'Spherical', 'Geodesic']
     barriers = []
 
     # Define different ks for multiple simulations
     # krange = ['1e8']
 
     for coordinates in coord_list:
-        relax_neb(1e8, 1000,
+        relax_neb(1e8, 2000,
                   'neb_2particles_k1e8_10-10int_{}'.format(coordinates),
                   init_im,
                   interp,

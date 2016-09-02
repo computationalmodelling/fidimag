@@ -14,14 +14,17 @@ void compute_tangents_C(double *ys, double *energy,
                         double *tangents, int image_num, int nodes
                         );
 
-void compute_spring_force_C(double *spring_force,
-                            double *y,
-                            double *tangents,
-                            double k,
-                            int n_images,
-                            int n_dofs_image,
-                            double (* compute_distance)(double *, double *, int)
-                            );
+void compute_spring_force_C(
+        double *spring_force,
+        double *y,
+        double *tangents,
+        double k,
+        int n_images,
+        int n_dofs_image,
+        double (* compute_distance)(double *, double *, int, int *, int),
+        int * material,
+        int n_dofs_image_material
+        );
 
 void compute_effective_force_C(double * G,
                                double * tangents,

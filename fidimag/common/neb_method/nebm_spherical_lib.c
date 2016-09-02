@@ -89,16 +89,24 @@ void normalise_images_spherical_C(double * y, int n_images, int n_dofs_image){
 
 /* ------------------------------------------------------------------------- */
 
-double compute_distance_spherical(double * A, double * B, int n) {
+double compute_distance_spherical(double * A, double * B, int n,
+                                  int * material, int n_dofs_image_material
+                                  ) {
 
-    double A_minus_B[n];
+    double A_minus_B[n_dofs_image_material];
     double distance;
+    int j = 0;
 
     for(int i = 0; i < n; i++) {
-        A_minus_B[i]  = A[i] - B[i];
+        if (material[i] > 0) {
+            A_minus_B[j]  = A[i] - B[i];
+            j += 1;
+        }
     }
 
-    distance = compute_norm_spherical(A_minus_B, n, n);
+    distance = compute_norm_spherical(A_minus_B,
+                                      n_dofs_image_material,
+                                      n_dofs_image_material);
 
     return distance;
 }

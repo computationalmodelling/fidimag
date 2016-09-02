@@ -13,6 +13,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
+import fidimag.common.constant as const
+
 
 class NEBMBase(object):
     """
@@ -171,6 +173,21 @@ class NEBMBase(object):
 
         # Spring constant (we could use an array in the future)
         self.k = k
+
+        # We will use this filter to know which sites of the system has
+        # material, i.e. M_s or mu_s > 0 and norm(m) = 1
+        if self.sim._micromagnetic:
+            self._material = np.repeat(self.sim.Ms, self.dof) > 1e-10
+        else:
+            # We will assume, for now, that the magnetic moment in atomistic
+            # simulations is in units of mu_B
+            self._material = np.repeat(self.sim.mu_s / const.mu_B,
+                                       self.dof) > 1e-10
+
+        self._material = self._material
+        # For C, we use 1 and 0s
+        self._material_int = np.copy(self._material).astype(np.int32)
+        self.n_dofs_image_material = np.sum(self._material)
 
         # VTK saver for the magnetisation/spin field --------------------------
         self.VTK = VTK(self.mesh,
@@ -494,7 +511,25 @@ class NEBMBase(object):
             else:
                 increment_dt = dt
 
-            max_dYdt = self.run_until(self.t + increment_dt)
+            # max_dYdt = self.run_until(self.t + increment_dt)
+
+            if self.t + increment_dt <= self.t:
+                break
+
+            self.integrator.run_until(self.t + increment_dt)
+
+            # Copy the updated energy band to our local array
+            self.band[:] = self.integrator.y[:]
+
+            # Compute the maximum change in the integrator step
+            max_dYdt = self.compute_maximum_dYdt(self.band,
+                                                 self.last_Y,
+                                                 increment_dt)
+
+            self.last_Y[:] = self.band[:]
+
+            # Update the current step
+            self.t = self.t + increment_dt
 
             # Save data -------------------------------------------------------
 

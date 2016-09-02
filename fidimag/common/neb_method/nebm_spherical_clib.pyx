@@ -10,7 +10,9 @@ cdef extern from "nebm_spherical_lib.h":
     void normalise_images_spherical_C(double * y, int n_images,
                                       int n_dofs_image)
 
-    double compute_distance_spherical(double * A, double * B, int n)
+    double compute_distance_spherical(double * A, double * B, int n,
+                                      int * material, int n_dofs_image_material
+                                      )
 
 
 cdef extern from "nebm_lib.h":
@@ -28,7 +30,10 @@ cdef extern from "nebm_lib.h":
                                 double k,
                                 int n_images,
                                 int n_dofs_image,
-                                double (* compute_distance)(double *, double *, int)
+                                double (* compute_distance)(double *, double *, int,
+                                                            int *, int),
+                                int * material,
+                                int n_dofs_image_material
                                 )
 
     void compute_effective_force_C(double * G,
@@ -63,11 +68,14 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                          k,
                          n_images,
                          n_dofs_image,
+                         np.ndarray[int, ndim=1, mode="c"] material,
+                         n_dofs_image_material
                          ):
 
     compute_spring_force_C(&spring_force[0], &y[0], &tangents[0],
                            k, n_images, n_dofs_image,
-                           compute_distance_spherical
+                           compute_distance_spherical,
+                           &material[0], n_dofs_image_material
                            )
 
 def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,

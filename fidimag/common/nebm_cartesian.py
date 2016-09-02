@@ -95,10 +95,10 @@ class NEBM_Cartesian(NEBMBase):
             # change according to the number of interpolations. Accordingly,
             # we use the list with the indexes of the initial images
             self.sim.set_m(self.initial_images[i])
-            self.band[i_initial_images[i]] = self.sim.spin
+            self.band[i_initial_images[i]][:] = self.sim.spin
 
             self.sim.set_m(self.initial_images[i + 1])
-            self.band[i_initial_images[i + 1]] = self.sim.spin
+            self.band[i_initial_images[i + 1]][:] = self.sim.spin
 
             # interpolation is an array with *self.interpolations[i]* rows
             # We copy these rows to the corresponding images in the energy
@@ -108,12 +108,19 @@ class NEBM_Cartesian(NEBMBase):
                     cartesian2spherical(self.band[i_initial_images[i]]),
                     cartesian2spherical(self.band[i_initial_images[i + 1]]),
                     self.interpolations[i],
-                    self.sim.pins
+                    self.sim._pins
                     )
 
+                # Convert the rows from the interpolation to Cartesian
                 interpolation = np.apply_along_axis(spherical2cartesian,
                                                     axis=1,
                                                     arr=interpolation)
+
+                # We leave sites without material with mx,my,mz = 0,0,0
+                # since the spherical2cartesian function maps
+                # (0, 0) to (0, 0, 1) [we may change this in the future]
+                for y in interpolation:
+                    y[~self._material] = 0
 
                 # We then set the interpolated spins fields at once
                 self.band[i_initial_images[i] + 1:
@@ -168,7 +175,9 @@ class NEBM_Cartesian(NEBMBase):
         nebm_cartesian.compute_spring_force(self.spring_force, y,
                                             self.tangents,
                                             self.k, self.n_images,
-                                            self.n_dofs_image
+                                            self.n_dofs_image,
+                                            self._material_int,
+                                            self.n_dofs_image_material
                                             )
 
     def nebm_step(self, y):
@@ -201,13 +210,18 @@ class NEBM_Cartesian(NEBMBase):
               ..self.               ...
             ]                     ]
 
+            We discard sites without material
+
         """
 
         A_minus_B = A - B
 
         A_minus_B.shape = (-1, self.n_dofs_image)
+
         A_minus_B = np.apply_along_axis(
-            lambda y: compute_norm(y, scale=self.n_dofs_image),
+            lambda y: compute_norm(y[self._material],
+                                   scale=True
+                                   ),
             axis=1,
             arr=A_minus_B
             )
@@ -237,7 +251,7 @@ class NEBM_Cartesian(NEBMBase):
         # case we use: dY /dt = Y x Y x D - correction-factor
         # (check the C code in common/)
         nebm_cartesian.compute_dYdt(
-            y, self.G, ydot, self.sim.pins, self.n_images, self.n_dofs_image)
+            y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value

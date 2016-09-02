@@ -335,14 +335,17 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
 /* ------------------------------------------------------------------------- */
 
-void compute_spring_force_C(double *spring_force,
-                            double *y,
-                            double *tangents,
-                            double k,
-                            int n_images,
-                            int n_dofs_image,
-                            double (* compute_distance)(double *, double *, int)
-                            ) {
+void compute_spring_force_C(
+        double *spring_force,
+        double *y,
+        double *tangents,
+        double k,
+        int n_images,
+        int n_dofs_image,
+        double (* compute_distance)(double *, double *, int, int *, int),
+        int * material,
+        int n_dofs_image_material
+        ) {
 
     /* Compute the spring force for every image of an energy band, which is
      * defined in the *y array. The *y array has (n_images * n_dofs_image)
@@ -361,6 +364,15 @@ void compute_spring_force_C(double *spring_force,
      * The norm  | . | between two neighbouring images is calculated as an
      * distance, which depends on the coordinate system chosen.
      *
+     * The function: (* compute_distance)(double *, double *, int, int *, int)
+     * depends on: (Image_1, 
+     *              Image_2, 
+     *              number of spins per image,
+     *              array indicating dofs (spins) in sites WITH material,
+     *              number of dofs in sites with material
+     *              ) 
+     *
+     *  - With material we mean Ms > 0 or mu_s > 0
      */
 
     int i, j;
@@ -385,8 +397,14 @@ void compute_spring_force_C(double *spring_force,
         // neighbours, the (i+1)-th and (i-1)-th images. The distance between
         // two images is just the norm of their difference scaled by the length
         // of the array (see the compute_norm function)
-        dY_plus_norm  = compute_distance(&y[next_im_idx], &y[im_idx], n_dofs_image);
-        dY_minus_norm = compute_distance(&y[im_idx], &y[prev_im_idx], n_dofs_image);
+        dY_plus_norm  = compute_distance(&y[next_im_idx], &y[im_idx],
+                                         n_dofs_image,
+                                         material, n_dofs_image_material
+                                         );
+        dY_minus_norm = compute_distance(&y[im_idx], &y[prev_im_idx],
+                                         n_dofs_image,
+                                         material, n_dofs_image_material
+                                         );
 
         // Now compute the spring force
         for(j = 0; j < n_dofs_image; j++) {

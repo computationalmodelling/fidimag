@@ -2,21 +2,35 @@
 #include "nebm_lib.h"
 #include "math.h"
 
-double compute_distance_cartesian(double * A, double * B, int n_dofs_image) {
+double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
+                                  int * material, int n_dofs_image_material
+                                  ) {
 
-    double A_minus_B[n_dofs_image];
+    /* Compute the distance between two images, A and B, discarding the sites
+     * without material
+     *
+     * We still consider pinned sites because they contribute to the scale
+     * factor for the distance
+     */
+
+    double A_minus_B[n_dofs_image_material];
     double distance;
+    int j = 0;
 
     for(int i = 0; i < n_dofs_image; i++) {
-        A_minus_B[i]  = A[i] - B[i];
+        if (material[i] > 0) {
+            A_minus_B[j]  = A[i] - B[i];
+            j += 1;
+        }
     }
 
-    distance = compute_norm(A_minus_B, n_dofs_image, n_dofs_image);
+    distance = compute_norm(A_minus_B, n_dofs_image_material,
+                            n_dofs_image_material);
 
     return distance;
 }
 
-inline void compute_dYdt(double * m, double * h, double * dm_dt,
+inline void compute_dYdt(double * m, double * h, double * dYdt,
                          int * pins,
                          int n_dofs_image
                          ){
@@ -26,26 +40,26 @@ inline void compute_dYdt(double * m, double * h, double * dm_dt,
        	int j = 3 * i;
 
         if (pins[i] > 0){
-            dm_dt[j] = 0;
-		    dm_dt[j + 1] = 0;
-		    dm_dt[j + 2] = 0;
+            dYdt[j] = 0;
+		    dYdt[j + 1] = 0;
+		    dYdt[j + 2] = 0;
 		    continue;
 		}
 
         double mm = m[j] * m[j] + m[j + 1] * m[j + 1] + m[j + 2] * m[j + 2];
        	double mh = m[j] * h[j] + m[j + 1] * h[j + 1] + m[j + 2] * h[j + 2];
         //mm.h-mh.m=-mx(mxh)
-       	dm_dt[j] = mm * h[j] - mh * m[j];
-       	dm_dt[j + 1] = mm * h[j + 1] - mh * m[j + 1];
-       	dm_dt[j + 2] = mm * h[j + 2] - mh * m[j + 2];
+       	dYdt[j] = mm * h[j] - mh * m[j];
+       	dYdt[j + 1] = mm * h[j + 1] - mh * m[j + 1];
+       	dYdt[j + 2] = mm * h[j + 2] - mh * m[j + 2];
 
-       	double c = 6 * sqrt(dm_dt[j]     * dm_dt[j]     +
-                            dm_dt[j + 1] * dm_dt[j + 1] +
-                            dm_dt[j + 2] * dm_dt[j + 2]);
+       	double c = 6 * sqrt(dYdt[j]     * dYdt[j]     +
+                            dYdt[j + 1] * dYdt[j + 1] +
+                            dYdt[j + 2] * dYdt[j + 2]);
 
-       	dm_dt[j]     += c * (1 - mm) * m[j];
-        dm_dt[j + 1] += c * (1 - mm) * m[j + 1];
-       	dm_dt[j + 2] += c * (1 - mm) * m[j + 2];
+       	dYdt[j]     += c * (1 - mm) * m[j];
+        dYdt[j + 1] += c * (1 - mm) * m[j + 1];
+       	dYdt[j + 2] += c * (1 - mm) * m[j + 2];
     }
 
 }
