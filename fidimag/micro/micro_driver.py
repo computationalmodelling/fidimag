@@ -4,15 +4,17 @@ from __future__ import print_function
 from fidimag.common.driver_base import DriverBase
 
 import numpy as np
-from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
+from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
+        ScipyIntegrator, StepIntegrator
 # from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.vtk import VTK
 import time
 
-INTEGRATOR_CHOICES = ("sundials", "sundials_openmp",
-                      "sundials_diag", "sundials_diag_openmp",
-                      "euler",
-                      "rk4")
+INTEGRATOR_CHOICES = ("euler",
+                      "rk4",
+                      "scipy",
+                      "sundials", "sundials_openmp",
+                      "sundials_diag", "sundials_diag_openmp")
 
 
 class MicroDriver(DriverBase):
@@ -113,6 +115,8 @@ class MicroDriver(DriverBase):
                                                  linear_solver="diag")
         elif integrator == "euler" or integrator == "rk4":
             self.integrator = StepIntegrator(self.spin, self.step_rhs, integrator)
+        elif integrator == "scipy":
+            self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
         else:
             raise NotImplemented(
                     "Integrator `{}` not in possible choices: {}.".format(
