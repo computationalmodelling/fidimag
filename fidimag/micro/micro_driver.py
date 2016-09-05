@@ -75,7 +75,7 @@ class MicroDriver(DriverBase):
 
         self.n = self.mesh.n
         self.n_nonzero = self.mesh.n  # number of spins that are not zero
-                                      # We check this in the set_Ms function
+        # We check this in the set_Ms function.
 
         self.set_default_options()
 
@@ -95,9 +95,8 @@ class MicroDriver(DriverBase):
         elif integrator == "sundials":
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = CvodeSolver(self.spin, self.step_rhs,
+            self.integrator = StepIntegrator(self.spin, self.step_rhs,
                                           integrator)
-
         elif integrator == "sundials_openmp" and use_jac:
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
                                                  self.sundials_jtimes)
@@ -106,9 +105,6 @@ class MicroDriver(DriverBase):
                                                  linear_solver="diag")
         elif integrator == "sundials_openmp":
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
-        elif integrator == "euler_openmp" or integrator == "rk4_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
-                                                 integrator)
         else:
             raise NotImplemented("integrator must be sundials, euler or rk4")
 
