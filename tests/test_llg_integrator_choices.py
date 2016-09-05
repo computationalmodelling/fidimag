@@ -14,7 +14,7 @@ inputs.append(("sundials", True))
 @pytest.mark.slow
 @pytest.mark.parametrize("integrator,use_jac", inputs)
 def test_domain_wall_cobalt_integrator_choice(integrator, use_jac):
-    sim = setup_domain_wall_cobalt(integrator)
+    sim = setup_domain_wall_cobalt(integrator=integrator, use_jac=use_jac)
     print("Will integrate 1 ns.")
     sim.driver.run_until(1e-9)
     xs, m = sim.mesh.coordinates[:, 0], sim.spin
