@@ -1,5 +1,6 @@
 PROJECT_DIR = $(abspath .)
 EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
+PYTHON = python
 
 #####################
 # Cython Extensions #
@@ -7,7 +8,7 @@ EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 
 
 build:
-	python setup.py build_ext --inplace
+	${PYTHON} setup.py build_ext --inplace
 
 clean:
 	rm -rf ${EXTENSIONS_DIR}/*

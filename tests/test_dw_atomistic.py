@@ -35,10 +35,10 @@ def test_dw_dmi_atomistic(do_plot=False):
     mesh = CuboidMesh(nx=300, ny=1, nz=1)
 
     sim = Sim(mesh, name='relax')
-    sim.set_default_options(gamma=const.gamma)
+    sim.driver.set_default_options(gamma=const.gamma)
     sim.alpha = 0.5
     sim.mu_s = const.mu_s_1
-    sim.do_precession = False
+    sim.driver.do_precession = False
 
     sim.set_m(m_init_dw)
 

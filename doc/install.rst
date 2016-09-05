@@ -259,7 +259,7 @@ which can be seen by using ``otool -L fidimag/extensions/clib.so``, ::
     /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1213.0.0)
     /opt/local/lib/libgcc/libgcc_s.1.dylib (compatibility version 1.0.0, current version 1.0.0)
 
-A solution is to change these path manually with ``install_name_tool``, so we have provided a python script (``fix_load_path_mac.py``) to do this.
+A solution is to change these path manually with ``install_name_tool``, so we have provided a python script (``bin/fix_load_path_mac.py``) to do this.
 After run the script, the library path is fixed, for example, the output of the cmd ``otool -L fidimag/extensions/clib.so`` gives ::
 
   fidimag/extensions/neb_clib.so:

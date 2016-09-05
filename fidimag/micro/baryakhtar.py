@@ -1,16 +1,30 @@
 import numpy as np
 import fidimag.extensions.baryakhtar_clib as clib
-from fidimag.micro.llg import LLG
+from .micro_driver import MicroDriver
 from .relax import Relaxation
 from .relax import Laplace
 
 
-class LLBarFull(LLG):
+class LLBarFull(MicroDriver):
 
-    def __init__(self, mesh, chi=1e-3, name='unnamed'):
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False,
+                 chi=1e-3
+                 ):
+
+        # Inherit from the driver class
+        super(LLBarFull, self).__init__(mesh, spin, Ms, field,
+                                        alpha, pins, interactions, name,
+                                        data_saver,
+                                        integrator='sundials',
+                                        use_jac=False
+                                        )
 
         self.chi = chi
-        super(LLBarFull, self).__init__(mesh, name=name)
         self.lap = Laplace(mesh)
         self.add(Relaxation(chi))
 
@@ -42,11 +56,24 @@ class LLBarFull(LLG):
         return 0
 
 
-class LLBar(LLG):
+class LLBar(MicroDriver):
 
-    def __init__(self, mesh, name='unnamed'):
+    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False,
+                 ):
 
-        super(LLBar, self).__init__(mesh, name=name)
+        # Inherit from the driver class
+        super(LLBar, self).__init__(mesh, spin, Ms, field,
+                                    alpha, pins, interactions, name,
+                                    data_saver,
+                                    integrator='sundials',
+                                    use_jac=False
+                                    )
+
         self.lap = Laplace(mesh)
 
         self.field_perp = np.zeros(3 * self.n, dtype=np.float)

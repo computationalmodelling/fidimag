@@ -30,11 +30,11 @@ def relax_system(mesh):
     sim = Sim(mesh, name='relax')
 
     # Simulation parameters
-    sim.set_tols(rtol=1e-8, atol=1e-10)
+    sim.driver.set_tols(rtol=1e-8, atol=1e-10)
     sim.alpha = 0.5
-    sim.gamma = 2.211e5/mu0
-    sim.mu_s = 1e-27/mu0
-    sim.do_precession = False
+    sim.driver.gamma = 2.211e5 / mu0
+    sim.mu_s = 1e-27 / mu0
+    sim.driver.do_precession = False
 
     # The initial state passed as a function
     sim.set_m(init_m)
@@ -44,7 +44,7 @@ def relax_system(mesh):
     exch = UniformExchange(J=2e-20)
     sim.add(exch)
 
-    anis = Anisotropy(0.01*2e-20, axis=(0,0,1))
+    anis = Anisotropy(0.01*2e-20, axis=(0, 0, 1))
     sim.add(anis)
 
     # dmi = DMI(D=8e-4)
@@ -67,9 +67,9 @@ def excite_system(mesh, time=0.1, snaps=11):
     sim = Sim(mesh, name='dyn', driver='llg_stt')
 
     # Set the simulation parameters
-    sim.set_tols(rtol=1e-12, atol=1e-12)
-    sim.gamma = 2.211e5/mu0
-    sim.mu_s = 1e-27/mu0
+    sim.driver.set_tols(rtol=1e-12, atol=1e-12)
+    sim.driver.gamma = 2.211e5 / mu0
+    sim.mu_s = 1e-27 / mu0
     sim.alpha = 0.05
 
     sim.set_m(np.load('m0.npy'))
@@ -78,27 +78,27 @@ def excite_system(mesh, time=0.1, snaps=11):
     exch = UniformExchange(J=2e-20)
     sim.add(exch)
 
-    anis = Anisotropy(0.01*2e-20, axis=(0,0,1))
+    anis = Anisotropy(0.01*2e-20, axis=(0, 0, 1))
     sim.add(anis)
     # dmi = DMI(D=8e-4)
     # sim.add(dmi)
 
     # Set the current in the x direction, in A / m
     # beta is the parameter in the STT torque
-    sim.jz = -1e12
-    sim.beta = 0.1
+    sim.driver.jz = -1e12
+    sim.driver.beta = 0.1
 
     # The simulation will run for x ns and save
     # 'snaps' snapshots of the system in the process
     ts = np.linspace(0, time * 1e-9, snaps)
 
-
     for t in ts:
         print('time', t)
-        sim.run_until(t)
+        sim.driver.run_until(t)
         #sim.save_vtk()
     np.save('m1.npy', sim.spin)
 
+    print(np.load('m1.npy')[:100])
 
 def test_stt_dw_atomistic():
     mesh = Mesh(nx=1, ny=1, nz=1000,
@@ -110,16 +110,16 @@ def test_stt_dw_atomistic():
     relax_system(mesh)
 
     m0 = np.load('m0.npy')
-    m0.shape=(-1,3)
-    mx0 = np.average(m0[:,2])
+    m0.shape = (-1, 3)
+    mx0 = np.average(m0[:, 2])
 
     excite_system(mesh)
 
     m1 = np.load('m1.npy')
-    m1.shape=(-1,3)
-    mx1 = np.average(m1[:,2])
+    m1.shape = (-1, 3)
+    mx1 = np.average(m1[:, 2])
 
-    mu_s = (1e-27/mu0)
+    mu_s = (1e-27 / mu0)
     v = 1e-27
     p = 0.5
     jx = 1e12
@@ -127,13 +127,13 @@ def test_stt_dw_atomistic():
     beta = 0.1
     time = 0.1
 
-    u = const.g_e * const.mu_B / (2 * const.c_e) * v/ mu_s * p * jx
-    distance = (1+alpha*beta)/(1+alpha*alpha)*u*time 
-    dmx = distance/1000*2
+    u = const.g_e * const.mu_B / (2 * const.c_e) * v / mu_s * p * jx
+    distance = (1 + alpha * beta) / (1 + alpha * alpha) * u * time
+    dmx = distance / 1000 * 2
 
-    print(mx0, mx1, dmx, abs(mx1-mx0-dmx))
-    assert(mx1-mx0>0)
-    assert(abs(mx1-mx0-dmx)<5e-5)
+    print(mx0, mx1, dmx, abs(mx1 - mx0 - dmx))
+    assert(mx1 - mx0 > 0)
+    assert(abs(mx1 - mx0 - dmx) < 5e-5)
 
 if __name__ == '__main__':
     test_stt_dw_atomistic()
