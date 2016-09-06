@@ -37,7 +37,8 @@ class NEBM_Geodesic(NEBMBase):
     def __init__(self, sim,
                  initial_images, interpolations=None,
                  k=1e5,
-                 name='unnamed'
+                 name='unnamed',
+                 openmp=False
                  ):
 
         super(NEBM_Geodesic, self).__init__(sim,
@@ -45,7 +46,8 @@ class NEBM_Geodesic(NEBMBase):
                                             interpolations=interpolations,
                                             k=k,
                                             name=name,
-                                            dof=3
+                                            dof=3,
+                                            openmp=openmp
                                             )
 
         # Initialisation ------------------------------------------------------

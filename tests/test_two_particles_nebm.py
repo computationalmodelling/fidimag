@@ -118,14 +118,14 @@ def test_energy_barrier_2particles():
 
     for k in krange:
         # print 'Computing for k = {}'.format(k)
-        relax_neb(float(k), 1,
+        relax_neb(float(k), 2000,
                   'neb_2particles_k{}_10-10int'.format(k),
                   init_im,
                   interp,
                   save_every=5000)
 
         # Relax the same system using spherical coordinates
-        relax_neb(float(k), 1,
+        relax_neb(float(k), 2000,
                   'neb_2particles_k{}_10-10int_spherical'.format(k),
                   init_im,
                   interp,

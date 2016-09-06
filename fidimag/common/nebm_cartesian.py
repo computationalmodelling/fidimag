@@ -36,7 +36,8 @@ class NEBM_Cartesian(NEBMBase):
     def __init__(self, sim,
                  initial_images, interpolations=None,
                  k=1e5,
-                 name='unnamed'
+                 name='unnamed',
+                 openmp=False
                  ):
 
         super(NEBM_Cartesian, self).__init__(sim,
@@ -44,7 +45,8 @@ class NEBM_Cartesian(NEBMBase):
                                              interpolations=interpolations,
                                              k=k,
                                              name=name,
-                                             dof=3
+                                             dof=3,
+                                             openmp=openmp
                                              )
 
         # Initialisation ------------------------------------------------------

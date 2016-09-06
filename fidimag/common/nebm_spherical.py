@@ -34,7 +34,8 @@ class NEBM_Spherical(NEBMBase):
     def __init__(self, sim,
                  initial_images, interpolations=None,
                  k=1e5,
-                 name='unnamed'
+                 name='unnamed',
+                 openmp=False
                  ):
 
         super(NEBM_Spherical, self).__init__(sim,
@@ -42,7 +43,8 @@ class NEBM_Spherical(NEBMBase):
                                              interpolations=interpolations,
                                              k=k,
                                              name=name,
-                                             dof=2
+                                             dof=2,
+                                             openmp=openmp
                                              )
 
         # Since we use Spherical coordinates for the energy band (dof=2), when

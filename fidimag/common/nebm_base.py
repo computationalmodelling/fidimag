@@ -158,7 +158,8 @@ class NEBMBase(object):
                  initial_images, interpolations=None,
                  k=1e5,
                  name='unnamed',
-                 dof=2
+                 dof=2,
+                 openmp=False
                  ):
 
         # Degrees of Freedom per spin
@@ -275,9 +276,9 @@ class NEBMBase(object):
             # We will try to save for the micromagnetic simulation (Ms) or an
             # atomistic simulation (mu_s) TODO: maybe this can be done with an:
             # isinstance
-            try:
+            if self.sim._micromagnetic:
                 self.VTK.save_scalar(self.sim.Ms, name='M_s')
-            except:
+            else:
                 self.VTK.save_scalar(self.sim.mu_s, name='mu_s')
 
             if coordinates_function:
@@ -318,13 +319,19 @@ class NEBMBase(object):
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self, rtol=1e-6, atol=1e-6):
+    def initialise_integrator(self, rtol=1e-6, atol=1e-6, openmp=False):
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
-        self.integrator = cvode.CvodeSolver(self.band, self.Sundials_RHS)
-        self.integrator.set_options(rtol, atol)
+        if not openmp:
+            self.integrator = cvode.CvodeSolver(self.band,
+                                                self.Sundials_RHS)
+            self.integrator.set_options(rtol, atol)
+        else:
+            self.integrator = cvode.CvodeSolver_OpenMP(self.band,
+                                                       self.Sundials_RHS)
+            self.integrator.set_options(rtol, atol)
 
     def create_tablewriter(self):
         entities_energy = {
