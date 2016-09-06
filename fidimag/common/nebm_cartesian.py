@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 
 import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
-import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
+# import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 
 from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .nebm_tools import linear_interpolation_spherical
@@ -16,23 +16,113 @@ log = logging.getLogger(name="fidimag")
 
 
 class NEBM_Cartesian(NEBMBase):
+
     """
 
-    NEB Method equations:
-
-        G =
-
-    ARGUMENTS
+    ARGUMENTS -----------------------------------------------------------------
 
     sim                 :: An instance of a micromagnetic or an atomistic
-                           simulation
+                           simulation. Every image in the band will be a copy
+                           of this simulation.
 
-    initial_images      :: A sequence of arrays or functions to set up the
-                           magnetisation field profile
+    initial_images      :: A list containing numpy arrays or space dependent
+                           functions to set the magnetisation fields for every
+                           image in the band. It is suggested that the first
+                           and last elements define stable states of the
+                           magnetic system. The arrays and functions are used
+                           to load the magnetisation/spin fields through the
+                           sim.set_m method from the Simulation object.
 
-    inteprolations      ::
+    interpolations      :: A list with 1 element less than the initial_images
+                           list, where every entry is an integer indicating the
+                           number of interpolations between consecutive images.
+                           For example, if we defined initial_images as
+                           [state_1, state_2, state_3], and we want 10
+                           interpolations between state_1 and state_2 and 5
+                           interpolations between state_2 and state_3, we set
+                           interpolations as [10, 5], making an energy band of
+                           17 images. If we do not want any interpolation, we
+                           leave this list as None or empty.
+
+    k                   :: The spring constant magnitude
+
+    name                :: The NEBM simulation name. Folders for VTK and NPY
+                           files, and data tables are named according to this
+                           string.
+
+    openmp              :: Set this as True to use the parallelised version of
+                           CVODE, which is the integrator used to evolve the
+                           NEBM minimisation equation.
+
+    ---------------------------------------------------------------------------
+
+    The NEB Method (NEBM) class to find minimum energy paths between two stable
+    states in a given magnetic system. This class works both for atomistic and
+    micromagnetic simulations. The NEBM in Cartesian coordinates describes the
+    spins / magnetisation vectors in Cartesian coordinates (m_x, m_y, m_z). The
+    NEBM is based on the definition of a so called band, which is just a
+    sequence of replicas (in terms of geometry and magnetic parameters) of the
+    same system (given by our simulation), called images, in different magnetic
+    configurations, and where the first and last state are the stable states
+    used to find a minimum energy transition between them. Calling the images
+    as Y_i, after relaxation an energy band of N+1 images usually looks like:
+
+
+                 Energy                ...
+                   ^                                           _
+                   |         Y_2   , - ~ ~ ~ - ,   Y_(N-1)    |
+                   |           O '               O ,          |  Energy barrier
+                   |    Y_1  ,                       ,        |  with respect
+                   |        O                         O Y_N   |_ to Y_N
+                   |       ,
+                   |       O
+                   |    Y_0
+                   ________________________
+                   Distance
+
+    where Y_0 and Y_N are the stable states.
+
+    The NEBM evolves an energy band [Y_0, Y_1, ... , Y_N]  according to the
+    equation
+                                     _______
+                                    /     2
+        dY                         /( dY )           2
+        --- =  -Y x Y x G + c *   / ( -- )   * (1 - Y ) Y
+        dt                      \/  ( dt )
+
+    for every image Y of the energy band. The G vector is the effective force
+    on the image, which is defined in terms of tangent vectors (tangent along
+    the band) in the energy landscape, whose perpendicular components follow
+    directions of largest energy changes to find the minimum energy transition.
+    Additionally, the effective force includes a spring force that keeps images
+    equally spaced along the band to avoid clustering around minima or saddle
+    points. The spacing between images needs a definition of DISTANCE. In this
+    code we use an Euclidean distance, normalised by the number of degrees of
+    freedom, which is the sum of all spin components, so if we have P spins in
+    the system, the number of dofs is 3 * P, i.e. the 3 directions per spin.
+    The distance is defined as:
+
+                                             _________________________________
+                                            /  P
+                                1          /  __   __                        2
+        distance(Y_i, Y_j) =   ---        /  \    \   [ m(i,a)_b - m(j,a)_b ]
+                                P     \  /   /__  /__
+                                       \/    a=1  b=x,y,z
+
+    where m(i,a)_b is the b-component of the a-th spin in the image Y_i.
+
+    The second term in the minimisation equation is to correct the
+    magnetisation/spin vectors length, since at 0 K this length is fixed. For
+    now, we use the *c* factor as 6.
+
+    For more details about the definition of the forces involved in the NEBM,
+    see the following papers:
+
+        - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
+        - Bessarab et al., Computer Physics Communications 196 (2015) 335–347
 
     """
+
     def __init__(self, sim,
                  initial_images, interpolations=None,
                  k=1e5,
