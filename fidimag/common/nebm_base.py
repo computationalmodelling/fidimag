@@ -312,7 +312,7 @@ class NEBMBase(object):
         # where {} is the image number, starting from 0
         self.band.shape = (self.n_images, -1)
         for i in range(self.n_images):
-            name = os.path.join(directory, 'image_%d.npy' % i)
+            name = os.path.join(directory, 'image_{:06}.npy'.format(i))
             if coordinates_function:
                 np.save(name, coordinates_function(self.band[i, :]))
             else:
