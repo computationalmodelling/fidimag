@@ -85,21 +85,21 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
         neb = NEBM_Cartesian(sim,
                              init_images,
                              interpolations=interpolations,
-                             k=k,
+                             spring_constant=k,
                              name=simname
                              )
     if coordinates == 'Spherical':
         neb = NEBM_Spherical(sim,
                              init_images,
                              interpolations=interpolations,
-                             k=k,
+                             spring_constant=k,
                              name=simname
                              )
     if coordinates == 'Geodesic':
         neb = NEBM_Geodesic(sim,
                             init_images,
                             interpolations=interpolations,
-                            k=k,
+                            spring_constant=k,
                             name=simname
                             )
 
