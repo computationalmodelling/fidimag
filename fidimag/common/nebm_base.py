@@ -156,7 +156,7 @@ class NEBMBase(object):
     """
     def __init__(self, sim,
                  initial_images, interpolations=None,
-                 k=1e5,
+                 spring_constant=1e5,
                  name='unnamed',
                  dof=2,
                  openmp=False
@@ -173,7 +173,7 @@ class NEBMBase(object):
         self.n_spins = len(self.mesh.coordinates)
 
         # Spring constant (we could use an array in the future)
-        self.k = k
+        self.k = spring_constant
 
         # We will use this filter to know which sites of the system has
         # material, i.e. M_s or mu_s > 0 and norm(m) = 1

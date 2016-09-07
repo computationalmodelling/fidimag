@@ -106,7 +106,7 @@ class NEBM_Cartesian(NEBMBase):
                                             /  P
                                 1          /  __   __                        2
         distance(Y_i, Y_j) =   ---        /  \    \   [ m(i,a)_b - m(j,a)_b ]
-                                P     \  /   /__  /__
+                               3*P    \  /   /__  /__
                                        \/    a=1  b=x,y,z
 
     where m(i,a)_b is the b-component of the a-th spin in the image Y_i.
@@ -119,13 +119,13 @@ class NEBM_Cartesian(NEBMBase):
     see the following papers:
 
         - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335–347
+        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
     """
 
     def __init__(self, sim,
                  initial_images, interpolations=None,
-                 k=1e5,
+                 spring_constant=1e5,
                  name='unnamed',
                  openmp=False
                  ):
@@ -133,7 +133,7 @@ class NEBM_Cartesian(NEBMBase):
         super(NEBM_Cartesian, self).__init__(sim,
                                              initial_images,
                                              interpolations=interpolations,
-                                             k=k,
+                                             spring_constant=spring_constant,
                                              name=name,
                                              dof=3,
                                              openmp=openmp
