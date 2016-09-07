@@ -209,7 +209,7 @@ class NEBMBase(object):
         if interpolations:
             self.interpolations = interpolations
         else:
-            self.interpolations = [0 for i in len(initial_images) - 1]
+            self.interpolations = [0 for i in range(len(initial_images) - 1)]
 
         # Number of images with/without the extremes
         self.n_images = len(self.initial_images) + np.sum(self.interpolations)
