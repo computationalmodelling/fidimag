@@ -126,7 +126,7 @@ class NEBM_Spherical(NEBMBase):
     For more details about the definition of the forces involved in the NEBM,
     see the following papers:
 
-        - Dittrich et al., JMMM 250 (2002) L12–L19
+        - Dittrich et al., JMMM 250 (2002) L12-L19
         - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
         - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
