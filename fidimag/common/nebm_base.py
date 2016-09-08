@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 import os
+import time
 
 import fidimag.extensions.cvode as cvode
 from fidimag.common.vtk import VTK
@@ -551,7 +552,8 @@ class NEBMBase(object):
                 )
             self.tablewriter.save()
             self.tablewriter_dm.save()
-            log.debug("step: {:.3g}, step_size: {:.3g}"
+            log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
+                      "step: {:.3g}, step_size: {:.3g}"
                       " and max_dYdt: {:.3g}.".format(self.iterations,
                                                       increment_dt,
                                                       max_dYdt)
