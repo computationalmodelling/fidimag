@@ -577,3 +577,78 @@ class NEBMBase(object):
         self.save_npys(coordinates_function=self.files_convert_f)
 
     # -------------------------------------------------------------------------
+
+    def compute_polynomial_approximation(self, n_points):
+
+        """
+
+        Compute a smooth approximation for the band, using a third order
+        polynomial approximation. This approximation uses the tangents and
+        derivatives at each image of the band, as information to estimate
+        the curvatures. The formula can be found in
+
+        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
+
+        This function returns a tuple with two elements:
+
+            0. An array with the distance of every data point from the 0th
+            image.
+
+            1. A n_points long array, with the cubic interpolated energy band
+
+        """
+
+        deltas = np.zeros(self.n_images)
+
+        # Somehow we need to rescale the gradient by the right units. In the
+        # case of micromag, we use mu0 * Ms, and for the atomistic case we
+        # simply use mu_s. This must be related to the way we derive the
+        # effective field to calculate the negative energy gradient, which is
+        # the functional derivative of the energy
+        if self.sim._micromagnetic:
+            scale = np.repeat(const.mu_0 * self.sim.Ms, 3)
+        else:
+            scale = np.repeat(self.sim.mu_s, 3)
+
+        for i in range(self.n_images):
+            deltas[i] = np.dot(scale * self.gradientE.reshape(self.n_images, -1)[i],
+                               self.tangents.reshape(self.n_images, -1)[i]
+                               )
+
+        l = [0]
+        for i in range(len(self.distances)):
+            l.append(np.sum(self.distances[:i + 1]))
+        l = np.array(l)
+
+        E = self.energies
+
+        # The coefficients for the polynomial approximation
+        a = np.zeros(self.n_images)
+        b = np.zeros(self.n_images)
+        c = deltas
+        d = E
+
+        # Populate the a and b coefficients for every image
+        for i in range(self.n_images - 1):
+            a[i] = (deltas[i + 1] + deltas[i]) / (l[i + 1] - l[i]) ** 2.
+            a[i] -= 2 * (E[i + 1] - E[i]) / (l[i + 1] - l[i]) ** 3.
+
+            b[i] = -(deltas[i + 1] + 2 * deltas[i]) / (l[i + 1] - l[i])
+            b[i] += 3 * (E[i + 1] - E[i]) / (l[i + 1] - l[i]) ** 2.
+
+        # The arrays with the data points and the interpolated energy values
+        x = np.linspace(0, l[-1], n_points)
+        E_interp = np.zeros(n_points)
+
+        i_img = 0
+        for i, pos in enumerate(x):
+            if pos > l[i_img + 1]:
+                i_img += 1
+
+            E_interp[i] = (a[i_img] * ((pos - l[i_img]) ** 3.) +
+                           b[i_img] * ((pos - l[i_img]) ** 2.) +
+                           c[i_img] * (pos - l[i_img]) +
+                           d[i_img]
+                           )
+
+        return x, E_interp
