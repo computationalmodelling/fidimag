@@ -129,6 +129,7 @@ class NEBM_Geodesic(NEBMBase):
     For more details about the definition of the forces involved in the NEBM,
     see the following papers:
 
+        - Suess et al., Physical Review B 75, 174430 (2007)
         - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
         - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
@@ -279,8 +280,6 @@ class NEBM_Geodesic(NEBMBase):
 
     def nebm_step(self, y):
 
-        # The convergence of the algorithm depends on how we redefine the
-        # angles: Redefining the tangents and spring force helps a little
         self.compute_effective_field_and_energy(y)
         self.compute_tangents(y)
         self.compute_spring_force(y)

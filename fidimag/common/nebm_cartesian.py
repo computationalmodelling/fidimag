@@ -118,6 +118,7 @@ class NEBM_Cartesian(NEBMBase):
     For more details about the definition of the forces involved in the NEBM,
     see the following papers:
 
+        - Suess et al., Physical Review B 75, 174430 (2007)
         - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
         - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
