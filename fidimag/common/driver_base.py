@@ -129,8 +129,8 @@ class DriverBase(object):
 
             dmdt = self.compute_dmdt(increment_dt)
 
-            print(('step=%d ' +
-                   'time=%0.3g ' +
+            print(('step=%d, ' +
+                   'time=%0.3g, ' +
                    'max_dmdt=%0.3g ' +
                    'ode_step=%0.3g') % (self.step,
                                         self.t,
