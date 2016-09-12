@@ -139,6 +139,7 @@ class NEBM_Geodesic(NEBMBase):
                  initial_images, interpolations=None,
                  spring_constant=1e5,
                  name='unnamed',
+                 climbing_image=None,
                  openmp=False
                  ):
 
@@ -147,6 +148,7 @@ class NEBM_Geodesic(NEBMBase):
                                             interpolations=interpolations,
                                             spring_constant=spring_constant,
                                             name=name,
+                                            climbing_image=climbing_image,
                                             dof=3,
                                             openmp=openmp
                                             )
@@ -288,6 +290,7 @@ class NEBM_Geodesic(NEBMBase):
                                                self.tangents,
                                                self.gradientE,
                                                self.spring_force,
+                                               self.climbing_image,
                                                self.n_images,
                                                self.n_dofs_image
                                                )

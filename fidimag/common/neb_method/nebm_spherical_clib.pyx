@@ -40,6 +40,7 @@ cdef extern from "nebm_lib.h":
                                    double * tangents,
                                    double * gradientE,
                                    double * spring_force,
+                                   int climbing_image,
                                    int n_images,
                                    int n_dofs_image)
 
@@ -82,11 +83,13 @@ def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
                             np.ndarray[double, ndim=1, mode="c"] tangents,
                             np.ndarray[double, ndim=1, mode="c"] gradientE,
                             np.ndarray[double, ndim=1, mode="c"] spring_force,
+                            climbing_image,
                             n_images,
                             n_dofs_image
                             ):
 
     compute_effective_force_C(&G[0], &tangents[0],
                               &gradientE[0], &spring_force[0],
+                              climbing_image,
                               n_images, n_dofs_image
                               )

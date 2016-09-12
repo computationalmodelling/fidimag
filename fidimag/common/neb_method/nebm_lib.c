@@ -422,6 +422,7 @@ void compute_effective_force_C(double * G,
                                double * tangents,
                                double * gradientE,
                                double * spring_force,
+                               int climbing_image,
                                int n_images,
                                int n_dofs_image) {
 
@@ -461,8 +462,15 @@ void compute_effective_force_C(double * G,
 
         gradE_dot_t = dot_product(gradE, t, n_dofs_image);
 
-        for(j = 0; j < n_dofs_image; j++) {
-            G[im_idx + j] = -gradE[j] + gradE_dot_t * t[j] + sf[j];
+        if(climbing_image < 0 || i != climbing_image) {
+            for(j = 0; j < n_dofs_image; j++) {
+                G[im_idx + j] = -gradE[j] + gradE_dot_t * t[j] + sf[j];
+            }
+        }
+        else {
+            for(j = 0; j < n_dofs_image; j++) {
+                G[im_idx + j] = -gradE[j] + 2 * gradE_dot_t * t[j];
+            }
         }
     }
 }

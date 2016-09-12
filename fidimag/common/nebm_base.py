@@ -159,6 +159,7 @@ class NEBMBase(object):
                  initial_images, interpolations=None,
                  spring_constant=1e5,
                  name='unnamed',
+                 climbing_image=None,
                  dof=2,
                  openmp=False
                  ):
@@ -221,6 +222,16 @@ class NEBMBase(object):
 
         # Total number of degrees of freedom in the NEBM band
         self.n_band = self.n_images * self.n_dofs_image
+
+        # Climbing Image ------------------------------------------------------
+
+        if climbing_image is None:
+            self.climbing_image = -1
+        elif climbing_image in range(self.n_images):
+            self.climbing_image = climbing_image
+        else:
+            raise ValueError('The climbing image must be in the band. '
+                             'Specify a valid integer.')
 
         # NEBM Arrays ---------------------------------------------------------
         # We will initialise every array using the total number of images,
