@@ -5,6 +5,13 @@ python:
         - "2.7"
 sudo: false
 # command to install dependencies
+
+addons:
+  apt:
+    sources:
+      - libblas-dev
+      - liblapack-dev
+
 before_install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
