@@ -606,7 +606,9 @@ class NEBMBase(object):
         # effective field to calculate the negative energy gradient, which is
         # the functional derivative of the energy
         if self.sim._micromagnetic:
-            scale = np.repeat(const.mu_0 * self.sim.Ms, 3)
+            scale = np.repeat(self.mesh.dx * self.mesh.dy * self.mesh.dz *
+                              (self.mesh.unit_length ** 3.) *
+                              const.mu_0 * self.sim.Ms, 3)
         else:
             scale = np.repeat(self.sim.mu_s, 3)
 
