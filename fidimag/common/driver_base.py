@@ -76,7 +76,9 @@ class DriverBase(object):
             if t == self.t and self.t == 0.0:
                 self.compute_effective_field(t)
                 self.data_saver.save()
-            return
+                return
+            else:
+                raise ValueError("t must be >= sim.t")
 
         ode = self.integrator
 
