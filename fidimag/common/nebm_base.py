@@ -497,10 +497,11 @@ class NEBMBase(object):
         """
 
         log.debug("Relaxation parameters: "
-                  "stopping_dYdt={} (degrees per nanosecond), "
-                  "time_step={} s, max_iterations={}.".format(stopping_dYdt,
-                                                              dt,
-                                                              max_iterations))
+                  "stopping_dYdt={}, "
+                  "time_step={} s, "
+                  " max_iterations={}.".format(stopping_dYdt,
+                                               dt,
+                                               max_iterations))
 
         self.save_VTKs(coordinates_function=self.files_convert_f)
         self.save_npys(coordinates_function=self.files_convert_f)
