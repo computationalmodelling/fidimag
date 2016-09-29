@@ -70,6 +70,8 @@ micro_sources = []
 micro_sources.append(os.path.join(MICRO_DIR, 'micro_clib.pyx'))
 micro_sources += glob_cfiles(MICRO_DIR, excludes=["micro_clib.c"])
 
+# NEB Method ------------------------------------------------------------------
+
 neb_sources = []
 neb_sources.append(os.path.join(NEB_DIR, 'neb_clib.pyx'))
 neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
@@ -80,18 +82,19 @@ nebm_spherical_sources.append(os.path.join(NEBM_DIR,
 nebm_spherical_sources += glob_cfiles(NEBM_DIR,
                                       excludes=["nebm_spherical_clib.c"])
 
-
 nebm_geodesic_sources = []
 nebm_geodesic_sources.append(os.path.join(NEBM_DIR,
                                           'nebm_geodesic_clib.pyx'))
 nebm_geodesic_sources += glob_cfiles(NEBM_DIR,
-                                      excludes=["nebm_geodesic_clib.c"])
+                                     excludes=["nebm_geodesic_clib.c"])
 
 nebm_cartesian_sources = []
 nebm_cartesian_sources.append(os.path.join(NEBM_DIR,
                                            'nebm_cartesian_clib.pyx'))
 nebm_cartesian_sources += glob_cfiles(NEBM_DIR,
                                       excludes=["nebm_cartesian_clib.c"])
+
+# -----------------------------------------------------------------------------
 
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))

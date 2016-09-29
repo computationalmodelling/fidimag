@@ -7,6 +7,7 @@ import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 
 from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .nebm_tools import linear_interpolation_spherical
+from .nebm_tools import interpolation_Rodrigues_rotation
 
 from .nebm_base import NEBMBase
 
@@ -139,6 +140,7 @@ class NEBM_Geodesic(NEBMBase):
                  initial_images, interpolations=None,
                  spring_constant=1e5,
                  name='unnamed',
+                 interpolation_method='linear',
                  climbing_image=None,
                  openmp=False
                  ):
@@ -156,7 +158,7 @@ class NEBM_Geodesic(NEBMBase):
         # Initialisation ------------------------------------------------------
         # See the NEBMBase class for details
 
-        self.generate_initial_band()
+        self.generate_initial_band(method=interpolation_method)
 
         self.initialise_energies()
 
@@ -175,8 +177,9 @@ class NEBM_Geodesic(NEBMBase):
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
-    def generate_initial_band(self):
+    def generate_initial_band(self, method='linear'):
         """
+        method      :: linear, rotation
 
         """
 
@@ -210,16 +213,24 @@ class NEBM_Geodesic(NEBMBase):
             # We copy these rows to the corresponding images in the energy
             # band array
             if self.interpolations[i] != 0:
-                interpolation = linear_interpolation_spherical(
-                    cartesian2spherical(self.band[i_initial_images[i]]),
-                    cartesian2spherical(self.band[i_initial_images[i + 1]]),
-                    self.interpolations[i],
-                    self.sim._pins
-                    )
+                if method == 'linear':
+                    interpolation = linear_interpolation_spherical(
+                        cartesian2spherical(self.band[i_initial_images[i]]),
+                        cartesian2spherical(self.band[i_initial_images[i + 1]]),
+                        self.interpolations[i],
+                        self.sim._pins
+                        )
 
-                interpolation = np.apply_along_axis(spherical2cartesian,
-                                                    axis=1,
-                                                    arr=interpolation)
+                    interpolation = np.apply_along_axis(spherical2cartesian,
+                                                        axis=1,
+                                                        arr=interpolation)
+                elif method == 'rotation':
+                    interpolation = interpolation_Rodrigues_rotation(
+                        self.band[i_initial_images[i]],
+                        self.band[i_initial_images[i + 1]],
+                        self.interpolations[i],
+                        self.sim._pins
+                        )
 
                 # We then set the interpolated spins fields at once
                 self.band[i_initial_images[i] + 1:
