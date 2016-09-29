@@ -6,8 +6,9 @@ Tests for the NEB Method implementation
 
 """
 
+import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.common.nebm_tools as nebm_tools
-import fidimag.common.nebm_spherical as nebm_spherical
+# import fidimag.common.nebm_spherical as nebm_spherical
 import numpy as np
 
 
@@ -124,8 +125,44 @@ def test_linearinterpolation():
     for i, phi in enumerate(interps[:, 5]):
         assert np.abs(phi - y_initial[5]) < 1e-8
 
+
+def test_geodesic_distance():
+    """
+    We will measure the distance between a spin in the +z direction and a spin
+    at the -z direction. The great-circle distance (distance on the unit
+    sphere) should be PI, since the perimeter is 2PI
+
+    The other distance is between a spin in the [0, 1, 0] direction and another
+    one in the [-1, 0, 0] direction. The arc length should be PI/2
+    """
+
+    # Degrees of freedom in Cartesian coordinates
+    A = np.array([0, 0, 1.])
+    B = np.array([0, 0, -1.])
+    n_dofs_image = 3
+
+    # The material array only indicates the lattice/mesh sites where
+    # there is material (mu_s or M_s larger than zero)
+    material = np.array([1]).astype(np.int32)
+    n_dofs_image_material = 3
+
+    d = nebm_geodesic.geodesic_distance(A, B, n_dofs_image,
+                                        material, n_dofs_image_material
+                                        )
+    assert np.abs(d - np.pi) < 1e-5
+
+    # The other two spins:
+    A = np.array([0, 1, 0.])
+    B = np.array([-1, 0, 0.])
+
+    d = nebm_geodesic.geodesic_distance(A, B, n_dofs_image,
+                                        material, n_dofs_image_material
+                                        )
+    assert np.abs(d - np.pi * 0.5) < 1e-5
+
 if __name__ == "__main__":
 
     test_cartesian2spherical()
     test_spherical2cartesian()
     test_linearinterpolation()
+    test_geodesic_distance()
