@@ -30,7 +30,7 @@ def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
 
-    sim.set_tols(rtol=1e-8,atol=1e-8)
+    sim.driver.set_tols(rtol=1e-8,atol=1e-8)
     sim.gamma = 2.211e5
     sim.Ms = Ms
     sim.alpha = 0.5
@@ -67,7 +67,7 @@ def excite_system_K(mesh, Hx=2000):
 
     sim = Sim(mesh, name='dyn_K')
 
-    sim.set_tols(rtol=1e-8,atol=1e-8)
+    sim.driver.set_tols(rtol=1e-8,atol=1e-8)
     sim.gamma = 2.211e5
     sim.Ms = Ms
     sim.alpha = 0.005
@@ -105,7 +105,7 @@ def excite_system_D(mesh, Hx=2000):
 
     sim = Sim(mesh, name='dyn_D')
 
-    sim.set_tols(rtol=1e-8,atol=1e-8)
+    sim.driver.set_tols(rtol=1e-8,atol=1e-8)
     sim.gamma = 2.211e5
     sim.Ms = Ms
     sim.alpha = 0.005
