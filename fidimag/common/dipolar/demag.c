@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
+#include <omp.h>
 #include "dipolar.h"
 #include "demagcoef.h"
 
