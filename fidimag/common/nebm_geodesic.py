@@ -4,6 +4,7 @@ import numpy as np
 
 import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
+import fidimag.extensions.nebm_clib as nebm_clib
 
 from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .nebm_tools import linear_interpolation_spherical
@@ -42,6 +43,19 @@ class NEBM_Geodesic(NEBMBase):
                            interpolations as [10, 5], making an energy band of
                            17 images. If we do not want any interpolation, we
                            leave this list as None or empty.
+
+    interpolation_method:: In case that a number of interpolations were
+                           defined, it is possible to specify how the
+                           interpolation is performed using any of these
+                           methods:
+
+                                'linear'   : A linear interpolation of the spin
+                                             directions using spherical
+                                             coordinates
+
+                                'rotation' : Interpolation of the spin
+                                             directions using Rodrigue's
+                                             rotation formulae
 
     spring_constant     :: The spring constant magnitude
 
@@ -137,10 +151,11 @@ class NEBM_Geodesic(NEBMBase):
     """
 
     def __init__(self, sim,
-                 initial_images, interpolations=None,
+                 initial_images,
+                 interpolations=None,
+                 interpolation_method='linear',
                  spring_constant=1e5,
                  name='unnamed',
-                 interpolation_method='linear',
                  climbing_image=None,
                  openmp=False
                  ):
@@ -273,9 +288,9 @@ class NEBM_Geodesic(NEBMBase):
         self.gradientE = self.gradientE.reshape(-1)
 
     def compute_tangents(self, y):
-        nebm_cartesian.compute_tangents(self.tangents, y, self.energies,
-                                        self.n_dofs_image, self.n_images
-                                        )
+        nebm_clib.compute_tangents(self.tangents, y, self.energies,
+                                   self.n_dofs_image, self.n_images
+                                   )
         nebm_cartesian.project_images(self.tangents, y,
                                       self.n_images, self.n_dofs_image
                                       )
@@ -297,14 +312,15 @@ class NEBM_Geodesic(NEBMBase):
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
-        nebm_cartesian.compute_effective_force(self.G,
-                                               self.tangents,
-                                               self.gradientE,
-                                               self.spring_force,
-                                               self.climbing_image,
-                                               self.n_images,
-                                               self.n_dofs_image
-                                               )
+        nebm_clib.compute_effective_force(self.G,
+                                          self.tangents,
+                                          self.gradientE,
+                                          self.spring_force,
+                                          self.climbing_image,
+                                          self.n_images,
+                                          self.n_dofs_image
+                                          )
+
         nebm_cartesian.project_images(self.G, y,
                                       self.n_images, self.n_dofs_image
                                       )

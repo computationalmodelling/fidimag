@@ -3,10 +3,11 @@ from __future__ import division
 import numpy as np
 
 import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
-# import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
+import fidimag.extensions.nebm_clib as nebm_clib
 
 from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .nebm_tools import linear_interpolation_spherical
+from .nebm_tools import interpolation_Rodrigues_rotation
 
 from .nebm_base import NEBMBase
 
@@ -43,6 +44,19 @@ class NEBM_Cartesian(NEBMBase):
                            interpolations as [10, 5], making an energy band of
                            17 images. If we do not want any interpolation, we
                            leave this list as None or empty.
+
+    interpolation_method:: In case that a number of interpolations were
+                           defined, it is possible to specify how the
+                           interpolation is performed using any of these
+                           methods:
+
+                                'linear'   : A linear interpolation of the spin
+                                             directions using spherical
+                                             coordinates
+
+                                'rotation' : Interpolation of the spin
+                                             directions using Rodrigue's
+                                             rotation formulae
 
     k                   :: The spring constant magnitude
 
@@ -125,7 +139,9 @@ class NEBM_Cartesian(NEBMBase):
     """
 
     def __init__(self, sim,
-                 initial_images, interpolations=None,
+                 initial_images,
+                 interpolations=None,
+                 interpolation_method='linear',
                  spring_constant=1e5,
                  name='unnamed',
                  climbing_image=None,
@@ -145,7 +161,7 @@ class NEBM_Cartesian(NEBMBase):
         # Initialisation ------------------------------------------------------
         # See the NEBMBase class for details
 
-        self.generate_initial_band()
+        self.generate_initial_band(method=interpolation_method)
 
         self.initialise_energies()
 
@@ -164,8 +180,9 @@ class NEBM_Cartesian(NEBMBase):
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
-    def generate_initial_band(self):
+    def generate_initial_band(self, method='linear'):
         """
+        method      :: linear, rotation
 
         """
 
@@ -190,32 +207,33 @@ class NEBM_Cartesian(NEBMBase):
             # change according to the number of interpolations. Accordingly,
             # we use the list with the indexes of the initial images
             self.sim.set_m(self.initial_images[i])
-            self.band[i_initial_images[i]][:] = self.sim.spin
+            self.band[i_initial_images[i]] = np.copy(self.sim.spin)
 
             self.sim.set_m(self.initial_images[i + 1])
-            self.band[i_initial_images[i + 1]][:] = self.sim.spin
+            self.band[i_initial_images[i + 1]] = np.copy(self.sim.spin)
 
             # interpolation is an array with *self.interpolations[i]* rows
             # We copy these rows to the corresponding images in the energy
             # band array
             if self.interpolations[i] != 0:
-                interpolation = linear_interpolation_spherical(
-                    cartesian2spherical(self.band[i_initial_images[i]]),
-                    cartesian2spherical(self.band[i_initial_images[i + 1]]),
-                    self.interpolations[i],
-                    self.sim._pins
-                    )
+                if method == 'linear':
+                    interpolation = linear_interpolation_spherical(
+                        cartesian2spherical(self.band[i_initial_images[i]]),
+                        cartesian2spherical(self.band[i_initial_images[i + 1]]),
+                        self.interpolations[i],
+                        self.sim._pins
+                        )
 
-                # Convert the rows from the interpolation to Cartesian
-                interpolation = np.apply_along_axis(spherical2cartesian,
-                                                    axis=1,
-                                                    arr=interpolation)
-
-                # We leave sites without material with mx,my,mz = 0,0,0
-                # since the spherical2cartesian function maps
-                # (0, 0) to (0, 0, 1) [we may change this in the future]
-                for y in interpolation:
-                    y[~self._material] = 0
+                    interpolation = np.apply_along_axis(spherical2cartesian,
+                                                        axis=1,
+                                                        arr=interpolation)
+                elif method == 'rotation':
+                    interpolation = interpolation_Rodrigues_rotation(
+                        self.band[i_initial_images[i]],
+                        self.band[i_initial_images[i + 1]],
+                        self.interpolations[i],
+                        self.sim._pins
+                        )
 
                 # We then set the interpolated spins fields at once
                 self.band[i_initial_images[i] + 1:
@@ -258,9 +276,9 @@ class NEBM_Cartesian(NEBMBase):
         self.gradientE = self.gradientE.reshape(-1)
 
     def compute_tangents(self, y):
-        nebm_cartesian.compute_tangents(self.tangents, y, self.energies,
-                                        self.n_dofs_image, self.n_images
-                                        )
+        nebm_clib.compute_tangents(self.tangents, y, self.energies,
+                                   self.n_dofs_image, self.n_images
+                                   )
 
         nebm_cartesian.normalise_images(self.tangents,
                                         self.n_images, self.n_dofs_image
@@ -283,14 +301,14 @@ class NEBM_Cartesian(NEBMBase):
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
-        nebm_cartesian.compute_effective_force(self.G,
-                                               self.tangents,
-                                               self.gradientE,
-                                               self.spring_force,
-                                               self.climbing_image,
-                                               self.n_images,
-                                               self.n_dofs_image
-                                               )
+        nebm_clib.compute_effective_force(self.G,
+                                          self.tangents,
+                                          self.gradientE,
+                                          self.spring_force,
+                                          self.climbing_image,
+                                          self.n_images,
+                                          self.n_dofs_image
+                                          )
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------

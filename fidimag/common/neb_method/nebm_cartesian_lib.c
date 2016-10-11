@@ -2,6 +2,96 @@
 #include "nebm_lib.h"
 #include "math.h"
 
+
+void project_vector_C(double * vector, double * y_i,
+                      int n_dofs_image
+                      ){
+
+    /* Project a vector into the space of the y_i image in an energy band. We
+     * assume that *image and *y_i have the same length. The vector and the
+     * image are in Cartesian coordinates. Thus, remembering that an image y_i
+     * has the components:
+
+     *      [ spin0_x spin0_y spin0_z spin1_x ...]
+
+     * and assuming that *vector has the same order, the projection is made
+     * through the components of every 3 component vector in the arrays. This
+     * means, if V_i is the i-th vector of the *vector array and m_i is the
+     * i-th spin in the y_i array, we have to compute
+
+     *                  ->      ->      ->    ->   ->
+     *      Projection( V_i ) = V_i - ( V_i o m_i) m_i
+     *                               (dot product)
+
+     * for every V_i in vector. The components of the V_i vector start at the
+     * (3 * i) position of the *vector array, and the i-th spin components
+     * start at the (3 * i) position of the y_i array
+     *
+     * - Remember that an image has n_dofs_image elements, thus the number of
+     *   spins is n_dofs_image / 3
+     *
+     */
+
+    int j;
+    double v_dot_m_i = 0;
+
+    for(j = 0; j < n_dofs_image; j++) {
+        // Every 3 components of the *vector and *y_i array, compute the
+        // dot product of the i-th vector (i.e. using
+        //      ( vector[j], vector[j+1], vector[j+2] ) , j=0,3,6, ... )
+        // and then compute the projection for the 3 components of the vector
+        if (j % 3 == 0) v_dot_m_i = dot_product(&vector[j], &y_i[j], 3);
+        vector[j] = vector[j] - v_dot_m_i * y_i[j];
+    }
+}
+
+
+void project_images_C(double * vector, double * y,
+                      int n_images, int n_dofs_image
+                      ){
+
+    /* Compute the projections of the vectors in the *vector array into the
+     * space formed by the spin vectors in the array *y
+     *
+     * We assume that the *vector array is made of n_images images, i.e.
+     
+     *      vector = [ vector(0)0_x vector(0)0_y vector(0)0_z vector(0)1_x ... ] IMAGE 0
+                       vector(1)0_x vector(1)0_y vector(1)0_z vector(1)1_x ... ] IMAGE 1
+                       ...                                                        ...  
+     *                ]
+     
+     * where vector(i)j_x is the x component of the j-th vector of the i-th
+     * image (similar for y_i, only that vectors are spins). Thus, every image
+     * starts at the i * n_dofs_image position of the *vector and *y_i array
+     *
+     * - Notice that we could have just computed the projections using the
+     *   whole vector array, without separating it into images, but the
+     *   approach taken here is clearer if we use the project_vector_C
+     *   function. In addition, we can parallelise the calculation in the
+     *   future, computing the projection of images in different threads.
+     *
+     * - An image is simply a copy of the magnetic system, i.e. every image has
+     *   n_dofs_image elements
+     */
+
+    int i;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+
+        im_idx = i * (n_dofs_image);
+
+        double * v = &vector[im_idx];
+        double * y_i = &y[im_idx];
+
+        project_vector_C(v, y_i, n_dofs_image);
+
+    }
+}
+
+
 double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
                                   int * material, int n_dofs_image_material
                                   ) {
@@ -30,10 +120,28 @@ double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
     return distance;
 }
 
-inline void compute_dYdt(double * m, double * h, double * dYdt,
-                         int * pins,
-                         int n_dofs_image
-                         ){
+/* Landau-Lifshitz like equation (no precession term) for the evolution of the
+ * NEBM in Cartesian coordinates. To preserve the magnitude of the spins we add
+ * a correction term. Calling G_eff to the effective force, every image Y of a
+ * NEBM band evolves according to the equation:
+ 
+ *      dY                                     2
+ *     ---- = - Y x ( Y x G_eff ) + c ( 1 - Y  ) Y
+ *      dt      
+               
+ *  with
+                    _________
+ *                  /        2
+ *      c = 6 *    / (  dY  ) 
+ *                /  ( ---- )
+ *              \/   (  dt  )
+ *
+ */
+
+void compute_dYdt(double * Y, double * G, double * dYdt,
+                  int * pins,
+                  int n_dofs_image
+                  ) {
 
     int n_spins = n_dofs_image / 3;
     for(int i = 0; i < n_spins; i++){
@@ -46,35 +154,29 @@ inline void compute_dYdt(double * m, double * h, double * dYdt,
 		    continue;
 		}
 
-        double mm = m[j] * m[j] + m[j + 1] * m[j + 1] + m[j + 2] * m[j + 2];
-       	double mh = m[j] * h[j] + m[j + 1] * h[j + 1] + m[j + 2] * h[j + 2];
-        //mm.h-mh.m=-mx(mxh)
-       	dYdt[j] = mm * h[j] - mh * m[j];
-       	dYdt[j + 1] = mm * h[j + 1] - mh * m[j + 1];
-       	dYdt[j + 2] = mm * h[j + 2] - mh * m[j + 2];
+        double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
+       	double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
+        // (Y * Y) G - (Y * G) Y = - Y x (Y x G)
+       	dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
+       	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
+       	dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
 
        	double c = 6 * sqrt(dYdt[j]     * dYdt[j]     +
                             dYdt[j + 1] * dYdt[j + 1] +
                             dYdt[j + 2] * dYdt[j + 2]);
 
-       	dYdt[j]     += c * (1 - mm) * m[j];
-        dYdt[j + 1] += c * (1 - mm) * m[j + 1];
-       	dYdt[j + 2] += c * (1 - mm) * m[j + 2];
+       	dYdt[j]     += c * (1 - Y_dot_Y) * Y[j];
+        dYdt[j + 1] += c * (1 - Y_dot_Y) * Y[j + 1];
+       	dYdt[j + 2] += c * (1 - Y_dot_Y) * Y[j + 2];
     }
-
 }
 
 void compute_dYdt_C(double * y, double * G, double * dYdt, int * pins, 
                     int n_images, int n_dofs_image) {
 
 	for(int i = 1; i < n_images - 1; i++){
-
-		int j = i * n_dofs_image;
-
-		compute_dYdt(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
-
-        }
-
+        int j = i * n_dofs_image;
+        compute_dYdt(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
+    }
     return;
-
 }

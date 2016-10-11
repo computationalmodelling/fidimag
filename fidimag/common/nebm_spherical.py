@@ -2,7 +2,8 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 
-import fidimag.extensions.nebm_spherical_clib as nebm_clib
+import fidimag.extensions.nebm_spherical_clib as nebm_spherical
+import fidimag.extensions.nebm_clib as nebm_clib
 from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .nebm_tools import linear_interpolation_spherical
 
@@ -268,14 +269,16 @@ class NEBM_Spherical(NEBMBase):
                                    )
 
     def compute_spring_force(self, y):
-        nebm_clib.compute_spring_force(self.spring_force, y, self.tangents,
-                                       self.k, self.n_images, self.n_dofs_image,
-                                       self._material_int,
-                                       self.n_dofs_image_material
-                                       )
-        nebm_clib.normalise_images(self.tangents,
-                                   self.n_images, self.n_dofs_image
-                                   )
+        nebm_spherical.compute_spring_force(self.spring_force, y,
+                                            self.tangents,
+                                            self.k, self.n_images,
+                                            self.n_dofs_image,
+                                            self._material_int,
+                                            self.n_dofs_image_material
+                                            )
+        nebm_spherical.normalise_images(self.tangents,
+                                        self.n_images, self.n_dofs_image
+                                        )
 
     def nebm_step(self, y):
 

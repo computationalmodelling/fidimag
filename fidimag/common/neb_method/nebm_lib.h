@@ -35,8 +35,4 @@ void compute_effective_force_C(double * G,
                                int n_dofs_image
                                );
 
-void project_images_C(double * vector, double * y,
-                      int n_images, int n_dofs_image
-                      );
-
 void normalise_images_C(double * y, int n_images, int n_dofs_image);

@@ -8,3 +8,8 @@ double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
 void compute_dYdt_C(double * y, double * G, double * dYdt,
                     int * pins,
                     int n_images, int n_dofs_image);
+
+
+void project_images_C(double * vector, double * y,
+                      int n_images, int n_dofs_image
+                      );

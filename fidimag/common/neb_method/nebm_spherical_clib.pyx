@@ -44,18 +44,6 @@ cdef extern from "nebm_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
-def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
-                     np.ndarray[double, ndim=1, mode="c"] y,
-                     np.ndarray[double, ndim=1, mode="c"] energies,
-                     n_dofs_image,
-                     n_images
-                     ):
-
-    compute_tangents_C(&tangents[0], &y[0], &energies[0],
-                       n_dofs_image, n_images
-                       )
-
-
 def normalise_images(np.ndarray[double, ndim=1, mode="c"] y,
                      n_images,
                      n_dofs_image
@@ -78,18 +66,3 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                            compute_distance_spherical,
                            &material[0], n_dofs_image_material
                            )
-
-def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
-                            np.ndarray[double, ndim=1, mode="c"] tangents,
-                            np.ndarray[double, ndim=1, mode="c"] gradientE,
-                            np.ndarray[double, ndim=1, mode="c"] spring_force,
-                            climbing_image,
-                            n_images,
-                            n_dofs_image
-                            ):
-
-    compute_effective_force_C(&G[0], &tangents[0],
-                              &gradientE[0], &spring_force[0],
-                              climbing_image,
-                              n_images, n_dofs_image
-                              )

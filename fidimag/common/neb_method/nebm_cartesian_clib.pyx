@@ -11,6 +11,10 @@ cdef extern from "nebm_cartesian_lib.h":
 
     void compute_dYdt_C(double * y, double * G, double * dYdt, int * pins,
                         int n_images, int n_dofs_image)
+
+    void project_images_C(double * vector, double * y,
+                          int n_images, int n_dofs_image,
+                          )
     
 cdef extern from "nebm_lib.h":
     void normalise(double * a, int n)
@@ -43,10 +47,6 @@ cdef extern from "nebm_lib.h":
                                    int climbing_image,
                                    int n_images,
                                    int n_dofs_image)
-
-    void project_images_C(double * vector, double * y,
-                          int n_images, int n_dofs_image,
-                          )
 
     void normalise_images_C(double * y, int n_images, 
                             int n_dofs_image)
