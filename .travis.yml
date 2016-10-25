@@ -6,6 +6,12 @@ python:
 
 env:
   - C_INCLUDE_PATH=$HOME/libraries/include
+  - LD_LIBRARY_PATH=$HOME/libraries/lib:$LD_LIBRARY_PATH
+  - LD_RUN_PATH=$HOME/libraries/lib:$LD_RUN_PATH
+  - PYTHONPATH=${TRAVIS_BUILD_DIR}:$PYTHONPATH
+  - OMP_NUM_THREADS=1
+  - MPL_BACKEND=Agg
+  - QT_API=pyqt
 cache:
   directories:
   - $HOME/libraries
@@ -28,16 +34,9 @@ install:
   - pip install pyvtk six nbval ipywidgets
 
 before_script:
-        - bash ${TRAVIS_BUILD_DIR}/bin/travis-libs-helper.sh
-        - conda list
-        - make build
-        - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
-        - export LD_LIBRARY_PATH="$HOME/libraries/lib:$LD_LIBRARY_PATH"
-        - export LD_RUN_PATH="$HOME/libraries/lib:$LD_RUN_PATH"
-        - export OMP_NUM_THREADS=1
-        - export MPLBACKEND=Agg
-        # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
-        - export QT_API=pyqt
+  - bash ${TRAVIS_BUILD_DIR}/bin/travis-libs-helper.sh
+  - conda list
+  - make build
 
 # command to run tests
 script:
