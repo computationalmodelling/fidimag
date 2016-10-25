@@ -5,6 +5,10 @@ python:
         - "2.7"
 
 
+cache:
+  directories:
+  - $HOME/libraries
+
 before_install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
@@ -22,15 +26,21 @@ install:
   - source activate fidimag-test
   - pip install pyvtk six nbval ipywidgets
   # Download and compile FFTW & Sundials locally
-  - bash bin/install-sundials.sh
-  - bash bin/install-fftw.sh
+  - if [ ! -d $HOME/libraries ]; then
+      echo "No cache - building FFTW & Sundials"
+      LIBS_DIR=$HOME/libraries
+      bash bin/install-sundials.sh
+      bash bin/install-fftw.sh
+    else
+      echo "FFTW & Sundials cache found!"
+    fi
 
 before_script:
         - conda list
         - make build
         - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
-        - export LD_LIBRARY_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_LIBRARY_PATH"
-        - export LD_RUN_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_RUN_PATH"
+        - export LD_LIBRARY_PATH="$HOME/libraries:$LD_LIBRARY_PATH"
+        - export LD_RUN_PATH="$HOME/libraries:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
         - export MPLBACKEND=Agg
         # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
