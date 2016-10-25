@@ -6,7 +6,6 @@ python:
 
 env:
   - C_INCLUDE_PATH=$HOME/libraries/include
-
 cache:
   directories:
   - $HOME/libraries
@@ -33,8 +32,8 @@ before_script:
         - conda list
         - make build
         - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
-        - export LD_LIBRARY_PATH="$HOME/libraries:$LD_LIBRARY_PATH"
-        - export LD_RUN_PATH="$HOME/libraries:$LD_RUN_PATH"
+        - export LD_LIBRARY_PATH="$HOME/libraries/lib:$LD_LIBRARY_PATH"
+        - export LD_RUN_PATH="$HOME/libraries/lib:$LD_RUN_PATH"
         - export OMP_NUM_THREADS=1
         - export MPLBACKEND=Agg
         # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
