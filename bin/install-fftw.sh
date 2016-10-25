@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "HELLO"
 # This script installs FFTW locally. It may need to environment
 # variables to work, like 'export CC=gcc' in ARCHER.
 
@@ -9,9 +9,12 @@ set -e
 
 # Create target directory if needed.
 
+
 HERE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FIDIMAG_DIR="$(dirname "$HERE_DIR")"
-LIBS_DIR=${FIDIMAG_DIR}/local
+
+if [ -z $LIBS_DIR ]; then LIBS_DIR=${FIDIMAG_DIR}/local; fi
+
 mkdir -p $LIBS_DIR
 cd ${LIBS_DIR}
 echo "Installing FFTW to "$LIBS_DIR"."

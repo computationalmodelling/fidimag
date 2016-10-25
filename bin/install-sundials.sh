@@ -13,7 +13,8 @@ type cmake >/dev/null 2>&1 || { printf "CMake required to build SUNDIALS. You ca
 
 HERE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FIDIMAG_DIR="$(dirname "$HERE_DIR")"
-LIBS_DIR=${FIDIMAG_DIR}/local
+
+if [ -z $LIBS_DIR ]; then LIBS_DIR=${FIDIMAG_DIR}/local; fi
 
 echo "Will install SUNDIALS to "${LIBS_DIR}" using CC="${CC}"."
 mkdir -p ${LIBS_DIR}
