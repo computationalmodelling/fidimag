@@ -26,7 +26,7 @@ install:
   - source activate fidimag-test
   - pip install pyvtk six nbval ipywidgets
   # Download and compile FFTW & Sundials locally
-  - bash bin/travis-libs-helper.sh
+  - bash ${TRAVIS_BUILD_DIR}/bin/travis-libs-helper.sh
 
 before_script:
         - conda list
