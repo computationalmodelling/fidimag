@@ -10,7 +10,6 @@ env:
 cache:
   directories:
   - $HOME/libraries
-  - $HOME/miniconda
 
 before_install:
   # We do this conditionally because it saves us some downloading if the
