@@ -25,10 +25,9 @@ install:
   - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython matplotlib pytest scipy pytest-cov gcc cmake psutil
   - source activate fidimag-test
   - pip install pyvtk six nbval ipywidgets
-  # Download and compile FFTW & Sundials locally
-  - bash ${TRAVIS_BUILD_DIR}/bin/travis-libs-helper.sh
 
 before_script:
+        - bash ${TRAVIS_BUILD_DIR}/bin/travis-libs-helper.sh
         - conda list
         - make build
         - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
