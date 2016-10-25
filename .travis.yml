@@ -26,14 +26,7 @@ install:
   - source activate fidimag-test
   - pip install pyvtk six nbval ipywidgets
   # Download and compile FFTW & Sundials locally
-  - if [ ! -d $HOME/libraries ]; then
-      echo "No cache - building FFTW & Sundials"
-      LIBS_DIR=$HOME/libraries
-      bash bin/install-sundials.sh
-      bash bin/install-fftw.sh
-    else
-      echo "FFTW & Sundials cache found!"
-    fi
+  - bash bin/travis-libs-helper.sh
 
 before_script:
         - conda list
