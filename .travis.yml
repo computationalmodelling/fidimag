@@ -4,10 +4,13 @@ python:
         - "3.4"
         - "2.7"
 
+env:
+  - C_INCLUDE_PATH=$HOME/libraries/include
 
 cache:
   directories:
   - $HOME/libraries
+  - $HOME/miniconda
 
 before_install:
   # We do this conditionally because it saves us some downloading if the
