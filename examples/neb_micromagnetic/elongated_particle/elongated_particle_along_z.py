@@ -124,7 +124,7 @@ def elongated_part_sim():
     sim = Sim(mesh)
     sim.Ms = lambda r: cylinder(r, centre, 8)
     sim.add(UniformExchange(A=A))
-    sim.add(UniaxialAnisotropy(Kx, axis=(0, 1, 0)))  # Anisotropy along y
+    sim.add(UniaxialAnisotropy(Kx, axis=(0, 0, 1)))  # Anisotropy along y
     sim.add(Demag())
 
     return sim
