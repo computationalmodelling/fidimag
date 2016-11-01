@@ -596,7 +596,7 @@ class NEBMBase(object):
 
         Compute a smooth approximation for the band, using a third order
         polynomial approximation. This approximation uses the tangents and
-        derivatives at each image of the band, as information to estimate
+        derivatives from each image of the band as information to estimate
         the curvatures. The formula can be found in
 
         - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
@@ -608,8 +608,20 @@ class NEBMBase(object):
 
             1. A n_points long array, with the cubic interpolated energy band
 
+        ARGUMENTS
+
+        n_points    :: Te number of points for the interpolation
+
         """
 
+        # To be sure, update the effective field and tangents when calling
+        # this function (this is necesary if we call the function without
+        # relaxing the band before)
+        self.compute_effective_field_and_energy(self.band)
+        self.compute_tangents(self.band)
+        self.distances = self.compute_distances(self.band[self.n_dofs_image:],
+                                                self.band[:-self.n_dofs_image]
+                                                )
         deltas = np.zeros(self.n_images)
 
         # Somehow we need to rescale the gradient by the right units. In the

@@ -139,6 +139,9 @@ def test_energy_barrier_2particles():
         _file = np.loadtxt('neb_2particles_k1e8_10-10int_{}_energy.ndt'.format(coordinates))
         barriers.append((np.max(_file[-1][1:]) - _file[-1][1]) / 1.602e-19)
 
+        print('Energy barrier for {} is:'.format(coordinates), barriers[-1])
+        assert np.abs(barriers[-1] - 0.016019) < 1e-5
+
     print(barriers)
 
 if __name__ == '__main__':

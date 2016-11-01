@@ -72,10 +72,6 @@ micro_sources += glob_cfiles(MICRO_DIR, excludes=["micro_clib.c"])
 
 # NEB Method ------------------------------------------------------------------
 
-neb_sources = []
-neb_sources.append(os.path.join(NEB_DIR, 'neb_clib.pyx'))
-neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
-
 nebm_sources = []
 nebm_sources.append(os.path.join(NEBM_DIR,
                                  'nebm_clib.pyx'))
@@ -147,13 +143,6 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.micro_clib",
               sources=micro_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-    Extension("fidimag.extensions.neb_clib",
-              sources=neb_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               extra_compile_args=com_args,
