@@ -358,47 +358,20 @@ class NEBM_Geodesic(NEBMBase):
 
         return distances
 
-    def compute_norms(self, A, B):
-        """
-        Compute the distance between corresponding images of the bands A and B
-
-                A                   B
-            [ [image_0]         [ [image_0]
-              [image_1]     -     [image_1]
-              ..self.               ...
-            ]                     ]
-
-        """
-
-        A_minus_B = A - B
-
-        A_minus_B.shape = (-1, self.n_dofs_image)
-        A_minus_B = np.apply_along_axis(
-            lambda y: compute_norm(y, scale=self.n_dofs_image),
-            axis=1,
-            arr=A_minus_B
-            )
-
-        return A_minus_B.reshape(-1)
-
-    def compute_maximum_dYdt(self, A, B, dt):
-        """
-        """
-
-        # We will not consider the images at the extremes to compute dY
-        # Since we removed the extremes, we only have *n_images_inner_band*
-        # images
-        band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
-        dYdt = self.compute_norms(
-            A[band_no_extremes],
-            B[band_no_extremes]).reshape(self.n_images_inner_band, -1)
-
-        dYdt /= dt
-
-        if np.max(dYdt) > 0:
-            return np.max(dYdt)
-        else:
-            return 0
+    # def compute_maximum_dYdt(self, A, B, dt):
+    #     """
+    #     In case we want to use a Geodesic distance instead of the scaled
+    #     norm between corresponding images
+    #     """
+    #     # # We will not consider the images at the extremes to compute dY
+    #     band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
+    #     dYdt = self.compute_distances(A[band_no_extremes],
+    #                                   B[band_no_extremes])
+    #     dYdt /= dt
+    #     if np.max(dYdt) > 0:
+    #         return np.max(dYdt)
+    #     else:
+    #         return 0
 
     def Sundials_RHS(self, t, y, ydot):
         """

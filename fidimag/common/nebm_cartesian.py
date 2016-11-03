@@ -334,8 +334,7 @@ class NEBM_Cartesian(NEBMBase):
 
         A_minus_B = np.apply_along_axis(
             lambda y: compute_norm(y[self._material],
-                                   scale=True
-                                   ),
+                                   scale=True),
             axis=1,
             arr=A_minus_B
             )

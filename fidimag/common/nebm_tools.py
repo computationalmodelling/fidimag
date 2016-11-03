@@ -38,14 +38,11 @@ def compute_norm(A, scale=None):
     """
 
     Compute the norm of the *A* array, which contains spin directions in
-    Spherical coordinates,
+    Spherical or Cartesian coordinates, e.g.
 
     A = [ A_theta0 A_phi0 A_theta1 A_phi1 ... A_thetaN A_phiN]
 
-    If the absolute value of a component is larger than PI, we redefine the
-    difference to be smaller than PI
-
-    We scale the norm by the array size
+    If necessary, scale the norm by the array size
 
     """
 

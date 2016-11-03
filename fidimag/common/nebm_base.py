@@ -6,7 +6,7 @@ import time
 
 import fidimag.extensions.cvode as cvode
 from fidimag.common.vtk import VTK
-# from .nebm_tools import compute_norm
+from .nebm_tools import compute_norm
 # from .nebm_tools import linear_interpolation_spherical
 from .fileio import DataSaver
 
@@ -393,6 +393,26 @@ class NEBMBase(object):
     # CVODE solver ------------------------------------------------------------
     # -------------------------------------------------------------------------
 
+    def compute_norms(self, A, B):
+        """
+        Compute the norms of the difference between corresponding images of the
+        bands A and B. Every norm is scaled by the number of degrees of freedom
+
+        The norm is computed only using mesh/lattice sites with material, i.e.
+        mu_s or Ms > 0
+        """
+
+        A_minus_B = A - B
+
+        A_minus_B.shape = (-1, self.n_dofs_image)
+        A_minus_B = np.apply_along_axis(
+            lambda y: compute_norm(y[self._material], scale=True),
+            axis=1,
+            arr=A_minus_B
+            )
+
+        return A_minus_B.reshape(-1)
+
     def Sundials_RHS(self, t, y, ydot):
         """
 
@@ -437,14 +457,15 @@ class NEBMBase(object):
         where A(i)_theta(j) is the theta componenet of the j-th spin of the
         i-th image in the band
 
-        Then we calculate the norm of every difference:
+        Then we calculate the norm of every difference (the norm is computed
+        only using mesh/lattice sites with material, i.e.  mu_s or Ms > 0):
 
         ||dY|| =  [ || dY1_theta0 dY1_phi0 dY1_theta1         ...       ||
                                    ...
                     || dY(N-1)_theta0 dY(N-1)_phi0 dY(N-1)_theta1  ...  ||
                   ]
 
-        we divide by dt:
+        We divide by dt:
 
         ||dY|| -- > || dY || / dt = dYdt
 
@@ -456,7 +477,7 @@ class NEBMBase(object):
         # Since we removed the extremes, we only have *n_images_inner_band*
         # images
         band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
-        dYdt = self.compute_distances(
+        dYdt = self.compute_norms(
             A[band_no_extremes],
             B[band_no_extremes]).reshape(self.n_images_inner_band, -1)
 
