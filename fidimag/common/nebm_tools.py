@@ -5,7 +5,19 @@ import numpy as np
 
 def cartesian2spherical(y_cartesian):
     """
-    y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ...]
+    For a system of P+1 spins, this function takes an image of a NEBM energy
+    band in Cartesian coordinates (3 * (P + 1) degrees of freedom):
+
+        y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ... y_zP]
+
+    and returns an array in spherical[1] coordinates (2 * (P + 1) degrees of
+    freedom):
+
+        y_spherical     :: [ y_theta0 y_phi0 y_theta1 y_phi1 ... y_phiP]
+
+    [1]:
+        theta ranges from 0 to PI (polar angle)
+        phi ranges from 0 to 2PI (azimuthal angle)
     """
     theta_phi = np.zeros((len(y_cartesian.reshape(-1, 3)), 2))
 
@@ -24,6 +36,21 @@ def cartesian2spherical(y_cartesian):
 
 
 def spherical2cartesian(y_spherical):
+    """
+    For a system of P+1 spins, this function takes an image of a NEBM energy
+    band in spherical[1] coordinates (2 * (P + 1) degrees of freedom):
+
+        y_spherical     :: [ y_theta0 y_phi0 y_theta1 y_phi1 ... y_phiP]
+
+    and returns and array in Cartesian coordinates (3 * (P + 1) degrees of
+    freedom):
+
+        y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ... y_zP]
+
+    [1]:
+        theta ranges from 0 to PI (polar angle)
+        phi ranges from 0 to 2PI (azimuthal angle)
+    """
     y_cartesian = np.zeros((len(y_spherical.reshape(-1, 2)), 3))
 
     theta, phi = y_spherical[::2], y_spherical[1::2]
@@ -46,12 +73,10 @@ def compute_norm(A, scale=None):
 
     """
 
-    y = np.copy(A)
+    y = np.linalg.norm(A)
 
     if scale:
-        y = np.sqrt(np.sum(y ** 2.)) / len(y)
-    else:
-        y = np.sqrt(np.sum(y ** 2.))
+        y = y / len(y)
 
     return y
 
