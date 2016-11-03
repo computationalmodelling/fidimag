@@ -76,7 +76,7 @@ def compute_norm(A, scale=None):
     y = np.linalg.norm(A)
 
     if scale:
-        y = y / len(y)
+        y = y / len(A)
 
     return y
 
