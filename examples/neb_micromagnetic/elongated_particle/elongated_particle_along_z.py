@@ -5,9 +5,9 @@ import pytest
 
 Test of the NEBM on an elongated particle of cylindrical shape, based on [1],
 where a series of simple magnetic systems are tested using the NEBM in
-Spherical coordinates with an Euclidean distance. For the alongated particle
+Spherical coordinates with an Euclidean distance. For the elongated particle
 test, the system is a 70 nm long and 12 nm wide (originally it is 13 nm)
-nanocylinder, with an uniaxial anisotropy in the direction of the long axis.The
+nanocylinder, with a uniaxial anisotropy in the direction of the long axis.The
 test goal is to find the minimum energy path (MEP) between two degenerate
 ferromagnetic states (saturated states along the anisotropy axis), which are
 the ground states of this system. The MEP is given by a transverse domain wall

@@ -120,7 +120,7 @@ def linear_interpolation_spherical(y_initial, y_final, n, pins=None):
         #  Just use half the length of y_initial
         pins = np.zeros(len(y_initial[::2]))
 
-    # Since we have a pin index per every PAIR of coordinates, we copy very
+    # Since we have a pin index per every PAIR of coordinates, we copy every
     # entry. For example: [1 0] --> [1 1 0 0]
     # and we change only unpinned spins (0)
     _filter = np.repeat(pins, 2) == 0
@@ -177,7 +177,7 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
         # Only use 1/3 of the length of y_initial (1 pin per mesh/lattice site)
         pins = np.zeros(len(y_initial[::3]))
 
-    # Since we have a pin index per every TRIAD of coordinates, we copy very
+    # Since we have a pin index per every TRIAD of coordinates, we copy every
     # entry. For example: [1 0] --> [1 1 1 0 0 0]
     # and we change only unpinned spins (0)
     _filter = np.repeat(pins, 3) == 0
@@ -191,8 +191,8 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
     # The cross products of corresponding spins in the initial and final images
     yi_cross_yf = np.cross(y_initial, y_final)
     # This should only be an array of ones:
-    yi_cross_yf_norm = np.apply_along_axis(lambda x: np.sqrt(np.sum(x ** 2)),
-                                           1, yi_cross_yf)
+    yi_cross_yf_norm = np.linalg.norm(yi_cross_yf, axis=1)
+
     # The rotation axis is just the normalised cross product defined before
     rot_axis = yi_cross_yf / yi_cross_yf_norm[:, np.newaxis]
     rot_axis = np.cross(rot_axis, y_initial)
