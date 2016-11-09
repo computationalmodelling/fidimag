@@ -81,7 +81,7 @@ double skyrmion_number(double *spin, double *charge,
      *
      */
 
-	int i, j;
+	int i;
 	int index, id;
 
 	double sum = 0;

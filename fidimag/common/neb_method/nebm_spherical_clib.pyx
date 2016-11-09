@@ -1,8 +1,3 @@
-import numpy
-cimport numpy as np
-np.import_array()
-
-
 cdef extern from "nebm_spherical_lib.h":
 
     void normalise_spherical(double * a, int n)
@@ -44,20 +39,20 @@ cdef extern from "nebm_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
-def normalise_images(np.ndarray[double, ndim=1, mode="c"] y,
+def normalise_images(double [:] y,
                      n_images,
                      n_dofs_image
                      ):
 
     normalise_images_spherical_C(&y[0], n_images, n_dofs_image)
 
-def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
-                         np.ndarray[double, ndim=1, mode="c"] y,
-                         np.ndarray[double, ndim=1, mode="c"] tangents,
+def compute_spring_force(double [:] spring_force,
+                         double [:] y,
+                         double [:] tangents,
                          k,
                          n_images,
                          n_dofs_image,
-                         np.ndarray[int, ndim=1, mode="c"] material,
+                         int [:] material,
                          n_dofs_image_material
                          ):
 

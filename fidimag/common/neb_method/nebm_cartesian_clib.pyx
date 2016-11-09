@@ -1,8 +1,3 @@
-import numpy
-cimport numpy as np
-np.import_array()
-
-
 cdef extern from "nebm_cartesian_lib.h":
 
     double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
@@ -51,9 +46,9 @@ cdef extern from "nebm_lib.h":
     void normalise_images_C(double * y, int n_images, 
                             int n_dofs_image)
 
-def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
-                     np.ndarray[double, ndim=1, mode="c"] y,
-                     np.ndarray[double, ndim=1, mode="c"] energies,
+def compute_tangents(double [:] tangents,
+                     double [:] y,
+                     double [:] energies,
                      n_dofs_image,
                      n_images
                      ):
@@ -62,13 +57,13 @@ def compute_tangents(np.ndarray[double, ndim=1, mode="c"] tangents,
                        n_dofs_image, n_images
                        )
 
-def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
-                         np.ndarray[double, ndim=1, mode="c"] y,
-                         np.ndarray[double, ndim=1, mode="c"] tangents,
+def compute_spring_force(double [:] spring_force,
+                         double [:] y,
+                         double [:] tangents,
                          k,
                          n_images,
                          n_dofs_image,
-                         np.ndarray[int, ndim=1, mode="c"] material,
+                         int [:] material,
                          n_dofs_image_material
                          ):
 
@@ -78,10 +73,10 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                            &material[0], n_dofs_image_material
                            )
 
-def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
-                            np.ndarray[double, ndim=1, mode="c"] tangents,
-                            np.ndarray[double, ndim=1, mode="c"] gradientE,
-                            np.ndarray[double, ndim=1, mode="c"] spring_force,
+def compute_effective_force(double [:] G,
+                            double [:] tangents,
+                            double [:] gradientE,
+                            double [:] spring_force,
                             climbing_image,
                             n_images,
                             n_dofs_image
@@ -93,8 +88,8 @@ def compute_effective_force(np.ndarray[double, ndim=1, mode="c"] G,
                               n_images, n_dofs_image
                               )
 
-def project_images(np.ndarray[double, ndim=1, mode="c"] vector,
-                   np.ndarray[double, ndim=1, mode="c"] y,
+def project_images(double [:]  vector,
+                   double [:]  y,
                    n_images, n_dofs_image
                    ):
 
@@ -102,16 +97,16 @@ def project_images(np.ndarray[double, ndim=1, mode="c"] vector,
                      n_images, n_dofs_image
                      )
 
-def normalise_images(np.ndarray[double, ndim=1, mode="c"] y,
+def normalise_images(double [:] y,
                      n_images, n_dofs_image
                      ):
 
     normalise_images_C(&y[0], n_images, n_dofs_image)
 
-def compute_dYdt(np.ndarray[double, ndim=1, mode="c"] y,
-                 np.ndarray[double, ndim=1, mode="c"] G,
-                 np.ndarray[double, ndim=1, mode="c"] dYdt,
-                 np.ndarray[int, ndim=1, mode="c"] pins,
+def compute_dYdt(double [:]  y,
+                 double [:]  G,
+                 double [:]  dYdt,
+                 int [:] pins,
                  n_images,
                  n_dofs_image
                  ):

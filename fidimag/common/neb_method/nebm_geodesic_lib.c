@@ -40,7 +40,6 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
      *
      */
 
-    int i, j;
     int spin_i;
     double A_cross_B[3];
     double A_cross_B_norm;
