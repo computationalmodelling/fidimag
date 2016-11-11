@@ -104,7 +104,7 @@ dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 
 
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
-            'sundials_nvecserial', 'sundials_nvecopenmp']
+            'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
 com_args = ['-std=c99']
 com_link = ['-L%s' % LIB_DIR]

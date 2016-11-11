@@ -19,10 +19,10 @@ class DataSaver(object):
 
         self.entities = {
             'step': {'unit': '<>',
-                     'get': lambda sim: sim.step,
+                     'get': lambda sim: sim.driver.step,
                      'header': 'step'},
             'time': {'unit': '<s>',
-                     'get': lambda sim: sim.t,
+                     'get': lambda sim: sim.driver.t,
                      'header': 'time'},
             'm': {'unit': '<>',
                   'get': lambda sim: sim.compute_average(),

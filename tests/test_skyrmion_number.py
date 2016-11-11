@@ -78,9 +78,9 @@ def test_skx_num_atomistic():
                       periodicity=(True, True, False))
 
     sim = Sim(mesh, name='skx_num')
-    sim.set_tols(rtol=1e-6, atol=1e-6)
+    sim.driver.set_tols(rtol=1e-6, atol=1e-6)
     sim.alpha = 1.0
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.mu_s = 1.0
 
     sim.set_m(lambda pos: init_m(pos, 60, 60, 20))
@@ -134,14 +134,14 @@ def test_skx_num_atomistic_hexagonal():
     mesh = HexagonalMesh(0.2715, 41, 41, periodicity=(True, True))
 
     sim = Sim(mesh, name='skx_number_hexagonal')
-    sim.set_tols(rtol=1e-6, atol=1e-6)
+    sim.driver.set_tols(rtol=1e-6, atol=1e-6)
     sim.alpha = 1.0
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.mu_s = 3 * const.mu_B
 
     sim.set_m(lambda pos: init_m(pos, 16.1, 10, 2))
 
-    sim.do_precession = False
+    sim.driver.do_precession = False
 
     J = 5.881 * const.meV
     exch = UniformExchange(J)
@@ -163,7 +163,7 @@ def test_skx_num_atomistic_hexagonal():
     print('skx_number_hexagonal', skn_single)
 
     # Now we generate two skyrmions pointing up
-    sim.reset_integrator()
+    sim.driver.reset_integrator()
     sim.set_m(lambda pos: init_m_multiple_sks(pos, 1,
                                               sk_pos=[(9, 6), (18, 12)]
                                               )
@@ -173,7 +173,7 @@ def test_skx_num_atomistic_hexagonal():
               save_m_steps=None, save_vtk_steps=None)
 
     skn_two = sim.skyrmion_number(method='BergLuscher')
-    print('skx_number_hexagonal', skn_two)
+    print('skx_number_hexagonal_two', skn_two)
 
     # Check that we get a right sk number
     assert np.abs(skn_single - (-1)) < 1e-4 and np.sign(skn_single) < 0
@@ -203,9 +203,9 @@ def test_skx_num_micromagnetic():
                       periodicity=(True, True, False))
 
     sim = microSim(mesh, name='skx_num_micro')
-    sim.set_tols(rtol=1e-6, atol=1e-6)
+    sim.driver.set_tols(rtol=1e-6, atol=1e-6)
     sim.alpha = 1.0
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.Ms = 1.1e6
 
     sim.set_m(lambda pos: init_m(pos, x0=3, y0=3, r=1))
