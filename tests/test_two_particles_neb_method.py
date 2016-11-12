@@ -5,8 +5,9 @@ import pytest
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, UniaxialAnisotropy
-from fidimag.common.neb_cartesian import NEB_Sundials
-from fidimag.common.neb_spherical import NEB_Sundials as NEB_Sundials_spherical
+from fidimag.common.nebm_cartesian import NEBM_Cartesian
+from fidimag.common.nebm_spherical import NEBM_Spherical
+from fidimag.common.nebm_geodesic import NEBM_Geodesic
 import numpy as np
 
 # Material Parameters
@@ -81,22 +82,31 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
     interpolations = interp
 
     if coordinates == 'Cartesian':
-        neb = NEB_Sundials(sim,
-                           init_images,
-                           interpolations=interpolations,
-                           spring=k,
-                           name=simname)
-    elif coordinates == 'Spherical':
-        neb = NEB_Sundials_spherical(sim,
-                                     init_images,
-                                     interpolations=interpolations,
-                                     spring=k,
-                                     name=simname)
+        neb = NEBM_Cartesian(sim,
+                             init_images,
+                             interpolations=interpolations,
+                             spring_constant=k,
+                             name=simname
+                             )
+    if coordinates == 'Spherical':
+        neb = NEBM_Spherical(sim,
+                             init_images,
+                             interpolations=interpolations,
+                             spring_constant=k,
+                             name=simname
+                             )
+    if coordinates == 'Geodesic':
+        neb = NEBM_Geodesic(sim,
+                            init_images,
+                            interpolations=interpolations,
+                            spring_constant=k,
+                            name=simname
+                            )
 
-    neb.relax(max_steps=maxst,
-              save_vtk_steps=save_every,
-              save_npy_steps=save_every,
-              stopping_dmdt=1e-2)
+    neb.relax(max_iterations=maxst,
+              save_vtks_every=save_every,
+              save_npys_every=save_every,
+              stopping_dYdt=1e-2)
 
 
 def mid_m(pos):
@@ -106,61 +116,33 @@ def mid_m(pos):
         return (-0.5, 0, 0.2)
 
 
-# this test runs for over a minute
-@pytest.mark.slow
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [6, 6]
 
+    coord_list = ['Cartesian', 'Spherical', 'Geodesic']
+    barriers = []
+
     # Define different ks for multiple simulations
-    krange = ['1e8']
+    # krange = ['1e8']
 
-    for k in krange:
-        # print 'Computing for k = {}'.format(k)
-        relax_neb(float(k), 2000,
-                  'neb_2particles_k{}_10-10int'.format(k),
-                  init_im,
-                  interp,
-                  save_every=5000)
-
-        # Relax the same system using spherical coordinates
-        relax_neb(float(k), 2000,
-                  'neb_2particles_k{}_10-10int_spherical'.format(k),
+    for coordinates in coord_list:
+        relax_neb(1e8, 2000,
+                  'neb_2particles_k1e8_10-10int_{}'.format(coordinates),
                   init_im,
                   interp,
                   save_every=5000,
-                  coordinates='Spherical'
+                  coordinates=coordinates
                   )
 
-    # Get the energies from the last state
-    data = np.loadtxt('neb_2particles_k1e8_10-10int_energy.ndt')[-1][1:]
-    data_spherical = np.loadtxt(
-        'neb_2particles_k1e8_10-10int_spherical_energy.ndt')[-1][1:]
+        _file = np.loadtxt('neb_2particles_k1e8_10-10int_{}_energy.ndt'.format(coordinates))
+        barriers.append((np.max(_file[-1][1:]) - _file[-1][1]) / 1.602e-19)
 
-    ebarrier = np.abs(np.max(data) - np.min(data)) / (1.602e-19)
-    print(ebarrier)
+        print('Energy barrier for {} is:'.format(coordinates), barriers[-1])
+        assert np.abs(barriers[-1] - 0.016019) < 1e-5
 
-    ebarrier_spherical = np.abs(np.max(data_spherical) -
-                                np.min(data_spherical)) / (1.602e-19)
-    print(ebarrier_spherical)
-
-    # Analitically, the energy when a single particle rotates is:
-    #   K V cos^2 theta
-    # where theta is the angle of the direction of one particle with respect
-    # to the anisotropy axis. For this case, the MEP is the rotation
-    # of a single particle and then followed by the rotation of
-    # the other one (asynchronous). Thus, the barrier for the
-    # parameters is: (27e-27) * 1e5 / (1.602e-19) ~ 0.01685 eV
-    # since the volume is 3x3x3 nm^3 and theta is 1 for the maximum value
-    # of a single rotated particle
-
-    assert ebarrier < 0.017
-    assert ebarrier > 0.005
-
-    assert ebarrier_spherical < 0.017
-    assert ebarrier_spherical > 0.005
-
+    print(barriers)
 
 if __name__ == '__main__':
     test_energy_barrier_2particles()

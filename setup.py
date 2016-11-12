@@ -18,6 +18,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
 NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
+NEBM_DIR = os.path.join(SRC_DIR, "common", "neb_method")
 ATOM_DIR = os.path.join(SRC_DIR, "atomistic", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
@@ -69,9 +70,33 @@ micro_sources = []
 micro_sources.append(os.path.join(MICRO_DIR, 'micro_clib.pyx'))
 micro_sources += glob_cfiles(MICRO_DIR, excludes=["micro_clib.c"])
 
-neb_sources = []
-neb_sources.append(os.path.join(NEB_DIR, 'neb_clib.pyx'))
-neb_sources += glob_cfiles(NEB_DIR, excludes=["neb_clib.c"])
+# NEB Method ------------------------------------------------------------------
+
+nebm_sources = []
+nebm_sources.append(os.path.join(NEBM_DIR,
+                                 'nebm_clib.pyx'))
+nebm_sources += glob_cfiles(NEBM_DIR,
+                            excludes=["nebm_clib.c"])
+
+nebm_spherical_sources = []
+nebm_spherical_sources.append(os.path.join(NEBM_DIR,
+                                           'nebm_spherical_clib.pyx'))
+nebm_spherical_sources += glob_cfiles(NEBM_DIR,
+                                      excludes=["nebm_spherical_clib.c"])
+
+nebm_geodesic_sources = []
+nebm_geodesic_sources.append(os.path.join(NEBM_DIR,
+                                          'nebm_geodesic_clib.pyx'))
+nebm_geodesic_sources += glob_cfiles(NEBM_DIR,
+                                     excludes=["nebm_geodesic_clib.c"])
+
+nebm_cartesian_sources = []
+nebm_cartesian_sources.append(os.path.join(NEBM_DIR,
+                                           'nebm_cartesian_clib.pyx'))
+nebm_cartesian_sources += glob_cfiles(NEBM_DIR,
+                                      excludes=["nebm_cartesian_clib.c"])
+
+# -----------------------------------------------------------------------------
 
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
@@ -123,8 +148,29 @@ ext_modules = [
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
-    Extension("fidimag.extensions.neb_clib",
-              sources=neb_sources,
+    Extension("fidimag.extensions.nebm_clib",
+              sources=nebm_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.nebm_spherical_clib",
+              sources=nebm_spherical_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.nebm_geodesic_clib",
+              sources=nebm_geodesic_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.nebm_cartesian_clib",
+              sources=nebm_cartesian_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               extra_compile_args=com_args,
@@ -146,13 +192,6 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.micro_clib",
               sources=micro_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-    Extension("fidimag.extensions.neb_clib",
-              sources=neb_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               extra_compile_args=com_args,

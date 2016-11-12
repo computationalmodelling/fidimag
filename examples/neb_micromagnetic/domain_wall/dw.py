@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from fidimag.micro import Sim, UniformExchange, Demag, UniaxialAnisotropy
 from fidimag.common import CuboidMesh
-from fidimag.common.neb_cartesian import NEB_Sundials
-from fidimag.common.helper import plot_energy_2d, plot_energy_3d
+from fidimag.common.nebm_cartesian import NEBM_Cartesian
+# TODO: FIX the plotting functions
+# from fidimag.common.helper import plot_energy_2d, plot_energy_3d
 #from finmag.sim.neb import plot_energy_2d, plot_energy_3d
 
 
@@ -52,13 +53,14 @@ def relax_system(sim):
 
     init_images = [(-1, 0, 0), init_dw, (1, 0, 0)]
 
-    neb = NEB_Sundials(
-        sim, init_images, interpolations=[6, 6], name='neb', spring=1e8)
+    neb = NEBM_Cartesian(
+        sim, init_images, interpolations=[6, 6], name='neb',
+        spring_constant=1e8)
 
     # neb.add_noise(0.1)
 
-    neb.relax(dt=1e-8, max_steps=5000, save_vtk_steps=500,
-              save_npy_steps=500, stopping_dmdt=100)
+    neb.relax(dt=1e-8, max_iterations=5000, save_vtks_every=500,
+              save_npys_every=500, stopping_dYdt=100)
 
 if __name__ == "__main__":
 
@@ -67,5 +69,5 @@ if __name__ == "__main__":
     sim = create_simulation(mesh)
     # relax_two_state(mesh)
     relax_system(sim)
-    plot_energy_2d('neb')
-    plot_energy_3d('neb')
+    # plot_energy_2d('neb')
+    # plot_energy_3d('neb')
