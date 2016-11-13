@@ -18,6 +18,7 @@ class MicroDriver(DriverBase):
 
     Variables that are proper of the driver class:
 
+        * alpha (damping)
         * Ms_const
         * t
         * spin_last
@@ -35,9 +36,11 @@ class MicroDriver(DriverBase):
                      TODO: Check default_c units in the micromagnetic
                            context
 
+        From DriverBase: t, spin_last, dm_dt, integrator_tolerances_set, step
+
     """
 
-    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+    def __init__(self, mesh, spin, Ms, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -58,25 +61,19 @@ class MicroDriver(DriverBase):
         self.Ms_const = 0
 
         self.field = field
-        self._alpha = alpha
         self._pins = pins
         self.interactions = interactions
         # Strings are not referenced, this is a copy:
         self.name = name
 
-        # The following are proper of the driver class: -----------------------
+        # The following are proper of the driver class: (see DriverBase) ------
         # See also the set_default_options() function
-
-        self.t = 0
-        self.spin_last = np.ones(3 * self.mesh.n, dtype=np.float)
-        self.dm_dt = np.zeros(3 * self.mesh.n, dtype=np.float)
-        self.integrator_tolerances_set = False
-        self.step = 0
 
         self.n = self.mesh.n
         self.n_nonzero = self.mesh.n  # number of spins that are not zero
                                       # We check this in the set_Ms function
 
+        self.initiate_variables(self.n)
         self.set_default_options()
 
         # Integrator options --------------------------------------------------

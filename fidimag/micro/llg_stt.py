@@ -29,7 +29,7 @@ class LLG_STT(MicroDriver):
 
         """
 
-    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+    def __init__(self, mesh, spin, Ms, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -39,7 +39,7 @@ class LLG_STT(MicroDriver):
 
         # Inherit from the driver class
         super(LLG_STT, self).__init__(mesh, spin, Ms, field,
-                                      alpha, pins, interactions, name,
+                                      pins, interactions, name,
                                       data_saver,
                                       integrator='sundials',
                                       use_jac=False

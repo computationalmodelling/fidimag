@@ -35,7 +35,7 @@ def test_sim_pin():
     mesh = CuboidMesh(nx=3, ny=2, nz=1)
     sim = Sim(mesh)
     sim.set_m((0, 0.8, 0.6))
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
     sim.driver.gamma = 1.0
     sim.pins = pin_fun
 
@@ -121,7 +121,7 @@ def test_sim_single_spin_vode(do_plot=False):
 
     alpha = 0.1
     gamma = 2.21e5
-    sim.alpha = alpha
+    sim.driver.alpha = alpha
     sim.driver.gamma = gamma
     sim.mu_s = 1.0
 
@@ -166,7 +166,7 @@ def test_sim_spins(do_plot=False):
 
     alpha = 0.1
     gamma = 2.21e5
-    sim.alpha = alpha
+    sim.driver.alpha = alpha
     sim.driver.gamma = gamma
     sim.mu_s = 1.0
 
@@ -220,7 +220,7 @@ def test_sim_single_spin_sllg(do_plot=False):
 
     sim.driver.set_options(dt=5e-15, gamma=gamma)
 
-    sim.alpha = alpha
+    sim.driver.alpha = alpha
     sim.mu_s = 1.0
 
     sim.set_m((1, 0, 0))

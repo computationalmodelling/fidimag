@@ -79,7 +79,6 @@ class Sim(SimBase):
                                             self._mu_s,
                                             self._mu_s_inv,
                                             self.field,
-                                            self._alpha,
                                             self._pins,
                                             self.interactions,
                                             self.name,

@@ -19,6 +19,7 @@ class AtomisticDriver(DriverBase):
 
     Variables that are proper of the driver class:
 
+        * alpha (damping)
         * mu_s_const
         * t
         * spin_last
@@ -33,9 +34,11 @@ class AtomisticDriver(DriverBase):
                      during the LLG equation integration. See the
                      fidimag/atomistic/lib/llg.c file for more details)
 
+        From DriverBase: t, spin_last, dm_dt, integrator_tolerances_set, step
+
     """
 
-    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
+    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -56,32 +59,28 @@ class AtomisticDriver(DriverBase):
         self.mu_s_const = 0
 
         self.field = field
-        self._alpha = alpha
         self._pins = pins
         self.interactions = interactions
         # Strings are not referenced, this is a copy:
         self.name = name
 
-        # The following are proper of the driver class: -----------------------
+        # The following are proper of the driver class: (see DriverBase) ------
         # See also the set_default_options() function
-
-        self.t = 0
-        self.step = 0
-        self.spin_last = np.ones(3 * self.mesh.n, dtype=np.float)
-        self.dm_dt = np.zeros(3 * self.mesh.n, dtype=np.float)
-        self.integrator_tolerances_set = False
 
         self.n = self.mesh.n
         self.n_nonzero = self.mesh.n  # number of spins that are not zero
                                       # We check this in the set_Ms function
+
+        self.initiate_variables(self.n)
+        self.set_default_options()
+
+        # Integrator options --------------------------------------------------
 
         if use_jac is not True:
             self.integrator = cvode.CvodeSolver(self.spin, self.sundials_rhs)
         else:
             self.integrator = cvode.CvodeSolver(
                 self.spin, self.sundials_rhs, self.sundials_jtn)
-
-        self.set_default_options()
 
         self.set_tols()
 

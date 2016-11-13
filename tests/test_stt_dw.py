@@ -57,7 +57,7 @@ def relax_system(mesh):
 
     # Simulation parameters
     sim.driver.set_tols(rtol=1e-8, atol=1e-10)
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.6e5
     sim.do_precession = False
@@ -94,7 +94,7 @@ def excite_system(mesh, time=5, snaps=501):
 
     # Set the simulation parameters
     sim.driver.set_tols(rtol=1e-12, atol=1e-14)
-    sim.alpha = 0.05
+    sim.driver.alpha = 0.05
     sim.gamma = 2.211e5
     sim.Ms = 8.6e5
 

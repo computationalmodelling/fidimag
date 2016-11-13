@@ -20,7 +20,6 @@ class SimBase(object):
         self.unit_length = mesh.unit_length
 
         self._magnetisation = np.zeros(self.n, dtype=np.float)
-        self._alpha = np.zeros(self.n, dtype=np.float)
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)
         self.field = np.zeros(3 * self.n, dtype=np.float)
@@ -148,47 +147,6 @@ class SimBase(object):
                 self._pins[i] = 1
 
     pins = property(get_pins, set_pins)
-
-    def get_alpha(self):
-        """
-        Returns the array with the spatially dependent Gilbert damping
-        per mesh/lattice site
-        """
-        return self._alpha
-
-    def set_alpha(self, value):
-        """
-
-        Set the Gilbert damping of the system as a uniform or spatially
-        dependent scalar field
-
-        ARGUMENTS:
-
-        value     :: * For a uniform damping across the whole sample, just
-                       specify a float ranging from 0 to 1
-
-                     * In addition, you can specify a function that returns
-                       values ranging from 0 to 1, which depends on the spatial
-                       coordinates. For example, a damping that increases
-                       linearly in the x direction:
-
-                        def alpha_profile(r):
-                            for r[0] <= 10:
-                                return r[0] / 10.
-                            else:
-                                return 0
-
-                     * You can also manually specify an array with n values
-                     ranging from 0 to 1 with the damping values, in the same
-                     order than the mesh coordinates array.
-
-                     * Alternatively, if you previously saved the damping
-                     field array to a numpy file, you can load it using
-                     numpy.load(my_array)
-        """
-        self._alpha[:] = helper.init_scalar(value, self.mesh)
-
-    alpha = property(get_alpha, set_alpha)
 
     def add(self, interaction, save_field=False):
         """

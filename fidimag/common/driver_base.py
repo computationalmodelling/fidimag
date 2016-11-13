@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import numpy as np
+import fidimag.common.helper as helper
 
 
 class DriverBase(object):
@@ -14,6 +15,61 @@ class DriverBase(object):
         pass
 
     # -------------------------------------------------------------------------
+
+    def initiate_variables(self, n_spins):
+        """
+        Common variables for both micro and atomistic drivers
+        """
+        self._alpha = np.zeros(n_spins, dtype=np.float)
+
+        self.t = 0
+        self.spin_last = np.ones(3 * n_spins, dtype=np.float)
+        self.dm_dt = np.zeros(3 * n_spins, dtype=np.float)
+        self.integrator_tolerances_set = False
+        self.step = 0
+
+    def get_alpha(self):
+        """
+        Returns the array with the spatially dependent Gilbert damping
+        per mesh/lattice site
+        """
+        return self._alpha
+
+    def set_alpha(self, value):
+        """
+
+        Set the Gilbert damping of the system as a uniform or spatially
+        dependent scalar field
+
+        ARGUMENTS:
+
+        value     :: * For a uniform damping across the whole sample, just
+                       specify a float ranging from 0 to 1
+
+                     * In addition, you can specify a function that returns
+                       values ranging from 0 to 1, which depends on the spatial
+                       coordinates. For example, a damping that increases
+                       linearly in the x direction:
+
+                        def alpha_profile(r):
+                            for r[0] <= 10:
+                                return r[0] / 10.
+                            else:
+                                return 0
+
+                     * You can also manually specify an array with n values
+                     ranging from 0 to 1 with the damping values, in the same
+                     order than the mesh coordinates array.
+
+                     * Alternatively, if you previously saved the damping
+                     field array to a numpy file, you can load it using
+                     numpy.load(my_array)
+        """
+        self._alpha[:] = helper.init_scalar(value, self.mesh)
+
+    alpha = property(get_alpha, set_alpha)
+
+    # ------------------------------------------------------------------------
 
     def stat(self):
         return self.integrator.stat()

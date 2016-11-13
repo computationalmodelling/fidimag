@@ -79,7 +79,7 @@ def test_skx_num_atomistic():
 
     sim = Sim(mesh, name='skx_num')
     sim.driver.set_tols(rtol=1e-6, atol=1e-6)
-    sim.alpha = 1.0
+    sim.driver.alpha = 1.0
     sim.driver.gamma = 1.0
     sim.mu_s = 1.0
 
@@ -135,7 +135,7 @@ def test_skx_num_atomistic_hexagonal():
 
     sim = Sim(mesh, name='skx_number_hexagonal')
     sim.driver.set_tols(rtol=1e-6, atol=1e-6)
-    sim.alpha = 1.0
+    sim.driver.alpha = 1.0
     sim.driver.gamma = 1.0
     sim.mu_s = 3 * const.mu_B
 
@@ -204,7 +204,7 @@ def test_skx_num_micromagnetic():
 
     sim = microSim(mesh, name='skx_num_micro')
     sim.driver.set_tols(rtol=1e-6, atol=1e-6)
-    sim.alpha = 1.0
+    sim.driver.alpha = 1.0
     sim.driver.gamma = 1.0
     sim.Ms = 1.1e6
 

@@ -70,7 +70,6 @@ class Sim(SimBase):
                                             self.spin,
                                             self._Ms,
                                             self.field,
-                                            self._alpha,
                                             self._pins,
                                             self.interactions,
                                             self.name,

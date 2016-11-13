@@ -30,7 +30,7 @@ class LLG_STT(AtomisticDriver):
 
     """
 
-    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, alpha, pins,
+    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -39,7 +39,7 @@ class LLG_STT(AtomisticDriver):
 
         # Inherit from the driver class
         super(LLG_STT, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
-                                      alpha, pins, interactions, name,
+                                      pins, interactions, name,
                                       data_saver,
                                       use_jac
                                       )
