@@ -52,9 +52,9 @@ def relax_system_stage1():
 
     sim = Sim(mesh, name='relax', driver='llg')
     #sim.set_options(dt=1e-14, gamma=const.gamma, k_B=const.k_B)
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.do_precession = False
-    sim.gamma = const.gamma
+    sim.driver.gamma = const.gamma
     sim.mu_s = spatial_mu
 
     sim.set_m(init_m)
@@ -82,9 +82,9 @@ def relax_system_stage2():
     mesh = CuboidMesh(nx=140 , ny=140, nz=1)
 
     sim = Sim(mesh, name='dyn', driver='llg')
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
     sim.do_precession = True
-    sim.gamma = const.gamma
+    sim.driver.gamma = const.gamma
     sim.mu_s = spatial_mu
 
     sim.set_m(np.load('skx.npy'))

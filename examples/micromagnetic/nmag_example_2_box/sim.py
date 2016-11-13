@@ -16,7 +16,7 @@ def run(integrator, jacobian):
         name += "_J1" if jacobian else "_J0"
     sim = Sim(mesh, name, integrator, use_jac=jacobian)
     sim.Ms = 0.86e6
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.set_m((1, 0, 1))
     sim.add(UniformExchange(A=13e-12))
     sim.add(Demag())

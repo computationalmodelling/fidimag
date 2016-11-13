@@ -66,7 +66,7 @@ sim.Ms = cylinder
 
 # To get a faster relaxation, we tune the LLG equation parameters
 sim.do_precession = False
-sim.alpha = 0.5
+sim.driver.alpha = 0.5
 
 # Initial magnetisation:
 sim.set_m(init_m)

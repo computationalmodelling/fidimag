@@ -22,7 +22,7 @@ def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
     sim.set_default_options(mu_s=1e-23, gamma=1.76e11)
-    sim.alpha = 1.0
+    sim.driver.alpha = 1.0
 
     J = 1e-22
     exch = UniformExchange(J)

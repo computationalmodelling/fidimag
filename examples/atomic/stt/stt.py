@@ -17,8 +17,8 @@ def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
     # sim.set_options(rtol=1e-10,atol=1e-14)
-    sim.alpha = 1.0
-    sim.gamma = 1.0
+    sim.driver.alpha = 1.0
+    sim.driver.gamma = 1.0
     sim.mu_s = 1.0
 
     sim.set_m(init_m)
@@ -42,7 +42,7 @@ def dynamic(mesh):
 
     sim = Sim(mesh, name='dyn', driver='slonczewski')
     # sim.set_options(rtol=1e-10,atol=1e-14)
-    sim.gamma = 1.0
+    sim.driver.gamma = 1.0
     sim.mu_s = 1.0
 
     sim.set_m(np.load('m0.npy'))
@@ -57,7 +57,7 @@ def dynamic(mesh):
     sim.p = (0,0,1)
 
     sim.u0 = 0.03
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
 
     ts = np.linspace(0, 1e3, 101)
     for t in ts:

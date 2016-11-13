@@ -16,9 +16,9 @@ def relax_system(mesh):
 
     sim.driver.set_tols(rtol=1e-7, atol=1e-7)
     sim.Ms = 8.0e5
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
     sim.beta = 0
-    sim.gamma = 2.211e5
+    sim.driver.gamma = 2.211e5
 
     sim.set_m((1, 0.25, 0.1))
     # sim.set_m(np.load('m0.npy'))

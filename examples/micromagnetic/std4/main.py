@@ -29,8 +29,8 @@ def relax_system(mesh):
     sim = Sim(mesh, name='relax')
 
     sim.driver.set_tols(rtol=1e-10, atol=1e-10)
-    sim.alpha = 0.5
-    sim.gamma = 2.211e5
+    sim.driver.alpha = 0.5
+    sim.driver.gamma = 2.211e5
     sim.Ms = 8.0e5
     sim.do_precession = False
 
@@ -55,8 +55,8 @@ def apply_field1(mesh):
     sim = Sim(mesh, name='dyn')
 
     sim.driver.set_tols(rtol=1e-10, atol=1e-10)
-    sim.alpha = 0.02
-    sim.gamma = 2.211e5
+    sim.driver.alpha = 0.02
+    sim.driver.gamma = 2.211e5
     sim.Ms = 8.0e5
 
     sim.set_m(np.load('m0.npy'))

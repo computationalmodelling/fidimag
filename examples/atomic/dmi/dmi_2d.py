@@ -19,8 +19,8 @@ def init_m(pos):
 def relax_system(mesh):
 
     sim = Sim(mesh, name='dmi_2d')
-    sim.alpha = 0.1
-    sim.gamma=1.76e11
+    sim.driver.alpha = 0.1
+    sim.driver.gamma=1.76e11
     sim.mu_s = 1e-22
 
     J = 1e-20

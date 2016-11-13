@@ -41,7 +41,7 @@ def relax_system():
 
     # Initiate the simulation
     sim = Sim(mesh, name=sim_name)
-    sim.gamma = const.gamma
+    sim.driver.gamma = const.gamma
 
     # magnetisation in units of Bohr's magneton
     sim.mu_s = 2 * const.mu_B
@@ -68,7 +68,7 @@ def relax_system():
     sim.add(ku)
 
     # Faster convergence
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.do_precession = False
 
     sim.relax(dt=1e-13, stopping_dmdt=0.05,

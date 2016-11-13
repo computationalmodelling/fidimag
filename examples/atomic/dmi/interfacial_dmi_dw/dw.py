@@ -33,7 +33,7 @@ def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
     sim.set_default_options(gamma=constant.gamma)
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.mu_s = constant.mu_s_1
     sim.do_precession = False
 

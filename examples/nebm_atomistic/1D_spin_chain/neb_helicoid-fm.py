@@ -90,7 +90,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000):
 
     # Prepare simulation
     sim = Sim(mesh, name=simname)
-    sim.gamma = const.gamma
+    sim.driver.gamma = const.gamma
 
     # magnetisation in units of Bohr's magneton
     sim.mu_s = 2. * const.mu_B

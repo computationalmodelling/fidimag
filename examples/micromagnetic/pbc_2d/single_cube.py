@@ -19,8 +19,8 @@ def compute_field():
     sim = Sim(mesh, name='relax')
 
     sim.driver.set_tols(rtol=1e-10, atol=1e-14)
-    sim.alpha = 0.5
-    sim.gamma = 2.211e5
+    sim.driver.alpha = 0.5
+    sim.driver.gamma = 2.211e5
     sim.Ms = 8.6e5
     sim.do_precession = False
 
