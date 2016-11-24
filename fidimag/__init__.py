@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 try:
     from . import extensions
     from . import common
@@ -25,12 +26,26 @@ except ImportError as e:
          variable. You can do this from the shell with:
          export LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH
 
-    Exception Error message
-    -----------------------
-    {}
-    -----------------------
-    """
-    print(message.format(FIDIMAG_DIR, e))
+      4) If after trying *all* of the above, you still can't get Fidimag to install,
+         please create an issue on the following website:
+
+         https://github.com/computationalmodelling/fidimag/issues
+
+         Copy and paste *all* of the information below which will help 
+         us to diagnose your problem:
+
+
+         Exception Error message 
+         -----------------------
+         {}
+
+         System Info
+         -----------------------
+         Architecture: {}
+         Platform: {}
+         Processor: {}
+         """
+    print(message.format(FIDIMAG_DIR, e, platform.machine(), platform.platform(), platform.processor()))
 
     # os.system("make build")
     #print("Building extensions done.")
