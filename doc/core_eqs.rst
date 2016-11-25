@@ -42,14 +42,14 @@ Interactions
 ------------
 
 At the atomic level, the magnetic moment originates from the total angular
-momentum of electrons in the material atoms. In ferromagnets, most of the
-angular momentum comes from the spin, thus we normally just refer to this
-quantity. There are multiple interactions between electrons that we can
+momentum of electrons in the atoms of the magnetic material. In ferromagnets,
+most of the angular momentum comes from the spin, thus we normally just refer
+to this quantity. There are multiple interactions between electrons that we can
 describe using a semi-classical approximation, where the spin is treated as a
 pseudo vector per every lattice site of the material. In this approximation,
 magnetic interactions can be described using Heisenberg's formalism for the
-exchange interaction. The total Hamiltonian for a magnetic system is the
-sum of all these magnetic interactions:
+exchange interaction. The total Hamiltonian for a magnetic system is the sum of
+all these magnetic interactions:
 
 .. math::
    \mathcal{H} = \mathcal{H}_{\text{ex}} + \mathcal{H}_{\text{an}} 
@@ -102,13 +102,13 @@ The Hamiltonian for uniaxial anisotropy with easy axis along the unitary
 :math:`\hat{u}` direction is expressed as,
 
 .. math::
-   \mathcal{H}_{\text{an}} = - \mathval{K}_{u} \sum_i \left(\vec{S}_{i}\cdot\hat{u}\right)^2
+   \mathcal{H}_{\text{an}} = - \mathcal{K}_{u} \sum_i \left(\vec{S}_{i}\cdot\hat{u}\right)^2
 
-with :math:`\mathval{K}_{u}` as the anisotropy constant in eV. The
+with :math:`\mathcal{K}_{u}` as the anisotropy constant in eV. The
 corresponding field is
 
 .. math::
-   \vec{H}_{i,\text{an}} = \frac{2 \mathval{K}_{u}}{\mu_s} \left(\vec{S}_{i}\cdot\hat{u}\right)\hat{u}
+   \vec{H}_{i,\text{an}} = \frac{2 \mathcal{K}_{u}}{\mu_s} \left(\vec{S}_{i}\cdot\hat{u}\right)\hat{u}
 
 |
 
