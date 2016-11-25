@@ -15,8 +15,14 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Installation Instructions
 
    install
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Tutorials
+
    ipynb/tutorial-docker-container
    ipynb/tutorial-basics
    ipynb/standard_problem_4
@@ -25,10 +31,13 @@ Contents:
    ipynb/isolated_skyrmion
    ipynb/spin-polarised-current-driven-skyrmion
    ipynb/spin-waves-in-periodic-system
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Physics and Equations
+
    core_eqs
    extended_eqs
    monte_carlo
-   develop
-   
 
-.. _GitHub 
+.. _GitHub
