@@ -69,7 +69,7 @@ Then, follow the instructions in 'All Systems' below.
 All systems
 -----------
 
-Once you've built Fidimag, you need to add the libraries to your LD_LIBRARY_PATH, so that Fidimag can find them. If you installed SUNDIALS you can do this with the command::
+Once you've built Fidimag, you need to add the libraries to your LD_LIBRARY_PATH, so that Fidimag can find them. If you installed SUNDIALS and FFTW using our scripts, you can do this with the command::
 
     export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
 
