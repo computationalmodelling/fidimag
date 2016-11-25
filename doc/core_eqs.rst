@@ -1,30 +1,51 @@
-
-
 Core equations
 ===============
 
-Landau-Lifshitz-Gilbert (LLG) equation
----------------------------------------
-The dynamic of magnetic moment :math:`\vec{\mu}_i` is governed by LLG equation,
+Fidimag can simulate systems using either a discrete spin formalism or a
+continuum approximation of the material, i.e. micromagnetism. Spins are
+described at a semi-classical level.
 
-.. math::
-   \frac{\partial \vec{S}_i}{\partial t} = -\frac{\gamma}{(1+\alpha^2)} \vec{S}_i \times (\vec{H}_i + \alpha \vec{S}_i \times \vec{H}_i) ]
+* Atomistic
 
-where :math:`\vec{S}_i` is the unit vector of magnetic moment, 
+  We describe the material by a lattice of magnetic moments
+  :math:`\vec{\mu}_i=\mu_{s}\vec{S}_{i}`, with :math:`\vec{S}` as the spin
+  direction (unit vector). The ordering of the atoms or molecules is given by
+  the crystal structure of the magnetic solid. Currently, it is possible to
+  specify a 2D/3D square lattice or a 2D hexagonal lattice. The magnetic moment
+  is defined as :math:`\mu_{s}=g \mu_{B} S`, where `g` is the Landé g-factor,
+  :math:`\mu_{B}` is the Bohr magneton and :math:`S` is the average spin
+  (angular momentum) magnitude.
 
-.. math::
-   \vec{S}_i=\frac{\vec{\mu}_i}{\mu_s},
+  The interactions of the magnetic moments are specified using the Heisenberg
+  formalism.
+|
+|
 
-and :math:`\vec{\mu}_s = |\vec{\mu}_i|`,  the effective field :math:`\vec{H}_i` is defined as
+* Micromagnetics
 
-.. math::
-   \vec{H}_i = - \frac{1}{\mu_s} \frac{\partial \mathcal{H}}{\partial \vec{S}_i}.
+  In the continuum limit, we discretise the material as a mesh whose nodes are
+  arranged in a cubic lattice and we use finite differences to evaluate the
+  interactions. Instead of discrete spins, now we have a coordinate dependent
+  magnetisation field whose magnitude is the magnetic moment per unit volume
+  :math:`\vec{M}(\vec{r})=\mu_{s}\vec{m}/V` (:math:`\vec{m}` as a unit vector).
+  Accordingly, every mesh node has assigned a magnetisation vector, which is
+  the magnetisation field evaluated at that point. Because we are considering
+  systems at zero temperature, it is more common to use the saturation
+  magnetisation :math:`M_{s}` to describe the magnetisation field magnitude,
+  i.e. :math:`\vec{M}=M_{s}\vec{m}`, where :math:`M_{s}` has units of `A/m`.
+
+  The interactions under this approximation can be computed by taking
+  the continuum limit of the interactions from the Heisenberg Hamiltonian.
 
 
 
 Interactions
 -----------------
-In the level of atomic moments, :math:`\vec{\mu}_s`, originated from the angular momentum of electrons in atoms, could be employed as the base unit in simulations. There are several typical interactions between magnetic moments. The total Hamiltonian is the summation of them.
+
+At the level of atomic moments, :math:`\vec{\mu}_s`, originated from the
+angular momentum of electrons in atoms, could be employed as the base unit in
+simulations. There are several typical interactions between magnetic moments.
+The total Hamiltonian is the summation of them.
 
 .. math::
    \mathcal{H} = \mathcal{H}_{ex} + \mathcal{H}_{an} + \mathcal{H}_d + \mathcal{H}_{ext}
@@ -155,3 +176,41 @@ The zeeman energy is,
 
 
 Basically, we will follow the above equations to write codes.
+
+
+Landau-Lifshitz-Gilbert (LLG) equation
+---------------------------------------
+
+* Atomistic
+
+For the discrete theory, the dynamics of the magnetic moments is governed by
+the LLG equation,
+
+.. math::
+   \frac{\partial \vec{S}_i}{\partial t} = -\frac{\gamma}{(1+\alpha^2)} \vec{S}_i \times (\vec{H}_i + \alpha \vec{S}_i \times \vec{H}_i) ]
+
+where :math:`\vec{\mu}_s = |\vec{\mu}_i|`, :math:`0\leq\alpha\leq 1` is the
+Gilbert damping constant, :math:`\gamma` is the Gilbert gyromagnetic ratio
+(which sets the time scale) and the effective field :math:`\vec{H}_i` is
+defined using the Hamiltonian :math:`\mathcal{H}` as
+
+.. math::
+   \vec{H}_i = - \frac{1}{\mu_s} \frac{\partial \mathcal{H}}{\partial \vec{S}_i}.
+
+The gyromagnetic ratio of a free electron is :math:`\gamma = 1.76\times10^{11}\,\text{rad Hz T}^{-1}`.
+
+* Micromagnetics
+
+In the micromagnetic limit, the equation has a similar structure
+
+.. math::
+   \frac{\partial \vec{m}}{\partial t} = -\frac{\gamma}{(1+\alpha^2)} \vec{m} \times (\vec{H} + \alpha \vec{m} \times \vec{H}) ]
+
+where :math:`0\leq\alpha\leq 1` is the Gilbert damping constant and
+:math:`\gamma` is the Gilbert gyromagnetic ratio (which sets the time scale).
+The effective field :math:`\vec{H}` for this case is defined as
+
+.. math::
+   \vec{H} = - \frac{1}{\mu_{0}M_{s}} \frac{\partial \mathcal{H}}{\partial \vec{m}}.
+
+The Gilbert gyromagnetic ratio of a free electron is :math:`\gamma = 2.21\times10^{5}\,\text{Hz T}^{-1}`.

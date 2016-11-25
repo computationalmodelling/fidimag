@@ -131,7 +131,7 @@ class AtomisticDriver(DriverBase):
         self._alpha[:] = alpha
 
         # When we create the simulation, mu_s is set to the default value. This
-        # is overriden when calling the set_mu_s method from the Siulation
+        # is overriden when calling the set_mu_s method from the Simulation
         # class or when setting mu_s directly (property)
         self._mu_s[:] = mu_s
         self.mu_s_const = mu_s
