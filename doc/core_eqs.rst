@@ -16,9 +16,8 @@ described at a semi-classical level.
   :math:`\mu_{B}` is the Bohr magneton and :math:`S` is the average spin
   (angular momentum) magnitude.
 
-  The interactions of the magnetic moments are specified using the Heisenberg
-  formalism.
-|
+  Interactions between magnetic moments are specified using the Heisenberg
+  formalism.  
 |
 
 * Micromagnetics
@@ -40,101 +39,127 @@ described at a semi-classical level.
 
 
 Interactions
------------------
+------------
 
-At the level of atomic moments, :math:`\vec{\mu}_s`, originated from the
-angular momentum of electrons in atoms, could be employed as the base unit in
-simulations. There are several typical interactions between magnetic moments.
-The total Hamiltonian is the summation of them.
+At the atomic level, the magnetic moment originates from the total angular
+momentum of electrons in the material atoms. In ferromagnets, most of the
+angular momentum comes from the spin, thus we normally just refer to this
+quantity. There are multiple interactions between electrons that we can
+describe using a semi-classical approximation, where the spin is treated as a
+pseudo vector per every lattice site of the material. In this approximation,
+magnetic interactions can be described using Heisenberg's formalism for the
+exchange interaction. The total Hamiltonian for a magnetic system is the
+sum of all these magnetic interactions:
 
 .. math::
-   \mathcal{H} = \mathcal{H}_{ex} + \mathcal{H}_{an} + \mathcal{H}_d + \mathcal{H}_{ext}
+   \mathcal{H} = \mathcal{H}_{\text{ex}} + \mathcal{H}_{\text{an}} 
+   + \mathcal{H}_{\text{d}} + \mathcal{H}_{\text{DMI}} + \mathcal{H}_{\text{Zeeman}}
+
+where we have *exchange*, *anisotropy*, *dipolar interactions*,
+*Dzyaloshinskii-Moriya interactions* and *Zeeman interaction*.
 
 
 Exchange interaction
 ~~~~~~~~~~~~~~~~~~~~  
-The classical Heisenberg Hamiltonian with the nearest-neighbor exchange interaction, 
+
+The classical Heisenberg Hamiltonian with the nearest-neighbor exchange
+interaction reads
 
 .. math::
    \mathcal{H}_{ex} = -J \sum_{<i,j>}\vec{S}_i \cdot \vec{S}_j
 
-where the summation is taken only once for each pair, so the effective field is 
+where the summation is performed only once for every pair of spins. The
+effective field is
 
 .. math::
    \vec{H}_{i,ex} = \frac{J}{\mu_s} \sum_{<i,j>} \vec{S}_j
 
+|
 
-In the continuum limit the exchange energy could be written, 
+In the continuum limit the exchange energy can be written as
 
 .. math::
-   E_{ex} = \int_\Omega A (\nabla \vec{m})^2 dx
+   E_{ex} = \int_{V} A (\nabla \vec{m})^2 dx
 
-so the corresponding effective field is
+with :math:`V` as the volume of the system and :math:`A` the anisotropy constant
+in :math:`\text{J m}^{-1}`. Correspondingly, the effective
+field is
 
 .. math::
    \vec{H} = \frac{2 A}{\mu_0 M_s} \nabla^2 \vec{m}
 
-Once we implemented the Heisenberg exchange interaction, the effective field in the continuum case
-can be computed by the same codes with 
+The effective field in the continuum approximation can be computed as
 
 .. math::
   J_x = 2A \frac{\Delta y \Delta z}{\Delta x}
 
-Note that we needs the factor of :math:`\mu_0` to convert the units from T to A/m.
+Note that we need the :math:`\mu_0` factor to convert units from T to A/m.
 
 Anisotropy 
 ~~~~~~~~~~~
-The Hamiltonian for uniaxial anisotropy with easy axis in x direction is expressed as,
+
+The Hamiltonian for uniaxial anisotropy with easy axis along the unitary
+:math:`\hat{u}` direction is expressed as,
 
 .. math::
-   \mathcal{H}_{an} = - D \sum_i (\vec{S}_{x,i})^2
+   \mathcal{H}_{\text{an}} = - \mathval{K}_{u} \sum_i \left(\vec{S}_{i}\cdot\hat{u}\right)^2
 
-and the corresponding field is
-
-.. math::
-   \vec{H}_{i,an} = \frac{2 D}{\mu_s} S_{x,i} \vec{e}_x
-
-
-UniaxialAnisotropy 
-~~~~~~~~~~~~~~~~~~~
-The UniaxialAnisotropy energy of the magnetic system is defined as
+with :math:`\mathval{K}_{u}` as the anisotropy constant in eV. The
+corresponding field is
 
 .. math::
-   E_{anis} = \int_\Omega K [ 1 - (\vec{m} \cdot \vec{u})^2 ] dx
+   \vec{H}_{i,\text{an}} = \frac{2 \mathval{K}_{u}}{\mu_s} \left(\vec{S}_{i}\cdot\hat{u}\right)\hat{u}
 
-the the effective field is,
+|
+
+In micromagnetics, the uniaxial anisotropy energy of the system is defined as
 
 .. math::
-   \vec{H}=\frac{2 K}{\mu_0 M_s} (\vec{m} \cdot \vec{u}) \vec{u}
+   E_{anis} = \int_{V} K_{u} [ 1 - (\vec{m} \cdot \hat{u})^2 ]\, dV
+
+with :math:`K_{u}` as the anisotropy constant in :math:`\text{J m}^{-3}`. The
+effective field reads
+
+.. math::
+   \vec{H}=\frac{2 K_{u}}{\mu_0 M_s} \left(\vec{m} \cdot \hat{u}\right) \hat{u}
 
 Dipolar interaction
 ~~~~~~~~~~~~~~~~~~~
-The Hamiltonian for dipolar interaction is,
+
+The Hamiltonian for dipolar interactions is defined as
 
 .. math::
-   \mathcal{H}_{d}=-\frac{\mu_0}{4\pi}\sum_{i<j}\frac{3 (\vec{\mu}_i\cdot \vec{e}_{ij})(\vec{\mu}_j\cdot \vec{e}_{ij}) - \vec{\mu}_i \cdot \vec{\mu}_j}{r_{ij}^3} 
+   \mathcal{H}_{d}=-\frac{\mu_0 \mu_{s}^{2}}{4\pi} \sum_{i<j}
+   \frac{3 (\vec{S}_i\cdot \hat{r}_{ij})(\vec{S}_j\cdot \hat{r}_{ij}) - \vec{S}_i \cdot \vec{S}_j}{\vec{r}_{ij}^3} 
+
+with :math:`\vec{r}_{ij}` the spatial vector pointing from the :math:`i`-th to
+the :math:`j`-th lattice site.  The effective field is
 
 .. math::
-   \vec{H}_{i,d} =\frac{\mu_0}{4\pi}\sum_{i \neq j}\frac{3 \vec{e}_{ij} (\vec{\mu}_j\cdot \vec{e}_{ij}) - \vec{\mu}_j}{r_{ij}^3}
-   :label: eq_h_d
+   \vec{H}_{i,d} =\frac{\mu_0 \mu_{s}}{4\pi}\sum_{i \neq j}\frac{3 \hat{r}_{ij} (\vec{S}_j\cdot \hat{r}_{ij}) 
+   - \vec{S}_j}{\vec{r}_{ij}^3}
 
 
 Dzyaloshinskii-Moriya interaction (DMI)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-DMI is an antisymmetric, anisotropic exchange coupling beteen spins (magnetic moments), 
+
+DMI is an antisymmetric, anisotropic exchange coupling between spins (magnetic moments), 
 
 .. math::
-   \mathcal{H}_{dmi}= \sum_{<i,j>} \vec{D}_{ij}\cdot [\vec{S}_i \times \vec{S}_j]
+   \mathcal{H}_{\text{DMI}}= \sum_{<i,j>} \vec{D}_{ij}\cdot [\vec{S}_i \times \vec{S}_j]
 
-Note that :math:`\vec{a}\cdot(\vec{b}\times\vec{c})=(\vec{a}\times\vec{b})\cdot\vec{c}`, the effective field can be computed by
+Noting that
+:math:`\vec{a}\cdot(\vec{b}\times\vec{c})=(\vec{a}\times\vec{b})\cdot\vec{c}`,
+the effective field can be computed as
 
 .. math::
    \vec{H}_i = - \frac{1}{\mu_s} \frac{\partial \mathcal{H}}{\partial \vec{S}_i} = \frac{1}{\mu_s}  \sum_{<i,j>} \vec{D}_{ij}\times\vec{S}_j
 
 For bulk materials :math:`\vec{D}_{ij} = D \vec{r}_{ij}` and for interfacial DMI one has :math:`\vec{D}_{ij} = D \vec{r}_{ij} \times \vec{e}_z`, in both cases the vector :math:`\vec{D}_{ij}` such that :math:`\vec{D}_{ij}=-\vec{D}_{ji}`.
 
+|
 
-In the continuum limit the bulk DMI energy could be written, 
+In the continuum limit the bulk DMI energy is written as 
 
 .. math::
    E_{dmi} = \int_\Omega D_a \vec{m} \cdot (\nabla \times \vec{m}) dx
@@ -146,7 +171,7 @@ where :math:`D_a = -D/a^2` and the effective field is
 
 
 
-For the interfacial case, the effective field thus becomes,
+For the interfacial case, the effective field becomes,
 
 .. math::
    \vec{H}=\frac{2 D}{M_s a^2} (\vec{e}_x \times \frac{\partial \vec{m}}{\partial y} - \vec{e}_y \times \frac{\partial \vec{m}}{\partial x} )
@@ -156,7 +181,7 @@ Compared with the effective field [PRB 88 184422]
 .. math::
    \vec{H}=\frac{2 D_a}{\mu_0 M_s} ((\nabla \cdot \vec{m}) \vec{e}_z - \nabla m_z)
 
-we have :math:`D_a = D/a^2`, note that there is no negative sign for the interfacial case.
+where :math:`D_a = D/a^2`. Notice that there is no negative sign for the interfacial case.
 
 
 .. Similar to the exchange case, the effective field in the continuum case
@@ -169,13 +194,12 @@ we have :math:`D_a = D/a^2`, note that there is no negative sign for the interfa
 
 Zeeman energy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The zeeman energy is,
+
+The Zeeman energy is,
 
 .. math::
-   \mathcal{H}_{dmi}= - \sum_{i} \mu_s \vec{H}_{ext}\cdot  \vec{S}_i
+   \mathcal{H}_{\text{Zeeman}}= - \sum_{i} \mu_s \vec{H}_{ext}\cdot  \vec{S}_i
 
-
-Basically, we will follow the above equations to write codes.
 
 
 Landau-Lifshitz-Gilbert (LLG) equation
