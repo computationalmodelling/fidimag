@@ -4,6 +4,8 @@ from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 import sys
 
+log = pyvtk.logging.getLogger(pyvtk.__name__)
+log.setLevel(pyvtk.logging.ERROR)
 
 # We will try to supress the stderr output from the VTK.VtkData
 # initialisations, which produce a warning when point or cell data is not
