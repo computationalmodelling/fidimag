@@ -19,6 +19,12 @@ Contents:
    install
    ipynb/tutorial-docker-container
    ipynb/tutorial-basics
+   ipynb/standard_problem_4
+   ipynb/1d_domain_wall
+   ipynb/current-driven-domain-wall
+   ipynb/isolated_skyrmion
+   ipynb/spin-polarised-current-driven-skyrmion
+   ipynb/spin-waves-in-periodic-system
    core_eqs
    extended_eqs
    monte_carlo

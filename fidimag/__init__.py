@@ -24,7 +24,7 @@ except ImportError as e:
       3) If you've run the scripts to install the dynamic libaries,
          you may still need to export the LD_LIBRARY_PATH environment
          variable. You can do this from the shell with:
-         export LD_LIBRARY_PATH={}:$LD_LIBRARY_PATH
+         export LD_LIBRARY_PATH={}/local/lib:$LD_LIBRARY_PATH
 
       4) If after trying *all* of the above, you still can't get Fidimag to install,
          please create an issue on the following website:
