@@ -3,13 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to fidimag's documentation!
+Welcome to Fidimag's documentation!
 ===================================
 
-The official webpage is
-http://computationalmodelling.github.io/fidimag/, the github
-repository is https://github.com/computationalmodelling/fidimag, and
-this documentation is hosted at http://fidimag.readthedocs.org.
+Fidimag is a micromagnetic and atomistic simulation package, which can be used to simulate the magnetisation of nanoscale samples of materials. 
+
+The code for Fidimag is available under an open source license on `GitHub 
+<https://github.com/computationalmodelling/fidimag>`_.
 
 Contents:
 
@@ -18,8 +18,11 @@ Contents:
 
    install
    ipynb/tutorial-docker-container
+   ipynb/tutorial-basics
    core_eqs
    extended_eqs
    monte_carlo
    develop
-   ipynb/tutorial-basics
+   
+
+.. _GitHub 
