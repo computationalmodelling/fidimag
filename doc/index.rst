@@ -40,4 +40,10 @@ Contents:
    extended_eqs
    monte_carlo
 
+.. toctree::
+   :maxdepth: 2
+   :caption: NEBM
+
+   nebm
+
 .. _GitHub
