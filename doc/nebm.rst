@@ -278,7 +278,7 @@ We have implemented three classes in Fidimag for the NEBM:
    spring constant, which is difficult since the value depends on the system
    size and interactions involved.
 
-2. `NEBM_Geodesic`: Using Cartesian coordinates for the spin directions and
+3. `NEBM_Geodesic`: Using Cartesian coordinates for the spin directions and
    Geodesic distances, with vectors projected in tangent space. This is the
    optimised version of the NEBM [3] and appears to work well with every system
    we have tried so far. Cartesian coordinates have the advantage that they are
@@ -289,3 +289,221 @@ The following diagram shows how the code is structured:
 .. image:: images/nebm_classes.png
    :scale: 60 %
 
+There is a ``fidimag.common.nebm_tools`` module with common functions for the
+NEBM classes:
+
+::
+
+    fidimag.common.nebm_tools
+    |
+    --> cartesian2spherical
+        spherical2cartesian
+        compute_norm
+        interpolation_Rodrigues_rotation
+        linear_interpolation_spherical
+
+
+Arrays
+------
+
+In fidimag we mainly use Numpy to define the NEBM vectors. When calling one of
+the NEBM classes, we have to pass a ``sim`` object with the specification of
+the magnetic system which has associated a ``mesh`` with ``n_spins``. According
+to the coordinate system, we set the ``dof`` variable. For instance ``dof = 3``
+for Cartesian coordinates. Consequently, we define the number of degrees of
+freedom per image ``n_dofs_image = dof * n_spins``, thus if the NEBM
+class was specified with ``n_images``, the total number of degrees of freedom
+for the band is ``n_band = n_dofs_image * n_images``.
+
+As explained in our discussion about the NEBM, we set up ``band``,
+``gradientE``, ``tangents`` and ``spring_force`` arrays whose length is
+``n_band``. The order is the same than how we defined the images, thus the
+Numpy array, when using Cartesian coordinates to describe the spins, looks like
+
+::
+
+    band = [ s(0)_{x,0}  s(0)_{y,0}  ... s(0)_{z,n_dofs_image-1}
+             s(1)_{x,0}  s(1)_{y,0}  ... s(1)_{z,n_dofs_image-1}
+             ...
+             s(n_images-1)_{x,0}  ... s(n_images-1)_{z,n_dofs_image-1}
+           ]
+
+and similarly for the other vectors since they follow the same order of the
+spins. This ``band`` array is passed to the Cython codes to compute the NEBM
+forces. Notice that we can easily redefine this array into a
+``(n_images, n_dofs_image)`` shaped Numpy array using
+
+::
+
+    band = band.reshape(-1, n_dofs_image)
+
+so every row is a different image. We can even take the inner images (no
+extrema) and use the same piece of code since ``n_dofs_image`` does not change.
+
+
+Cython Codes
+------------
+
+Most of the calculations are made using ``C`` code through Cython. The files
+for these libraries are located in ``fidimag/common/neb_method/``. Every library
+has a ``.c`` file, a ``.h`` header file and a ``.pyx`` Cython file (it can
+differ in name from the ``C`` files)  which is compiled using Fidimag's
+``setup.py`` file.
+
+For example, there is a base module with common functions for every NEBM
+class called ``nebm_lib.c``
+
+::
+
+    nebm_lib.c
+    |
+    --> compute_effective_force_C
+        compute_norm
+        compute_spring_force_C
+        compute_tangents_C
+        cross_product
+        dot_product
+        normalise
+        normalise_images_C
+
+Its corresponding header file ````nebm_lib.h`` contains the prototypes of these
+functions. The Cython file that link some of these functions to the Python code
+is called ``nebm_clib.pyx`` and can be called from the
+``fidimag.extensions.nebm_clib`` library:
+
+::
+
+    fidimag.extensions.nebm_clib
+    |
+    --> compute_effective_force
+        compute_tangents
+
+The other ``.pyx`` or ``.c`` files use some of the ``nebm_lib.h`` functions.
+They are separated according to the coordinate system used in the NEBM
+calculations. The following diagrams show the Cython functions for these
+libraries and the ``C`` files used to define them:
+
+::
+
+    nebm_cartesian_lib.c
+    nebm_cartesian_lib.h
+    nebm_cartesian_clib.pyx
+    fidimag.extensions.nebm_cartesian_clib
+    |
+    --> compute_dYdt
+        compute_effective_force
+        compute_spring_force
+        compute_tangents
+        normalise_images
+        project_images
+
+
+    nebm_geodesic_lib.c
+    nebm_geodesic_lib.h
+    nebm_geodesic_clib.pyx
+    fidimag.extensions.nebm_geodesic_clib
+    |
+    --> compute_spring_force
+        geodesic_distance
+
+
+    nebm_spherical_lib.c
+    nebm_spherical_lib.h
+    nebm_spherical_clib.pyx
+    fidimag.extensions.nebm_spherical_clib
+    |
+    --> compute_spring_force
+        normalise_images
+
+Every library has its own ``compute_spring_force``, which is taken from the
+``nebm_lib.c`` file, since the spring force depends on the
+coordinate-system-dependent distance definition. For the Cartesian and
+spherical coordinates, the distance functions (Euclidean distances) are not
+exposed in the Cython file, as in the code for Geodesic distances.
+
+Geodesic distances code
+-----------------------
+
+Based on the aforementioned NEBM algorithm, the class initialise the NEBM
+calling the following methods in this order:
+
+::
+
+    1. generate_initial_band   # Using linear interpolations or Rodrigues rotation formulae    
+    |
+    --> nebm_tools.cartesian2spherical --> nebm_tools.linear_interpolation_spherical
+        # or
+        nebm_tools.interpolation_Rodrigues_rotation
+
+    2. initialise_energies     # Fill the energies array
+    3. initialise_integrator   # Start CVODE
+    4. create_tablewriter      # To pass data into .ndt files per every iteration of the integrator
+
+The linear interpolation function requires that the input array is in spherical
+coordinates. 
+
+To relax the band, we use CVODE, as specified in step 3., using the
+``cvode.CvodeSolver`` (or ``cvode.CvodeSolver_OpenMP``) integrator. The
+integrator requires a ``Sundials_RHS`` function that is called on every
+iteration, which is the right hand side of the :math:`\partial \mathbf{Y} /
+\partial \tau` dynamical equation. Correspondingly, this function
+calculates the NEBM forces as
+
+::
+
+    Sundials_RHS
+    |
+    --> nebm_step
+        |
+        --> compute_effective_field_and_energy  # Gradient = - Eff field
+                                                # Which we compute for every image
+                                                # using the sim class
+            compute_tangents
+            |
+            --> nebm_clib.compute_tangents      #
+                nebm_cartesian.project_images   # Project tangents
+                nebm_cartesian.normalise_images #
+            compute_spring_force                # Using Geodesic distances
+            nebm_clib.compute_effective_force
+            nebm_cartesian.project_images(G)    # Project effective (total) force
+
+        nebm_cartesian.compute_dYdt             # Add the correction factor to fix
+                                                # the spins length to 1
+
+Many methods come from the Cartesian Cython library ``nebm_cartesian`` since the
+Geodesic class uses Cartesian coordinates to describe the spins.
+
+The function that iterates the integrator is the ``relax`` method. On every
+iteration, we compute the difference with the previous step using a scaled
+Euclidean distance.  The definitions of this process are specified in the
+``compute_maximum_dYdt`` method from the ``nebm_base`` class. According to the
+magnitude stopping criteria specified in the ``stopping_dYdt`` argument of
+``relax``, the iterations of the integrator will stop if the difference with
+the previous step is smaller than ``stopping_dYdt``.
+
+Cartesian and spherical coordinates code
+----------------------------------------
+
+These classes follow the same process than the Geodesic distances code. The
+main difference is that in the ``nebm_step`` process, the projections are not
+performed and the distances are computed using the scaled Euclidean distance.
+
+Spherical
+^^^^^^^^^
+
+For spherical coordinates, the vectors are smaller, with ``n_dofs_image = 2 * n_spins``,
+where
+
+::
+
+    band = [ theta(0)_{0}  phi(0)_{0} theta(0)_{1} ... phi(0)_{n_dofs_image-1}
+             theta(1)_{0}  phi(1)_{0} theta(1)_{1} ... phi(1)_{n_dofs_image-1}
+             ...
+             theta(n_images-1)_{0} ... phi(n_images-1)_{n_dofs_image-1}
+           ]
+
+The ``Sundials_RHS`` function does not include the correction factor since
+spherical coordinates have implicit the constraint of fixed length for the
+magnetisation. When computing distances or differences, it is necessary to
+redefine the angles, but it is not completely clear the optimal way of doing
+this.
