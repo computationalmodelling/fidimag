@@ -70,6 +70,8 @@ For a thorough explanation of the method see references [3,4].
 NEBM relaxation
 ---------------
 
+.. image:: images/nebm.png
+
 Cartesian
 ^^^^^^^^^
 
@@ -121,6 +123,24 @@ which is parallel to the band, i.e. in the direction of the tangent.
 According to Bessarab et al. [3], the tangents and the total force
 :math:`\mathbf{G}` must be *projected* into the spin/magnetisation tangent
 space.
+
+Climbing Image NEBM
+^^^^^^^^^^^^^^^^^^^
+
+The climbing image technique is a modification of the NEBM where the forces of
+the image with largest energy in the band, are redefined so this image can
+climb up in energy along the band to get a better estimate of the saddle point
+energy [1,3]. The image with largest energy is chosen after relaxing the
+band with the usual NEBM algorithm. The total force on this climbing image is
+
+.. math::
+    \mathbf{G}^{\text{CI}}_{i} =  - \boldsymbol{\nabla}_{\boldsymbol{\mu}} E(\mathbf{Y}_{i})|_{\perp} +
+                 \boldsymbol{\nabla}_{\boldsymbol{\mu}} E(\mathbf{Y}_{i})|_{\parallel}
+
+where the spring force was removed. The climbing image is still allowed to
+climb down in energy in a direction perpendicular to the band, thus it is
+possible that the energy barrier magnitude decreases after applying this
+technique.
 
 Vectors
 -------
@@ -470,8 +490,10 @@ calculates the NEBM forces as
         nebm_cartesian.compute_dYdt             # Add the correction factor to fix
                                                 # the spins length to 1
 
-Many methods come from the Cartesian Cython library ``nebm_cartesian`` since the
-Geodesic class uses Cartesian coordinates to describe the spins.
+Many methods come from the Cartesian Cython library ``nebm_cartesian`` since
+the Geodesic class uses Cartesian coordinates to describe the spins. If a
+climbing image was specified as an argument for the class, we compute its
+modified force in the ``compute_effective_force`` method.
 
 The function that iterates the integrator is the ``relax`` method. On every
 iteration, we compute the difference with the previous step using a scaled
@@ -507,3 +529,18 @@ spherical coordinates have implicit the constraint of fixed length for the
 magnetisation. When computing distances or differences, it is necessary to
 redefine the angles, but it is not completely clear the optimal way of doing
 this.
+
+.. [1] Henkelman, G. & Jónsson, H. *Improved tangent estimate in the nudged
+   elastic band method for finding minimum energy paths and saddle points*. The
+   J. Chem. Phys. 113, 9978–9985 (2000)
+
+.. [2] Dittrich, R. et al. A path method for finding energy barriers and
+   minimum energy paths in complex micromagnetic systems. J. Magn. Magn. Mater.
+   250, 12–19 (2002).
+
+.. [3] Bessarab, P. F., Uzdin, V. M. & Jónsson, H. *Method for finding
+   mechanism and activation energy of magnetic transitions, applied to skyrmion
+   and antivortex annihilation*.  Comput. Phys. Commun. 196, 1–37 (2015)
+
+.. [4] Cortés-Ortuño, D. et al. *Thermal stability and topological protection of
+   skyrmions in nanotracks*. Preprint at arXiv:1611.07079.
