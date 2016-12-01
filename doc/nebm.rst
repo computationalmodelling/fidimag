@@ -10,19 +10,32 @@ the behaviour of the algorithm. Their review of the method allows to apply the
 technique to systems described by either a micromagnetic or atomistic model.
 
 The algorithm is based on, firstly, generating :math:`N` copies of a magnetic
-system.  Every copy of the system, which is described by :math:`P` spins or
-magnetic moments (arranged in a lattice or mesh), is called an *image*
-:math:`\mathbf{Y}_{i}`. This sequence of images defines a *band*, where every
-image is in a (ideally) different magnetic configuration. The energy of the
-system depends on the magnetic configuration (e.g. a skyrmion, vortex, uniform
-state,etc.), thus the energy is parametrised by the number of degrees of
-freedom, which is :math:`n\times P`, where :math:`n` is the number of
-coordinates to describe a spin (e.g. :math:`n=3` for Cartesian coordinates and
-:math:`n=2` in Spherical coordinates). Accordingly, every image will have a
-specific energy, i.e.  :math:`E=E(\mathbf{Y})`,  which determines the position
-of an image in an energy landscape. The first and last images in a band are
-chosen as equilibrium states of the magnetic system and they are kept fixed
-during the NEBM evolution.
+system that we describe by :math:`P` spins or magnetic moments arranged in a
+lattice or mesh.  Every copy of the system, is called an *image*
+:math:`\mathbf{Y}_{i}`, :math:`i\in \{0,\ldots,P-1\}` and we specify an image
+using the spins directions in a given coordinate system. For example, in
+Cartesian coordinates we have
+
+.. math::
+    \mathbf{Y}_{i} = \left( s_{x,0}^{(i)}, s_{y,0}^{(i)}, s_{z,0}^{(i)}, s_{x,1}^{(i)}, 
+                     s_{y,1}^{(i)},\ldots, s_{y,P-1}^{(i)}, s_{z,P-1}^{(i)}   
+                     \right)
+
+for a system described by a discrete spin model. Within the micromagnetic model
+we use :math:`\mathbf{m}` rather than :math:`\mathbf{s}`, but both are unit
+directions.
+
+This sequence of images defines a *band*, where every image is in a (ideally)
+different magnetic configuration. The energy of the system depends on the
+magnetic configuration (e.g. a skyrmion, vortex, uniform state,etc.), thus the
+energy is parametrised by the number of degrees of freedom, which is
+:math:`n\times P`, where :math:`n` is the number of coordinates to describe a
+spin (e.g. :math:`n=3` for Cartesian coordinates and :math:`n=2` in Spherical
+coordinates). Accordingly, every image will have a specific energy, i.e.
+:math:`E=E(\mathbf{Y})`,  which determines the position of an image in an
+energy landscape. The first and last images in a band are chosen as equilibrium
+states of the magnetic system and they are kept fixed during the NEBM
+evolution.
 
 Secondly, to initiate the NEBM evolution, it is necessary to specify an initial
 guess for the images, which means generating different magnetic configurations
@@ -62,7 +75,7 @@ Cartesian
 
 When using Cartesian coordinates, every image of the band
 :math:`\mathbf{Y}_{i}` is iterated with the following dynamical equation with a
-fictitious time :math:`tau`
+fictitious time :math:`\tau`
 
 .. math::
     \frac{\partial \mathbf{Y}_i}{\partial \tau} = -\gamma \mathbf{Y}_{i} \times
@@ -105,34 +118,25 @@ images
 
 which is parallel to the band, i.e. in the direction of the tangent.
 
-Following the definitions from Bessarab et al. [3], the tangents and the total
-force :math:`\mathbf{G}` must be *projected* into the spin/magnetisation
-tangent space.
+According to Bessarab et al. [3], the tangents and the total force
+:math:`\mathbf{G}` must be *projected* into the spin/magnetisation tangent
+space.
 
 Vectors
 -------
 
-We usually refer to the images, forces, etc. as *vectors*. In Fidimag, for a
-magnetic system of :math:`P` spins/magnetic moments, we define some vectors as
-:math:`n\times P` arrays, where :math:`n` is the number of coordinates to
-describe a spin (e.g. :math:`n=3` for Cartesian coordinates and :math:`n=2` in
-Spherical coordinates). For example, the :math:`i` image of a band, in
-Cartesian coordinates, is defined as
+Following the definition of an image in Cartesian coordinates, we mentioned
+that the number of degrees of freedom is :math:`n\times P`, where :math:`n` is
+the number of coordinates to describe a spin. Accordingly, many of the vectors
+in the NEBM algorithm such as the tangents, total forces, etc. have the same
+number of components, which agree with the spin components of an image.
 
-.. math::
-    \mathbf{Y}_{i} = \left( s_{x,0}^{(i)}, s_{y,0}^{(i)}, s_{z,0}^{(i)}, s_{x,1}^{(i)}, 
-                     s_{y,1}^{(i)},\ldots s_{y,P-1}^{(i)}, s_{z,P-1}^{(i)}   
-                     \right)
-
-Within the micromagnetic model we use :math:`\mathbf{m}` rather than :math:`\mathbf{s}`.
-Notice that we have the three components of every spin in the system.
-
-For the total force (or tangents, spring forces, etc.) is similar, every spin
-will have associated a total force:
+For instance, the total force (or tangents, spring forces, etc.) has three
+components in Cartesian coordinates, corresponding to every spin direction:
 
 .. math::
     \mathbf{G}_{i} = \left( G_{x,0}^{(i)}, G_{y,0}^{(i)}, G_{z,0}^{(i)}, G_{x,1}^{(i)}, 
-                     G_{y,1}^{(i)},\ldots G_{y,P-1}^{(i)}, G_{z,P-1}^{(i)}   
+                     G_{y,1}^{(i)},\ldots, G_{y,P-1}^{(i)}, G_{z,P-1}^{(i)}   
                      \right)
 
 Projections
@@ -140,11 +144,13 @@ Projections
 
 The projection of a vector into the spin/magnetisation tangent space simply
 means projecting its components with the corresponding spin/magnetisation field
-components. For example, for a vector :math:`\mathbf{A}`
+components. For example, for a vector :math:`\mathbf{A}` associated to the
+:math:`i` image of the band (we will omit the :math:`(i)` superscripts in the
+spin directions :math:`\mathbf{s}` and the :math:`\mathbf{A}` vector components)
 
 .. math::
     \mathbf{A} = \left( \mathbf{A}_{0}, \ldots \mathbf{A}_{P-1}\right) = 
-                 \left( A_{x,0}, A_{y,0}, A_{z,0}, A_{x,1}, A_{y,1},\ldots A_{y,P-1}, A_{z,P-1} \right)
+                 \left( A_{x,0}, A_{y,0}, A_{z,0}, A_{x,1}, A_{y,1},\ldots, A_{y,P-1}, A_{z,P-1} \right)
 
 the projection :math:`\mathcal{P}` is defined as
 
@@ -158,9 +164,60 @@ the projection :math:`\mathcal{P}` is defined as
 where
 
 .. math::
-   \mathcal{P}_{\mathbf{s}_{i}}\mathbf{A}_{i} =  \mathbf{A}_{i} - 
-                        \left( \mathbf{A}_{i} \cdot \mathbf{s}_{i} \right) \mathbf{s}_{i}
+   \mathcal{P}_{\mathbf{s}_{j}}\mathbf{A}_{j} =  \mathbf{A}_{j} - 
+                        \left( \mathbf{A}_{j} \cdot \mathbf{s}_{j} \right) \mathbf{s}_{j}
 
+with :math:`j\in\{0,\ldots,P-1 \}`, hence
+
+.. math::
+    \mathbf{A} = \left( \mathcal{P}A_{x,0}, \mathcal{P}A_{y,0}, \ldots, \mathcal{P}A_{y,P-1}, \mathcal{P}A_{z,P-1} \right)
+
+
+Distances
+---------
+
+There are different ways of defining the distance in phase space between two
+images, :math:`d_{j,k}=|\mathbf{Y}_{j} - \mathbf{Y}_{k}|`. 
+
+Geodesic
+^^^^^^^^
+
+The optimised version of the NEBM [3] proposes a Geodesic distance based on
+Vicenty's formulae:
+
+.. math::
+   d_{j,k} = \sqrt{ \left( \delta_{0}^{(j,k)} \right)^{2} +
+                    \left( \delta_{1}^{(j,k)} \right)^{2} + \ldots
+                    \left( \delta_{P-1}^{(j,k)} \right)^{2}
+                 }
+
+where
+
+.. math::
+   \delta_{i}^{(j,k)} = \arctan2 \left( \left| \mathbf{m}_{i}^{(j)}\times \mathbf{m}_{i}^{(k)} \right|,
+                                                \mathbf{m}_{i}^{(j)}\cdot \mathbf{m}_{i}^{(k)}
+                                 \right)
+
+This definition seems to work better with the NEBM since the spin directions
+are defined in a unit sphere.
+
+Euclidean
+^^^^^^^^^
+
+The first versions of the method simply used an Euclidean distance based
+on the difference between corresponding spins. In Cartesian coordinates it reads
+
+.. math::
+   d_{j,k} = \frac{1}{3 P} \left\{ \sum_{j=0}^{P-1} \sum_{\alpha\in\{x,y,z\}}
+                                        \left[ \left( s_{\alpha}^{(j)} - s_{\alpha}^{(k)}
+                                               \right)^{2} 
+                                        \right] 
+                              \right\}^{1/2}
+
+where we have scaled the distance by the number of degrees of freedom of the
+system (or an image). In spherical coordinates the definition is similar, only
+that we use the difference of the azimuthal and polar angles and the scale
+is :math:`2P`.
 
 Algorithm
 ---------
@@ -172,7 +229,7 @@ The algorithm can be summarised as:
 
 2. Set up a band of images and an initial sequence between the extrema. We can
    use linear interpolations on the spherical angles that define the spin
-   directions [4] or Vicenty's formulae [3].
+   directions [4] or Rodrigues formulae [3].
 
 3. Evolve the system using the NEBM dynamical equation, which depends on the
    chosen coordinate system. This equation involves:
@@ -191,3 +248,44 @@ The algorithm can be summarised as:
    IV. Project the total force into the spin/magnetisation tangent space
 
    V. Use the dynamical equation according to the coordinate system
+
+Early versions of the NEBM did not project the vectors into the tangent space
+in steps I and II. This leads to an uncontrolled/poor behaviour of the band
+evolution since the vectors that are supposed to be perpendicular to the band
+still have a component along the band and interfere with the images movement in
+phase space.
+
+
+Fidimag Code
+============
+
+We have implemented three classes in Fidimag for the NEBM:
+
+1. `NEBM_Spherical`: Using spherical coordinates for the spin directions and
+   Euclidean distances with no projections into spin space. The azimuthal and
+   polar angles need to be redefined when performing differences or computing
+   Euclidean distances, specially because the polar angle gets undefined when
+   it is close to the north or south. It is not completely clear what is the
+   best approach to redefine the angles and when to do this, thus this class
+   currently does not work properly.
+
+2. `NEBM_Cartesian`: Using Cartesian coordinates for the spin directions and
+   Euclidean distances with no projections into spin space. This method works
+   well for a variety of simple system. However, when the degree of complexity
+   increases, such as systems where vortexes or skyrmions can be stabilised,
+   the spring force interferes with the convergence of the band into a minimum
+   energy path. For this case it is necessary to find an optimal value of the
+   spring constant, which is difficult since the value depends on the system
+   size and interactions involved.
+
+2. `NEBM_Geodesic`: Using Cartesian coordinates for the spin directions and
+   Geodesic distances, with vectors projected in tangent space. This is the
+   optimised version of the NEBM [3] and appears to work well with every system
+   we have tried so far. Cartesian coordinates have the advantage that they are
+   well defined close to the poles of the spin directions.
+
+The following diagram shows how the code is structured:
+
+.. image:: images/nebm_classes.png
+   :scale: 60 %
+
