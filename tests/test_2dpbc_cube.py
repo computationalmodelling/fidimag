@@ -18,7 +18,7 @@ def test_compute_field():
 
     sim = Sim(mesh, name='relax')
 
-    sim.set_tols(rtol=1e-10, atol=1e-14)
+    sim.driver.set_tols(rtol=1e-10, atol=1e-14)
     sim.alpha = 0.5
     sim.gamma = 2.211e5
     sim.Ms = 8.6e5
@@ -28,7 +28,7 @@ def test_compute_field():
 
     demag = Demag(pbc_2d=True)
     sim.add(demag)
-    field=demag.compute_field()
+    field = demag.compute_field()
     print((1 + field[2] / 8.6e5))
     assert abs(1 + field[2] / 8.6e5) < 1e-10
 

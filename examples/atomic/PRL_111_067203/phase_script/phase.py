@@ -39,7 +39,7 @@ def excite_system(T=0.1, H=0.15):
 
     sim = Sim(mesh, name='dyn', driver='sllg')
     sim.set_options(dt=1e-14, gamma=const.gamma, k_B=const.k_B)
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
     sim.mu_s = const.mu_s_1
 
     sim.set_m(random_m)

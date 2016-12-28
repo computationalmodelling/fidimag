@@ -46,7 +46,7 @@ gamma = 2.211e5  # gyromagnetic ration (m/As)
 sim = fidimag.micro.Sim(mesh)
 sim.Ms = Ms_function(Ms)
 sim.alpha = alpha
-sim.gamma = gamma
+sim.driver.gamma = gamma
 
 # Add energies.
 sim.add(fidimag.micro.UniformExchange(A=A))
@@ -56,6 +56,6 @@ sim.add(fidimag.micro.DMI(D=D))
 # Initialise the system.
 sim.set_m(init_m)
 a = time.time()
-sim.run_until(5e-9)
+sim.driver.run_until(5e-9)
 b = time.time()
 print('elpased time: %g'%(b - a))

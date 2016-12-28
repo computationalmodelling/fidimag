@@ -34,8 +34,8 @@ def pin_fun(t, mesh, spin):
 
 def relax_system(mesh):
     sim = Sim(mesh, name='relax')
-    sim.alpha = 0.5
-    sim.gamma = 5
+    sim.driver.alpha = 0.5
+    sim.driver.gamma = 5
     sim.c = 2
 
     exch = UniformExchange(1)
@@ -56,8 +56,8 @@ def relax_system(mesh):
 
 def spin_wave(mesh, m0, H0=10):
     sim = Sim(mesh, name='sw')
-    sim.alpha = 0.01
-    sim.gamma = 5
+    sim.driver.alpha = 0.01
+    sim.driver.gamma = 5
     sim.c = 2
     sim.pin_fun = pin_fun
 

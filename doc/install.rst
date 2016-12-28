@@ -1,273 +1,90 @@
-How to install
-===============
+Installation Instructions
+=========================
 
-Install prerequisites
----------------------
 
-On Ubuntu systems, we need to run the following commands::
+Please use these instructions to build and run Fidimag on Linux or
+OS X. We do not currently support Windows, as none of the developers
+use this as their operating system, though please make a pull request
+with instructions or let us know if you are able to get Fidimag
+working on a Windows machine.
 
-  # required to compile fidimag
-  apt-get install cython python-numpy
-  # required for tests and running it
-  apt-get install python-pytest python-pyvtk ipython python-matplotlib
+Ubuntu
+------
 
-These are available in the script `bin/install-ubuntu-packages.sh` for convenience.
+Users can run a quick convenience script in the folder Fidimag/bin
+by running the command::
+    sudo bash ubuntu_install_script.sh
 
+Then, follow the instructions in 'All Systems' below.
 
-Install external libraries (FFTW and Sundials)
-----------------------------------------------
 
-Run the install.sh by using ::
+Other Linux
+-----------
 
-   bash install.sh
+Please install FFTW and Sundials using the scripts below, or use your package
+manager to do so.   
 
-in the fidimag/bin folder.
+* install-fftw.sh
+* install-sundials.sh
 
-Install fidimag
----------------------------------------
+We also need a number of Python packages:
+  
+  * numpy
+  * scipy
+  * cython
+  * pytest
+  * matplotlib
+  * ipywidgets
+  * pyvtk
+  * ipython
 
-In the fidimag folder type ::
+These can be installed through the pip package manager with::
 
-   make
+    pip install numpy scipy cython pytest matplotlib ipywidgets pyvtk ipython
 
-to build fidimag.
+You will need a relatively recent installation of CMake (> version 3) to use the Sundials script. You may also need to install development versions of
 
-Add the fidimag to python path
----------------------------------------
+* BLAS
+* LAPACK
 
-Add the following to your .bashrc file::
+though many Linux distributions come with these.
 
-   export PYTHONPATH=/path/to/fidimag:$PYTHONPATH
+Then, follow the instructions in 'All Systems' below.
 
-for example, suppose fidimag is in the directory of ~/work, then::
 
-   export PYTHONPATH=~/work/fidimag:$PYTHONPATH
+OS X
+----
 
-.. Add the library path to LD_LIBRARY_PATH
-.. -----------------------------------------
-..
-.. By default, the libraries are installed in fidimag/local, so in order
-.. to run fidimag we need to include the libs path in LD_LIBRARY_PATH, so
-.. please add the following to your .bashrc file::
-..
-..   export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
-..
-.. for instance::
-..
-..  export LD_LIBRARY_PATH=~/work/fidimag/local/lib:$LD_LIBRARY_PATH
+OS X has not shipped with GCC since the release of OS X Mavericks. You therefore need to install this, as the version of clang which ships does not support OpenMP. We advise that you use the brew package manager, and install gcc5. We also strongly advise that you install the Anaconda Python distribution - we do not test against the version of Python that comes with OS X.
 
+Once you have done this, you need to specify the compiler you are using::
 
-Adding OOMMF path to the system
--------------------------------
+    export CC=gcc-5
 
-For the tests that call OOMMF (in micro/tests), we need to tell the system where to
-find it. The way it is currently set up (in util/oommf.py), we need to
-find our ``oommf.tcl`` file, and add the path to it to ``.bashrc`` in this way::
+You can then follow the same installation instructions as for 'Other Linux', but don't worry about BLAS and LAPACK as Anaconda takes care of these for you.
 
-  export OOMMF_PATH=/opt/oommf/oommf-1.2a5bis
+Then, follow the instructions in 'All Systems' below.
 
 
-Installing on Iridis
-====================
+All systems
+-----------
 
-Few additional notes for installing on iridis.
+Once you've built Fidimag, you need to add the libraries to your LD_LIBRARY_PATH, so that Fidimag can find them. If you installed SUNDIALS and FFTW using our scripts, you can do this with the command::
 
-Loading Modules
----------------
+    export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
 
-Need to load the hg and numpy modules. This can be done by ::
+You may want to add this and another command to the file ~/.bashrc on Linux or ~/.bash_profile on OS X::
 
-    module load hg numpy
+    export PYTHONPATH=/path/to/fidimag:$PYTHONPATH
 
-These modules will only be loaded for your current session on iridis. To have the modules automatically loaded at login, you can add them to the module initlist by ::
+Adding Fidimag to your PYTHONPATH allows fidimag to be imported in Python from any directory.
 
-    module initadd hg numpy
+If you want to check everything has worked correctly, try the command 'make test' from the fidimag directory - if all tests pass, then you have a working installation!
 
+OOMMF
+-----
 
-Installing PyTest and PyVTK
----------------------------
+Some additional tests check Fidimag against OOMMF. To run these, you need a working OOMMF installation, and you need need to tell the system where to
+find it. You can do this by setting the environment variable to the directory containing oommf.tcl::
 
-py.test and PyVTK need to be installed locally (at /home/$USER/.local/bin/) by ::
-
-    pip install --user pytest pyvtk
-
-The following path needs to be added to the .bashrc file ::
-
-    export PATH=~/.local/bin:$PATH
-
-Cloning Repository
-------------------
-
-Can only be done with ssh keys.
-
-Quick test
-==========
-
-Use ``make test-quick`` to run a set of quick tests (that don not need
-OOMMF installed). The output should look something like::
-
-  fangohr$ make test-quick
-  cd tests && py.test -v -m "not slow and not run_oommf"
-  =================== test session starts ====================================
-  platform darwin -- Python 2.7.11, pytest-2.8.1, py-1.4.30,
-  collected 59 items
-
-  field_test.py::test_initialise_scalar PASSED
-  field_test.py::test_initialise_vector PASSED
-  test_2dpbc_cube.py::test_compute_field PASSED
-  test_anis.py::test_anis PASSED
-  test_atomistic_zeeman.py::test_zeeman PASSED
-  test_citation.py::test_citation PASSED
-  test_demag.py::test_demag_fft_exact PASSED
-  test_demag.py::test_demag_fft_exact_oommf PASSED
-  test_demag.py::test_demag_two_spin_xx PASSED
-  test_demag_libraries.py::test_hexagonal_demags_1Dchain PASSED
-  test_demag_libraries.py::test_cuboid_demags_1Dchain PASSED
-  test_demag_libraries.py::test_cuboid_demags_2D PASSED
-  test_demag_libraries.py::test_hexagonal_demags_2D PASSED
-  test_dmi.py::test_dmi_1d PASSED
-  test_dmi.py::test_dmi_1d_field PASSED
-  test_domain_wall_cobalt.py::test_domain_wall_cobalt_fast PASSED
-  test_dw_atomistic.py::test_dw_dmi_atomistic PASSED
-  test_dw_dmi.py::test_dw_dmi PASSED
-  test_energy.py::test_energy PASSED
-  test_energy.txt SKIPPED
-  test_exch.py::test_exch_1d PASSED
-  test_exch.py::test_exch_1d_spatial PASSED
-  test_exch_micro.py::test_init PASSED
-  test_exch_micro.py::test_exch_1d PASSED
-  test_exch_uniform.py::test_exch_1d PASSED
-  test_exch_uniform.py::test_exch_1d_pbc PASSED
-  test_exch_uniform.py::test_exch_2d PASSED
-  test_exch_uniform.py::test_exch_2d_pbc2d PASSED
-  test_exch_uniform.py::test_exch_3d PASSED
-  test_exch_uniform.py::test_exch_energy_1d PASSED
-  test_imports.py::test_has_pyvtk_installed PASSED
-  test_imports.py::test_has_fidimag_installed PASSED
-  test_imports.py::test_has_pytest_installed PASSED
-  test_llg.py::test_sim_pin PASSED
-  test_llg.py::test_sim_init_m PASSED
-  test_llg.py::test_sim_init_m_fun PASSED
-  test_llg.py::test_m_average PASSED
-  test_llg.py::test_sim_single_spin PASSED
-  test_llg_atomistic.py::test_sim_pin PASSED
-  test_llg_atomistic.py::test_sim_init_m PASSED
-  test_llg_atomistic.py::test_sim_init_m_fun PASSED
-  test_llg_atomistic.py::test_m_average PASSED
-  test_llg_atomistic.py::test_sim_single_spin_vode PASSED
-  test_llg_atomistic.py::test_sim_spins PASSED
-  test_llg_atomistic.py::test_sim_single_spin_sllg PASSED
-  test_mesh.py::test_mesh1 PASSED
-  test_micromagnetic_zeeman.py::test_H0_is_indexable_or_callable PASSED
-  test_micromagnetic_zeeman.py::test_zeeman PASSED
-  test_oommf_without_run.py::test_exch_field_oommf PASSED
-  test_oommf_without_run.py::test_with_oommf_spatial_Ms PASSED
-  test_oommf_without_run.py::test_dmi_field_oommf PASSED
-  test_oommf_without_run.py::test_demag_field_oommf_large PASSED
-  test_prb88_184422.py::test_prb88_184422 PASSED
-  test_sky_number.py::test_skx_num PASSED
-  test_stt.py::test_sst_field_1d PASSED
-  test_stt_slonczewski.py::test_dynamic PASSED
-
-  ============ 3 tests deselected by "-m 'not slow and not run_oommf'" ===========
-  ============ 55 passed, 1 skipped, 3 deselected in 9.88 seconds ================
-
-
-
-How to set up a virtual machine via vagrant
--------------------------------------------
-
-- install vagrant on your host machine
-- run::
-
-    vagrant init ubuntu/trusty64
-
-  to set up a basic linux machine.
-
-- run::
-
-    vagrant up
-
-  to start the machine.
-
-- ssh into the machine with X-forwarding::
-
-    vagrant ssh -- -X
-
-Then within the virtual machine::
-
-  aptitude install git
-  git clone https://github.com/fangohr/fidimag.git
-  cd fidimag/bin
-  sudo sh install-ubuntu-packages.sh
-  sh install.sh
-  cd ..
-  make
-
-To run the tests::
-
-  cd /home/vagrant/fidimag/tests
-  py.test
-
-Notes:
-
-- some tests will fail as OOMMF is not installed
-- it seems that we need an active X server, on OS X, one may need to
-  install XQuartz before the tests can pass (even 'import fidimag'
-  failed without a working X server).
-
-Install on OS X
-==================
-
-The inbuilt OS X gcc compiler (actually clang) doesn't have OpenMP support. A workaround is to
-
-- install gcc5 (via homebrew, for example: ``brew install gcc --without-multilib``)
-- set CC environment variable to point to that compiler: ``export CC=gcc-5``
-
-Alternatively, gcc can be installed through ``sudo port install gcc5`` and CC environment 
-variable can be set via ``export CC=gcc-mp-5``
-
-Once this is done, run ``bin/install-fftw.sh`` and ``bin/install-sundials.sh`` which will 
-compile fftw3 and sundials (in a local subdirectory) using this compiler.
-
-Also install pytest (``conda install pytest`` if using conda) and
-``pyvtk`` via pip (``pip install pyvtk``).
-
-Then run ``make``.
-
-Set the Pythonpath so that the fidimag source is in the path.
-
-
-Possible Issues on Mac OS 
-=============================
-ImportErrors may arise when loading fidimag if the version of sundials is 2.6, ::
-
-    ImportError: dlopen(/Users/ww1g11/Softwares/fidimag/fidimag/extensions/clib.so, 2): Library not loaded: libsundials_cvodes.2.dylib
-    Referenced from: /Users/ww1g11/Softwares/fidimag/fidimag/extensions/clib.so
-    Reason: image not found
-
-this is because the sundials library (libsundials_cvodes.2.dylib) in clib.so doesn't have a full path, 
-which can be seen by using ``otool -L fidimag/extensions/clib.so``, ::
-
-  fidimag/extensions/clib.so:
-    /Users/ww1g11/Softwares/fidimag/local/lib/libfftw3_omp.3.dylib (compatibility version 8.0.0, current version 8.4.0)
-    /opt/local/lib/libfftw3.3.dylib (compatibility version 8.0.0, current version 8.4.0)
-    libsundials_cvodes.2.dylib (compatibility version 2.0.0, current version 2.0.0)
-    libsundials_nvecserial.0.dylib (compatibility version 0.0.0, current version 0.0.2)
-    libsundials_nvecopenmp.0.dylib (compatibility version 0.0.0, current version 0.0.2)
-    /opt/local/lib/libgcc/libgomp.1.dylib (compatibility version 2.0.0, current version 2.0.0)
-    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1213.0.0)
-    /opt/local/lib/libgcc/libgcc_s.1.dylib (compatibility version 1.0.0, current version 1.0.0)
-
-A solution is to change these path manually with ``install_name_tool``, so we have provided a python script (``bin/fix_load_path_mac.py``) to do this.
-After run the script, the library path is fixed, for example, the output of the cmd ``otool -L fidimag/extensions/clib.so`` gives ::
-
-  fidimag/extensions/neb_clib.so:
-    /Users/ww1g11/Softwares/fidimag/local/lib/libfftw3_omp.3.dylib (compatibility version 8.0.0, current version 8.4.0)
-    /opt/local/lib/libfftw3.3.dylib (compatibility version 8.0.0, current version 8.4.0)
-    /Users/ww1g11/Softwares/fidimag/local/lib/libsundials_cvodes.2.dylib (compatibility version 2.0.0, current version 2.0.0)
-    /Users/ww1g11/Softwares/fidimag/local/lib/libsundials_nvecserial.0.dylib (compatibility version 0.0.0, current version 0.0.2)
-    /Users/ww1g11/Softwares/fidimag/local/lib/libsundials_nvecopenmp.0.dylib (compatibility version 0.0.0, current version 0.0.2)
-    /opt/local/lib/libgcc/libgomp.1.dylib (compatibility version 2.0.0, current version 2.0.0)
-    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1213.0.0)
-    /opt/local/lib/libgcc/libgcc_s.1.dylib (compatibility version 1.0.0, current version 1.0.0)
+    export OOMMF_PATH=/path/to/folder/containing/OOMMF

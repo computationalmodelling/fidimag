@@ -24,8 +24,8 @@ def single_spin(alpha=0.01):
     mesh = CuboidMesh(nx=1, ny=1, nz=1)
 
     sim = Sim(mesh, driver='sllg')
-    sim.alpha = alpha
-    sim.gamma = mat.gamma
+    sim.driver.alpha = alpha
+    sim.driver.gamma = mat.gamma
     sim.mu_s = mat.mu_s
     sim.T = 10000
 

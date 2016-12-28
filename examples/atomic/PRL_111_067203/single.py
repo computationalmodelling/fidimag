@@ -39,7 +39,7 @@ def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
     sim.set_default_options(gamma=const.gamma)
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.mu_s = const.mu_s_1
 
     sim.set_m(init_m)
@@ -75,7 +75,7 @@ def excite_system(mesh):
 
     sim = Sim(mesh, name='dyn', driver='sllg')
     sim.set_options(dt=1e-14, gamma=const.gamma, k_B=const.k_B)
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
     sim.mu_s = const.mu_s_1
     sim.T = temperature_gradient
 

@@ -1,3 +1,4 @@
+*.txt
 *.pyc
 /local/
 
@@ -35,3 +36,6 @@ test-reports
 
 # ignore notebook checkpoint directory
 .ipynb_checkpoints/
+
+*.npz
+*.npy

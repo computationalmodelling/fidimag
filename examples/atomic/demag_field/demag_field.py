@@ -54,7 +54,7 @@ def relax_system():
     sim = Sim(mesh, name='relax_skx')
     sim.set_default_options(gamma=const.gamma)
 
-    sim.alpha = 1.0
+    sim.driver.alpha = 1.0
 
     sim.mu_s = mu_s
 

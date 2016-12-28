@@ -29,9 +29,9 @@ mesh = fidimag.micro.CuboidMesh(nx=100, dx=1, x0=-50, unit_length=1e-9)
 sim = fidimag.micro.Sim(mesh)
 
 # Dynamics parameters.
-sim.set_tols(rtol=1e-6, atol=1e-6)
-sim.alpha = 0.5
-sim.gamma = 2.211e5
+sim.driver.set_tols(rtol=1e-6, atol=1e-6)
+sim.driver.alpha = 0.5
+sim.driver.gamma = 2.211e5
 sim.Ms = 8.6e5
 sim.do_precession = False
 

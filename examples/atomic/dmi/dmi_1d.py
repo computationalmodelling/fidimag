@@ -15,7 +15,7 @@ def init_m(pos):
 def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
-    sim.alpha = 0.1
+    sim.driver.alpha = 0.1
 
     sim.set_m(init_m)
 

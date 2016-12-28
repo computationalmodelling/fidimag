@@ -39,10 +39,10 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
 
     sim = Sim(mesh, name='test_energy')
     print('Created sim')
-    sim.set_tols(rtol=1e-10, atol=1e-12)
+    sim.driver.set_tols(rtol=1e-10, atol=1e-12)
 
     sim.alpha = mat.alpha
-    sim.gamma = mat.gamma
+    sim.driver.gamma = mat.gamma
     sim.pins = pin_fun
 
     exch = UniformExchange(mat.J)
@@ -63,7 +63,7 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
     ts = np.linspace(0, T, 201)
     for t in ts:
         # sim.save_vtk()
-        sim.run_until(t)
+        sim.driver.run_until(t)
         print(('Running -', t))
 
     # sim.save_vtk()

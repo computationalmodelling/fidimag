@@ -26,9 +26,9 @@ def relax_system(rtol=1e-10, atol=1e-12):
     """numerical solution"""
     mesh = CuboidMesh(nx=1, ny=1, nz=1)
     sim = Sim(mesh, name='relax')
-    sim.set_options(rtol=rtol, atol=atol)
-    sim.alpha = 0.5
-    sim.gamma = 2.21e5
+    sim.driver.set_tols(rtol=rtol, atol=atol)
+    sim.driver.alpha = 0.5
+    sim.driver.gamma = 2.21e5
     sim.mu_s = 1.0
 
     sim.set_m((1.0, 0, 0))
@@ -38,7 +38,7 @@ def relax_system(rtol=1e-10, atol=1e-12):
     ts = np.linspace(0, 1e-9, 1001)
 
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
 
 
 def custom_legend(legend):

@@ -4,20 +4,8 @@ from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 import sys
 
-
-# We will try to supress the stderr output from the VTK.VtkData
-# initialisations, which produce a warning when point or cell data is not
-# defined at the moment of calling the class. This decorator is made for
-# functions that only have variable assignments (we are not returning anything)
-def ignore_stderr(func):
-    def silenced(*args, **kwargs):
-        with open(os.devnull, 'w') as null:
-            err = sys.stderr
-            sys.stderr = null
-            func(*args, **kwargs)
-            sys.stderr = err
-
-    return silenced
+log = pyvtk.logging.getLogger(pyvtk.__name__)
+log.setLevel(pyvtk.logging.ERROR)
 
 
 class VTK(object):
@@ -43,15 +31,12 @@ class VTK(object):
 
         self.init_VtkData(structure, header)
 
-    @ignore_stderr
     def init_VtkData(self, structure, header):
         self.vtk_data = pyvtk.VtkData(structure, header)
 
-    @ignore_stderr
     def reset_data(self):
         self.vtk_data = pyvtk.VtkData(self.structure, self.header)
 
-    @ignore_stderr
     def save_scalar(self, s, name="my_field", step=0):
         self.vtk_data.cell_data.append(pyvtk.Scalars(s, name))
 

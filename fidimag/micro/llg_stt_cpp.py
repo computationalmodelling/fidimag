@@ -1,25 +1,50 @@
 from __future__ import division
 
-import types
+from .micro_driver import MicroDriver
 
 import fidimag.extensions.clib as clib
 import numpy as np
 
-from .llg import LLG
 import fidimag.common.helper as helper
 
 
-class LLG_STT_CPP(LLG):
+class LLG_STT_CPP(MicroDriver):
 
-    def __init__(self, mesh, name='unnamed'):
-        """Simulation object.
+    """
 
-        *Arguments*
+    This class is the driver to solve the Landau Lifshitz Gilbert equation
+    with a Current Perpendicular to the Plane, which follows the formalism
+    of Spin Transfer Torque. The equation is given by:
 
-          name : the Simulation name (used for writing data files, for examples)
+
+      dm        -gamma
+     ---- =    --------  ( m X H_eff  + a * m X ( m x H_eff ) + ... )
+      dt             2
+              ( 1 + a  )
+
+    by using the Sundials library with CVODE.
+
+    This class inherits common methods to evolve the system using CVODE, from
+    the micro_driver.MicroDriver class. Arrays with the system information
+    are taken as references from the main micromagnetic Simulation class
 
         """
-        super(LLG_STT_CPP, self).__init__(mesh, name=name)
+
+    def __init__(self, mesh, spin, Ms, field, pins,
+                 interactions,
+                 name,
+                 data_saver,
+                 integrator='sundials',
+                 use_jac=False
+                 ):
+
+        # Inherit from the driver class
+        super(LLG_STT_CPP, self).__init__(mesh, spin, Ms, field,
+                                          pins, interactions, name,
+                                          data_saver,
+                                          integrator='sundials',
+                                          use_jac=False
+                                          )
 
         self._p = np.zeros(3 * self.n, dtype=np.float)
         self._a_J = np.zeros(self.n, dtype=np.float)
@@ -55,23 +80,23 @@ class LLG_STT_CPP(LLG):
 
         if self.J_time_fun is not None:
             clib.compute_llg_stt_cpp(ydot,
-                                 self.spin,
-                                 self.field,
-                                 self._p,
-                                 self.alpha,
-                                 self._pins,
-                                 self._a_J*self.J_time_fun(t),
-                                 self.beta,
-                                 self.gamma,
-                                 self.n)
+                                     self.spin,
+                                     self.field,
+                                     self._p,
+                                     self.alpha,
+                                     self._pins,
+                                     self._a_J*self.J_time_fun(t),
+                                     self.beta,
+                                     self.gamma,
+                                     self.n)
         else:
             clib.compute_llg_stt_cpp(ydot,
-                                 self.spin,
-                                 self.field,
-                                 self._p,
-                                 self.alpha,
-                                 self._pins,
-                                 self._a_J,
-                                 self.beta,
-                                 self.gamma,
-                                 self.n)
+                                     self.spin,
+                                     self.field,
+                                     self._p,
+                                     self.alpha,
+                                     self._pins,
+                                     self._a_J,
+                                     self.beta,
+                                     self.gamma,
+                                     self.n)

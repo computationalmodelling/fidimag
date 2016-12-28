@@ -67,8 +67,6 @@ cdef extern from "clib.h":
                  double *h, double *alpha, int *pins,
                  double gamma, int n, int do_precession, double default_c)
 
-    void llg_s_rhs(double * dm_dt, double * spin, double * h,
-                   double *alpha, double *chi, double gamma, int n)
 
     void llg_rhs_jtimes(double *jtn, double *m, double *h,
                         double *mp, double *hp, double *alpha, int *pins,
@@ -227,14 +225,6 @@ def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
                 gamma, n, do_precession, default_c):
     llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0],
                    &alpha[0], &pins[0], gamma, n, do_precession, default_c)
-
-def compute_llg_s_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                np.ndarray[double, ndim=1, mode="c"] spin,
-                np.ndarray[double, ndim=1, mode="c"] field,
-                np.ndarray[double, ndim=1, mode="c"] alpha,
-                np.ndarray[double, ndim=1, mode="c"] chi,
-                gamma, n):
-    llg_s_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &chi[0], gamma, n)
 
 
 def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,

@@ -30,10 +30,10 @@ def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
 
-    sim.set_tols(rtol=1e-8,atol=1e-8)
-    sim.gamma = 2.211e5
+    sim.driver.set_tols(rtol=1e-8,atol=1e-8)
+    sim.driver.gamma = 2.211e5
     sim.Ms = Ms
-    sim.alpha = 0.5
+    sim.driver.alpha = 0.5
     sim.do_precession = False
 
     sim.set_m(init_dw)
@@ -67,10 +67,10 @@ def excite_system_K(mesh, Hx=2000):
 
     sim = Sim(mesh, name='dyn_K')
 
-    sim.set_tols(rtol=1e-8,atol=1e-8)
-    sim.gamma = 2.211e5
+    sim.driver.set_tols(rtol=1e-8,atol=1e-8)
+    sim.driver.gamma = 2.211e5
     sim.Ms = Ms
-    sim.alpha = 0.005
+    sim.driver.alpha = 0.005
 
     sim.set_m(np.load('m0.npy'))
 
@@ -105,10 +105,10 @@ def excite_system_D(mesh, Hx=2000):
 
     sim = Sim(mesh, name='dyn_D')
 
-    sim.set_tols(rtol=1e-8,atol=1e-8)
-    sim.gamma = 2.211e5
+    sim.driver.set_tols(rtol=1e-8,atol=1e-8)
+    sim.driver.gamma = 2.211e5
     sim.Ms = Ms
-    sim.alpha = 0.005
+    sim.driver.alpha = 0.005
 
     sim.set_m(np.load('m0.npy'))
 

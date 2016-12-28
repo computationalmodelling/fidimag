@@ -38,9 +38,9 @@ def relax_system(mesh):
     sim = Sim(mesh, name='relax')
 
     # Simulation parameters
-    sim.set_tols(rtol=1e-8, atol=1e-10)
-    sim.alpha = 0.5
-    sim.gamma = 2.211e5
+    sim.driver.set_tols(rtol=1e-8, atol=1e-10)
+    sim.driver.alpha = 0.5
+    sim.driver.gamma = 2.211e5
     sim.Ms = 8.6e5
     sim.do_precession = False
 
@@ -96,9 +96,9 @@ def excite_system(mesh, beta=0.0):
     # Specify the stt dynamics in the simulation
     sim = Sim(mesh, name='dyn_%g'%beta, driver='llg_stt_cpp')
 
-    sim.set_tols(rtol=1e-12, atol=1e-12)
-    sim.alpha = 0.1
-    sim.gamma = 2.211e5
+    sim.driver.set_tols(rtol=1e-12, atol=1e-12)
+    sim.driver.alpha = 0.1
+    sim.driver.gamma = 2.211e5
     sim.Ms = 8.6e5
 
     # sim.set_m(init_m)
