@@ -8,7 +8,8 @@ import glob
 import re
 import subprocess
 
-MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+THIS_FILE = os.path.dirname(os.path.abspath(__file__))
+MODULE_DIR = os.path.abspath(os.path.join(THIS_FILE, os.pardir))
 LIB_DIR = os.path.join(MODULE_DIR, "local", "lib")
 
 EXTENSION_DIR = os.path.join(MODULE_DIR, "fidimag", "extensions")
@@ -21,11 +22,11 @@ def extract_library(so_file):
     output = subprocess.check_output(cmd)
     for line in output.split('\t'):
         m = patten.match(line)
-        if m: 
+        if m:
             lib_name =  m.group()
             full_name = os.path.join(LIB_DIR, lib_name)
             #print lib_name, full_name
-            cmd = ('install_name_tool', '-change', 
+            cmd = ('install_name_tool', '-change',
                  lib_name, full_name, so_file
                  )
             os.system(' '.join(cmd))

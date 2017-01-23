@@ -1,7 +1,6 @@
 import numpy as np
-from micro import Sim
-from common import CuboidMesh
-from micro import Zeeman
+from fidimag.micro import Sim, Zeeman
+from fidimag.common import CuboidMesh
 from fidimag.common.fileio import DataReader
 import matplotlib.pyplot as plt
 

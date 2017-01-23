@@ -57,7 +57,7 @@ test-all: create-dirs
 	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-without-run-oommf: create-dirs
-	py.test -v -m "not run_oommf" --cov=fidimag --cov-report=html --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml 
+	py.test -v -m "not run_oommf" --cov=fidimag --cov-report=html --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-basic:
 	cd tests && py.test -v
@@ -71,7 +71,7 @@ test-quick:
 
 
 test-ipynb: create-dirs
-	cd doc/ipynb && py.test . -v --nbval --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
+	cd doc/ipynb && py.test . -v --current-env --nbval --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
 
 test-oommf:
 	py.test -v -m "oommf"
