@@ -195,7 +195,7 @@ class NEBMBase(object):
         # VTK saver for the magnetisation/spin field --------------------------
         self.VTK = VTK(self.mesh,
                        directory='vtks'.format(self.name),
-                       filename='m'
+                       filename='image'
                        )
 
         # Functions to convert the energy band coordinates to Cartesian
@@ -534,6 +534,8 @@ class NEBMBase(object):
         self.tablewriter.save()
         self.tablewriter_dm.save()
 
+        INNER_DOFS = slice(self.n_dofs_image, -self.n_dofs_image)
+
         for i in range(max_iterations):
 
             # Update the iterations number counter
@@ -585,11 +587,20 @@ class NEBMBase(object):
                 )
             self.tablewriter.save()
             self.tablewriter_dm.save()
+
+            # Print information about the simulation and the NEBM forces.
+            # The last two terms are the largest gradient and spring
+            # force norms from the spins (not counting the extrema)
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      "step: {:.3g}, step_size: {:.3g}"
-                      " and max_dYdt: {:.3g}.".format(self.iterations,
-                                                      increment_dt,
-                                                      max_dYdt)
+                      "step: {:.3g}, step_size: {:.3g},"
+                      "max_dYdt: {:.3g} "
+                      "|max_dE|: {:.3g} "
+                      "and |max_F_k|: {:.3g}".format(self.iterations,
+                                                     increment_dt,
+                                                     max_dYdt,
+                                                     np.max(np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)),
+                                                     np.max(np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1))
+                                                     )
                       )
 
             # -----------------------------------------------------------------
