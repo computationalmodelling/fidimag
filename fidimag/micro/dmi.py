@@ -85,7 +85,7 @@ class DMI(Energy):
         self.Ds = np.zeros(self.NN * self.n, dtype=np.float)
 
         if isinstance(self.D, np.ndarray) and len(self.D) == self.NN * self.n:
-            self.Ds = self.D
+            self.Ds = self.D.astype('float')
         # If we do not pass a (NN * n) array, we just create a scalar field as
         # usual and then repeat the entries NN times so every neighbour will
         # have the same DMI per lattice site (can vary spatially)
