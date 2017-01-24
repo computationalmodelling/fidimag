@@ -3,7 +3,7 @@ import numpy as np
 from .energy import Energy
 from fidimag.common.constant import mu_0
 import fidimag.common.helper as helper
-import gc
+# import gc
 
 
 class DMI(Energy):
@@ -11,13 +11,36 @@ class DMI(Energy):
     """
 
     Compute the Dzyaloshinskii-Moriya interaction in the micromagnetic
-    framework
+    framework. Currently, there are supported the following types of DMI:
+
+        bulk    :: The energy density associated to this DMI type is:
+
+                        w = D * M \cdot ( \nabla \times M)
+
+                   which is found in B20 compunds or materials with
+                   crystallographic class T.  Using a finite differences
+                   discretisation, this term turns into an expression similar
+                   to the atomistic DMI with DMI vector D_ij = -D r_ij, where
+                   r_ij is the vector from the i-th mesh site to the j-th
+                   neighbour
+
+        interfacial :: The energy density of this DMI is
+
+                            w = D * ( L(x)_zx - L(y)_zy )
+
+                       where L are Lifshitz invariants. This DMI is found in
+                       systems with their interface in contact with a heavy
+                       metal (larger spin orbit coupling). A finite differences
+                       discretisation turns this term into the equivalent
+                       atomistic interfacial DMI term (with a different sign).
+                       Since this DMI type is defined for interfacial systems,
+                       the interaction is only defined with respect to
+                       neighbouring sites in the xy plane and not between
+                       layers in the z direction.
 
     ARGUMENTS: ----------------------------------------------------------------
 
-    D       ::
-
-               DMI vector norm which can be specified as an int, float, (X * n)
+    D       :: DMI vector norm which can be specified as an int, float, (X * n)
                array (X=6 for bulk DMI and X=4 for interfacial DMI), (n) array
                or spatially dependent scalar field function.
 
@@ -49,21 +72,26 @@ class DMI(Energy):
         self.jac = True
         self.dmi_type = dmi_type
 
+        if self.dmi_type == 'bulk':
+            self.NN = 6
+        elif self.dmi_type == 'interfacial':
+            self.NN = 4
+
     def setup(self, mesh, spin, Ms):
         super(DMI, self).setup(mesh, spin, Ms)
 
         # We will allow to completely specify the DMI vectors according to the
-        # NNs of every lattice site, thus we need a matrix of 6 * n entries
-        self.Ds = np.zeros(6 * self.n, dtype=np.float)
+        # NNs of every lattice site, thus we need a matrix of NN * n entries
+        self.Ds = np.zeros(self.NN * self.n, dtype=np.float)
 
-        if isinstance(self.D, np.ndarray) and len(self.D) == 6 * self.n:
+        if isinstance(self.D, np.ndarray) and len(self.D) == self.NN * self.n:
             self.Ds = self.D
-        # If we do not pass a (6 * n) array, we just create a scalar field as
-        # usual and then repeat the entries 6 times so every neighbour will
+        # If we do not pass a (NN * n) array, we just create a scalar field as
+        # usual and then repeat the entries NN times so every neighbour will
         # have the same DMI per lattice site (can vary spatially)
         else:
             D_array = helper.init_scalar(self.D, self.mesh)
-            self.Ds = np.repeat(D_array, 6)
+            self.Ds = np.repeat(D_array, self.NN)
 
         # This is from the original code:
         # self.Ds[:] = helper.init_scalar(self.D, self.mesh)
@@ -101,6 +129,6 @@ class DMI(Energy):
                                                      )
         else:
             raise Exception(
-                "Unsppourted dmi type:{}, avaiable type: 'bulk','interfacial'.".format(self.dmi_type))
+                "Unsupported DMI type: {}, avaiable options: 'bulk', 'interfacial'.".format(self.dmi_type))
 
         return self.field

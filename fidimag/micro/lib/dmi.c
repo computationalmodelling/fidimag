@@ -12,11 +12,12 @@
 * Ms_inv     :: Array with the (1 / Ms) values for every mesh node.
 *               The values are zero for points with Ms = 0 (no material)
 *
-* D          :: Array with the DMI constant values
+* D          :: Array with the DMI constant values (see the description on each
+*               function for a detailed explanation)
 *
 * dx, dy, dz :: Mesh spacings in the corresponding directions
 *
-* n       :: Number of mesh nodes
+* n          :: Number of mesh nodes
 *
 * ngbs       :: The array of neighbouring spins, which has (6 * n)
 *               entries. Specifically, it contains the indexes of
@@ -270,6 +271,17 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      * If we start with this picture in the atomic model, we can get the
      * continuum expression when doing the limit  a_x a_y a_z  --> 0
      *
+     *  The DMI vector norms are given by the *D array. If our simulation has
+     *  n mesh nodes, then the D array is (4 * n) long, i.e. the DMI vector norm
+     *  per every neighbour per every mesh node. The order is the same than the NNs
+     *  array, i.e. 
+     *
+     *      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(x)_1, ...]
+     *
+     *  where D(j)_i means the DMI vector norm of the NN in the j-direction at
+     *  the i-th mesh node. Remember that the DMI vector points in a single
+     *  direction towards the NN site, e.g. the DMI vector of the NN in the
+     *  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
      */
 
     /* We set the DMi vectors here. For the j-th NN, the DMI
@@ -292,6 +304,7 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours
+	    int idn_DMI = 4 * i; // index for the neighbours for the DMI array
 
         /* Set a zero field for sites without magnetic material */
 	    if (Ms_inv[i] == 0.0){
@@ -309,15 +322,15 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
 	        if (ngbs[idn + j] >= 0) {
 
                 /* DMI coefficient according to the neighbour position */
-                DMIc = D[i] / dxs[j];
+                DMIc = D[idn_DMI + j] / dxs[j];
 
                 /* Magnetisation array index of the neighbouring spin
                  * since ngbs gives the neighbour's index */
 	            idnm = 3 * ngbs[idn + j];
 
                 /* Check that the magnetisation of the neighbouring spin
-                 * is larger than zero */
-                if (Ms_inv[ngbs[idn + j]] > 0){
+                 * is larger than zero, as well as the DMI coefficient */
+                if (Ms_inv[ngbs[idn + j]] > 0 && abs(DMIc) > 0) {
 
                     fx += DMIc * cross_x(dmivector[3 * j],
                                          dmivector[3 * j + 1],
