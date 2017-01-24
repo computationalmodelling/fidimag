@@ -1,5 +1,6 @@
 #include "micro_clib.h"
 #include <stdlib.h>
+#include <math.h>
 
 /* Functions to Compute the micromagnetic Dzyaloshinskii Moriya interaction
 *  field and energy using the
@@ -107,12 +108,25 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
      *
      *  which are the first order derivatives.
      *
+     *  The DMI vector norms are given by the *D array. If our simulation has
+     *  n mesh nodes, then the D array is (6 * n) long, i.e. the DMI vector norm
+     *  per every neighbour per every mesh node. The order is the same than the NNs
+     *  array, i.e. 
+     *
+     *      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(z)_0, D(-z)_0, D(x)_1, ...]
+     *
+     *  where D(j)_i means the DMI vector norm of the NN in the j-direction at
+     *  the i-th mesh node. Remember that the DMI vector points in a single
+     *  direction towards the NN site, e.g. the DMI vector of the NN in the
+     *  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
+     *
+     *  NOTE:
      *  To compute the DMI for other point groups we will have to find
      *  the vectors and how to discretise the derivative
      *
      */
 
-    /* The DMI vectors are the same according to the neighbours
+    /* The DMI vector directions are the same according to the neighbours
      * positions. Thus we set them here to avoid compute them
      * every time in the loop . So, if we have the j-th NN,
      * the DMI vector will be dmivector[3 * j] */
@@ -166,28 +180,32 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
                      * to the DMI strength of the current lattice site.
                      * For the denominator, for example, if j=2 or 3, then
                      * dxs[j] = dy
+                     * The D vector is 6 * n which is specified for every neighbour
                      */
-                    DMIc = -D[i] / dxs[j];
+                    DMIc = -D[idn + j] / dxs[j];
 
-                    /* The x component of the cross product of +-x
-                     * times anything is zero (similar for the other comps) */
-                    if (j != 0 && j != 1) {
-                        fx += DMIc * cross_x(dmivector[3 * j],
-                                             dmivector[3 * j + 1],
-                                             dmivector[3 * j + 2],
-                                             m[idnm], m[idnm + 1], m[idnm + 2]);
-                    }
-                    if (j != 2 && j != 3) {
-                        fy += DMIc * cross_y(dmivector[3 * j],
-                                             dmivector[3 * j + 1],
-                                             dmivector[3 * j + 2],
-                                             m[idnm], m[idnm + 1], m[idnm + 2]);
-                    }
-                    if (j != 4 && j != 5) {
-                        fz += DMIc * cross_z(dmivector[3 * j],
-                                             dmivector[3 * j + 1],
-                                             dmivector[3 * j + 2],
-                                             m[idnm], m[idnm + 1], m[idnm + 2]);
+                    /* Compute only for DMI vectors largr than zero */
+                    if (abs(DMIc) > 0) {
+                        /* The x component of the cross product of +-x
+                         * times anything is zero (similar for the other comps) */
+                        if (j != 0 && j != 1) {
+                            fx += DMIc * cross_x(dmivector[3 * j],
+                                                 dmivector[3 * j + 1],
+                                                 dmivector[3 * j + 2],
+                                                 m[idnm], m[idnm + 1], m[idnm + 2]);
+                        }
+                        if (j != 2 && j != 3) {
+                            fy += DMIc * cross_y(dmivector[3 * j],
+                                                 dmivector[3 * j + 1],
+                                                 dmivector[3 * j + 2],
+                                                 m[idnm], m[idnm + 1], m[idnm + 2]);
+                        }
+                        if (j != 4 && j != 5) {
+                            fz += DMIc * cross_z(dmivector[3 * j],
+                                                 dmivector[3 * j + 1],
+                                                 dmivector[3 * j + 2],
+                                                 m[idnm], m[idnm + 1], m[idnm + 2]);
+                        }
                     }
                 }
             }
