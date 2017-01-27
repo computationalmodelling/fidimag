@@ -1,5 +1,6 @@
 #include "nebm_lib.h"
 #include "math.h"
+#include <stdlib.h>
 
 void cross_product(double * output, double * A, double * B){
     /* Cross product between arrays A and B, assuming they
@@ -162,8 +163,10 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
     // And also the previous and next images:
     int next_im_idx, prev_im_idx;
 
-    double t_plus[n_dofs_image];
-    double t_minus[n_dofs_image];
+    double *t_plus;
+    double *t_minus;
+    t_plus  = malloc(n_dofs_image * sizeof(double));
+    t_minus = malloc(n_dofs_image * sizeof(double));
 
     double deltaE_plus, deltaE_minus;
     double deltaE_MAX, deltaE_MIN;
@@ -241,6 +244,8 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
         /* ----------------------------------------------------------------- */
 
     } // Close loop in images
+    free(t_plus);
+    free(t_minus);
 } // Close main function
 
 
