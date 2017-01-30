@@ -30,18 +30,14 @@ This is an early experimental version; contributions and pull requests to both t
 
 BibTeX:
 
-> @misc{htt&#8203;ps://doi.org/10.5281/zenodo.167858,
-
->  doi = {10.5281/zenodo.167858},
-  
->  url = {ht&#8203;tps://doi.org/10.5281/zenodo.167858},
-  
->  author = {David Cort{\'e}s-Ortu{\~n}o and Weiwei Wang and Ryan Pepper and Marc-Antonio Bisotti and Thomas Kluyver and Mark Vousden and Hans Fangohr},
-  
->  publisher = {Zenodo},
-  
->  title = {Fidimag V2.0},
-  
->  year = {2016}
+<pre>
+@misc{htt&#8203;ps://doi.org/10.5281/zenodo.167858,
+ doi = {10.5281/zenodo.167858},
+ url = {ht&#8203;tps://doi.org/10.5281/zenodo.167858},
+ author = {David Cort{\'e}s-Ortu{\~n}o and Weiwei Wang and Ryan Pepper and Marc-Antonio Bisotti and 
+           Thomas Kluyver and Mark Vousden and Hans Fangohr},
+ publisher = {Zenodo},
+ title = {Fidimag V2.0}, 
+ year = {2016}
 }
 
