@@ -40,6 +40,7 @@ BibTeX:
  title = {Fidimag V2.0}, 
  year = {2016}
 }
+</pre>
 
 # Acknowledgement 
 
