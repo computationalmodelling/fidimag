@@ -1,5 +1,6 @@
 *.txt
 *.pyc
+*.ndt
 /local/
 
 # ignore automatically generated cython files
