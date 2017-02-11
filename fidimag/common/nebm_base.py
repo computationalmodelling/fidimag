@@ -153,6 +153,14 @@ class NEBMBase(object):
                                  images: [0-1 1-2 2-3 .. etc ]
         self.last_Y           :: Array with the last computed band (like
                                  self.band) from the integrator
+        self._material        :: Array of Booleans of size (self.dof*n_spins),
+                                 i.e. the number of dofs in an image.
+                                 It is True where Ms or mu_s are larger than
+                                 zero. This is necessary to filter spins that
+                                 not need to be counted in, for example, a
+                                 scaled norm.
+        self.n_dofs_image_material :: Number of dofs where mu_s or Ms > 0
+                                      (in a single image)
 
     """
     def __init__(self, sim,
@@ -187,7 +195,7 @@ class NEBMBase(object):
             self._material = np.repeat(self.sim.mu_s / const.mu_B,
                                        self.dof) > 1e-10
 
-        self._material = self._material
+        # self._material = self._material
         # For C, we use 1 and 0s
         self._material_int = np.copy(self._material).astype(np.int32)
         self.n_dofs_image_material = np.sum(self._material)
