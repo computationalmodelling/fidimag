@@ -40,7 +40,7 @@ class LLG(MicroDriver):
         super(LLG, self).__init__(mesh, spin, Ms, field,
                                   pins, interactions, name,
                                   data_saver,
-                                  integrator='sundials',
+                                  integrator=integrator,
                                   use_jac=False
                                   )
 

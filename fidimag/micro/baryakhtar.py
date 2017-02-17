@@ -20,7 +20,7 @@ class LLBarFull(MicroDriver):
         super(LLBarFull, self).__init__(mesh, spin, Ms, field,
                                         alpha, pins, interactions, name,
                                         data_saver,
-                                        integrator='sundials',
+                                        integrator=integrator,
                                         use_jac=False
                                         )
 
