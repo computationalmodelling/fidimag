@@ -14,6 +14,7 @@ else:
     os.environ["CC"] = "gcc"
     print("Using CC={} (set by setup.py)".format(os.environ['CC']))
 
+
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
@@ -106,8 +107,10 @@ dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
-com_args = ['-std=c99']
-com_link = ['-L%s' % LIB_DIR]
+com_args = ['-std=c99', '-O3']
+com_link = []
+lib_paths = [LIB_DIR]
+
 
 if 'icc' in os.environ['CC']:
     com_args.append('-openmp')
@@ -119,11 +122,20 @@ else:
 
 com_inc = [numpy.get_include(), INCLUDE_DIR]
 
+if 'SUNDIALS_DIR' in os.environ:
+    lib_paths.append(os.environ['SUNDIALS_DIR'])
+    com_inc.append(os.environ['SUNDIALS_INC'])
+
+if 'FFTW_DIR' in os.environ:
+    lib_paths.append(os.environ['FFTW_DIR'])
+    com_inc.append(os.environ['FFTW_INC'])
+
 ext_modules = [
     Extension("fidimag.extensions.clib",
               sources=sources,
               include_dirs=com_inc,
               libraries=com_libs,
+	      library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -131,6 +143,7 @@ ext_modules = [
               sources=cvode_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -138,6 +151,7 @@ ext_modules = [
               sources=baryakhtar_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -145,6 +159,7 @@ ext_modules = [
               sources=micro_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -152,6 +167,7 @@ ext_modules = [
               sources=nebm_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -159,6 +175,7 @@ ext_modules = [
               sources=nebm_spherical_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -166,6 +183,7 @@ ext_modules = [
               sources=nebm_geodesic_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -173,6 +191,7 @@ ext_modules = [
               sources=nebm_cartesian_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -180,6 +199,7 @@ ext_modules = [
               sources=cvode_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -187,6 +207,7 @@ ext_modules = [
               sources=baryakhtar_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -194,6 +215,7 @@ ext_modules = [
               sources=micro_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -201,6 +223,7 @@ ext_modules = [
               sources=dipolar_sources,
               include_dirs=com_inc,
               libraries=com_libs,
+              library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -218,3 +241,4 @@ setup(
               ],
     ext_modules=cythonize(ext_modules),
 )
+
