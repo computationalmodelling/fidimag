@@ -4,6 +4,12 @@ python:
         - "3.4"
         - "2.7"
 
+env:
+  - C_INCLUDE_PATH=$HOME/libraries/include LD_LIBRARY_PATH=$HOME/libraries/lib:$LD_LIBRARY_PATH LD_RUN_PATH=$HOME/libraries/lib:$LD_RUN_PATH PYTHONPATH=${TRAVIS_BUILD_DIR}:$PYTHONPATH OMP_NUM_THREADS=1 MPL_BACKEND=Agg QT_API=pyqt
+
+cache:
+  directories:
+  - $HOME/libraries
 
 before_install:
   # We do this conditionally because it saves us some downloading if the
@@ -21,20 +27,11 @@ install:
   - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython matplotlib pytest scipy pytest-cov gcc cmake psutil
   - source activate fidimag-test
   - pip install pyvtk six nbval ipywidgets
-  # Download and compile FFTW & Sundials locally
-  - bash bin/install-sundials.sh
-  - bash bin/install-fftw.sh
 
 before_script:
-        - conda list
-        - make build
-        - export PYTHONPATH="$TRAVIS_BUILD_DIR:$PYTHONPATH"
-        - export LD_LIBRARY_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_LIBRARY_PATH"
-        - export LD_RUN_PATH="$TRAVIS_BUILD_DIR/local/lib:$LD_RUN_PATH"
-        - export OMP_NUM_THREADS=1
-        - export MPLBACKEND=Agg
-        # Tells matplotlib (?) to use PyQt class v2 APIs (I think)
-        - export QT_API=pyqt
+  - bash ${TRAVIS_BUILD_DIR}/bin/travis-libs-helper.sh
+  - conda list
+  - make build
 
 # command to run tests
 script:
