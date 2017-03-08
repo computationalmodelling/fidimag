@@ -27,13 +27,16 @@ def initial_m(r, length=LENGTH):
 
 def reference_mz(x):
     # analytical solution for the relaxed mz
-    return math.cos(math.pi / 2 + math.atan(math.sinh(((x - LENGTH / 2) * UNIT_LENGTH) / math.sqrt(A_Co / K1_Co))))
+    return math.cos(math.pi / 2 + math.atan(
+        math.sinh(((x - LENGTH / 2) * UNIT_LENGTH) / math.sqrt(A_Co / K1_Co))))
 
 
-def setup_domain_wall_cobalt(node_count=NODE_COUNT, A=A_Co, Ms=Ms_Co, K1=K1_Co, length=LENGTH, do_precession=True, unit_length=UNIT_LENGTH):
+def setup_domain_wall_cobalt(node_count=NODE_COUNT, A=A_Co, Ms=Ms_Co, K1=K1_Co,
+                             length=LENGTH, do_precession=True, unit_length=UNIT_LENGTH,
+                             integrator="sundials", use_jac=False):
     a = length / node_count  # cell size
     mesh = CuboidMesh(dx=a, dy=a, dz=a, nx=node_count, ny=1, nz=1, unit_length=unit_length)
-    sim = Sim(mesh, "dw_cobalt")
+    sim = Sim(mesh, "dw_cobalt", integrator=integrator, use_jac=use_jac)
     sim.Ms = Ms
     sim.set_m(lambda r: initial_m(r, length))
     sim.do_precession = do_precession
@@ -68,6 +71,7 @@ def test_domain_wall_cobalt(end_time=1e-9):
     else:
         raise NotImplementedError(
             "Don't know accepted deviation for end_time={}".format(end_time))
+    assert diff <= accepted_deviation
 
 
 def test_domain_wall_cobalt_fast():
