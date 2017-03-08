@@ -196,7 +196,7 @@ class MicroDriver(DriverBase):
         self.VTK.reset_data()
 
         # Here we save both Ms and spins as cell data
-        self.VTK.save_scalar(self._Ms, name='mu_s')
+        self.VTK.save_scalar(self._Ms, name='M_s')
         self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
 
         self.VTK.write_file(step=self.step)
