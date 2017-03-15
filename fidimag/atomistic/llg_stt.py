@@ -34,7 +34,8 @@ class LLG_STT(AtomisticDriver):
                  interactions,
                  name,
                  data_saver,
-                 use_jac
+                 use_jac,
+                 integrator='sundials'
                  ):
 
         # Inherit from the driver class

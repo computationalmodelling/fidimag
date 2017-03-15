@@ -30,7 +30,8 @@ class SLLG(AtomisticDriver):
                  interactions,
                  name,
                  data_saver,
-                 use_jac=False
+                 use_jac=False,
+                 integrator='sundials'
                  ):
 
         # Inherit from the driver class

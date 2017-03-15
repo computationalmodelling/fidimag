@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import numpy as np
 import fidimag.common.helper as helper
+from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
 
 
 class DriverBase(object):
@@ -68,6 +69,40 @@ class DriverBase(object):
         self._alpha[:] = helper.init_scalar(value, self.mesh)
 
     alpha = property(get_alpha, set_alpha)
+
+    def set_integrator(self, integrator, use_jac):
+        # Integrator options --------------------------------------------------
+
+        # Here we set up the CVODE integrator from Sundials to evolve a
+        # specific micromagnetic equation. The equations are specified in the
+        # sundials_rhs function from any of the micromagnetic drivers in the
+        # micromagnetic folder (LLG, LLG_STT, etc.)
+
+        if integrator == "sundials" and use_jac:
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
+                                          self.sundials_jtimes)
+        elif integrator == "sundials_diag":
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
+                                          linear_solver="diag")
+        elif integrator == "sundials":
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
+        elif integrator == "euler" or integrator == "rk4":
+            self.integrator = CvodeSolver(self.spin, self.step_rhs,
+                                          integrator)
+
+        elif integrator == "sundials_openmp" and use_jac:
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
+                                                 self.sundials_jtimes)
+        elif integrator == "sundials_diag_openmp":
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
+                                                 linear_solver="diag")
+        elif integrator == "sundials_openmp":
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
+        elif integrator == "euler_openmp" or integrator == "rk4_openmp":
+            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
+                                                 integrator)
+        else:
+            raise NotImplemented("integrator must be sundials, euler or rk4")
 
     # ------------------------------------------------------------------------
 
