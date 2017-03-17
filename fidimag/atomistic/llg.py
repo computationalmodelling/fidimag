@@ -39,7 +39,8 @@ class LLG(AtomisticDriver):
         super(LLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
                                   pins, interactions, name,
                                   data_saver,
-                                  use_jac
+                                  use_jac,
+                                  integrator
                                   )
 
     def sundials_rhs(self, t, y, ydot):
