@@ -42,7 +42,7 @@ class LLG_STT(MicroDriver):
                                       pins, interactions, name,
                                       data_saver,
                                       integrator=integrator,
-                                      use_jac=False
+                                      use_jac=use_jac
                                       )
 
         self.field_stt = np.zeros(3 * self.n)

@@ -41,7 +41,7 @@ class LLG(MicroDriver):
                                   pins, interactions, name,
                                   data_saver,
                                   integrator=integrator,
-                                  use_jac=False
+                                  use_jac=use_jac
                                   )
 
     def sundials_rhs(self, t, y, ydot):

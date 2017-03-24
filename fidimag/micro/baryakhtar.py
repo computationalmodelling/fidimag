@@ -21,7 +21,7 @@ class LLBarFull(MicroDriver):
                                         alpha, pins, interactions, name,
                                         data_saver,
                                         integrator=integrator,
-                                        use_jac=False
+                                        use_jac=use_jac
                                         )
 
         self.chi = chi

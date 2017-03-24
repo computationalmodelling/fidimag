@@ -40,7 +40,7 @@ class LLG(AtomisticDriver):
                                   pins, interactions, name,
                                   data_saver,
                                   use_jac,
-                                  integrator
+                                  integrator=integrator
                                   )
 
     def sundials_rhs(self, t, y, ydot):

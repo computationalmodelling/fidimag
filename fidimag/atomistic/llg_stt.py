@@ -42,7 +42,8 @@ class LLG_STT(AtomisticDriver):
         super(LLG_STT, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
                                       pins, interactions, name,
                                       data_saver,
-                                      use_jac
+                                      use_jac,
+                                      integrator=integrator
                                       )
 
         self.field_stt = np.zeros(3 * self.n)
