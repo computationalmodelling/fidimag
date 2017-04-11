@@ -2,7 +2,7 @@ FROM ubuntu:14.04
 
 # packages we need to run fidimag
 RUN apt-get -y update
-RUN apt-get -y install python3-numpy python3-dev python3-scipy
+RUN apt-get -y install python3-numpy python3-dev python3-scipy cmake
 RUN apt-get -y install python3-pytest ipython3 python3-matplotlib python3-pip
 # standard tools for compilation
 RUN apt-get -y install wget make git
@@ -17,7 +17,7 @@ WORKDIR $FIDIMAG_HOME/fidimag/bin
 
 # install third party libraries from source
 RUN bash install-fftw.sh
-RUN bash install-sundials-2.5.sh
+RUN bash install-sundials.sh
 
 # for pip
 RUN python3 -m pip install --user --upgrade setuptools pip
@@ -26,7 +26,7 @@ RUN python3 -m pip install pyvtk
 # install cython
 RUN python3 -m pip install cython --upgrade
 WORKDIR $FIDIMAG_HOME/fidimag
-
+RUN apt-get -y install libatlas-base-dev libatlas3-base libatlas3gf-base
 # compile fidimag
 RUN python3 setup.py build_ext --inplace
 env PYTHONPATH=$FIDIMAG_HOME/fidimag
@@ -57,6 +57,8 @@ RUN chown -R fidimag /io
 USER fidimag
 RUN touch $FIDIMAG_HOME/.sudo_as_admin_successful
 
+RUN cd fidimag
+RUN py.test -v
 # Print something nice on entry.
 #COPY WELCOME $FIDIMAG_HOME/WELCOME
 
