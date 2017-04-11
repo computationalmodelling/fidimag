@@ -40,8 +40,8 @@ class LLG(MicroDriver):
         super(LLG, self).__init__(mesh, spin, Ms, field,
                                   pins, interactions, name,
                                   data_saver,
-                                  integrator='sundials',
-                                  use_jac=False
+                                  integrator=integrator,
+                                  use_jac=use_jac
                                   )
 
     def sundials_rhs(self, t, y, ydot):

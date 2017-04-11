@@ -49,7 +49,7 @@ class Sim(SimBase):
 
     def __init__(self, mesh, name='unnamed', driver='llg',
                  # Integrator arguments:
-                 # integrator='sundials',
+                 integrator='sundials',
                  use_jac=False
                  ):
 
@@ -83,7 +83,7 @@ class Sim(SimBase):
                                             self.interactions,
                                             self.name,
                                             self.data_saver,
-                                            # integrator=integrator,
+                                            integrator=integrator,
                                             use_jac=use_jac
                                             )
 

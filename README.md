@@ -26,22 +26,27 @@ This is an early experimental version; contributions and pull requests to both t
 
 # How to cite Fidimag
 
-> David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, & Hans Fangohr. (2016). Fidimag v2.0 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.167858
+David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, & Hans Fangohr. (2016). Fidimag v2.0 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.167858
 
 BibTeX:
 
-> @misc{htt&#8203;ps://doi.org/10.5281/zenodo.167858,
-
->  doi = {10.5281/zenodo.167858},
-  
->  url = {ht&#8203;tps://doi.org/10.5281/zenodo.167858},
-  
->  author = {David Cort{\'e}s-Ortu{\~n}o and Weiwei Wang and Ryan Pepper and Marc-Antonio Bisotti and Thomas Kluyver and Mark Vousden and Hans Fangohr},
-  
->  publisher = {Zenodo},
-  
->  title = {Fidimag V2.0},
-  
->  year = {2016}
+<pre>
+@misc{htt&#8203;ps://doi.org/10.5281/zenodo.167858,
+ doi = {10.5281/zenodo.167858},
+ url = {ht&#8203;tps://doi.org/10.5281/zenodo.167858},
+ author = {David Cort{\'e}s-Ortu{\~n}o and Weiwei Wang and Ryan Pepper and Marc-Antonio Bisotti and 
+           Thomas Kluyver and Mark Vousden and Hans Fangohr},
+ publisher = {Zenodo},
+ title = {Fidimag V2.0}, 
+ year = {2016}
 }
+</pre>
 
+# Acknowledgement 
+
+We acknowledge financial support from
+
+- EPSRC’s Centre for Doctoral Training in Next Generation
+  Computational Modelling, http://ngcm.soton.ac.uk (#EP/L015382/1) and
+  EPSRC’s Doctoral Training Centre in Complex System Simulation
+  ((EP/G03690X/1), http://icss.soton.ac.uk

@@ -28,36 +28,36 @@ cdef extern from "micro_clib.h":
 
 
 def compute_exchange_field_micro(np.ndarray[double, ndim=1, mode="c"] m,
-                            np.ndarray[double, ndim=1, mode="c"] field,
-                            np.ndarray[double, ndim=1, mode="c"] energy,
-                            np.ndarray[double, ndim=1, mode="c"] Ms_inv,
-                            A, dx, dy, dz, n,
-            		    np.ndarray[int, ndim=2, mode="c"] ngbs):
+                                 np.ndarray[double, ndim=1, mode="c"] field,
+                                 np.ndarray[double, ndim=1, mode="c"] energy,
+                                 np.ndarray[double, ndim=1, mode="c"] Ms_inv,
+                                 A, dx, dy, dz, n,
+            		             np.ndarray[int, ndim=2, mode="c"] ngbs):
 
     compute_exch_field_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], A,
                              dx, dy, dz, n, &ngbs[0, 0])
     
 
 def compute_dmi_field_bulk(np.ndarray[double, ndim=1, mode="c"] m,
-                            np.ndarray[double, ndim=1, mode="c"] field,
-                            np.ndarray[double, ndim=1, mode="c"] energy,
-                            np.ndarray[double, ndim=1, mode="c"] Ms_inv,
-                            np.ndarray[double, ndim=1, mode="c"] D,
-                            dx, dy, dz,
-                            n, np.ndarray[int, ndim=2, mode="c"] ngbs
-                            ):
+                           np.ndarray[double, ndim=1, mode="c"] field,
+                           np.ndarray[double, ndim=1, mode="c"] energy,
+                           np.ndarray[double, ndim=1, mode="c"] Ms_inv,
+                           np.ndarray[double, ndim=1, mode="c"] D,
+                           dx, dy, dz,
+                           n, np.ndarray[int, ndim=2, mode="c"] ngbs
+                           ):
 
     dmi_field_bulk(&m[0], &field[0], &energy[0], &Ms_inv[0], &D[0],
                    dx, dy, dz, n, &ngbs[0, 0])
     
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] m,
-                            np.ndarray[double, ndim=1, mode="c"] field,
-                            np.ndarray[double, ndim=1, mode="c"] energy,
-                            np.ndarray[double, ndim=1, mode="c"] Ms_inv,
-                            np.ndarray[double, ndim=1, mode="c"] D,
-                            dx, dy, dz, 
-                            n, np.ndarray[int, ndim=2, mode="c"] ngbs
-                            ):
+                                  np.ndarray[double, ndim=1, mode="c"] field,
+                                  np.ndarray[double, ndim=1, mode="c"] energy,
+                                  np.ndarray[double, ndim=1, mode="c"] Ms_inv,
+                                  np.ndarray[double, ndim=1, mode="c"] D,
+                                  dx, dy, dz, 
+                                  n, np.ndarray[int, ndim=2, mode="c"] ngbs
+                                  ):
 
     dmi_field_interfacial(&m[0], &field[0], &energy[0], &Ms_inv[0], &D[0],
                           dx, dy, dz, n, &ngbs[0, 0])

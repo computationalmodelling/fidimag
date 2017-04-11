@@ -30,14 +30,16 @@ class SLLG(AtomisticDriver):
                  interactions,
                  name,
                  data_saver,
-                 use_jac=False
+                 use_jac=False,
+                 integrator='sundials'
                  ):
 
         # Inherit from the driver class
         super(SLLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
                                    pins, interactions, name,
                                    data_saver,
-                                   use_jac=False
+                                   use_jac=use_jac,
+                                   integrator=integrator
                                    )
 
         self._T = np.zeros(self.n, dtype=np.float)

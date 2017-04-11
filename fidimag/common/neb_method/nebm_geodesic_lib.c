@@ -22,6 +22,14 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
      *                 the A or B arrays. Since we assume Cartesian
      *                 coordinates, the number of spins is just:
      *                      n_dofs_image / 3
+     * 
+     * material     :: An array of size (3 * n_spins), containing only 1 and 0s
+     *                 For every spin, its value is repeated 3 times (the number
+     *                 of dofs). The values of material is 1 where mu_s or M_s
+     *                 are larger than zero.
+     *                 This array is not necessary here since sites without
+     *                 material do not change their magnetisation and thus they
+     *                 do not contribute to the Geodesic distance magnitude 
      *
      * Vicenty's formula is defined by computing the distance between
      * corresponding spins of the images A and B. So, if we have m(A)_i as
@@ -53,7 +61,10 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
     // in the arrays
     // We do not sum sites without material
     for(int i = 0; i < n_spins; i++){
-        if (material[i] > 0) {
+        // We only need to know if the spin is in a site with material (Ms, mu_s > 0)
+        // so we skip the material for m_y and m_z which are basically the same than
+        // the material for m_x
+        if (material[3 * i] > 0) {
             spin_i = 3 * i;
 
             cross_product(A_cross_B, &A[spin_i], &B[spin_i]);

@@ -42,7 +42,8 @@ class AtomisticDriver(DriverBase):
                  interactions,
                  name,
                  data_saver,
-                 use_jac
+                 use_jac,
+                 integrator='sundials'
                  ):
 
         super(AtomisticDriver, self).__init__()
@@ -76,11 +77,10 @@ class AtomisticDriver(DriverBase):
 
         # Integrator options --------------------------------------------------
 
-        if use_jac is not True:
-            self.integrator = cvode.CvodeSolver(self.spin, self.sundials_rhs)
-        else:
-            self.integrator = cvode.CvodeSolver(
-                self.spin, self.sundials_rhs, self.sundials_jtn)
+        # In the old code, it seemed that self.sundials_jtn was not defined
+        # anywhere else. Here, we will use the same integrators than in the
+        # micromagnetic code, where we have self.sundials_jtimes instead of jtn
+        self.set_integrator(integrator, use_jac)
 
         self.set_tols()
 

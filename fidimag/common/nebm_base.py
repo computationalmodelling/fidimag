@@ -153,6 +153,14 @@ class NEBMBase(object):
                                  images: [0-1 1-2 2-3 .. etc ]
         self.last_Y           :: Array with the last computed band (like
                                  self.band) from the integrator
+        self._material        :: Array of Booleans of size (self.dof*n_spins),
+                                 i.e. the number of dofs in an image.
+                                 It is True where Ms or mu_s are larger than
+                                 zero. This is necessary to filter spins that
+                                 not need to be counted in, for example, a
+                                 scaled norm.
+        self.n_dofs_image_material :: Number of dofs where mu_s or Ms > 0
+                                      (in a single image)
 
     """
     def __init__(self, sim,
@@ -187,7 +195,7 @@ class NEBMBase(object):
             self._material = np.repeat(self.sim.mu_s / const.mu_B,
                                        self.dof) > 1e-10
 
-        self._material = self._material
+        # self._material = self._material
         # For C, we use 1 and 0s
         self._material_int = np.copy(self._material).astype(np.int32)
         self.n_dofs_image_material = np.sum(self._material)
@@ -195,7 +203,7 @@ class NEBMBase(object):
         # VTK saver for the magnetisation/spin field --------------------------
         self.VTK = VTK(self.mesh,
                        directory='vtks'.format(self.name),
-                       filename='m'
+                       filename='image'
                        )
 
         # Functions to convert the energy band coordinates to Cartesian
@@ -534,6 +542,8 @@ class NEBMBase(object):
         self.tablewriter.save()
         self.tablewriter_dm.save()
 
+        INNER_DOFS = slice(self.n_dofs_image, -self.n_dofs_image)
+
         for i in range(max_iterations):
 
             # Update the iterations number counter
@@ -585,11 +595,20 @@ class NEBMBase(object):
                 )
             self.tablewriter.save()
             self.tablewriter_dm.save()
+
+            # Print information about the simulation and the NEBM forces.
+            # The last two terms are the largest gradient and spring
+            # force norms from the spins (not counting the extrema)
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      "step: {:.3g}, step_size: {:.3g}"
-                      " and max_dYdt: {:.3g}.".format(self.iterations,
-                                                      increment_dt,
-                                                      max_dYdt)
+                      "step: {:.3g}, step_size: {:.3g},"
+                      "max_dYdt: {:.3g} "
+                      "|max_dE|: {:.3g} "
+                      "and |max_F_k|: {:.3g}".format(self.iterations,
+                                                     increment_dt,
+                                                     max_dYdt,
+                                                     np.max(np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)),
+                                                     np.max(np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1))
+                                                     )
                       )
 
             # -----------------------------------------------------------------
