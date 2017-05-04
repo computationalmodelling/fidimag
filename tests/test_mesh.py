@@ -13,7 +13,7 @@ def test_mesh1():
 class Mesh_TestCase(unittest.TestCase):
     def test_mesh_input_args(self):
         self.assertRaises(ValueError, CuboidMesh, 1, 1, 0, 1, 1, 1)
-
+        self.assertRaises(ValueError, CuboidMesh, 1, 1, 1, 0, 1, 1)
 
 if __name__ == '__main__':
     test_mesh1()
