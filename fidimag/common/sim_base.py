@@ -275,3 +275,17 @@ class SimBase(object):
             energy += obj.compute_energy()
 
         return energy
+
+    def get_field_array(self, interaction):
+        """
+        Returns the field array corresponding to the interaction given:
+
+        e.g.
+            compute_interaction_field('Demag')
+        returns a numpy array containing the Demag field.
+        """
+        field = self.get_interaction(interaction)
+        # Copy here to avoid destroying the field accidentally
+        # e.g. through reshaping
+        f = field.field.copy()
+        return f
