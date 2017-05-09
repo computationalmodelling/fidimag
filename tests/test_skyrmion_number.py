@@ -14,6 +14,7 @@ from fidimag.micro import Zeeman as microZeeman
 from fidimag.micro import Sim as microSim
 
 import fidimag.common.constant as const
+from fidimag.common.helper import compute_RxRy
 
 import numpy as np
 
@@ -112,6 +113,12 @@ def test_skx_num_atomistic():
 
     # Test the Berg-Luscher method
     assert np.abs(skn_BL - (-1)) < 1e-4 and np.sign(skn_BL) < 0
+
+    # Test guiding center
+    Rx, Ry = compute_RxRy(mesh, sim.spin)
+    print('Rx=%g, Ry=%g'%(Rx, Ry))
+    assert Rx<60 and Rx>58
+    assert Ry<60 and Ry>58
 
 
 def test_skx_num_atomistic_hexagonal():

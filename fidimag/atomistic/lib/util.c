@@ -419,9 +419,9 @@ void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res) {
 			S_j[0] = S_j[1] = S_j[2] = 0;
 			if (i < nx - 1 ) {
                                 id = 3*get_index(i+1,j,k,nx,nxy);
-				S_j[0] = spin[id];
-				S_j[1] = spin[id + 1];
-				S_j[2] = spin[id + 2];
+				S_i[0] = spin[id];
+				S_i[1] = spin[id + 1];
+				S_i[2] = spin[id + 2];
 			}
 
 			if (j < ny - 1) {
