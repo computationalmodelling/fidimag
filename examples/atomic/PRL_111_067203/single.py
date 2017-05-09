@@ -58,7 +58,7 @@ def relax_system(mesh):
 
     ONE_DEGREE_PER_NS = 17453292.52
 
-    sim.relax(dt=1e-13, stopping_dmdt=0.01 * ONE_DEGREE_PER_NS,
+    sim.relax(dt=1e-13, stopping_dmdt=0.01,
               max_steps=1000, save_m_steps=100, save_vtk_steps=50)
 
     np.save('m0.npy', sim.spin)
