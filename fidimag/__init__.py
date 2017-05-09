@@ -60,7 +60,6 @@ except ImportError as e:
 #                      "\nTry the steps above!")
 
 
-from .gui import GUI
 
 citation = common.citation
 

@@ -4,7 +4,7 @@ from __future__ import print_function
 from fidimag.common.driver_base import DriverBase
 
 import numpy as np
-from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
+
 # from fidimag.common.fileio import DataSaver, DataReader
 from fidimag.common.vtk import VTK
 import time
@@ -77,37 +77,7 @@ class MicroDriver(DriverBase):
         self.set_default_options()
 
         # Integrator options --------------------------------------------------
-
-        # Here we set up the CVODE integrator from Sundials to evolve a
-        # specific micromagnetic equation. The equations are specified in the
-        # sundials_rhs function from any of the micromagnetic drivers in the
-        # micromagnetic folder (LLG, LLG_STT, etc.)
-
-        if integrator == "sundials" and use_jac:
-            self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
-                                          self.sundials_jtimes)
-        elif integrator == "sundials_diag":
-            self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
-                                          linear_solver="diag")
-        elif integrator == "sundials":
-            self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
-        elif integrator == "euler" or integrator == "rk4":
-            self.integrator = CvodeSolver(self.spin, self.step_rhs,
-                                          integrator)
-
-        elif integrator == "sundials_openmp" and use_jac:
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
-                                                 self.sundials_jtimes)
-        elif integrator == "sundials_diag_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
-                                                 linear_solver="diag")
-        elif integrator == "sundials_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
-        elif integrator == "euler_openmp" or integrator == "rk4_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
-                                                 integrator)
-        else:
-            raise NotImplemented("integrator must be sundials, euler or rk4")
+        self.set_integrator(integrator, use_jac)
 
         # Savers --------------------------------------------------------------
 
@@ -196,7 +166,7 @@ class MicroDriver(DriverBase):
         self.VTK.reset_data()
 
         # Here we save both Ms and spins as cell data
-        self.VTK.save_scalar(self._Ms, name='mu_s')
+        self.VTK.save_scalar(self._Ms, name='M_s')
         self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
 
         self.VTK.write_file(step=self.step)

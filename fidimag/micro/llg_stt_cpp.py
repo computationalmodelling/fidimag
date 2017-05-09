@@ -42,8 +42,8 @@ class LLG_STT_CPP(MicroDriver):
         super(LLG_STT_CPP, self).__init__(mesh, spin, Ms, field,
                                           pins, interactions, name,
                                           data_saver,
-                                          integrator='sundials',
-                                          use_jac=False
+                                          integrator=integrator,
+                                          use_jac=use_jac
                                           )
 
         self._p = np.zeros(3 * self.n, dtype=np.float)

@@ -365,41 +365,49 @@ void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px, double *p
 
 }
 
+
+inline int get_index(int i, int j, int k, int nx, int nxy){
+
+   return k*nxy + j*nx+i;
+
+}
+
+
 // compute the guiding centre, Dynamics of magnetic vortices,     N. Papanicolaou,
 // T.N. Tomaras 360, 425-462, (1991)
 void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res) {
 
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
+	int nxy = ny * nx;
 	int i, j;
-	int index, id;
+	int id, index;
 
 	double charge;
 	double sum = 0, Rx = 0, Ry = 0;
 
 	double S[3], S_i[3], S_j[3];
+        int k = 0;
 
 	for (i = 0; i < nx; i++) {
 		for (j = 0; j < ny; j++) {
-			index = nyz * i + nz * j;
+			index = 3*get_index(i,j,k,nx,nxy);
 			S[0] = spin[index];
-			S[1] = spin[index + n1];
-			S[2] = spin[index + n2];
+			S[1] = spin[index + 1];
+			S[2] = spin[index + 2];
 
 			S_i[0] = S_i[1] = S_i[2] = 0;
 			S_j[0] = S_j[1] = S_j[2] = 0;
 			if (j > 0) {
-				id = index - nz;
+                                id = 3*get_index(i,j-1,k,nx,nxy);
 				S_j[0] = spin[id];
-				S_j[1] = spin[id + n1];
-				S_j[2] = spin[id + n2];
+				S_j[1] = spin[id + 1];
+				S_j[2] = spin[id + 2];
 			}
 
 			if (i > 0) {
-				id = index - nyz;
+                                id = 3*get_index(i-1,j,k,nx,nxy);
 				S_i[0] = spin[id];
-				S_i[1] = spin[id + n1];
-				S_i[2] = spin[id + n2];
+				S_i[1] = spin[id + 1];
+				S_i[2] = spin[id + 2];
 			}
 
 			charge = volume(S, S_i, S_j);
@@ -410,17 +418,17 @@ void compute_guiding_center(double *spin, int nx, int ny, int nz, double *res) {
 			S_i[0] = S_i[1] = S_i[2] = 0;
 			S_j[0] = S_j[1] = S_j[2] = 0;
 			if (i < nx - 1 ) {
-				id = index + nyz;
+                                id = 3*get_index(i+1,j,k,nx,nxy);
 				S_i[0] = spin[id];
-				S_i[1] = spin[id + n1];
-				S_i[2] = spin[id + n2];
+				S_i[1] = spin[id + 1];
+				S_i[2] = spin[id + 2];
 			}
 
 			if (j < ny - 1) {
-				id = index + nz;
+                                id = 3*get_index(i,j+1,k,nx,nxy);
 				S_j[0] = spin[id];
-				S_j[1] = spin[id + n1];
-				S_j[2] = spin[id + n2];
+				S_j[1] = spin[id + 1];
+				S_j[2] = spin[id + 2];
 			}
 
 
