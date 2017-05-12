@@ -9,6 +9,7 @@ import fidimag.extensions.nebm_clib as nebm_clib
 from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .nebm_tools import linear_interpolation_spherical
 from .nebm_tools import interpolation_Rodrigues_rotation
+from .nebm_tools import m_to_zero_nomaterial
 
 from .nebm_base import NEBMBase
 
@@ -246,6 +247,10 @@ class NEBM_Geodesic(NEBMBase):
                         self.interpolations[i],
                         self.sim._pins
                         )
+
+                interpolation = np.apply_along_axis(lambda m: m_to_zero_nomaterial(m, self.sim),
+                                                    axis=1,
+                                                    arr=interpolation)
 
                 # We then set the interpolated spins fields at once
                 self.band[i_initial_images[i] + 1:

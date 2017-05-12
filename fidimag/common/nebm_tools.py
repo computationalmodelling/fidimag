@@ -213,3 +213,19 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
     y_final.shape = (-1)
 
     return interpolations
+
+def m_to_zero_nomaterial(image_cartesian, sim):
+    """
+    For spins in sites with no material, we set its spin
+    direction to [0, 0, 0]
+    
+    Input is an image in Cartesian coordinates:
+        [mx_0 my_0 mz_0 mx_1 my_1 ... mz_(P-1)]
+
+    sim is a fidimag simulation object from which we extract
+    the Ms or mu_s to filter the spin directions
+    """
+    image_reshape = np.copy(image_cartesian.reshape(-1, 3))
+    _filter = sim._magnetisation == 0  
+    image_reshape[_filter] = np.array([0., 0., 0.])
+    return image_reshape.reshape(-1)
