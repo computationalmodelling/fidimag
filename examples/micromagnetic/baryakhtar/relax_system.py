@@ -12,8 +12,9 @@ from fidimag.micro import UniformExchange
 
 def relax_system(mesh):
 
-    sim = Sim(mesh, chi=1e-3, name='relax', driver='llbar_full')
+    sim = Sim(mesh, name='relax', driver='llbar_full')
 
+    sim.driver.chi = 1e-3
     sim.driver.set_tols(rtol=1e-7, atol=1e-7)
     sim.Ms = 8.0e5
     sim.driver.alpha = 0.1

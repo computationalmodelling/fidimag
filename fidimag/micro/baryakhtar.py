@@ -7,7 +7,7 @@ from .relax import Laplace
 
 class LLBarFull(MicroDriver):
 
-    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+    def __init__(self, mesh, spin, Ms, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -18,7 +18,7 @@ class LLBarFull(MicroDriver):
 
         # Inherit from the driver class
         super(LLBarFull, self).__init__(mesh, spin, Ms, field,
-                                        alpha, pins, interactions, name,
+                                        pins, interactions, name,
                                         data_saver,
                                         integrator=integrator,
                                         use_jac=use_jac
@@ -58,7 +58,7 @@ class LLBarFull(MicroDriver):
 
 class LLBar(MicroDriver):
 
-    def __init__(self, mesh, spin, Ms, field, alpha, pins,
+    def __init__(self, mesh, spin, Ms, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -68,7 +68,7 @@ class LLBar(MicroDriver):
 
         # Inherit from the driver class
         super(LLBar, self).__init__(mesh, spin, Ms, field,
-                                    alpha, pins, interactions, name,
+                                    pins, interactions, name,
                                     data_saver,
                                     integrator='sundials',
                                     use_jac=False
