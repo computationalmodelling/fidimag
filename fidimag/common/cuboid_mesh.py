@@ -27,7 +27,7 @@ in the innermost loop, and the z-axis in the outermost loop!
 
 """
 from __future__ import print_function
-from psutil import 	virtual_memory
+from psutil import virtual_memory
 import numpy as np
 from textwrap import dedent
 from six.moves import range
@@ -53,6 +53,12 @@ class CuboidMesh(object):
             # of 2 nm in any direction and periodic along the x-axis.
 
         """
+
+        if (np.array([nx, ny, nz]) <= 0).any():
+            raise ValueError("nx, ny and nz must be integers >= 1")
+        if (np.array([dx, dy, dz]) <= 0).any():
+            raise ValueError("dx, dy and dz must be greater than 0")
+
         self.dx = dx
         self.dy = dy
         self.dz = dz
@@ -279,7 +285,7 @@ class CuboidMesh(object):
 
         if 2 * size_coordinates_GiB > mem_GiB:
             # print because no logging yet
-            print("Warning! Size of mesh coordinates i {} GiB.".format(
+            print("Warning! Size of mesh coordinates is {} GiB.".format(
                 size_coordinates_GiB))
             print(
                 "You have {} GiB system memory. Possible halt.".format(mem_GiB))
