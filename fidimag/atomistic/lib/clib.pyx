@@ -64,6 +64,8 @@ cdef extern from "clib.h":
     void compute_anis(double *spin, double *field, double *energy,
                       double *Ku, double *axis, int n)
 
+    void compute_anis_cubic(double *spin, double *field, double *energy, double *Kc, int n)
+
     void llg_rhs(double * dm_dt, double * spin,
                  double *h, double *alpha, int *pins,
                  double gamma, int n, int do_precession, double default_c)
@@ -159,14 +161,11 @@ def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                                xperiodic, yperiodic)
 
 
-def compute_anisotropy(np.ndarray[double, ndim=1, mode="c"] spin,
-                        np.ndarray[double, ndim=1, mode="c"] field,
-                        np.ndarray[double, ndim=1, mode="c"] energy,
-                        np.ndarray[double, ndim=1, mode="c"] Ku,
-                        np.ndarray[double, ndim=1, mode="c"] axis,
-                        n):
-    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0],
-                 &axis[0], n)
+def compute_anisotropy(double [:] spin, double [:] field, double [:] energy, double [:] Ku, double [:] axis, n):
+    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0], &axis[0], n)
+
+def compute_anisotropy_cubic(double [:] spin, double [:] field, double [:] energy, double [:] Kc, n):
+    compute_anis_cubic(&spin[0], &field[0], &energy[0], &Kc[0], n)
 
 
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,

@@ -110,7 +110,21 @@ corresponding field is
 .. math::
    \vec{H}_{i,\text{an}} = \frac{2 \mathcal{K}_{u}}{\mu_s} \left(\vec{S}_{i}\cdot\hat{u}\right)\hat{u}
 
-|
+The Hamiltonian for the cubic anisotropy is given by
+
+.. math::
+   \mathcal{H}_{\text{an}}^c = \mathcal{K}_{c} \sum_i (S_x^4+S_y^4+S_z^4)
+
+which is equivalent to the popular form
+
+.. math::
+   \mathcal{H}_{\text{an}}^c = -2 \mathcal{K}_{c} \sum_i (S_x^2 S_y^2 + S_y^2 S_z^2 + S_z^2 S_x^2)
+
+The effective fields thus can be computed as
+
+.. math::
+   \vec{H}_{i,\text{an}}^c = -\frac{4 \mathcal{K}_{c}}{\mu_s} \left ( S_x^3 \hat{x} + S_y^3 \hat{y} + S_z^3 \hat{z} \right)
+
 
 In micromagnetics, the uniaxial anisotropy energy of the system is defined as
 

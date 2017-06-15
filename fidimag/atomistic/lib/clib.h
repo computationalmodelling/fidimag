@@ -36,6 +36,8 @@ double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
 
 void compute_anis(double *spin, double *field, double *energy, double *Ku,
                   double *axis, int n);
+void compute_anis_cubic(double *spin, double *field, double *energy,
+	          double *Kc, int n); 
 
 void dmi_field_bulk(double *spin, double *field, double *energy, double *D,
                     int *ngbs, int n);

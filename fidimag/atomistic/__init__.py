@@ -1,6 +1,6 @@
 from .sim import Sim
 from .exchange import UniformExchange, Exchange
-from .anisotropy import Anisotropy
+from .anisotropy import Anisotropy, CubicAnisotropy
 from .zeeman import Zeeman, TimeZeeman
 from .demag import Demag
 from .demag_hexagonal import DemagHexagonal
