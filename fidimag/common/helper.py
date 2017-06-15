@@ -244,11 +244,6 @@ def plot_energy_3d(name, key_steps=50, filename=None):
     fig.savefig(filename)
 
 
-def compute_RxRy(mesh, spin):
-    res = clib.compute_RxRy(spin, mesh.nx, mesh.ny, mesh.nz)
+def compute_RxRy(mesh, spin, nx_start=0, nx_stop=-1, ny_start=0, ny_stop=-1):
+    res = clib.compute_RxRy(spin, mesh.nx, mesh.ny, mesh.nz, nx_start, nx_stop, ny_start, ny_stop)
     return res
-
-
-if __name__ == '__main__':
-
-    T = 1000

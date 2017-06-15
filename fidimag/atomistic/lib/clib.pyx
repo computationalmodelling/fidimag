@@ -5,7 +5,7 @@ np.import_array()
 cdef extern from "fidimag_random.h":
     ctypedef struct mt19937_state:
         pass
-    
+
     mt19937_state *create_mt19937_state()
     void finalize_mt19937_state(mt19937_state *state)
 
@@ -19,7 +19,7 @@ cdef extern from "time.h":
     time_t time(time_t *timer)
 
 cdef extern from "clib.h":
-    void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs, 
+    void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs,
                     double J, double J1, double D, double D1, double *h, double Kc, int n, double T, int hexagnoal_mesh)
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs)
@@ -28,7 +28,8 @@ cdef extern from "clib.h":
     double skyrmion_number_BergLuscher(double *spin, double *charge,
                                        int nx, int ny, int nz, int *ngbs)
 
-    void compute_guiding_center(double *spin, int nx, int ny, int nz,
+    void compute_guiding_center(double *spin, int nx, int ny, int nz, int nx_start,
+                                int nx_stop, int ny_start, int ny_stop,
                                 double *res)
 
     void compute_px_py_c(double *spin, int nx, int ny, int nz,
@@ -107,13 +108,17 @@ def compute_skyrmion_number_BergLuscher(np.ndarray[double, ndim=1, mode="c"] spi
     return skyrmion_number_BergLuscher(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0])
 
 def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
-                            nx, ny, nz):
+                            nx, ny, nz, nx_start=0, nx_stop=-1, ny_start=0, ny_stop=-1):
 
     res = numpy.array([0.0,0.0])
+    if nx_stop < 0 or nx_stop > nx:
+        nx_stop = nx
+    if ny_stop < 0 or ny_stop > ny:
+        ny_stop = ny
 
     cdef np.ndarray[double, ndim=1, mode="c"] R = res
 
-    compute_guiding_center(&spin[0], nx, ny, nz, &R[0])
+    compute_guiding_center(&spin[0], nx, ny, nz, nx_start, nx_stop, ny_start, ny_stop, &R[0])
 
     return res[0], res[1]
 
@@ -258,7 +263,7 @@ def compute_llg_stt_cpp(np.ndarray[double, ndim=1, mode="c"] dm_dt,
 		            np.ndarray[int, ndim=1, mode="c"] pin,
                 np.ndarray[double, ndim=1, mode="c"] a_J,
                 beta, gamma, n):
-    llg_stt_cpp(&dm_dt[0], &spin[0], &field[0], &p[0], 
+    llg_stt_cpp(&dm_dt[0], &spin[0], &field[0], &p[0],
                 &alpha[0], &pin[0], &a_J[0], beta, gamma, n)
 
 
@@ -286,11 +291,11 @@ cdef class rng_mt19937(object):
             self.seed = int(seed)
         else:
             self.seed = time(NULL)
-                
+
         self._c_state = create_mt19937_state()
         if self._c_state is NULL:
             raise MemoryError()
-        
+
         initial_rng_mt19973(self._c_state, self.seed)
 
     def set_seed(self, seed):
@@ -302,7 +307,7 @@ cdef class rng_mt19937(object):
             return a random number in [0,1)
         """
         return random_double_half_open(self._c_state)
-    
+
     def fill_vector_gaussian(self, np.ndarray[np.float64_t, ndim=1] vector):
         gauss_random_vector(self._c_state, &vector[0], vector.shape[0])
 
@@ -315,25 +320,24 @@ cdef class rng_mt19937(object):
             self._c_state = NULL
 
 cdef class monte_carlo(object):
-    cdef mt19937_state *_c_state            
+    cdef mt19937_state *_c_state
 
     def __init__(self, seed=-1):
-                
+
         self._c_state = create_mt19937_state()
         if self._c_state is NULL:
             raise MemoryError()
-        
+
         initial_rng_mt19973(self._c_state, seed)
 
     def set_seed(self, seed):
         initial_rng_mt19973(self._c_state, seed)
- 
+
     def run_step(self,np.ndarray[double, ndim=1, mode="c"] spin,
                 np.ndarray[double, ndim=1, mode="c"] new_spin,
                 np.ndarray[int, ndim=2, mode="c"] ngbs,
                 np.ndarray[int, ndim=2, mode="c"] nngbs,
-                J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h, 
+                J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h,
                 Kc, n, T, hexagnoal_mesh):
 
         run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], J, J1, D, D1, &h[0], Kc, n, T, hexagnoal_mesh)
-

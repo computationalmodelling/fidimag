@@ -120,7 +120,7 @@ def excite_system(mesh, beta=0.0):
     # The simulation will run for 5 ns and save
     # 500 snapshots of the system in the process
     ts = np.linspace(0, 0.5e-9, 21)
-    
+
     xs=[]
     thetas=[]
 
@@ -154,14 +154,13 @@ def plot():
     z_an, theta_an = analytical(ts)
 
     fig = plt.figure(figsize=(5, 2.6))
-    
+
     gs = gridspec.GridSpec(1, 2, width_ratios=[4, 4])
     ax0 = plt.subplot(gs[0])
     ax0.plot(ts*1e9,xs,'.')
     ax0.plot(ts*1e9, z_an, '-')
     plt.ylabel(r'DW shift')
     plt.xlabel(r'Time (ns)')
-
 
     ax1 = plt.subplot(gs[1])
     ax1.plot(ts*1e9,theta,'.')
@@ -173,7 +172,6 @@ def plot():
     analytical(ts)
 
     plt.savefig('xs_theta.pdf')
-    
 
 if __name__ == '__main__':
 
@@ -189,4 +187,3 @@ if __name__ == '__main__':
 
     excite_system(mesh, beta=0.16)
     plot()
-
