@@ -24,7 +24,6 @@ def test_anis_cubic():
     mu_s = np.ones(3)
     anis.setup(mesh, spin, mu_s)
     field = anis.compute_field()
-    print field
     assert  np.max(field-np.array([-1.06272,-2.51904, -0.]))<1e-6
     energy = anis.compute_energy()
     assert abs(energy-0.663216)<1e-5
