@@ -6,18 +6,18 @@ FIDIMAG
 [![codecov](https://codecov.io/gh/computationalmodelling/fidimag/branch/master/graph/badge.svg)](https://codecov.io/gh/computationalmodelling/fidimag)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.167858.svg)](https://doi.org/10.5281/zenodo.167858)
 
-FIDIMAG: a finite difference micromagnetic simulation environment
+FIDIMAG - a FInite DIfference microMAGnetic simulation environment
 
-Fidimag solves finite-difference micromagnetic problems and also
-supports atomistic simulations, both using a Python interface.
+Fidimag solves finite-difference micromagnetic problems and
+supports atomistic simulations, using Python interface.
 
 The webpage of the project is http://computationalmodelling.github.io/fidimag/
 
 The GitHub page of the project is https://github.com/computationalmodelling/fidimag
 
-The documentation is at http://fidimag.readthedocs.io/en/latest/?badge=latest. Within the documentation are details on how to install Fidimag, and some example simulations are provided.
+The documentation is available at http://fidimag.readthedocs.io/en/latest/?badge=latest. Within the documentation are details on how to install Fidimag, and some example simulations are provided.
 
-Various options of installation are described in the documentation, mostly by compiling from source. If you install from source, you'll want to add the path this file is in to your $PYTHONPATH. Check the [documentation](http://fidimag.readthedocs.org) for more
+Various options of installation are described in the documentation, mostly by compiling from source. If you decide to install from source, you will need to add the path to this file is in to your $PYTHONPATH. Check the [documentation](http://fidimag.readthedocs.org) for more
 detailed installation help. The Virtual Micromagnetics project at http://virtualmicromagnetics.org provides virtual machines and Docker containers in which Fidimag can be executed. 
 
 The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
