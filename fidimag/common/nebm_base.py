@@ -172,6 +172,8 @@ class NEBMBase(object):
                  openmp=False
                  ):
 
+        self.openmp = openmp
+
         # Degrees of Freedom per spin
         self.dof = dof
 
@@ -339,12 +341,12 @@ class NEBMBase(object):
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self, rtol=1e-6, atol=1e-6, openmp=False):
+    def initialise_integrator(self, rtol=1e-6, atol=1e-6):
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
-        if not openmp:
+        if not self.openmp:
             self.integrator = cvode.CvodeSolver(self.band,
                                                 self.Sundials_RHS)
             self.integrator.set_options(rtol, atol)
