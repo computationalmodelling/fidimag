@@ -4,6 +4,7 @@ cimport numpy as np  # import special compile-time information about numpy
 cimport openmp
 np.import_array()  # don't remove or you'll segfault
 from libc.string cimport memcpy
+import sys
 
 cdef extern from "../../atomistic/lib/clib.h":
     void normalise(double * m, int nxyz)
@@ -179,7 +180,9 @@ cdef class CvodeSolver(object):
         self.check_flag(flag, "CVodeSetUserData")
 
         self.cvode_already_initialised = 0
-        self.u_y = N_VNew_Serial(self.y.size)
+
+        self.u_y = N_VMake_Serial(self.y.size, <realtype *> self.y.data)
+
         self.set_initial_value(spins, self.t)
         self.set_options(rtol, atol)
 
@@ -193,7 +196,6 @@ cdef class CvodeSolver(object):
 
         cdef np.ndarray[double, ndim = 1, mode = "c"] y = self.y
         copy_arr2nv(self.y, self.u_y)
-        N_VPrint_Serial(self.u_y)
 
         if self.cvode_already_initialised:
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)
@@ -365,7 +367,9 @@ cdef class CvodeSolver_OpenMP(object):
         self.check_flag(flag, "CVodeSetUserData")
 
         self.cvode_already_initialised = 0
-        self.u_y = N_VNew_OpenMP(self.y.size, self.num_threads)
+
+        self.u_y = N_VMake_OpenMP(self.y.size, <realtype *> self.y.data, self.num_threads)
+
         self.set_initial_value(spins, self.t)
         self.set_options(rtol, atol)
 
