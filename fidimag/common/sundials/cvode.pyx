@@ -179,6 +179,7 @@ cdef class CvodeSolver(object):
         self.check_flag(flag, "CVodeSetUserData")
 
         self.cvode_already_initialised = 0
+        self.u_y = N_VNew_Serial(self.y.size)
         self.set_initial_value(spins, self.t)
         self.set_options(rtol, atol)
 
@@ -191,7 +192,8 @@ cdef class CvodeSolver(object):
         self.y[:] = spin[:]
 
         cdef np.ndarray[double, ndim = 1, mode = "c"] y = self.y
-        self.u_y = N_VMake_Serial(y.size, & y[0])
+        copy_arr2nv(self.y, self.u_y)
+        N_VPrint_Serial(self.u_y)
 
         if self.cvode_already_initialised:
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)
@@ -363,6 +365,7 @@ cdef class CvodeSolver_OpenMP(object):
         self.check_flag(flag, "CVodeSetUserData")
 
         self.cvode_already_initialised = 0
+        self.u_y = N_VNew_OpenMP(self.y.size, self.num_threads)
         self.set_initial_value(spins, self.t)
         self.set_options(rtol, atol)
 
@@ -375,7 +378,7 @@ cdef class CvodeSolver_OpenMP(object):
         self.y[:] = spin[:]
 
         cdef np.ndarray[double, ndim = 1, mode = "c"] y = self.y
-        self.u_y = N_VMake_OpenMP(y.size, &y[0], self.num_threads)
+        copy_arr2nv_openmp(self.y, self.u_y)
 
         if self.cvode_already_initialised:
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)

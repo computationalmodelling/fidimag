@@ -9,7 +9,7 @@ cdef extern from "sundials/sundials_nvector.h":
         
     ctypedef _generic_N_Vector *N_Vector
     N_Vector N_VNew_Serial(long int vec_length)
-    N_Vector N_VNew_OpenMP(long int vec_length)
+    N_Vector N_VNew_OpenMP(long int vec_length, int num_threads)
     void N_VDestroy_Serial(N_Vector v)
     void N_VDestroy_OpenMP(N_Vector v)
     void N_VPrint_Serial(N_Vector v)
