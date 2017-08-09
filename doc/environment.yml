@@ -3,7 +3,7 @@ name: fidimag_docs
 
 # add channel for pandoc
 channels:
-  - asmeurer
+  - ccordoba12
 
 dependencies:
   - pandoc
