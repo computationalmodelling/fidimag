@@ -1,9 +1,9 @@
 from __future__ import division
 from __future__ import print_function
 
-# We use the atomistic/lib/llg.c file to calculate the LLG equation for
-# the micromagnetic case -> Move this library to Common in the future
-import fidimag.extensions.clib as clib
+# We use the common/lib/llg.c file to calculate the LLG equation for
+# the micromagnetic case
+import fidimag.extensions.common_clib as clib
 
 from .micro_driver import MicroDriver
 

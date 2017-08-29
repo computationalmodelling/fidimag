@@ -1,4 +1,4 @@
-#include "clib.h"
+#include "common_clib.h"
 
 /* The right hand side of the LLG equation for the CVOde solver.  This can be
  * used both for the micromagnetic and atomistic codes since m or S are unitless

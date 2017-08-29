@@ -21,6 +21,7 @@ SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
 NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
 NEBM_DIR = os.path.join(SRC_DIR, "common", "neb_method")
 ATOM_DIR = os.path.join(SRC_DIR, "atomistic", "lib")
+COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
@@ -57,6 +58,10 @@ def glob_cfiles(path, excludes):
 sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
 sources += glob_cfiles(ATOM_DIR, excludes=["clib.c"])
+
+common_sources = []
+common_sources.append(os.path.join(COMMON_DIR, 'common_clib.pyx'))
+common_sources += glob_cfiles(COMMON_DIR, excludes=["common_clib.c"])
 
 cvode_sources = []
 cvode_sources.append(os.path.join(SUNDIALS_DIR, 'cvode.pyx'))
@@ -133,6 +138,14 @@ if 'FFTW_DIR' in os.environ:
 ext_modules = [
     Extension("fidimag.extensions.clib",
               sources=sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+	      library_dirs=lib_paths,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.common_clib",
+              sources=common_sources,
               include_dirs=com_inc,
               libraries=com_libs,
 	      library_dirs=lib_paths,
