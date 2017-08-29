@@ -1,6 +1,6 @@
 from __future__ import division
 
-import fidimag.extensions.clib as clib
+import fidimag.extensions.common_clib as clib
 import numpy as np
 
 from .atomistic_driver import AtomisticDriver
@@ -13,20 +13,33 @@ class LLG_STT(AtomisticDriver):
 
     """
 
-    This class is the driver to solve the Landau Lifshitz Gilbert equation
-    with a current, which follows the formalism
-    of Spin Transfer Torque. The equation is given by:
+    This class is the driver to solve the Landau Lifshitz Gilbert equation with
+    a current, which follows the Zhang-Li formalism to describe Spin Transfer
+    Torque. The equation is given by:
 
 
           ds        -gamma
-         ---- =    --------  ( s X H_eff  + a * s X ( s X H_eff ) ) + .... ADD
+         ---- =    --------  ( s X H_eff  + a * s X ( s X H_eff ) )
           dt             2
                   ( 1 + a  )
 
+                        u  
+                  +  --------  s X [ (1 + a * b) (j . grad) s  - (b - a) s X (j . grad) s ]
+                           2
+                    ( 1 + a  )
 
-    This class inherits common methods to evolve the system using CVODE, from
-    the micro_driver.MicroDriver class. Arrays with the system information
-    are taken as references from the main micromagnetic Simulation class
+        
+        with         g mu_B P
+                u =  --------
+                     2 mu_s e
+
+                g -> electron Lande factor, mu_B -> Bohr magneton, P -> polarisation
+                e -> electron charge
+
+
+                [CHECK]
+
+    * This driver only works with a CUBOID mesh
 
     """
 

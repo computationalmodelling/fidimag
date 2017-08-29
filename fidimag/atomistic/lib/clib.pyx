@@ -68,16 +68,6 @@ cdef extern from "clib.h":
 
     void normalise(double *m, int *pins, int n)
 
-    void compute_stt_field_c(double *spin, double *field,
-                             double *jx, double *jy, double *jz,
-                             double dx, double dy, double dz, int *ngbs, int n)
-
-    void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
-                     double *alpha,double beta, double u0, double gamma, int n)
-
-    void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
-			      double *alpha, int *pins, double *a_J, double beta, double gamma, int n)
-
     # used for sllg
     void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt)
 
@@ -197,45 +187,9 @@ def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                         xperiodic,yperiodic):
     return dmi_energy(&spin[0], D, nx, ny, nz, xperiodic,yperiodic)
 
-def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
-                      np.ndarray[double, ndim=1, mode="c"] field,
-                      np.ndarray[double, ndim=1, mode="c"] jx,
-                      np.ndarray[double, ndim=1, mode="c"] jy,
-                      np.ndarray[double, ndim=1, mode="c"] jz,
-                      dx, dy, dz,
-                      np.ndarray[int, ndim=2, mode="c"] ngbs,
-                      n
-                      ):
-    compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0],&jz[0],
-                        dx, dy, dz, &ngbs[0, 0], n)
-
-def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                np.ndarray[double, ndim=1, mode="c"] spin,
-                np.ndarray[double, ndim=1, mode="c"] field,
-                np.ndarray[double, ndim=1, mode="c"] field_stt,
-                np.ndarray[double, ndim=1, mode="c"] alpha,
-                beta, u0, gamma, n):
-    llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0],
-                &alpha[0], beta, u0, gamma, n)
-
-
-
-def compute_llg_stt_cpp(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                np.ndarray[double, ndim=1, mode="c"] spin,
-                np.ndarray[double, ndim=1, mode="c"] field,
-                np.ndarray[double, ndim=1, mode="c"] p,
-                np.ndarray[double, ndim=1, mode="c"] alpha,
-		            np.ndarray[int, ndim=1, mode="c"] pin,
-                np.ndarray[double, ndim=1, mode="c"] a_J,
-                beta, gamma, n):
-    llg_stt_cpp(&dm_dt[0], &spin[0], &field[0], &p[0],
-                &alpha[0], &pin[0], &a_J[0], beta, gamma, n)
-
-
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
               np.ndarray[int, ndim=1, mode="c"] pins, n):
     normalise(&spin[0], &pins[0], n)
-
 
 def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,
                 np.ndarray[double, ndim=1, mode="c"] spin,

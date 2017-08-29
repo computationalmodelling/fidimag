@@ -55,16 +55,6 @@ double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic,
 void llg_s_rhs(double *dm_dt, double *spin, double *h, double *alpha,
                double *chi, double gamma, int n);
 
-void compute_stt_field_c(double *spin, double *field, double *jx, double *jy,
-                         double *jz, double dx, double dy, double dz, int *ngbs,
-                         int n);
-
-void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
-                 double *alpha, double beta, double u0, double gamma, int n);
-
-void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p, double *alpha,
-                 int *pins, double *a_J, double beta, double gamma, int n);
-
 void normalise(double *m, int *pins, int n);
 
 double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz,

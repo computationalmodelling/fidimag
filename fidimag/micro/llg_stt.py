@@ -1,6 +1,6 @@
 from __future__ import division
 
-import fidimag.extensions.clib as clib
+import fidimag.extensions.common_clib as clib
 import numpy as np
 
 from .micro_driver import MicroDriver

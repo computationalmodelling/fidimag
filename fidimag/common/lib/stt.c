@@ -1,4 +1,4 @@
-#include "clib.h"
+#include "common_clib.h"
 
 /* Calculation of the STT field using the Zhang Li formalism, which
  * is
@@ -58,7 +58,7 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy, do
 	for (int i = 0; i < 3 * n; i++) {
 		field[i] = 0;
 	}
-    
+
     #pragma omp parallel for
     /* Iterate through every lattice site */
     for (int i = 0; i < n; i++){
@@ -129,8 +129,8 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy, do
                                              - spin[3 * nn_y1 + j]) / (factor_y * dy);
             }
         }
-        
-        
+
+
         // We do the same along the z direction
         if(ngbs[nn_i + 4] >= 0 && ngbs[nn_i + 5] >= 0) {
             factor_z = 2;
@@ -147,14 +147,14 @@ void compute_stt_field_c(double *spin, double *field, double *jx, double *jy, do
         } else {
             factor_z = 0;
         }
-        
+
         if (factor_z){
             for(int j = 0; j < 3; j++){
                 field[3 * i + j] += jz[i] * (spin[3 * nn_z2 + j]
                                              - spin[3 * nn_z1 + j]) / (factor_z * dz);
             }
         }
-        
+
     }
 }
 
@@ -189,7 +189,7 @@ void llg_stt_rhs(double *dm_dt, double *m, double *h, double *h_stt,
 	    //the above part is standard LLG equation.
 
 	    double coeff_stt = u0 / (1 + alpha[index] * alpha[index]);
-	    
+
 	    double mht = m[i] * h_stt[i] + m[j] * h_stt[j] + m[k] * h_stt[k];
 
 	    hpi = mm*h_stt[i] - mht * m[i];
@@ -257,7 +257,7 @@ void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
 	    //the above part is standard LLG equation.
 
 	    double coeff_stt = a_J[index] / (1 + alpha[index] * alpha[index]);
-	    
+
 	    double mp = m[i] * p[i] + m[j] * p[j] + m[k] * p[k];
 
 	    hpi = mm*p[i] - mp * m[i];
@@ -287,7 +287,3 @@ void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p,
 	}
 
 }
-
-
-
-

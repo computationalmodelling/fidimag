@@ -2,7 +2,7 @@ from __future__ import division
 
 import types
 
-import fidimag.extensions.clib as clib
+import fidimag.extensions.common_clib as clib
 import numpy as np
 
 from .atomistic_driver import AtomisticDriver
@@ -19,14 +19,10 @@ class LLG_STT_CPP(AtomisticDriver):
 
 
           ds        -gamma
-         ---- =    --------  ( s X H_eff  + a * s X ( s X H_eff ) ) + .... ADD
+         ---- =    --------  ( s X H_eff  + a * s X ( s X H_eff ) ) + s X ()
           dt             2
                   ( 1 + a  )
 
-
-    This class inherits common methods to evolve the system using CVODE, from
-    the micro_driver.MicroDriver class. Arrays with the system information
-    are taken as references from the main micromagnetic Simulation class
 
     """
 
