@@ -4,21 +4,6 @@ import ctypes
 cimport numpy as np
 np.import_array()
 
-
-
-
-
-cdef pointer_to_numpy_array_float64(void * ptr, np.npy_intp size):
-    '''Convert c pointer to numpy array.
-    The memory will be freed as soon as the ndarray is deallocated.
-    '''
-    cdef extern from "numpy/arrayobject.h":
-        void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
-    cdef np.ndarray[np.float64_t, ndim=1] arr = \
-            np.PyArray_SimpleNewFromData(1, &size, np.NPY_FLOAT64, ptr)
-    PyArray_ENABLEFLAGS(arr, np.NPY_OWNDATA)
-    return arr
-
 cdef extern from "dipolar.h":
 
     # used for demag
@@ -33,6 +18,18 @@ cdef extern from "dipolar.h":
         double *tensor_yy
         double *tensor_yz
         double *tensor_zz
+        complex *Nxx
+        complex *Nxy
+        complex *Nxz
+        complex *Nyy
+        complex *Nyz
+        complex *Nzz
+        complex *Hx
+        complex *Hy
+        complex *Hz
+        complex *Mx
+        complex *My
+        complex *Mz
 
     fft_demag_plan * create_plan()
     void finalize_plan(fft_demag_plan * plan)
@@ -51,8 +48,11 @@ cdef class FFTDemag(object):
     cdef int total_length
     cdef np.float64_t[:] tensor_xx_p, tensor_xy_p, tensor_xz_p, tensor_yy_p, \
                          tensor_yz_p, tensor_zz_p
+    cdef np.complex128_t[:] Nxx_p, Nxy_p, Nxz_p, Nyy_p, Nyz_p, Nzz_p, Hx_p, \
+                            Hy_p, Hz_p, Mx_p, My_p, Mz_p
     cdef public np.ndarray tensor_xx, tensor_xy, tensor_xz, tensor_yy, \
-                         tensor_yz, tensor_zz
+                         tensor_yz, tensor_zz, Nxx, Nxy, Nxz, Nyy, Nyz, Nzz, \
+                         Mx, My, Mz, Hx, Hy, Hz
     #tensor_type could be 'dipolar', 'demag' or '2d_pbc'
     def __cinit__(self, dx, dy, dz, nx, ny, nz, tensor_type='dipolar'):
         self._c_plan = create_plan()
@@ -75,6 +75,35 @@ cdef class FFTDemag(object):
         self.total_length = int(self._c_plan.total_length)
         self.tensor_xx_p = <np.float64_t[:self.total_length]> self._c_plan.tensor_xx
         self.tensor_xx = np.asarray(self.tensor_xx_p)
+
+        self.Nxx_p = <np.complex128_t[:self.total_length]> self._c_plan.Nxx
+        self.Nxx = np.asarray(self.Nxx_p)
+        self.Nxy_p = <np.complex128_t[:self.total_length]> self._c_plan.Nxy
+        self.Nxy = np.asarray(self.Nxy_p)
+        self.Nxz_p = <np.complex128_t[:self.total_length]> self._c_plan.Nxz
+        self.Nxz = np.asarray(self.Nxz_p)
+        self.Nyy_p = <np.complex128_t[:self.total_length]> self._c_plan.Nyy
+        self.Nyy = np.asarray(self.Nyy_p)
+        self.Nyz_p = <np.complex128_t[:self.total_length]> self._c_plan.Nyz
+        self.Nyz = np.asarray(self.Nyz_p)
+        self.Nzz_p = <np.complex128_t[:self.total_length]> self._c_plan.Nzz
+        self.Nzz = np.asarray(self.Nzz_p)
+
+        self.Mx_p = <np.complex128_t[:self.total_length]> self._c_plan.Mx
+        self.Mx = np.asarray(self.Mx_p)
+        self.My_p = <np.complex128_t[:self.total_length]> self._c_plan.My
+        self.My = np.asarray(self.My_p)
+        self.Mz_p = <np.complex128_t[:self.total_length]> self._c_plan.Mz
+        self.Mz = np.asarray(self.Mz_p)
+
+        self.Hx_p = <np.complex128_t[:self.total_length]> self._c_plan.Hx
+        self.Hx = np.asarray(self.Hx_p)
+        self.Hy_p = <np.complex128_t[:self.total_length]> self._c_plan.Hy
+        self.Hy = np.asarray(self.Hy_p)
+        self.Hz_p = <np.complex128_t[:self.total_length]> self._c_plan.Hz
+        self.Hz = np.asarray(self.Hz_p)
+
+
         self.tensor_xy_p = <np.float64_t[:self.total_length]> self._c_plan.tensor_xy
         self.tensor_xy = np.asarray(self.tensor_xy_p)
         self.tensor_xz_p = <np.float64_t[:self.total_length]> self._c_plan.tensor_xz
@@ -85,6 +114,7 @@ cdef class FFTDemag(object):
         self.tensor_yz = np.asarray(self.tensor_yz_p)
         self.tensor_zz_p = <np.float64_t[:self.total_length]> self._c_plan.tensor_zz
         self.tensor_zz = np.asarray(self.tensor_zz_p)
+
 
     def print_tensor(self):
         for k in range(self._c_plan.lenz):
