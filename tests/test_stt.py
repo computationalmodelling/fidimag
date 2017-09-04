@@ -1,5 +1,5 @@
 import numpy as np
-import fidimag.extensions.clib as clib
+import fidimag.extensions.common_clib as clib
 
 
 def test_sst_field_1d():

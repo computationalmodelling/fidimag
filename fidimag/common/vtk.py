@@ -21,7 +21,6 @@ class VTK(object):
             # for keyword argument dimensions: if the mesh is made up of
             # nx * ny * nz cells, it has (nx + 1) * (ny + 1) * (nz + 1)
             # vertices.
-            print(mesh.grid)
             structure = pyvtk.RectilinearGrid(* mesh.grid)
         else:
             raise NotImplementedError(
