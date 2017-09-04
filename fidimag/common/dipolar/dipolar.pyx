@@ -5,7 +5,6 @@ cimport numpy as np
 np.import_array()
 
 cdef extern from "dipolar.h":
-
     # used for demag
     ctypedef struct fft_demag_plan:
         int nx, ny, nz
@@ -21,6 +20,9 @@ cdef extern from "dipolar.h":
         double *hx
         double *hy
         double *hz
+        double *mx
+        double *my
+        double *mz
         complex *Nxx
         complex *Nxy
         complex *Nxz
@@ -50,12 +52,12 @@ cdef class FFTDemag(object):
     cdef fft_demag_plan *_c_plan
     cdef int total_length
     cdef np.float64_t[:] tensor_xx_p, tensor_xy_p, tensor_xz_p, tensor_yy_p, \
-                         tensor_yz_p, tensor_zz_p, hx_p, hy_p, hz_p
+                         tensor_yz_p, tensor_zz_p, hx_p, hy_p, hz_p, mx_p, my_p, mz_p
     cdef np.complex128_t[:] Nxx_p, Nxy_p, Nxz_p, Nyy_p, Nyz_p, Nzz_p, Hx_p, \
                             Hy_p, Hz_p, Mx_p, My_p, Mz_p
     cdef public np.ndarray tensor_xx, tensor_xy, tensor_xz, tensor_yy, \
                          tensor_yz, tensor_zz, Nxx, Nxy, Nxz, Nyy, Nyz, Nzz, \
-                         Mx, My, Mz, Hx, Hy, Hz, hx, hy, hz
+                         Mx, My, Mz, Hx, Hy, Hz, hx, hy, hz, mx, my, mz
     #tensor_type could be 'dipolar', 'demag' or '2d_pbc'
     def __cinit__(self, dx, dy, dz, nx, ny, nz, tensor_type='dipolar'):
         self._c_plan = create_plan()
@@ -113,6 +115,12 @@ cdef class FFTDemag(object):
         self.hz_p = <np.float64_t[:self.total_length]> self._c_plan.hz
         self.hz = np.asarray(self.hz_p)
 
+        self.mx_p = <np.float64_t[:self.total_length]> self._c_plan.mx
+        self.mx = np.asarray(self.mx_p)
+        self.my_p = <np.float64_t[:self.total_length]> self._c_plan.my
+        self.my = np.asarray(self.my_p)
+        self.mz_p = <np.float64_t[:self.total_length]> self._c_plan.mz
+        self.mz = np.asarray(self.mz_p)
 
         self.tensor_xy_p = <np.float64_t[:self.total_length]> self._c_plan.tensor_xy
         self.tensor_xy = np.asarray(self.tensor_xy_p)
