@@ -6,6 +6,13 @@ import numpy
 import os
 import glob
 import re
+import sys
+
+#if sys.platform == 'darwin':
+#    from distutils import sysconfig
+#    vars = sysconfig.get_config_vars()
+#    vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
+
 
 
 if 'CC' in os.environ:
@@ -14,8 +21,8 @@ else:
     os.environ["CC"] = "gcc"
     print("Using CC={} (set by setup.py)".format(os.environ['CC']))
 
-
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+print(MODULE_DIR)
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
 NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
@@ -113,7 +120,13 @@ com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
 com_args = ['-std=c99', '-O3']
-com_link = []
+# rpath is the path relative to the compiled shared object files (e.g. clib.so, etc)
+# which the dynamic linker looks for the linked libraries (e.g. libsundials_*.so) in.
+# We need to set it relatively in order for it to be preserved if the parent directory is moved
+# hence why it is a 'relative'(r) path. Here the relative path is with respect to
+# the fidimag/fidimag/extensions directory.
+RPATH = '../../local/lib'
+com_link = ['-Wl,-rpath,{}'.format(LIB_DIR)]
 lib_paths = [LIB_DIR]
 
 
@@ -122,6 +135,9 @@ if 'icc' in os.environ['CC']:
     com_link.append('-openmp')
 else:
     com_args.append('-fopenmp')
+
+
+
     com_link.append('-fopenmp')
 
 
@@ -140,7 +156,7 @@ ext_modules = [
               sources=sources,
               include_dirs=com_inc,
               libraries=com_libs,
-	      library_dirs=lib_paths,
+	          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -148,7 +164,7 @@ ext_modules = [
               sources=common_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-	      library_dirs=lib_paths,
+	          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -156,7 +172,7 @@ ext_modules = [
               sources=cvode_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -164,7 +180,7 @@ ext_modules = [
               sources=baryakhtar_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -172,7 +188,7 @@ ext_modules = [
               sources=micro_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -180,7 +196,7 @@ ext_modules = [
               sources=nebm_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -188,7 +204,7 @@ ext_modules = [
               sources=nebm_spherical_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -196,7 +212,7 @@ ext_modules = [
               sources=nebm_geodesic_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -204,7 +220,7 @@ ext_modules = [
               sources=nebm_cartesian_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -212,7 +228,7 @@ ext_modules = [
               sources=cvode_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -220,7 +236,7 @@ ext_modules = [
               sources=baryakhtar_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -228,7 +244,7 @@ ext_modules = [
               sources=micro_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -236,7 +252,7 @@ ext_modules = [
               sources=dipolar_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-              library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -254,4 +270,3 @@ setup(
               ],
     ext_modules=cythonize(ext_modules),
 )
-
