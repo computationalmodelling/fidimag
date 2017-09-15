@@ -1,6 +1,10 @@
 *.txt
 *.pyc
 *.ndt
+*.gch
+*.swp
+*.pdf
+*.tmp
 /local/
 
 # ignore automatically generated cython files
