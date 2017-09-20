@@ -42,7 +42,7 @@ BibTeX:
 }
 </pre>
 
-# Acknowledgement 
+# Acknowledgements
 
 We acknowledge financial support from
 
