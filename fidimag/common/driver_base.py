@@ -4,8 +4,7 @@ from __future__ import print_function
 import os
 import numpy as np
 import fidimag.common.helper as helper
-from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
-        StepIntegrator, ScipyIntegrator
+from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
 
 
 class DriverBase(object):
@@ -88,9 +87,9 @@ class DriverBase(object):
         elif integrator == "sundials":
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = StepIntegrator(self.spin, self.step_rhs)
-        elif integrator == "scipy":
-            self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
+            self.integrator = CvodeSolver(self.spin, self.step_rhs,
+                                          integrator)
+
         elif integrator == "sundials_openmp" and use_jac:
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
                                                  self.sundials_jtimes)

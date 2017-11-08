@@ -58,16 +58,13 @@ class ScipyIntegrator(BaseIntegrator):
         self.internal_timesteps.append(t)
         return 0  # all ok signal for scipy
 
-    def set_options(self, rtol=1e-8, atol=1e-8, integrator="dopri5"):
+    def set_tols(self, rtol, atol):
         self.rtol = rtol
         self.atol = atol
-        self.integrator = "dopri5"
 
     def _create_integrator(self):
-        self.ode = ode(self.rhs).set_integrator(
-                self.integrator, rtol=self.rtol, atol=self.atol)
-        # needs to be before set_initial_value for scipy < 0.17.0
-        self.ode.set_solout(self.solout) 
+        self.ode = ode(self.rhs).set_integrator("dopri5", rtol=self.rtol, atol=self.atol)
+        self.ode.set_solout(self.solout)  # needs to be before set_initial_value for scipy < 0.17.0
         self.ode.set_initial_value(self.y, self.t)
         self.integrator_created = True
 
