@@ -5,7 +5,7 @@ import os
 import numpy as np
 import fidimag.common.helper as helper
 from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
-        StepIntegrator, ScipyIntegrator
+    StepIntegrator, ScipyIntegrator
 
 
 class DriverBase(object):
@@ -91,6 +91,7 @@ class DriverBase(object):
             self.integrator = StepIntegrator(self.spin, self.step_rhs)
         elif integrator == "scipy":
             self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
+
         elif integrator == "sundials_openmp" and use_jac:
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
                                                  self.sundials_jtimes)

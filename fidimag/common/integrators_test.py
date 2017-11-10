@@ -13,7 +13,7 @@ from .integrators import euler_step, runge_kutta_step, StepIntegrator, ScipyInte
 
 interval = (0, 10)
 y_true = lambda t: t ** 2
-f = lambda t, y: 2 * t  
+f = lambda t, y: 2 * t
 
 
 @pytest.mark.parametrize("integrator,stepsize", [
@@ -26,7 +26,7 @@ def test_step(integrator, stepsize, debug=False):
     ys = np.zeros(ts.shape[0])
 
     ys[0] = y_true(ts[0])  # known initial value
-    
+
     for i, t in enumerate(ts[:-1]):
         tp, yp, evals = integrator(t, ys[i], stepsize, f)
         ts[i+1] = tp
@@ -68,8 +68,8 @@ def test_scipy_integrator():
     y = np.zeros(1)  # scipy wants an np.array
     y[0] = ys[0]
     od = ScipyIntegrator(y, f)
-    od.set_tols(1e-5, 1e-5)
-    
+    od.set_options(rtol=1e-5, atol=1e-5)
+
     for i, t in enumerate(ts[1:]):
         od.run_until(t)
         ts[i+1] = od.t
