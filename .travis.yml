@@ -21,6 +21,7 @@ before_install:
 install:
   - conda create -q -y -n fidimag-test python=$TRAVIS_PYTHON_VERSION cython matplotlib pytest scipy pytest-cov gcc_linux-64 cmake psutil
   - source activate fidimag-test
+  - conda install --channel conda-forge lapack openblas -y
   - pip install pyvtk six nbval
   - pip install pyvtk six ipywidgets
   - pip install git+https://github.com/computationalmodelling/nbval.git
