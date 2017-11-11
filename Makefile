@@ -23,8 +23,9 @@ docker:
 #########
 
 test-docker: docker
-	docker exec fidimag make test-without-run-oommf
-	docker exec fidimag make test-ipynb
+	docker exec fidimag make test-basic
+	#docker exec fidimag make test-without-run-oommf
+	#docker exec fidimag make test-ipynb
 
 travis: test-docker
 	docker exec fidimag <(curl -s https://codecov.io/bash)
@@ -104,4 +105,4 @@ doc-%:
 	@echo $*
 	make -C doc $*
 
-.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml docker test-docker
+.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml docker test-docker travis
