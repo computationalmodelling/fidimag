@@ -1,11 +1,11 @@
 PROJECT_DIR = $(abspath .)
 EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
-PYTHON = python
+PYTHON = python3
+PYTEST = py.test-3
 
 #####################
 # Cython Extensions #
 #####################
-
 
 build:
 	${PYTHON} setup.py build_ext --inplace
@@ -14,13 +14,24 @@ clean:
 	rm -rf ${EXTENSIONS_DIR}/*
 	touch ${EXTENSIONS_DIR}/__init__.py
 
+docker:
+	docker build -t fidimag .
+	docker run -ti -d --name fidimag fidimag
+
 #########
 # Tests #
 #########
 
+test-docker: docker
+	docker exec fidimag make test-without-run-oommf
+	docker exec fidimag make test-ipynb
+
+travis: test-docker
+	docker exec fidimag <(curl -s https://codecov.io/bash)
+
 # Quick tests, also not using OOMMF tests
 test:
-	cd tests && py.test -v -m "not slow and not run_oommf"
+	cd tests && ${PYTEST} -v -m "not slow and not run_oommf"
 
 test-clean:
 	rm -rf neb*.ndt
@@ -51,16 +62,16 @@ test-clean:
 test2:
 	# like test, but run also outside the 'tests' directory.
 	# Doesn't work on Hans laptop.
-	py.test -v -m "not slow and not run_oommf"
+	${PYTEST} -v -m "not slow and not run_oommf"
 
 test-all: create-dirs
-	py.test -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
+	${PYTEST} -v --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-without-run-oommf: create-dirs
-	py.test -v -m "not run_oommf" --cov=fidimag --cov-report=html --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
+	${PYTEST} -v -m "not run_oommf" --cov=fidimag --cov-report=html --junitxml=$(PROJECT_DIR)/test-reports/junit/test-pytest.xml
 
 test-basic:
-	cd tests && py.test -v
+	cd tests && ${PYTEST} -v
 
 # Convenience name for commonly used quick running of tests
 tq:
@@ -71,10 +82,10 @@ test-quick:
 
 
 test-ipynb: create-dirs
-	cd doc/ipynb && py.test . -v --current-env --nbval --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
+	cd doc/ipynb && ${PYTEST} . -v --current-env --nbval --sanitize-with sanitize_file --junitxml=$(PROJECT_DIR)/test-reports/junit/test-ipynb-pytest.xml
 
 test-oommf:
-	py.test -v -m "oommf"
+	${PYTEST} -v -m "oommf"
 
 create-dirs:
 	mkdir -p test-reports/junit
@@ -93,4 +104,4 @@ doc-%:
 	@echo $*
 	make -C doc $*
 
-.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml
+.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml docker test-docker
