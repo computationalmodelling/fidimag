@@ -28,7 +28,13 @@ test-docker: docker
 	#docker exec fidimag make test-ipynb
 
 travis: test-docker
-	docker exec fidimag <(curl -s https://codecov.io/bash)
+	docker exec fidimag make codecov
+
+codecov:
+	bash <(curl -s https://codecov.io/bash)
+codecov: SHELL:= /bin/bash
+# or the recipe fails with /bin/sh complaining
+# `/bin/sh: 1: Syntax error: "(" unexpected`.
 
 # Quick tests, also not using OOMMF tests
 test:
@@ -105,4 +111,4 @@ doc-%:
 	@echo $*
 	make -C doc $*
 
-.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml docker test-docker travis
+.PHONY: extensions-directory build clean create-dirs test test-basic test-ipynb doc doc-clean doc-html doc-latexpdf doc-singlehtml docker test-docker travis codecov
