@@ -233,6 +233,9 @@ class HexagonalMesh(object):
                 neighbours[site] = [other if other != cell
                                     else -1 for other in neighbours[site]]
                 # connectivity.append(neighbours)
+
+                site += 1
+
         return neighbours
 
     def init_grid(self):
