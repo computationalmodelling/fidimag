@@ -77,6 +77,12 @@ class HexagonalMesh(object):
             | left right top_right bottom_left top_left bottom_right |
 
         """
+
+        # Number of neighbours (ngbs) according to the shell, i.e. at the
+        # first shell (nearest ngbs) there are 6 ngbs,
+        # second shell (NNNs) -> 6 ngbs, etc
+        self._ngbs_shell = {1: 6, 2: 6, 3: 6, 4: 12, 5: 6}
+
         self.nx = nx
         self.ny = ny
         self.nz = 1  # time will tell if 0 is a better value here
@@ -108,11 +114,6 @@ class HexagonalMesh(object):
         self.unit_length = unit_length
 
         self.vertices, self.hexagons = self.init_grid()
-
-        # Number of neighbours (ngbs) according to the shell, i.e. at the
-        # first shell (nearest ngbs) there are 6 ngbs,
-        # second shell (NNNs) -> 6 ngbs, etc
-        self._ngbs_shell = {1: 6, 2: 6, 3: 6, 4: 12, 5: 6}
 
     def init_coordinates(self):
         coordinates = np.zeros((self.n, 3))
@@ -161,19 +162,20 @@ class HexagonalMesh(object):
                 # along the third cubic axis (would be z), hence, we use
                 # _index to disregard periodicity in the NW and SE directions.
                 if self.alignment == 'diagonal':
-                    neighbours[site, :self._ngbs_shell[1]] = [
-                        self.index(i + 1, j),       # right  east
-                        self.index(i - 1, j),       # left   west
-                        self.index(i, j + 1),       # up     north-east
-                        self.index(i, j - 1),       # down   south-west
-                        self._index(i - 1, j + 1),  #        north-west
-                        self._index(i + 1, j - 1),  #        south-east
-                    ]
-                # For the square alignment, the neighbours position change
-                # between odd and even rows
+                    if shells <= 1:
+                        neighbours[site, :self._ngbs_shell[1]] = [
+                            self.index(i + 1, j),       # right  east
+                            self.index(i - 1, j),       # left   west
+                            self.index(i, j + 1),       # up     north-east
+                            self.index(i, j - 1),       # down   south-west
+                            self._index(i - 1, j + 1),  #        north-west
+                            self._index(i + 1, j - 1),  #        south-east
+                        ]
 
                 # -------------------------------------------------------------
 
+                # For the square alignment, the neighbours position change
+                # between odd and even rows
                 if self.alignment == 'square':
 
                     # Nearest neighbours
@@ -198,6 +200,9 @@ class HexagonalMesh(object):
                                 self.index(i, j - 1),       #        south-east
                             ]
 
+                        if shells == 1:
+                            continue
+
                     # Next nearest neighbours
                     # ---------------------------------------------------------
                     if shells <= 2:
@@ -219,6 +224,9 @@ class HexagonalMesh(object):
                                 self.index(i - 2, j + 1),   # north west
                                 self.index(i + 1, j - 1),   # south east
                             ]
+
+                        if shells == 2:
+                            continue
 
                 # -------------------------------------------------------------
 
