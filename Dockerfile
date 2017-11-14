@@ -9,7 +9,7 @@ RUN apt-get update -y
 RUN apt-get install -y build-essential cmake cython3 python3-dev python3-pip \
     python3-psutil python3-pytest python3-pytest-cov \
     python3-matplotlib python3-numpy python3-scipy \
-    liblapack-dev libblas-dev \
+    liblapack-dev libopenblas-dev \
     wget
 
 RUN pip3 install ipywidgets nbval pyvtk six
