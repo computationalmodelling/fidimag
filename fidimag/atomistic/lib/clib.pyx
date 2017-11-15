@@ -118,12 +118,11 @@ def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] energy,
                             Jx, Jy, Jz,
                             np.ndarray[int, ndim=2, mode="c"] ngbs,
-                            n
+                            n, n_ngbs
                             ):
 
-    compute_exch_field(&spin[0], &field[0], &energy[0],
-		       Jx, Jy, Jz,
-                       &ngbs[0, 0], n)
+    compute_exch_field(&spin[0], &field[0], &energy[0], Jx, Jy, Jz,
+                       &ngbs[0, 0], n, n_ngbs)
 
 def compute_exchange_field_spatial(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,

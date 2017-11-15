@@ -44,7 +44,7 @@ void dmi_field_bulk(double *spin, double *field, double *energy, double *D,
 
 void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *energy, double D, int *ngbs, int n,
-                                     int n_ngbs, int n_ngbs_dmi double *DMI_vec);
+                                     int n_ngbs, int n_ngbs_dmi, double *DMI_vec);
 
 void demag_full(double *spin, double *field, double *energy, double *coords,
                 double *mu_s, double *mu_s_scale, int n);
