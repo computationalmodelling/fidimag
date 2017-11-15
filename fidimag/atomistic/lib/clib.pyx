@@ -19,8 +19,11 @@ cdef extern from "time.h":
     time_t time(time_t *timer)
 
 cdef extern from "clib.h":
-    void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs,
-                    double J, double J1, double D, double D1, double *h, double Kc, int n, double T, int hexagonal_mesh)
+    void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
+                     int *ngbs, int *nngbs, int n_ngbs,
+                     double J, double J1, double D, double D1,
+                     double *h, double Kc, int n, double T, int hexagonal_mesh)
+
     double skyrmion_number(double *spin, double *charge,
                            int nx, int ny, int nz, int *ngbs, int n_ngbs)
 
@@ -254,10 +257,11 @@ cdef class monte_carlo(object):
         initial_rng_mt19973(self._c_state, seed)
 
     def run_step(self,np.ndarray[double, ndim=1, mode="c"] spin,
-                np.ndarray[double, ndim=1, mode="c"] new_spin,
-                np.ndarray[int, ndim=2, mode="c"] ngbs,
-                np.ndarray[int, ndim=2, mode="c"] nngbs,
-                J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h,
-                Kc, n, T, hexagonal_mesh):
+                 np.ndarray[double, ndim=1, mode="c"] new_spin,
+                 np.ndarray[int, ndim=2, mode="c"] ngbs,
+                 np.ndarray[int, ndim=2, mode="c"] nngbs,
+                 n_ngbs,
+                 J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h,
+                 Kc, n, T, hexagonal_mesh):
 
-        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], J, J1, D, D1, &h[0], Kc, n, T, hexagonal_mesh)
+        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], n_ngbs, J, J1, D, D1, &h[0], Kc, n, T, hexagonal_mesh)

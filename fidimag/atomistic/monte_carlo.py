@@ -71,8 +71,8 @@ class MonteCarlo(object):
             'm': {'unit': '<>',
                   'get': lambda sim: sim.compute_average(),
                   'header': ('m_x', 'm_y', 'm_z')},
-            'skx_num':{'unit': '<>', 
-                      'get': lambda sim: sim.skyrmion_number(), 
+            'skx_num':{'unit': '<>',
+                      'get': lambda sim: sim.skyrmion_number(),
                       'header': 'skx_num'}
         }
 
@@ -116,7 +116,7 @@ class MonteCarlo(object):
         ny = self.mesh.ny
         nz = self.mesh.nz
         number = clib.compute_skyrmion_number(
-            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
+            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours, self.mesh.n_ngbs)
         self.skx_num = number
         return number
 
@@ -151,8 +151,10 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
-            self.mc.run_step(self.spin, self.random_spin, self.ngbs, self.nngbs, 
-                self.J, self.J1, self.D, self.D1, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
+            self.mc.run_step(self.spin, self.random_spin,
+                             self.ngbs, self.nngbs, self.mesh.n_ngbs,
+                             self.J, self.J1, self.D, self.D1, self._H, self.Kc,
+                             self.n, self.T, self.hexagnoal_mesh)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()
@@ -164,8 +166,8 @@ class MonteCarlo(object):
             if save_m_steps is not None:
                 if step % save_m_steps == 0:
                     self.save_m()
-            
-            
+
+
 
 
 if __name__ == '__main__':
