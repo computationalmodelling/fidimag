@@ -96,7 +96,9 @@ class HexagonalMesh(object):
         self._ngbs_i_shell = {1: self._ngbs_first_shell,
                               2: self._ngbs_second_shell,
                               3: self._ngbs_third_shell,
-                              4: self._ngbs_fourth_shell
+                              4: self._ngbs_fourth_shell,
+                              5: self._ngbs_fifth_shell,
+                              6: self._ngbs_sixth_shell
                               }
 
         self.nx = nx
@@ -503,3 +505,51 @@ class HexagonalMesh(object):
                         self.index(i - 3, j + 1),   # north west 2
                         self.index(i + 2, j - 1)    # south east 2
                         ]
+
+    def _ngbs_fifth_shell(self, i, j):
+
+        if self.alignment == 'diagonal':
+            return [self.index(i + 3, j),           # east
+                    self.index(i - 3, j),           # west
+                    self.index(i, j + 3),           # north east
+                    self.index(i, j - 3),           # south west
+                    self._index(i - 3, j + 3),      # north west
+                    self._index(i + 3, j - 3)       # south east
+                    ]
+        elif self.alignment == 'square':
+            if j % 2 == 0:
+                return [self.index(i + 3, j),       # east
+                        self.index(i - 3, j),       # west
+                        self.index(i + 2, j + 3),   # north-east
+                        self.index(i - 1, j - 3),   # south-west
+                        self.index(i - 1, j + 3),   # north-west
+                        self.index(i + 2, j - 3)    # south-east
+                        ]
+            else:
+                return [self.index(i + 3, j),       # east
+                        self.index(i - 3, j),       # west
+                        self.index(i + 1, j + 3),   # north-east
+                        self.index(i - 2, j - 3),   # south-west
+                        self.index(i - 2, j + 3),   # north-west
+                        self.index(i + 1, j - 3)    # south-east
+                        ]
+
+    def _ngbs_sixth_shell(self, i, j):
+
+        if self.alignment == 'diagonal':
+            return [self.index(i + 2, j + 2),   # north east
+                    self.index(i - 2, j - 2),   # south west
+                    self.index(i - 2, j + 4),   # north
+                    self.index(i + 2, j - 4),   # south
+                    self._index(i - 4, j + 2),  # north west
+                    self._index(i + 4, j - 2)   # south east
+                    ]
+        # in this case, the index does not depend on the row
+        elif self.alignment == 'square':
+            return [self.index(i + 3, j + 2),   # north east
+                    self.index(i - 3, j - 2),   # south west
+                    self.index(i, j + 4),       # north
+                    self.index(i, j - 4),       # south
+                    self.index(i - 3, j + 2),   # north west
+                    self.index(i + 3, j - 2)    # south east
+                    ]
