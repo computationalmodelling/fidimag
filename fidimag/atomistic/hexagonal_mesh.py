@@ -81,7 +81,13 @@ class HexagonalMesh(object):
         # Number of neighbours (ngbs) according to the shell, i.e. at the
         # first shell (nearest ngbs) there are 6 ngbs,
         # second shell (NNNs) -> 6 ngbs, etc
-        self._ngbs_shell = {1: 6, 2: 6, 3: 6, 4: 12, 5: 6}
+        self._n_ngbs_shell = {0: 0, 1: 6, 2: 6, 3: 6, 4: 12, 5: 6}
+
+        # Dictionary to call the methods that return the indexes of the
+        # neighbours for a specific shell (like a switch statement)
+        self._ngbs_i_shell = {1: self._ngbs_first_shell,
+                              2: self._ngbs_second_shell
+                              }
 
         self.nx = nx
         self.ny = ny
@@ -145,94 +151,45 @@ class HexagonalMesh(object):
         return coordinates
 
     def init_neighbours(self, shells=1):
-        # Total number of ngbs. Every row of the connectivity array will have
-        # this number of elements
-        n_ngbs = np.sum([self._ngbs_shell[i] for i in range(1, shells + 1)])
 
+        # Total number of ngbs:
+        n_ngbs = np.sum([self._n_ngbs_shell[i] for i in range(1, shells + 1)])
+        # The neighbours array will be a NxM array where N (rows) will be the
+        # numer of lattice sites and M is the total number of ngbs per site
         neighbours = np.zeros((self.nx * self.ny, n_ngbs), dtype=np.int32)
-        site = 0
 
+        site = 0  # Counter for lattice sites so we populate array row wise
+
+        # Sweep through every lattice site, thus every row of the neighbours
+        # array
+        # For every row, we will compute the neighbours indexes for the *sh*
+        # shell, calling the corresponding function from the _ngbs_i_shell
+        # dictionary.  We store the neighbours according to the shells order,
+        # i.e. for the k-th site:
+        #
+        #                     1st shell ngbs  | 2nd shell ngbs  | 3rd shell ...
+        # neighbours[k] = [x  x  x  x  x  x  o  o  o  o  o  o  -  -  -  -  -  - ...]
+        #
         for j in range(self.ny):
             for i in range(self.nx):
                 cell = self._index(i, j)
 
-                # -------------------------------------------------------------
+                for sh in range(1, shells + 1):
+                    # Save ngbs indexes in the corresponding range of the row
+                    ngbs_range = slice(self._n_ngbs_shell[sh - 1],
+                                       self._n_ngbs_shell[sh])
+                    # compute and store them in this range
+                    neighbours[site, ngbs_range] = self._ngbs_i_shell[sh](i, j)
 
-                # there can be periodicity along x and y axes, but not
-                # along the third cubic axis (would be z), hence, we use
-                # _index to disregard periodicity in the NW and SE directions.
-                if self.alignment == 'diagonal':
-                    if shells <= 1:
-                        neighbours[site, :self._ngbs_shell[1]] = [
-                            self.index(i + 1, j),       # right  east
-                            self.index(i - 1, j),       # left   west
-                            self.index(i, j + 1),       # up     north-east
-                            self.index(i, j - 1),       # down   south-west
-                            self._index(i - 1, j + 1),  #        north-west
-                            self._index(i + 1, j - 1),  #        south-east
-                        ]
+                    # Set indexes to -1 for sites outside the lattice
+                    neighbours[site, ngbs_range] = [other if other != cell
+                                                    else -1 for other in
+                                                    neighbours[site, ngbs_range]]
 
-                # -------------------------------------------------------------
-
-                # For the square alignment, the neighbours position change
-                # between odd and even rows
-                if self.alignment == 'square':
-
-                    # Nearest neighbours
-                    # ---------------------------------------------------------
-                    if shells <= 1:
-                        if j % 2 == 0:
-                            neighbours[site, :self._ngbs_shell[1]] = [
-                                self.index(i + 1, j),       # right  east
-                                self.index(i - 1, j),       # left   west
-                                self.index(i + 1, j + 1),   # up     north-east
-                                self.index(i, j - 1),       # down   south-west
-                                self.index(i, j + 1),       #        north-west
-                                self.index(i + 1, j - 1),   #        south-east
-                            ]
-                        else:
-                            neighbours[site, :self._ngbs_shell[1]] = [
-                                self.index(i + 1, j),       # right  east
-                                self.index(i - 1, j),       # left   west
-                                self.index(i, j + 1),       # up     north-east
-                                self.index(i - 1, j - 1),   # down   south-west
-                                self.index(i - 1, j + 1),   #        north-west
-                                self.index(i, j - 1),       #        south-east
-                            ]
-
-                        if shells == 1:
-                            continue
-
-                    # Next nearest neighbours
-                    # ---------------------------------------------------------
-                    if shells <= 2:
-                        if j % 2 == 0:
-                            neighbours[site, self._ngbs_shell[1]:self._ngbs_shell[2]] = [
-                                self.index(i + 2, j + 1),   # north east
-                                self.index(i - 1, j - 1),   # south west
-                                self.index(i, j + 2),       # up
-                                self.index(i, j - 2),       # down
-                                self.index(i - 1, j + 1),   # north west
-                                self.index(i + 2, j - 1),   # south east
-                            ]
-                        else:
-                            neighbours[site, self._ngbs_shell[1]:self._ngbs_shell[2]] = [
-                                self.index(i + 1, j + 1),   # north east
-                                self.index(i - 2, j - 1),   # south west
-                                self.index(i, j + 2),       # up
-                                self.index(i, j - 2),       # down
-                                self.index(i - 2, j + 1),   # north west
-                                self.index(i + 1, j - 1),   # south east
-                            ]
-
-                        if shells == 2:
-                            continue
-
-                # -------------------------------------------------------------
-
-                neighbours[site] = [other if other != cell
-                                    else -1 for other in neighbours[site]]
-                # connectivity.append(neighbours)
+                    # we must break to populate *neighbours* only according to
+                    # the specified number of shells
+                    if shells == sh:
+                        continue
 
                 site += 1
 
@@ -401,3 +358,66 @@ class HexagonalMesh(object):
         return [(x + radius * np.cos(theta),
                  y + radius * np.sin(theta),
                  0) for theta in angle_rad]
+
+    # -------------------------------------------------------------------------
+
+    def _ngbs_first_shell(self, i, j):
+
+        # there can be periodicity along x and y axes, but not
+        # along the third cubic axis (would be z), hence, we use
+        # _index to disregard periodicity in the NW and SE directions.
+        if self.alignment == 'diagonal':
+            return [self.index(i + 1, j),       # right  east
+                    self.index(i - 1, j),       # left   west
+                    self.index(i, j + 1),       # up     north-east
+                    self.index(i, j - 1),       # down   south-west
+                    self._index(i - 1, j + 1),  #        north-west
+                    self._index(i + 1, j - 1),  #        south-east
+                    ]
+        # For the square alignment, the neighbours position change
+        # between odd and even rows
+        elif self.alignment == 'square':
+            if j % 2 == 0:
+                return [self.index(i + 1, j),       # right  east
+                        self.index(i - 1, j),       # left   west
+                        self.index(i + 1, j + 1),   # up     north-east
+                        self.index(i, j - 1),       # down   south-west
+                        self.index(i, j + 1),       # .      north-west
+                        self.index(i + 1, j - 1),   # .      south-east
+                        ]
+            else:
+                return [self.index(i + 1, j),       # right  east
+                        self.index(i - 1, j),       # left   west
+                        self.index(i, j + 1),       # up     north-east
+                        self.index(i - 1, j - 1),   # down   south-west
+                        self.index(i - 1, j + 1),   # .      north-west
+                        self.index(i, j - 1),       # .      south-east
+                        ]
+
+    def _ngbs_second_shell(self, i, j):
+
+        if self.alignment == 'diagonal':
+            return [self.index(i + 1, j + 1),       # north east
+                    self.index(i - 1, j - 1),       # south west
+                    self.index(i - 1, j + 2),       # up
+                    self.index(i + 1, j - 2),       # down
+                    self._index(i - 2, j + 1),      # north west
+                    self._index(i + 2, j - 1),      # south east
+                    ]
+        elif self.alignment == 'square':
+            if j % 2 == 0:
+                return [self.index(i + 2, j + 1),   # north east
+                        self.index(i - 1, j - 1),   # south west
+                        self.index(i, j + 2),       # up
+                        self.index(i, j - 2),       # down
+                        self.index(i - 1, j + 1),   # north west
+                        self.index(i + 2, j - 1),   # south east
+                        ]
+            else:
+                return [self.index(i + 1, j + 1),   # north east
+                        self.index(i - 2, j - 1),   # south west
+                        self.index(i, j + 2),       # up
+                        self.index(i, j - 2),       # down
+                        self.index(i - 2, j + 1),   # north west
+                        self.index(i + 1, j - 1),   # south east
+                        ]
