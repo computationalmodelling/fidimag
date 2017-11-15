@@ -54,6 +54,10 @@ class CuboidMesh(object):
 
         """
 
+        # total number of neighbours per lattice site
+        # (only nearest ngbs for now)
+        self.n_ngbs = 6
+
         if (np.array([nx, ny, nz]) <= 0).any():
             raise ValueError("nx, ny and nz must be integers >= 1")
         if (np.array([dx, dy, dz]) <= 0).any():

@@ -22,6 +22,7 @@ class Energy(object):
         self.nz = mesh.nz
         self.spin = spin
         self.n = mesh.n
+        self.n_ngbs = mesh.n_ngbs
         self.mesh_type = mesh.mesh_type
 
         self.total_energy = 0

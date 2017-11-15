@@ -10,39 +10,42 @@
  Hamiltonian = - J \sum_<i,j> S_i \cdot S_j
  
  Note that the pair <i,j> only run once for each pair.
- 
+
+- NEIGHBOURS in the arguments:
+
+The first 6 elements of the ngbs[] are the indexes of the nearest neighbours in
+the following order:
+
+     -x, +x, -y, +y, -z, +z
+
+for every spin. It is -1 for boundaries.  The array is like:
+
+                                      __here are next neighbour indexes
+                                      | 
+     | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, ... 1-x, 1+x, 1-y, ...  |
+       i=0                               i=1                ...
+
+where  0-y  is the index of the neighbour of the 0th spin, in the -y direction,
+for example
+
+Thus, for every nearest neighbour ( ngbs[i + j], j=0,1,...5 ) we compute the
+field contribution: Sum_j J_j S_j of the neighbours to the exchange interaction
+
+The ngbs array also gives the correct indexes for the spins at periodic
+boundaries
+
  */
 void compute_exch_field(double *spin, double *field, double *energy,
 						double Jx, double Jy, double Jz,
-                        int *ngbs, int n) {
+                        int *ngbs, int n, int n_ngbs) {
     
     #pragma omp parallel for
 	for (int i = 0; i < n; i++) {
 
 		int id = 0;
-		int id_nn = 6 * i; // index for the neighbours
+		int id_nn = n_ngbs * i; // index for the neighbours
 		
 		double fx = 0, fy = 0, fz = 0;
-
-        /* ngbs[] contains the indexes of the neighbours
-         * in the following order:
-         *      -x, +x, -y, +y, -z, +z
-         *  
-         * for every spin. It is -1 for boundaries.
-         * The array is like:
-         *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
-         *        i=0                           i=1                ...
-         *
-         * where  0-y  is the index of the neighbour of the 0th spin,
-         * in the -y direction, for example
-         * 
-         * Thus, for every neighbour ( ngbs[i + j], j=0,1,...5 )
-         * we compute the field contribution: Sum_j J_j S_j
-         * of the neighbours to the exchange interaction
-         *
-         * The ngbs array also gives the correct indexes for the spins
-         * at periodic boundaries
-         */
 
         for (int j = 0; j < 6; j++) {
             
@@ -135,37 +138,15 @@ double compute_exch_energy(double *spin, double Jx,  double Jy, double Jz,
  
  */
 void compute_exch_field_spatial(double *spin, double *field, double *energy,
-				double *J, int *ngbs, int n) {
+				double *J, int *ngbs, int n, int n_ngbs) {
     
     #pragma omp parallel for
 	for (int i = 0; i < n; i++) {
 
 		int id = 0;
-		int id_nn = 6 * i; // index for the neighbours
+		int id_nn = n_ngbs * i; // index for the neighbours
 		
 		double fx = 0, fy = 0, fz = 0;
-
-        /* ngbs[] contains the indexes of the neighbours
-         * in the following order:
-         *      -x, +x, -y, +y, -z, +z
-         *  
-         * for every spin. It is -1 for boundaries.
-         * The array is like:
-         *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
-         *        i=0                           i=1                ...
-         *
-         * where  0-y  is the index of the neighbour of the 0th spin,
-         * in the -y direction, for example
-         * 
-         * Thus, for every neighbour ( ngbs[i + j], j=0,1,...5 )
-         * we compute the field contribution: Sum_j J_j S_j
-         * of the neighbours to the exchange interaction
-         *
-         * The ngbs array also gives the correct indexes for the spins
-         * at periodic boundaries
-         *
-         * The array J has the same size of array the ngbs.
-         */
 
         for (int j = 0; j < 6; j++) {
             

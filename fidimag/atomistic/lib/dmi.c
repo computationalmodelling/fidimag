@@ -2,30 +2,35 @@
 #include "math.h"
 #include "stdlib.h"
 
+/* NOTES about the neighbours array in the arguments:
+
+The first 6 elements of the ngbs[] are the indexes of the nearest neighbours in
+the following order:
+
+     -x, +x, -y, +y, -z, +z
+
+for every spin. It is -1 for boundaries.  The array is like:
+
+                                      __here are next neighbour indexes
+                                      | 
+     | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, ... 1-x, 1+x, 1-y, ...  |
+       i=0                               i=1                ...
+
+where  0-y  is the index of the neighbour of the 0th spin, in the -y direction,
+for example
+
+Thus, for every nearest neighbour ( ngbs[i + j], j=0,1,...5 ) we compute the
+field contribution from the corresponding DMI
+
+The ngbs array also gives the correct indexes for the spins at periodic
+boundaries
+
+*/
+
 void dmi_field_bulk(double *spin, double *field,
-                    double *energy, double *_D, int *ngbs, int nxyz) {
+                    double *energy, double *_D, int *ngbs, int nxyz, int n_ngbs) {
 
     /* Bulk DMI field and energy computation
-     *
-     * ngbs[] contains the *indexes* of the neighbours
-     * in the following order:
-     *      -x, +x, -y, +y, -z, +z
-     *
-     * for every spin. It is -1 for boundaries.
-     * The array is like:
-     *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
-     *        i=0                           i=1                ...
-     *
-     * where  0-y  is the index of the neighbour of the 0th spin,
-     * in the -y direction, for example
-     *
-     * Thus, for every neighbour ( ngbs[i + j], j=0,1,...5 )
-     * we compute the field contribution.
-     *
-     * The value of ngbs[] at sites with Ms = 0, is negative
-     *
-     * The ngbs array also gives the correct indexes for the spins
-     * at periodic boundaries
      *
      * The Bulk DMI Dzyaloshinskii vectors are in the same direction than the
      * r_ij vectors which connect two neighbouring sites, pointing from the
@@ -70,12 +75,12 @@ void dmi_field_bulk(double *spin, double *field,
 	for (int i = 0; i < nxyz; i++) {
 
 		int id = 0;
-		int id_nn = 6 * i; // index for the neighbours
+		int id_nn = n_ngbs * i; // index for the neighbours
 
 		double fx = 0, fy = 0, fz = 0;
         double D=0;
 
-        // Compute the DMI contribution for every neighbour:
+        // Compute the DMI contribution for every NEAREST neighbour:
         // -x, +x, -y, +y, -z, +z
         for (int j = 0; j < 6; j++){
             if (ngbs[id_nn + j] >= 0) {
@@ -108,28 +113,15 @@ void dmi_field_bulk(double *spin, double *field,
 }
 
 void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy,
-    double D, int *ngbs, int n, int nneighbours, double *DMI_vec) {
+    double D, int *ngbs, int n, int n_ngbs, int n_ngbs_dmi, double *DMI_vec) {
     
     /* Interfacial DMI field and energy computation
      *
      * ngbs[] contains the *indexes* of the neighbours
      * for different lattices. The number of neighbours is specified with the
-     * nneighbours integer
-     *
-     * For example, in a simple cubic (SC) lattice,
-     * the array is like:
-     *      | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
-     *        i=0                           i=1                ...
-     *
-     * where  0-y  is the index of the neighbour of the 0th spin,
-     * in the -y direction, for example
-     *
-     * Thus, for every neighbour of the i-th spin ( ngbs[i + j], j=0,1,...5 )
-     * we compute the field contribution
-     * The value of ngbs[] at sites with Ms = 0, is negative (-1)
-     *
-     * The ngbs array also gives the correct indexes for the spins
-     * at periodic boundaries
+     * n_ngbs integer.
+     * The number of neighbours used to compute the 2D interfacial DMI is
+     * given by the n_dmi_ngbs (e.g. 4 in a square lattice, 6 in hex lattice)
      *
      * The Interfacial DMI needs the direction of the Dzyaloshinskii vectors,
      * which are obtained as
@@ -174,13 +166,13 @@ void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy
   	#pragma omp parallel for
 	for (int i = 0; i < n; i++) {
         
-		int idn = 6 * i; // index for the NNs
-		int idnm = 0;    // index for the magnetisation components of the NNs
+		int idn = n_ngbs * i; // index for the NNs
+		int idnm = 0;         // index for the magnetisation components of the NNs
 
 		double fx = 0, fy = 0, fz = 0;
 
-        /* Now we compute the field contribution from every neighbour */
-        for(int j = 0; j < nneighbours; j++){
+        /* Now we compute the field contribution from every NEAREST neighbour in the plane */
+        for(int j = 0; j < n_ngbs_dmi; j++){
             /* Check that Ms != 0 */
             if (ngbs[idn + j] >= 0) {
 

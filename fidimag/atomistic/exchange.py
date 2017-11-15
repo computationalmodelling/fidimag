@@ -64,7 +64,9 @@ class UniformExchange(Energy):
                                     self.Jy,
                                     self.Jz,
                                     self.neighbours,
-                                    self.n)
+                                    self.n,
+                                    self.n_ngbs
+                                    )
 
         return self.field * self.mu_s_inv
 
@@ -176,6 +178,8 @@ class Exchange(Energy):
                                             self.energy,
                                             self._J,
                                             self.neighbours,
-                                            self.n)
+                                            self.n,
+                                            self.n_ngbs
+                                            )
 
         return self.field * self.mu_s_inv

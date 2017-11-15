@@ -11,7 +11,7 @@ inline double volume(double S[3], double Si[3], double Sj[3]) {
 }
 
 double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz,
-                       int *ngbs) {
+                       int *ngbs, int n_ngbs) {
 
   /* Calculation of the "Skyrmion number" Q for a two dimensional discrete
    * spin lattice in the x-y plane (also known
@@ -29,11 +29,15 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz,
    *
    * *ngbs is the array with the neighbours information for every
    * lattice site. The array is like:
-   *      [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  ]
-   *        i=0                           i=1                ...
+   *
+   *                                        __ indexes beyond nearest neighbours
+   *                                       | 
+   *      [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, ... 1-x, 1+x, 1-y, ...  ]
+   *        i=0                               i=n_ngbs       ...
    *
    * where  0-y  is the index of the neighbour of the 0th spin,
-   * in the -y direction, for example
+   * in the -y direction, for example.
+   * The first 6 indexes per every i are the NEAREST neighbours
    *
    *
    * THEORY:
@@ -50,7 +54,7 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz,
    *                    |
    *                    X   (j - 1)
    *
-   * Then, we use the follwing expression:
+   * Then, we use the following expression:
    *
    * Q =  S_i \dot ( S_{i+1} \times S_{j+1} )
    *      +  S_i \dot ( S_{i-1} \times S_{j-1} )
@@ -95,7 +99,7 @@ double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz,
 
     /* The starting index of the nearest neighbours for the
      * i-th spin */
-    int id_nn = 6 * i;
+    int id_nn = n_ngbs * i;
 
     S[0] = spin[index];
     S[1] = spin[index + 1];
@@ -220,7 +224,7 @@ double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
 }
 
 double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
-                                   int nz, int *ngbs) {
+                                   int nz, int *ngbs, int n_ngbs) {
 
   /* Compute the topological charge (or skyrmion number) by adding triangles
    * of neighbouring spins for every lattice site, which cover triangle areas
@@ -233,16 +237,19 @@ double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
    * NEIGHBOURS DEFINITION:
    *
    * *ngbs is the array with the neighbours information for every lattice
-   * site. For cuboid meshes, the array is like:
+   * site. The first 6 elements are the NEAREST neighbours. For cuboid meshes,
+   * the array is like:
    *
-   *  NN:      j =0  j=1 ...                 j=0  j=1  ...
-   *         [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  ]
-   *  spin:   i=6 * 0                        i=6 * 1
+   *                                          __ indexes beyond nearest ngbs  
+   *                                          |  
+   *  NN:      j =0  j=1 ...                  |  j=0  j=1  ...
+   *         [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, ... 1-x, 1+x, 1-y, ...  ]
+   *  spin:   i=n_ngbs * 0                       i=n_ngbs * 1
    * ...
    *
    * where  0-y  is the index of the neighbour of the 0th spin, in the -y
    * direction, for example, so the neighbours of the i-th spin start at the
-   * (6 * i) position of the array. This is similar for hexagonal meshes.
+   * (n_ngbs * i) position of the array. This is similar for hexagonal meshes.
    *
    * For a cuboid mesh,  for the i-th spin, we generate the nearest ngbs
    * triangles using the triangles: [i, j=1, j=3] , [i, j=0, j=2]
@@ -257,7 +264,7 @@ double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
    * whose area covers a unit cell in a hexagonal crystal arrangement.
    *
    *
-   * Since the neighbours agree in indexes we can use the same function
+   * Since the NEAREST neighbours agree in indexes we can use the same function
    * for both meshes.
    *
    * ------------------------------------------------------------------------
@@ -294,17 +301,17 @@ double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
     // Compute the spherical triangle area for the triangle formed
     // by the i-th spin and neighbours 0 and 2, i.e.
     // [i j=0 j=2]. First check that the NNs exist:
-    if (ngbs[6 * i] >= 0 && ngbs[6 * i + 2] >= 0) {
+    if (ngbs[n_ngbs * i] >= 0 && ngbs[n_ngbs * i + 2] >= 0) {
       charge[i] +=
-          compute_BergLuscher_angle(&spin[spin_index], &spin[3 * ngbs[6 * i]],
-                                    &spin[3 * ngbs[6 * i + 2]]);
+          compute_BergLuscher_angle(&spin[spin_index], &spin[3 * ngbs[n_ngbs * i]],
+                                    &spin[3 * ngbs[n_ngbs * i + 2]]);
     }
 
     // Triangle: [i j=1 j=3]
-    if (ngbs[6 * i + 1] >= 0 && ngbs[6 * i + 3] >= 0) {
+    if (ngbs[n_ngbs * i + 1] >= 0 && ngbs[n_ngbs * i + 3] >= 0) {
       charge[i] += compute_BergLuscher_angle(&spin[spin_index],
-                                             &spin[3 * ngbs[6 * i + 1]],
-                                             &spin[3 * ngbs[6 * i + 3]]);
+                                             &spin[3 * ngbs[n_ngbs * i + 1]],
+                                             &spin[3 * ngbs[n_ngbs * i + 3]]);
     }
 
     total_sum += charge[i];

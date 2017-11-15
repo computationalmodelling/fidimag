@@ -25,10 +25,10 @@ inline double cross_z(double a0, double a1, double a2, double b0, double b1,
 }
 
 void compute_exch_field(double *spin, double *field, double *energy, double Jx,
-                        double Jy, double Jz, int *ngbs, int n);
+                        double Jy, double Jz, int *ngbs, int n, int n_ngbs);
 
 void compute_exch_field_spatial(double *spin, double *field, double *energy,
-                                double *J, int *ngbs, int n);
+                                double *J, int *ngbs, int n, int n_ngbs);
 
 double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
                            int nx, int ny, int nz, int xperiodic,
@@ -40,11 +40,11 @@ void compute_anis_cubic(double *spin, double *field, double *energy,
 	          double *Kc, int n); 
 
 void dmi_field_bulk(double *spin, double *field, double *energy, double *D,
-                    int *ngbs, int n);
+                    int *ngbs, int n, int n_ngbs);
 
 void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *energy, double D, int *ngbs, int n,
-                                     int nneighbours, double *DMI_vec);
+                                     int n_ngbs, int n_ngbs_dmi double *DMI_vec);
 
 void demag_full(double *spin, double *field, double *energy, double *coords,
                 double *mu_s, double *mu_s_scale, int n);
@@ -58,10 +58,10 @@ void llg_s_rhs(double *dm_dt, double *spin, double *h, double *alpha,
 void normalise(double *m, int *pins, int n);
 
 double skyrmion_number(double *spin, double *charge, int nx, int ny, int nz,
-                       int *ngbs);
+                       int *ngbs, int n_ngbs);
 
 double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
-                                   int nz, int *ngbs);
+                                   int nz, int *ngbs, int n_ngbs);
 
 void compute_guiding_center(double *spin, int nx, int ny, int nz, int nx_start,
                             int nx_stop, int ny_start, int ny_stop,
