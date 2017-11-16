@@ -98,6 +98,13 @@ class Exchange(Energy):
 
             self.compute_field = self.compute_field_spatial
 
+        elif isinstance(self.J, list) and len(self.J) == self.mesh.shells:
+            self._J = [0. for i in range(8)]
+            for i in range(len(self.J)):
+                self._J[i] = float(self.J[i])
+
+            self.compute_field = self.compute_field_full()
+
     def compute_field_spatial(self, t=0, spin=None):
 
         if spin is not None:
@@ -135,6 +142,9 @@ class Exchange(Energy):
                                     )
 
         return self.field * self.mu_s_inv
+
+    def compute_field_full(self):
+        pass
 
 
 class UniformExchange(Exchange):
