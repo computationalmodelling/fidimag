@@ -162,6 +162,8 @@ class Exchange(Energy):
                                          self.mesh._sum_ngbs_shell
                                          )
 
+        return self.field * self.mu_s_inv
+
 
 class UniformExchange(Exchange):
 

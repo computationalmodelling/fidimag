@@ -27,23 +27,17 @@ def test_full_exch_hex():
 
     """
     a = 1
-    mesh = HexagonalMesh(a * 0.5, nx=9, ny=9, shells=2)
+    mesh = HexagonalMesh(a * 0.5, nx=9, ny=9, shells=2, alignment='square')
     sim = Sim(mesh)
     sim.set_m(lambda r: init_m(r, a), normalise=False)
     sim.spin.reshape(-1, 3)[:, 0] = np.arange(len(sim.spin.reshape(-1, 3)[:, 0]))
 
-    # print(sim.mesh.coordinates[:])
-    # print(sim.spin.reshape(-1, 3)[:])
-
     Js = [1, 1]
     exch = Exchange(Js)
     sim.add(exch)
-    exch.compute_field()
 
-    print(field)
-    print(sim.get_interaction('Exchange').field.reshape(-1, 3)[:5])
-
-    # assert field[3 * 40] =
+    field = exch.compute_field()
+    assert field[3 * 0] == 1 + 10 + 9 + 11 + 18
 
 
 if __name__ == '__main__':
