@@ -143,8 +143,21 @@ class Exchange(Energy):
 
         return self.field * self.mu_s_inv
 
-    def compute_field_full(self):
-        pass
+    def compute_field_full(self, t=0, spin=None):
+
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+
+        clib.compute_full_exchange_field(m, self.field, self.energy,
+                                         self.J,
+                                         self.neighbours,
+                                         self.n, self.mesh.n_ngbs,
+                                         self.mesh.n_shells,
+                                         self.mesh.n_ngbs_shell,
+                                         self.mesh.sum_ngbs_shell
+                                         )
 
 
 class UniformExchange(Exchange):

@@ -80,16 +80,24 @@ class HexagonalMesh(object):
 
         """
 
-        self.shells = shells
+        self.n_shells = shells
 
         # Number of neighbours (ngbs) according to the shell, i.e. at the
         # first shell (nearest ngbs) there are 6 ngbs,
         # second shell (NNNs) -> 6 ngbs, etc
-        self._n_ngbs_shell = {0: 0, 1: 6, 2: 6, 3: 6, 4: 12, 5: 6}
+        # (we set zero to 0 ngbs to make for loops more understandable)
+        self._n_ngbs_shell = np.array([0, 6, 6, 6, 12, 6, 6, 12, 6])
 
         # Total number of ngbs:
         self.n_ngbs = np.sum([self._n_ngbs_shell[i]
-                              for i in range(1, self.shells + 1)])
+                              for i in range(1, self.n_shells + 1)])
+
+        # List with the sum of number of neighbours, to set the range of cols
+        # to store the ngbs indexes for a specific shell in a specific row. For
+        # example, 1st ngbs are stored in cols 0-5, 2nd ngbs in 6-11, etc.
+        self._sum_ngbs_shell = np.array([np.sum([self._n_ngbs_shell[i]
+                                                 for i in range(max_sh + 1)])
+                                         for max_sh in range(self.n_shells + 1)])
 
         # Dictionary to call the methods that return the indexes of the
         # neighbours for a specific shell (like a switch statement)
@@ -166,13 +174,6 @@ class HexagonalMesh(object):
 
     def init_neighbours(self):
 
-        # List with the sum of number of neighbours, to set the range of cols
-        # to store the ngbs indexes for a specific shell in a specific row. For
-        # example, 1st ngbs are stored in cols 0-5, 2nd ngbs in 6-11, etc.
-        _sum_ngbs_shell = [np.sum([self._n_ngbs_shell[i]
-                                   for i in range(max_sh + 1)])
-                           for max_sh in range(self.shells + 1)]
-
         # The neighbours array will be a NxM array where N (rows) will be the
         # numer of lattice sites and M is the total number of ngbs per site
         neighbours = np.zeros((self.nx * self.ny, self.n_ngbs), dtype=np.int32)
@@ -186,17 +187,17 @@ class HexagonalMesh(object):
         # dictionary.  We store the neighbours according to the shells order,
         # i.e. for the k-th site:
         #
-        #                     1st shell ngbs  | 2nd shell ngbs  | 3rd shell ...
+        #                   1st shell ngbs  | 2nd shell ngbs  | 3rd shell ...
         # neighbours[k] = [x  x  x  x  x  x  o  o  o  o  o  o  -  -  -  -  -  - ...]
         #
         for j in range(self.ny):
             for i in range(self.nx):
                 cell = self._index(i, j)
 
-                for sh in range(1, self.shells + 1):
+                for sh in range(1, self.n_shells + 1):
                     # Save ngbs indexes in the corresponding range of the row
-                    ngbs_range = slice(_sum_ngbs_shell[sh - 1],
-                                       _sum_ngbs_shell[sh])
+                    ngbs_range = slice(self._sum_ngbs_shell[sh - 1],
+                                       self._sum_ngbs_shell[sh])
                     # compute and store them in this range
                     neighbours[site, ngbs_range] = self._ngbs_i_shell[sh](i, j)
 
@@ -207,7 +208,7 @@ class HexagonalMesh(object):
 
                     # we must break to populate *neighbours* only according to
                     # the specified number of shells
-                    if self.shells == sh:
+                    if self.n_shells == sh:
                         continue
 
                 site += 1

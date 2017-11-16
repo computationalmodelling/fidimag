@@ -169,3 +169,55 @@ void compute_exch_field_spatial(double *spin, double *field, double *energy,
                             fz * spin[3 * i + 2]);
     }
 }
+
+/* Calculation of Exchange field for up to 8 shells of neighbours
+ *
+ * J                :: Array with 8 elements: an exchange constant per shell
+ *                     Calculation is only up to n_shells (the rest of the elements
+ *                     are not used.
+ * ngbs             :: array with the neighbours
+ * n_ngbs           :: number of neighbours per lattice site
+ * n_shells         :: number of specified shells of neighbours
+ * n_ngbs_shell     :: number of neighbours per shell. First element is zero.
+ *                     For a hex lattice, this array is: [0, 6, 6, 12, ... ] 
+ * sum_ngbs_shell   :: sum of number of neighbours up to the i-th shell to
+ *                     locate the column position for the ngbs of a specific shell.
+ *                     First element is zero.
+ *                     For a hex lattice, this array is: [0, 6, 12, 24, ...]
+ *                     Thus, we can locate ngbs from cols 0-5, 6-11, 12, 23, ... etc 
+ *
+ */
+void compute_full_exch_field(double *spin, double *field, double *energy,
+					      	 double J[8], int *ngbs, int n, int n_ngbs,
+                             int n_shells, int *n_ngbs_shell, int *sum_ngbs_shell
+                             ) {
+
+    #pragma omp parallel for
+	for (int i = 0; i < n; i++) {
+
+		int id = 0;
+		int id_ngbs = n_ngbs * i; // index for the starting point of neighbours
+		
+		double fx = 0, fy = 0, fz = 0;
+
+        for (int sh = 1; sh < n_shells + 1; sh++) {
+            for (int j = sum_ngbs_shell[sh - 1]; j < sum_ngbs_shell[sh]; j++) {
+                
+                if (ngbs[id_ngbs + j] >= 0) {
+
+                    id = 3 * ngbs[id_ngbs + j]; 
+                    fx += J[sh - 1] * spin[id];
+                    fy += J[sh - 1] * spin[id + 1];
+                    fz += J[sh - 1] * spin[id + 2];
+                }
+
+            }
+        }
+
+        field[3 * i] = fx;
+        field[3 * i + 1] = fy;
+        field[3 * i + 2] = fz;
+        energy[i] = -0.5 * (fx * spin[3 * i] + fy * spin[3 * i + 1] + 
+                            fz * spin[3 * i + 2]);
+    }
+}
