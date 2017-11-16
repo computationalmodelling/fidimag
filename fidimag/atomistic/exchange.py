@@ -86,6 +86,7 @@ class Exchange(Energy):
     def setup(self, mesh, spin, mu_s):
         super(Exchange, self).setup(mesh, spin, mu_s)
 
+        # Uniform exchange ----------------------------------------------------
         if isinstance(self.J, (int, float)):
             self.Jx = float(self.J)
             self.Jy = float(self.J)
@@ -93,6 +94,7 @@ class Exchange(Energy):
 
             self.compute_field = self.compute_field_uniform
 
+        # Spatially resolved exchange -----------------------------------------
         # TODO: Add option to pass numpy arrays
         elif hasattr(self.J, '__call__'):
             self._J = np.zeros(self.neighbours.shape)
@@ -107,6 +109,7 @@ class Exchange(Energy):
 
             self.compute_field = self.compute_field_spatial
 
+        # Full exchange calculation (beyond nearest neighbours) ---------------
         elif isinstance(self.J, list) and len(self.J) == self.mesh.shells:
             self._J = [0. for i in range(8)]
             for i in range(len(self.J)):
