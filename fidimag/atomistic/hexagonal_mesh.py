@@ -86,7 +86,8 @@ class HexagonalMesh(object):
         # first shell (nearest ngbs) there are 6 ngbs,
         # second shell (NNNs) -> 6 ngbs, etc
         # (we set zero to 0 ngbs to make for loops more understandable)
-        self._n_ngbs_shell = np.array([0, 6, 6, 6, 12, 6, 6, 12, 6])
+        self._n_ngbs_shell = np.array([0, 6, 6, 6, 12, 6, 6, 12, 6],
+                                      dtype=np.int32)
 
         # Total number of ngbs:
         self.n_ngbs = np.sum([self._n_ngbs_shell[i]
@@ -97,7 +98,8 @@ class HexagonalMesh(object):
         # example, 1st ngbs are stored in cols 0-5, 2nd ngbs in 6-11, etc.
         self._sum_ngbs_shell = np.array([np.sum([self._n_ngbs_shell[i]
                                                  for i in range(max_sh + 1)])
-                                         for max_sh in range(self.n_shells + 1)])
+                                         for max_sh in range(self.n_shells + 1)],
+                                        dtype=np.int32)
 
         # Dictionary to call the methods that return the indexes of the
         # neighbours for a specific shell (like a switch statement)

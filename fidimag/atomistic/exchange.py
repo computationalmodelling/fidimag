@@ -111,11 +111,11 @@ class Exchange(Energy):
 
         # Full exchange calculation (beyond nearest neighbours) ---------------
         elif isinstance(self.J, list) and len(self.J) == self.mesh.n_shells:
-            self._J = [0. for i in range(8)]
+            self._J = np.zeros(8)
             for i in range(len(self.J)):
                 self._J[i] = float(self.J[i])
 
-            self.compute_field = self.compute_field_full()
+            self.compute_field = self.compute_field_full
 
     def compute_field_spatial(self, t=0, spin=None):
 
@@ -154,12 +154,12 @@ class Exchange(Energy):
         m = spin if spin is not None else self.spin
 
         clib.compute_full_exchange_field(m, self.field, self.energy,
-                                         self.J,
+                                         self._J,
                                          self.neighbours,
                                          self.n, self.mesh.n_ngbs,
                                          self.mesh.n_shells,
-                                         self.mesh.n_ngbs_shell,
-                                         self.mesh.sum_ngbs_shell
+                                         self.mesh._n_ngbs_shell,
+                                         self.mesh._sum_ngbs_shell
                                          )
 
 
