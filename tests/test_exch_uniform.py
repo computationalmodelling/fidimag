@@ -120,10 +120,23 @@ def test_exch_3d():
     4  5  6   7       x 2
     0  1  2   3
 
-    The assertions are the mx component
-    of the: 0, 1, 2, .. 7 spins
+    Assertions are according to the mx component of the spins, since J is set
+    to 1
 
-    Remember the new new ordering: fx1, fy1, fz1, fx2, ...
+
+    Spin components are given according to the (i, j) index position in the
+    lattice:
+
+           i                lattice site
+        [[ 0.  0.  0.]  --> 0    j=0
+         [ 1.  0.  0.]  --> 1
+         [ 2.  0.  0.]  --> 2
+         [ 3.  0.  0.]  --> 3
+         [ 0.  1.  0.]  --> 4    j=1
+         [ 1.  1.  0.]
+         ...
+
+    Remember the field ordering: fx0, fy0, fz0, fx1, ...
 
     """
     mesh = CuboidMesh(nx=4, ny=3, nz=2)
@@ -135,9 +148,21 @@ def test_exch_3d():
 
     field = exch.compute_field()
     # print field
+
+    # Exchange from 0th spin
     assert field[0] == 1
-    assert field[3] == 0 + 1 + 2 + 1
-    assert field[6] == 1 + 2 + 3 + 2
+
+    # Exchange from 1st spin
+    #            spin: 2   0   5   13
+    #              mx: 2   0   1   1
+    assert field[3] == 2 + 0 + 1 + 1
+
+    # Exchange from 2nd spin
+    #            spin: 3   1   6   14
+    #              mx: 3   1   2   2
+    assert field[6] == 3 + 1 + 2 + 2
+
+    # ...
     assert field[9] == 2 + 3 + 3
 
     assert field[4 * 3] == 1
