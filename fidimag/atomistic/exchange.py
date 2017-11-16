@@ -110,7 +110,7 @@ class Exchange(Energy):
             self.compute_field = self.compute_field_spatial
 
         # Full exchange calculation (beyond nearest neighbours) ---------------
-        elif isinstance(self.J, list) and len(self.J) == self.mesh.shells:
+        elif isinstance(self.J, list) and len(self.J) == self.mesh.n_shells:
             self._J = [0. for i in range(8)]
             for i in range(len(self.J)):
                 self._J[i] = float(self.J[i])
