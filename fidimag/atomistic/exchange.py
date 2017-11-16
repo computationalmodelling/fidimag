@@ -26,15 +26,24 @@ class Exchange(Energy):
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
 
-        J               :: The exchange tensor which can be  a number (same
-                           magnitude for every neighbour at every lattice site)
-                           or a space dependent function that returns 6
+        J               :: The exchange tensor which can be:
+
+                           1. A number (same exchange magnitude for every
+                           neighbour at every lattice site)
+
+                           2. A space dependent function that returns 6
                            components, one for every nearest neighbour (NN).
                            For a square lattice the NNs are defined in 3D as:
                            [-x +x -y +y -z +z], thus the exchange components
                            are specified in that order. In a hexagonal lattice
                            the NNs are only in a 2D plane as the cardinal
                            positions: [W E NE SW NW SE].
+
+                           3. A list with N exchange constants, where N is the
+                           number of neighbours shells specified in the mesh.
+                           The list is in order, thus the 0th element is for
+                           the exchange constant of the 1st shell, etc.
+                           i.e. [J1, J2, J3, ...]
 
         name            :: Interaction name
 
