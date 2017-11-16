@@ -281,6 +281,10 @@ def test_x_neighbours_multiple_square():
                                     ]
             ).all()
 
+    # Second neighbours of the 0th position:
+    assert (mesh.neighbours[0][6:12] == [11, -1, 18, -1, -1, -1]  # 2nd shell
+            ).all()
+
 
 def test_iterate_over_cells():
     mesh = HexagonalMesh(1, 2, 2)
