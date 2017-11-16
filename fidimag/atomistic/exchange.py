@@ -107,10 +107,7 @@ class Exchange(Energy):
 
     def compute_field_spatial(self, t=0, spin=None):
 
-        if spin is not None:
-            m = spin
-        else:
-            m = self.spin
+        m = spin if spin is not None else self.spin
 
         clib.compute_exchange_field_spatial(m,
                                             self.field,
@@ -125,10 +122,7 @@ class Exchange(Energy):
 
     def compute_field_uniform(self, t=0, spin=None):
 
-        if spin is not None:
-            m = spin
-        else:
-            m = self.spin
+        m = spin if spin is not None else self.spin
 
         clib.compute_exchange_field(m,
                                     self.field,
@@ -145,10 +139,7 @@ class Exchange(Energy):
 
     def compute_field_full(self, t=0, spin=None):
 
-        if spin is not None:
-            m = spin
-        else:
-            m = self.spin
+        m = spin if spin is not None else self.spin
 
         clib.compute_full_exchange_field(m, self.field, self.energy,
                                          self.J,
