@@ -3,88 +3,6 @@ import numpy as np
 from .energy import Energy
 
 
-class UniformExchange(Energy):
-
-    """
-
-    This class provides the Exchange Interaction energy term for a
-    homogeneous material, defined as
-
-                  __        ->      ->
-         E =  -  \    J_ij  S_i  *  S_j
-                 /__
-                <i, j>
-                i != j
-
-    where J_ij is the exchange tensor, S_i and S_j are the total spin vectors
-    at the i-th and j-th lattice sites, and <i, j> means counting the
-    interaction between neighbouring spins only once (notice that there is no
-    factor of 2 associated with J)
-
-    This class only computes a uniform exchange field, thus J_ij is a
-    diagonal tensor with constant magnitude, J_ij -> J
-
-
-    OPTIONAL ARGUMENTS: -------------------------------------------------------
-
-        J               :: A number for the exchange tensor magnitude
-        name            :: Interaction name
-
-    USAGE: --------------------------------------------------------------------
-
-    For a homogeneous material, it can be specified in a simulation object
-    *Sim* as
-
-            Sim.add(UniformExchange(J))
-
-    where J is a float.
-
-    """
-
-    def __init__(self, J=0, name='UniformExchange'):
-        self.J = J
-        self.name = name
-
-        self.Jx = self.J
-        self.Jy = self.J
-        self.Jz = self.J
-        self.jac = True
-
-    def compute_field(self, t=0, spin=None):
-
-        if spin is not None:
-            m = spin
-        else:
-            m = self.spin
-
-        clib.compute_exchange_field(m,
-                                    self.field,
-                                    self.energy,
-                                    self.Jx,
-                                    self.Jy,
-                                    self.Jz,
-                                    self.neighbours,
-                                    self.n,
-                                    self.n_ngbs
-                                    )
-
-        return self.field * self.mu_s_inv
-
-    def compute_energy_directly(self):
-
-        energy = clib.compute_exchange_energy(self.spin,
-                                              self.Jx,
-                                              self.Jy,
-                                              self.Jz,
-                                              self.nx,
-                                              self.ny,
-                                              self.nz,
-                                              self.xperiodic,
-                                              self.yperiodic)
-
-        return energy
-
-
 class Exchange(Energy):
 
     """
@@ -108,7 +26,7 @@ class Exchange(Energy):
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
 
-        J_fun           :: The exchange tensor which can be  a number (same
+        J               :: The exchange tensor which can be  a number (same
                            magnitude for every neighbour at every lattice site)
                            or a space dependent function that returns 6
                            components, one for every nearest neighbour (NN).
@@ -141,32 +59,46 @@ class Exchange(Energy):
 
             Sim.add(Exchange(my_exchange))
 
+    DEV NOTES: ----------------------------------------------------------------
+
+    * If a float or int is passed as the Exchange constant J, this class will
+    use the *compute_exchange_field* C function (see lib/exch.c), which assumes
+    a uniform exchange. This C function does not take J as an array thus it
+    will not call array elements to compute the neighbours contribution but
+    it will only use a constant, thus it should be faster
 
     """
 
-    def __init__(self, J_fun, name='Exchange'):
-        self.J_fun = J_fun
+    def __init__(self, J, name='Exchange'):
+        self.J = J
         self.name = name
         self.jac = False
 
     def setup(self, mesh, spin, mu_s):
         super(Exchange, self).setup(mesh, spin, mu_s)
 
-        self._J = np.zeros(self.neighbours.shape)
+        if isinstance(self.J, (int, float)):
+            self.Jx = float(self.J)
+            self.Jy = float(self.J)
+            self.Jz = float(self.J)
 
-        if isinstance(self.J_fun, (int, float)):
-            self._J[:, :] = self.J_fun
-        elif hasattr(self.J_fun, '__call__'):
+            self.compute_field = self.compute_field_uniform
+
+        # TODO: Add option to pass numpy arrays
+        elif hasattr(self.J, '__call__'):
+            self._J = np.zeros(self.neighbours.shape)
             n = self.mesh.n
             for i in range(n):
-                value = self.J_fun(self.coordinates[i])
+                value = self.J(self.coordinates[i])
                 if len(value) == 6:
                     self._J[i, :] = value[:]
                 else:
                     raise Exception('The given spatial function for J is not acceptable!')
             pass
 
-    def compute_field(self, t=0, spin=None):
+            self.compute_field = self.compute_field_spatial
+
+    def compute_field_spatial(self, t=0, spin=None):
 
         if spin is not None:
             m = spin
@@ -183,3 +115,34 @@ class Exchange(Energy):
                                             )
 
         return self.field * self.mu_s_inv
+
+    def compute_field_uniform(self, t=0, spin=None):
+
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+
+        clib.compute_exchange_field(m,
+                                    self.field,
+                                    self.energy,
+                                    self.Jx,
+                                    self.Jy,
+                                    self.Jz,
+                                    self.neighbours,
+                                    self.n,
+                                    self.n_ngbs
+                                    )
+
+        return self.field * self.mu_s_inv
+
+
+class UniformExchange(Exchange):
+
+    """
+    For compatibility we leave this class which was merged into the
+    Exchange class
+    """
+
+    def __init__(self, J=0, name='UniformExchange'):
+        super(UniformExchange, self).__init__(J, name=name)
