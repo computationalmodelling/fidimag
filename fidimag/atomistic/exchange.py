@@ -113,7 +113,7 @@ class Exchange(Energy):
         # n_shells should not be larger than 8 (checked in the mesh class)
         elif (isinstance(self.J, (list, np.ndarray)) and
               len(self.J) == self.mesh.n_shells):
-            self._J = np.zeros(8)
+            self._J = np.zeros(9)
             for i in range(len(self.J)):
                 self._J[i] = float(self.J[i])
 

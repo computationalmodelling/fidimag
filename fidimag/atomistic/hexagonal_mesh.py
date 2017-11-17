@@ -80,7 +80,7 @@ class HexagonalMesh(object):
 
         """
 
-        if shells > 8:
+        if shells > 9:
             raise ValueError('Number of shells cannot be larger than 8')
         else:
             self.n_shells = shells
@@ -89,7 +89,7 @@ class HexagonalMesh(object):
         # first shell (nearest ngbs) there are 6 ngbs,
         # second shell (NNNs) -> 6 ngbs, etc
         # (we set zero to 0 ngbs to make for loops more understandable)
-        self._n_ngbs_shell = np.array([0, 6, 6, 6, 12, 6, 6, 12, 6],
+        self._n_ngbs_shell = np.array([0, 6, 6, 6, 12, 6, 6, 12, 6, 12],
                                       dtype=np.int32)
 
         # Total number of ngbs:
@@ -581,20 +581,6 @@ class HexagonalMesh(object):
         # in this case, the index does not depend on the row
         elif self.alignment == 'square':
             if j % 2 == 0:
-                return [self.index(i + 3, j + 1),       # north east 1
-                        self.index(i - 4, j - 1),       # south west 1
-                        self.index(i + 2, j + 3),       # north east 2
-                        self.index(i - 3, j - 3),       # south west 2
-                        self.index(i + 1, j + 4),       # north 1
-                        self.index(i - 1, j - 4),       # south 1
-                        self.index(i - 1, j + 4),       # north 2
-                        self.index(i + 1, j - 4),       # south 2
-                        self.index(i - 3, j + 3),       # north west 1
-                        self.index(i + 2, j - 3),       # south east 1
-                        self.index(i - 4, j + 1),       # north west 2
-                        self.index(i + 3, j - 1)        # south east 2
-                        ]
-            else:
                 return [self.index(i + 4, j + 1),       # north east 1
                         self.index(i - 3, j - 1),       # south west 1
                         self.index(i + 3, j + 3),       # north east 2
@@ -607,6 +593,20 @@ class HexagonalMesh(object):
                         self.index(i + 3, j - 3),       # south east 1
                         self.index(i - 3, j + 1),       # north west 2
                         self.index(i + 4, j - 1)        # south east 2
+                        ]
+            else:
+                return [self.index(i + 3, j + 1),       # north east 1
+                        self.index(i - 4, j - 1),       # south west 1
+                        self.index(i + 2, j + 3),       # north east 2
+                        self.index(i - 3, j - 3),       # south west 2
+                        self.index(i + 1, j + 4),       # north 1
+                        self.index(i - 1, j - 4),       # south 1
+                        self.index(i - 1, j + 4),       # north 2
+                        self.index(i + 1, j - 4),       # south 2
+                        self.index(i - 3, j + 3),       # north west 1
+                        self.index(i + 2, j - 3),       # south east 1
+                        self.index(i - 4, j + 1),       # north west 2
+                        self.index(i + 3, j - 1)        # south east 2
                         ]
 
     def _ngbs_eigth_shell(self, i, j):
@@ -628,3 +628,50 @@ class HexagonalMesh(object):
                     self.index(i - 2, j + 2),   # north west
                     self.index(i + 2, j - 2)    # south east
                     ]
+
+    def _ngbs_ninth_shell(self, i, j):
+
+        if self.alignment == 'diagonal':
+            return [self.index(i + 3, j + 2),       # north east 1
+                    self.index(i - 3, j - 2),       # south west 1
+                    self.index(i + 2, j + 3),       # north east 2
+                    self.index(i - 2, j - 3),       # south west 2
+                    self.index(i - 2, j + 5),       # north 1
+                    self.index(i + 2, j - 5),       # south 1
+                    self.index(i - 3, j + 5),       # north 2
+                    self.index(i + 3, j - 5),       # south 2
+                    self.index(i - 5, j + 3),       # north west 1
+                    self.index(i + 5, j - 3),       # south east 1
+                    self.index(i - 5, j + 2),       # north west 2
+                    self.index(i + 5, j - 2)        # south east 2
+                    ]
+        # in this case, the index does not depend on the row
+        elif self.alignment == 'square':
+            if j % 2 == 0:
+                return [self.index(i + 4, j + 2),       # north east 1
+                        self.index(i - 4, j - 2),       # south west 1
+                        self.index(i + 4, j + 3),       # north east 2
+                        self.index(i - 3, j - 3),       # south west 2
+                        self.index(i + 1, j + 5),       # north 1
+                        self.index(i, j - 5),           # south 1
+                        self.index(i, j + 5),       # north 2
+                        self.index(i + 1, j - 5),       # south 2
+                        self.index(i - 3, j + 3),       # north west 1
+                        self.index(i + 4, j - 3),       # south east 1
+                        self.index(i - 4, j + 2),       # north west 2
+                        self.index(i + 4, j - 2)        # south east 2
+                        ]
+            else:
+                return [self.index(i + 4, j + 2),       # north east 1
+                        self.index(i - 4, j - 2),       # south west 1
+                        self.index(i + 3, j + 3),       # north east 2
+                        self.index(i - 4, j - 3),       # south west 2
+                        self.index(i, j + 5),           # north 1
+                        self.index(i - 1, j - 5),       # south 1
+                        self.index(i - 1, j + 5),       # north 2
+                        self.index(i, j - 5),           # south 2
+                        self.index(i - 4, j + 3),       # north west 1
+                        self.index(i + 3, j - 3),       # south east 1
+                        self.index(i - 4, j + 2),       # north west 2
+                        self.index(i + 4, j - 2)        # south east 2
+                        ]

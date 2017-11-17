@@ -188,7 +188,7 @@ void compute_exch_field_spatial(double *spin, double *field, double *energy,
  *
  */
 void compute_full_exch_field(double *spin, double *field, double *energy,
-					      	 double J[8], int *ngbs, int n, int n_ngbs,
+					      	 double J[9], int *ngbs, int n, int n_ngbs,
                              int n_shells, int *n_ngbs_shell, int *sum_ngbs_shell
                              ) {
 
