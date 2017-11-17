@@ -113,7 +113,8 @@ class HexagonalMesh(object):
                               5: self._ngbs_fifth_shell,
                               6: self._ngbs_sixth_shell,
                               7: self._ngbs_seventh_shell,
-                              8: self._ngbs_eigth_shell
+                              8: self._ngbs_eigth_shell,
+                              9: self._ngbs_ninth_shell
                               }
 
         self.nx = nx
