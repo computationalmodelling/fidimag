@@ -80,7 +80,10 @@ class HexagonalMesh(object):
 
         """
 
-        self.n_shells = shells
+        if shells > 8:
+            raise ValueError('Number of shells cannot be larger than 8')
+        else:
+            self.n_shells = shells
 
         # Number of neighbours (ngbs) according to the shell, i.e. at the
         # first shell (nearest ngbs) there are 6 ngbs,

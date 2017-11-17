@@ -110,6 +110,7 @@ class Exchange(Energy):
             self.compute_field = self.compute_field_spatial
 
         # Full exchange calculation (beyond nearest neighbours) ---------------
+        # n_shells should not be larger than 8 (checked in the mesh class)
         elif (isinstance(self.J, (list, np.ndarray)) and
               len(self.J) == self.mesh.n_shells):
             self._J = np.zeros(8)
