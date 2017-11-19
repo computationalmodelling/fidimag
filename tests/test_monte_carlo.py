@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import fidimag.extensions.clib as clib
 import numpy as np
 from fidimag.atomistic import MonteCarlo, HexagonalMesh
+import fidimag.common.constant as const
 
 def test_random_sphere(do_plot=False):
     """
@@ -35,16 +36,18 @@ def random_m(pos):
     return np.random.random(3) - 0.5
 
 def test_mc_run(Hz=6.0, T=5.0):
+    #This fast test just shows whether mc can be run or not.
     np.random.seed(100)
     #mesh = CuboidMesh(nx=28*2, ny=16*3, nz=1, periodicity = (True, True, False))
     mesh = HexagonalMesh(1, 28, 16*2, periodicity=(True, True))
-    mc = MonteCarlo(mesh, name='dyn')
+    mc = MonteCarlo(mesh, name='test_mc')
     mc.set_m(random_m)
-    mc.set_options(H=[0,0,Hz], J=50.0, D=0.5*50, T=T)
-    mc.run(steps=5000, save_m_steps=None, save_vtk_steps=None, save_data_steps=1000)
+    J = 50*const.k_B
+    mc.set_options(H=[0,0,Hz], J=J, D=0.5*J, T=T)
+    mc.run(steps=5000, save_m_steps=None, save_vtk_steps=1000, save_data_steps=1000)
     skx_number = mc.skyrmion_number()
-    assert(skx_number<-3)
-    assert(skx_number>-3.5)
+    assert(skx_number<-2.5)
+    assert(skx_number>-3)
     #np.save('m.npy', mc.spin)
     #plot_m(mesh, 'm.npy', comp='z')
 
