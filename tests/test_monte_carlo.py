@@ -44,10 +44,10 @@ def test_mc_run(Hz=6.0, T=5.0):
     mc.set_m(random_m)
     J = 50*const.k_B
     mc.set_options(H=[0,0,Hz], J=J, D=0.5*J, T=T)
-    mc.run(steps=5000, save_m_steps=None, save_vtk_steps=1000, save_data_steps=1000)
+    mc.run(steps=5000, save_m_steps=None, save_vtk_steps=None, save_data_steps=1000)
     skx_number = mc.skyrmion_number()
     assert(skx_number<-2.5)
-    assert(skx_number>-3)
+    assert(skx_number>-3.5)
     #np.save('m.npy', mc.spin)
     #plot_m(mesh, 'm.npy', comp='z')
 
