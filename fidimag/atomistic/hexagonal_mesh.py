@@ -508,7 +508,7 @@ class HexagonalMesh(object):
                         self.index(i, j + 3),       # north 1
                         self.index(i - 1, j - 3),   # south 1
                         self.index(i - 1, j + 3),   # north 2
-                        self.index(i, j - 4),       # south 2
+                        self.index(i, j - 3),       # south 2
                         self.index(i - 2, j + 2),   # north west 1
                         self.index(i + 2, j - 2),   # south east 1
                         self.index(i - 3, j + 1),   # north west 2
@@ -624,10 +624,10 @@ class HexagonalMesh(object):
         elif self.alignment == 'square':
             return [self.index(i + 4, j),       # east
                     self.index(i - 4, j),       # west
-                    self.index(i + 2, j + 2),   # north east
-                    self.index(i - 2, j - 2),   # south west
-                    self.index(i - 2, j + 2),   # north west
-                    self.index(i + 2, j - 2)    # south east
+                    self.index(i + 2, j + 4),   # north east
+                    self.index(i - 2, j - 4),   # south west
+                    self.index(i - 2, j + 4),   # north west
+                    self.index(i + 2, j - 4)    # south east
                     ]
 
     def _ngbs_ninth_shell(self, i, j):
@@ -655,7 +655,7 @@ class HexagonalMesh(object):
                         self.index(i - 3, j - 3),       # south west 2
                         self.index(i + 1, j + 5),       # north 1
                         self.index(i, j - 5),           # south 1
-                        self.index(i, j + 5),       # north 2
+                        self.index(i, j + 5),           # north 2
                         self.index(i + 1, j - 5),       # south 2
                         self.index(i - 3, j + 3),       # north west 1
                         self.index(i + 4, j - 3),       # south east 1
