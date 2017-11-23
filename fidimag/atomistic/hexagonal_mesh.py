@@ -476,7 +476,7 @@ class HexagonalMesh(object):
                     self.index(i + 1, j + 2),   # north east 2
                     self.index(i - 1, j - 2),   # south west 2
                     self.index(i - 1, j + 3),   # north 1
-                    self.index(i, j - 3),       # south 1
+                    self.index(i + 1, j - 3),   # south 1
                     self.index(i - 2, j + 3),   # north 2
                     self.index(i + 2, j - 3),   # south 2
                     self.index(i - 3, j + 2),   # north west 1
