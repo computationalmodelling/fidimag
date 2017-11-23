@@ -238,20 +238,20 @@ def test_nearest_neighbours_multiple_square():
 
 # -----------------------------------------------------------------------------
 
-def test_x_neighbours_multiple_square():
+def test_neighbours_9shells_square_odd_row():
     """
 
     Testing neighbour indexes manually, for a 11x11 hexagonal mesh with square
     alignment. In this test we check the neighbours of the 60th lattice site,
     which is in an even row (we could check an odd row as well in the future)
 
-       /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ 
+       /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
       |  |  |  |  |..|..|  |  |  |  |  |
       |  |  |  |  |14|15|  |  |  |  |  |
      /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /
     |  |  |  |;;|~~|``|~~|;;|  |  |  |
     |  |  |  |02|03|04|05|06|  |  |  |
-     \ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ 
+     \ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
       |  |..|~~|##|@@|@@|##|~~|..|  |  |
       |  |89|90|91|92|93|94|95|96|  |  |
      /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /
@@ -263,8 +263,8 @@ def test_x_neighbours_multiple_square():
      /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /           -- 2nd neighbours (next nearest)
     |  |;;|##|**|xx|  |xx|**|##|;;|  |            ** 3rd neighbours
     |  |56|57|58|59|60|61|62|63|64|  |            @@ 4th neighbours
-     \ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\           ## 5th neighnbours  
-      |  |~~|@@|--|xx|xx|--|@@|~~|  |  |          `` 6th neighbours  
+     \ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\           ## 5th neighnbours
+      |  |~~|@@|--|xx|xx|--|@@|~~|  |  |          `` 6th neighbours
       |  |45|46|47|48|49|50|51|52|  |  |          ~~ 7th neighbours
      /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /           ;; 8th neighbours
     |  |..|``|@@|**|--|**|@@|``|..|  |
@@ -292,15 +292,37 @@ def test_x_neighbours_multiple_square():
                                     63, 57, 94, 25, 91, 28,    # 5th shell
                                     85, 35, 104, 16, 79, 41,   # 6th shell
                                     74, 45, 95, 24, 105, 15,   # 7th shell
-                                    103, 17, 90, 29, 67, 52, 
+                                    103, 17, 90, 29, 67, 52,
                                     64, 56, 106, 14, 102, 18,  # 8th shell
-                                    86, 34, 96, 23, 115, 4,    # 9th shell 
+                                    86, 34, 96, 23, 115, 4,    # 9th shell
                                     114, 5, 89, 30, 78, 42
                                     ]
             ).all()
 
     # Second neighbours of the 0th position:
     assert (mesh.neighbours[0][6:12] == [13, -1, 22, -1, -1, -1]  # 2nd shell
+            ).all()
+
+
+def test_neighbours_9shells_square_even_row():
+    """
+    Just as test_neighbours_9shells_square_odd_row but checking a site in an
+    even row in a 12x12 hexagonal lattice
+    """
+    mesh = HexagonalMesh(1, 12, 12, alignment='square', shells=9)
+    assert (mesh.neighbours[77] == [78, 76, 90, 65, 89, 66,    # 1st shell
+                                    91, 64, 101, 53, 88, 67,   # 2nd shell
+                                    79, 75, 102, 52, 100, 54,  # 3rd shell
+                                    92, 63, 103, 51, 114, 41,  # 4th shell
+                                    113, 42, 99, 55, 87, 68,
+                                    80, 74, 115, 40, 112, 43,  # 5th shell
+                                    104, 50, 125, 29, 98, 56,  # 6th shell
+                                    93, 62, 116, 39, 126, 28,  # 7th shell
+                                    124, 30, 111, 44, 86, 69,
+                                    81, 73, 127, 27, 123, 31,  # 8th shell
+                                    105, 49, 117, 38, 138, 17, # 9th shell
+                                    137, 18, 110, 45, 97, 57
+                                    ]
             ).all()
 
 
