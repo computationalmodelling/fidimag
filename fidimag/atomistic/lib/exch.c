@@ -172,7 +172,7 @@ void compute_exch_field_spatial(double *spin, double *field, double *energy,
 
 /* Calculation of Exchange field for up to 8 shells of neighbours
  *
- * J                :: Array with 8 elements: an exchange constant per shell
+ * J                :: Array with 9 elements: an exchange constant per shell
  *                     Calculation is only up to n_shells (the rest of the elements
  *                     are not used.
  * ngbs             :: array with the neighbours
