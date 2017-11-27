@@ -235,17 +235,21 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      * For the Interfacial DMI, D_{ij} has the structure: D_{ij} = r_{ij} X z
      * See Rohart et al. Phys. Rev. B 88, 184422)
      *
-     * but [Yang et al. Phys. Rev. Lett. 115, 267210] uses the opposite sign (?)
+     * but [Yang et al. Phys. Rev. Lett. 115, 267210] uses the opposite sign. 
+     * We will use Yang's convention for the DMI sign.
      *
-     * so the Dzyaloshinskii vectors are IN plane. This function only works
+     * The Dzyaloshinskii vectors are IN plane. This function only works
      * along the XY plane since we assume there is a non magnetic material below
      * with a different SOC which gives the DMI for neighbouring in plane spins
      *
      * The computation is similar than before, only that we no longer have
      * a z component. In the continuum the H_dmi field is:
+     *
      *          H_dmi = (2 * D / (Ms a a_z)) * ( x X dM/dy  - y X dM/dx )
+     *
      * where "a" is the lattice spacing in the plane and "a_z" the system
      * thickness along z
+     *
      * This derivative can be obtained doing the cross product
      * as in the atomic model, hence when going through the neighbours
      * loop, we can obtain the field doing the following cross products:
