@@ -8,6 +8,9 @@ lock = Lock()
 
 
 class TaskState(object):
+    """
+    Each task has three states: "Done!", "Started!", "Unstarted!"
+    """
 
     def __init__(self, taskname):
         self.taskname = taskname
@@ -32,15 +35,22 @@ class TaskState(object):
         f.close()
 
     def update_state(self, k, v, save=True):
+        """
+        v = 0: Done
+        v = 1: Started but Unfinished
+        v = 2: Unstarted
+        """
         key = self.dict2str(k)
 
         if save:
             self.load()
 
-        if v:
+        if v==0:
             self.state[key] = 'Done!'
+        elif v==1:
+            self.state[key] = 'Started!'
         else:
-            self.state[key] = 'Waiting!'
+            self.state[key] = 'Unstarted!'
 
         if save:
             self.save_state()
@@ -52,15 +62,28 @@ class TaskState(object):
             res.append(str(d[k]))
         return '_'.join(res)
 
-    def done(self, k):
+
+    def is_unstarted(self, k):
         key = self.dict2str(k)
+        if key not in self.state:
+            self.update_state(k, 2, False)
+            return True
+
+        if key in self.state:
+            if not 'Done' in self.state[key] and not 'Started' in self.state[key]:
+                self.update_state(k, 2, False)
+                return True
+        return False
+
+    def is_done(self, k):
+        key = self.dict2str(k)
+        if key not in self.state:
+            self.update_state(k, 2, True)
+            return False
         if key in self.state:
             if 'Done' in self.state[key]:
                 return True
-        else:
-            self.update_state(k, False, False)
         return False
-
 
 class BatchTasks(object):
 
@@ -107,22 +130,30 @@ class BatchTasks(object):
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
 
+            lock.acquire()
+            self.ts.update_state(task, 1)
+            lock.release()
+
             os.chdir(dirname)
             self.fun(**task)
             os.chdir(self.current_directory)
 
             lock.acquire()
-            self.ts.update_state(task, True)
+            self.ts.update_state(task, 0)
             lock.release()
 
             time.sleep(self.waiting_time)
 
-    def start(self):
+    def start(self, run_started=False):
 
         self.task_q = Queue()
         for task in self.tasks:
-            if not self.ts.done(task):
-                self.task_q.put(task)
+            if run_started:
+                if not self.ts.is_done(task):
+                    self.task_q.put(task)
+            else:
+                if self.ts.is_unstarted(task):
+                    self.task_q.put(task)
 
         self.ts.save_state()
 

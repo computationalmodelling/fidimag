@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import os
 import numpy as np
+import zipfile
 import fidimag.common.helper as helper
 from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
     StepIntegrator, ScipyIntegrator
@@ -200,7 +201,7 @@ class DriverBase(object):
         The magnetisation dynamics will be checked a maximum of `max_steps`
         times at an interval of at least `dt` and compared to `stopping_dmdt`
         which is given in units of degrees per nanosecond.
-        
+
         With `save_m_steps` and `save_vtk_steps` the magnetisation will be
         saved every given number of integrator steps to npy resp. vtk files.
 
@@ -224,7 +225,7 @@ class DriverBase(object):
                 self.step,  # incremented in self.run_until (called above)
                 self.t,
                 _dt,
-                dmdt / self._dmdt_factor)) 
+                dmdt / self._dmdt_factor))
             if dmdt < stopping_dmdt * self._dmdt_factor:
                 break
 
@@ -240,17 +241,27 @@ class DriverBase(object):
     def save_vtk(self):
         pass
 
-    def save_m(self):
+    def save_m(self, ZIP=False):
         """
         Save the magnetisation/spin vector field as a numpy array in
         a NPY file. The files are saved in the `{name}_npys` folder, where
         `{name}` is the simulation name, with the file name `m_{step}.npy`
         where `{step}` is the simulation step (from the integrator)
         """
+
         if not os.path.exists('%s_npys' % self.name):
             os.makedirs('%s_npys' % self.name)
         name = '%s_npys/m_%g.npy' % (self.name, self.step)
         np.save(name, self.spin)
+        if ZIP:
+            with zipfile.ZipFile('%s_m.zip'%self.name, 'a') as myzip:
+                myzip.write(name)
+            try:
+                os.remove(name)
+            except OSError:
+                pass
+
+
 
     def save_skx(self):
         """
