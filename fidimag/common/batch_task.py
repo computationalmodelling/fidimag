@@ -55,35 +55,29 @@ class TaskState(object):
         if save:
             self.save_state()
 
+    def get_state(self, k):
+        key = self.dict2str(k)
+
+        self.load()
+
+        if key not in self.state:
+            return 2
+
+        if key in self.state:
+            if 'Done' in self.state[key]:
+                return 0
+            if 'Started' in self.state[key]:
+                return 1
+            if 'Unstarted' in self.state[key]:
+                return 2
+        return 2
+
     def dict2str(self, d):
         res = []
         for k in d:
             res.append(k)
             res.append(str(d[k]))
         return '_'.join(res)
-
-
-    def is_unstarted(self, k):
-        key = self.dict2str(k)
-        if key not in self.state:
-            self.update_state(k, 2, False)
-            return True
-
-        if key in self.state:
-            if not 'Done' in self.state[key] and not 'Started' in self.state[key]:
-                self.update_state(k, 2, False)
-                return True
-        return False
-
-    def is_done(self, k):
-        key = self.dict2str(k)
-        if key not in self.state:
-            self.update_state(k, 2, True)
-            return False
-        if key in self.state:
-            if 'Done' in self.state[key]:
-                return True
-        return False
 
 class BatchTasks(object):
 
@@ -126,6 +120,13 @@ class BatchTasks(object):
         while not self.task_q.empty():
             task = self.task_q.get()
 
+            lock.acquire()
+            state = self.ts.get_state(task)
+            lock.release()
+
+            if state != 2:
+                continue
+
             dirname = self.generate_directory(task)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
@@ -144,18 +145,11 @@ class BatchTasks(object):
 
             time.sleep(self.waiting_time)
 
-    def start(self, run_started=False):
+    def start(self):
 
         self.task_q = Queue()
         for task in self.tasks:
-            if run_started:
-                if not self.ts.is_done(task):
-                    self.task_q.put(task)
-            else:
-                if self.ts.is_unstarted(task):
-                    self.task_q.put(task)
-
-        self.ts.save_state()
+            self.task_q.put(task)
 
         self.threads = []
 
