@@ -8,6 +8,9 @@ lock = Lock()
 
 
 class TaskState(object):
+    """
+    Each task has three states: "Done!", "Started!", "Unstarted!"
+    """
 
     def __init__(self, taskname):
         self.taskname = taskname
@@ -32,18 +35,42 @@ class TaskState(object):
         f.close()
 
     def update_state(self, k, v, save=True):
+        """
+        v = 0: Done
+        v = 1: Started but Unfinished
+        v = 2: Unstarted
+        """
         key = self.dict2str(k)
 
         if save:
             self.load()
 
-        if v:
+        if v==0:
             self.state[key] = 'Done!'
+        elif v==1:
+            self.state[key] = 'Started!'
         else:
-            self.state[key] = 'Waiting!'
+            self.state[key] = 'Unstarted!'
 
         if save:
             self.save_state()
+
+    def get_state(self, k):
+        key = self.dict2str(k)
+
+        self.load()
+
+        if key not in self.state:
+            return 2
+
+        if key in self.state:
+            if 'Done' in self.state[key]:
+                return 0
+            if 'Started' in self.state[key]:
+                return 1
+            if 'Unstarted' in self.state[key]:
+                return 2
+        return 2
 
     def dict2str(self, d):
         res = []
@@ -51,16 +78,6 @@ class TaskState(object):
             res.append(k)
             res.append(str(d[k]))
         return '_'.join(res)
-
-    def done(self, k):
-        key = self.dict2str(k)
-        if key in self.state:
-            if 'Done' in self.state[key]:
-                return True
-        else:
-            self.update_state(k, False, False)
-        return False
-
 
 class BatchTasks(object):
 
@@ -103,16 +120,27 @@ class BatchTasks(object):
         while not self.task_q.empty():
             task = self.task_q.get()
 
+            lock.acquire()
+            state = self.ts.get_state(task)
+            lock.release()
+
+            if state != 2:
+                continue
+
             dirname = self.generate_directory(task)
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
+
+            lock.acquire()
+            self.ts.update_state(task, 1)
+            lock.release()
 
             os.chdir(dirname)
             self.fun(**task)
             os.chdir(self.current_directory)
 
             lock.acquire()
-            self.ts.update_state(task, True)
+            self.ts.update_state(task, 0)
             lock.release()
 
             time.sleep(self.waiting_time)
@@ -121,10 +149,7 @@ class BatchTasks(object):
 
         self.task_q = Queue()
         for task in self.tasks:
-            if not self.ts.done(task):
-                self.task_q.put(task)
-
-        self.ts.save_state()
+            self.task_q.put(task)
 
         self.threads = []
 

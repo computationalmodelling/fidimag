@@ -44,23 +44,23 @@ class MonteCarlo(object):
         self.mc = clib.monte_carlo()
         self.set_options()
 
-    def set_options(self, J=50.0, J1=0, D=0, D1=0, Kc=0, H=None, seed=100, T=10.0, S=1):
+    def set_options(self, J=50.0*const.k_B, J1=0, D=0, D1=0, Kc=0, H=None, seed=100, T=10.0, S=1):
         """
-        J, D and Kc in units of k_B
+        J, D and Kc in units of Joule
         H in units of Tesla.
         S is the spin length
         """
         self.mc.set_seed(seed)
-        self.J = J
-        self.J1 = J1
-        self.D = D
-        self.D1 = D1
+        self.J = J/const.k_B
+        self.J1 = J1/const.k_B
+        self.D = D/const.k_B
+        self.D1 = D1/const.k_B
         self.T = T
-        self.Kc = Kc
+        self.Kc = Kc/const.k_B
         self.mu_s =  1.0
         if H is not None:
             self._H[:] = helper.init_vector(H, self.mesh)
-            self._H[:] = self._H[:]*const.mu_s_1*S/const.k_B  #We have set k_B = 1
+            self._H[:] = self._H[:]*const.mu_s_1*S/const.k_B
 
     def create_tablewriter(self):
 
@@ -151,10 +151,15 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
+<<<<<<< HEAD
             self.mc.run_step(self.spin, self.random_spin,
                              self.ngbs, self.nngbs, self.mesh.n_ngbs,
                              self.J, self.J1, self.D, self.D1, self._H, self.Kc,
                              self.n, self.T, self.hexagnoal_mesh)
+=======
+            self.mc.run_step(self.spin, self.random_spin, self.ngbs, self.nngbs,
+                self.J, self.J1, self.D, self.D1, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
+>>>>>>> e1183b59529611c79b3d43d7ca5e048707037c2a
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()

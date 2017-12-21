@@ -106,6 +106,6 @@ void llg_s_rhs(double *dm_dt, double *spin, double *h, double *alpha,
 void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
                  int *ngbs, int *nngbs, int n_ngbs, double J, double J1, double D,
                  double D1, double *h, double Kc, int n, double T,
-                 int hexagnoal_mesh);
+                 int hexagonal_mesh);
 
 #endif
