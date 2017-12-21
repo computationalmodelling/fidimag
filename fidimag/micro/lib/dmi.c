@@ -234,9 +234,10 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      *
      * For the Interfacial DMI, D_{ij} has the structure: D_{ij} = r_{ij} X z
      * See Rohart et al. Phys. Rev. B 88, 184422)
+     * We will use R&T's convention for the DMI sign.
      *
-     * but [Yang et al. Phys. Rev. Lett. 115, 267210] uses the opposite sign. 
-     * We will use Yang's convention for the DMI sign.
+     * Notice that in [Yang et al. Phys. Rev. Lett. 115, 267210] they use the 
+     * opposite sign. 
      *
      * The Dzyaloshinskii vectors are IN plane. This function only works
      * along the XY plane since we assume there is a non magnetic material below
@@ -260,7 +261,7 @@ void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_
      *     -y:      (D / dy) * (-x  X  M)
      *     +y       (D / dy) * (+x  X  M)
      *
-     * So, our Dzyaloshinskii vectors can be depicted in a square lattice as
+     * So, our Dzyaloshinskii vectors can be depicted in the cuboid mesh as
      *
      *                     o  +y
      *                     |

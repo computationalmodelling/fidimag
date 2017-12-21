@@ -24,10 +24,10 @@ class DMI(Energy):
                    r_ij is the vector from the i-th mesh site to the j-th
                    neighbour
 
-        interfacial :: The energy density of this DMI is (according to
-                       Yang's convention; PRL 115, 267210)
+        interfacial :: The energy density of this DMI is, according to the
+                       convention of Rohart et al [PRB 88, 184422 (2013)]
 
-                            w = D * ( L(x)_zx + L(y)_zy )
+                            w = D * ( L_{xz}^{(x)} + L_{yz}^{(y)} )
 
                        where L are Lifshitz invariants. This DMI is found in
                        systems with their interface in contact with a heavy
