@@ -11,6 +11,8 @@ RUN apt-get install -y build-essential cmake cython3 python3-dev python3-pip \
     python3-matplotlib python3-numpy python3-scipy \
     liblapack-dev libopenblas-dev \
     wget
+# next line for codecov target
+RUN apt-get install -y curl git
 
 # ----------
 # hack to fix sudden breakage in CI
