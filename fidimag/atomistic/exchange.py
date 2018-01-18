@@ -76,6 +76,9 @@ class Exchange(Energy):
     will not call array elements to compute the neighbours contribution but
     it will only use a constant, thus it should be faster
 
+    * If option 3. is pecified for the J parameter, this class will call the
+    full exchange calculation function from the C library
+
     """
 
     def __init__(self, J, name='Exchange'):

@@ -57,6 +57,8 @@ class HexagonalMesh(object):
             height  = sqrt(3) * radius
             width = 2 * radius.
 
+        radius ::
+
         The radius is for an incircle inside the hexagon, thus the distance
         between two lattice sites at the same y coordinate, is just 2 * radius,
         which can be seen as the triangular lattice constant.
@@ -68,15 +70,41 @@ class HexagonalMesh(object):
         distance, in terms of dx = 2 * radius, can be easily calculated as
         2 * dx / sqrt(3), since the hexagon height is: (3 / 4) * height
 
+        alignment ::
+
+        The alignment of the hexagons can be set to 'diagonal' or 'square'. In
+        both cases the matrix with the neighbours indexes will have the same
+        order for every row (see definition of shells)
+
+        periodicity ::
+
         By default, the mesh is not periodic along any axis, so the periodicity
         is set to (False, False). Passing a tuple with any combination of
         entries set to True will enable periodicity along the given axes.
+        Periodic boundaries are not defined when using a 'square' alignment.
 
-        The alignment of the hexagons can be set to 'diagonal' or 'square' In
-        both cases the matrix with the neighbours indexes will have the same
-        order for every row (lattice site):
+        unit_length ::
 
-            | left right top_right bottom_left top_left bottom_right |
+        The scale unit for the lattice distances. Default is 1.0 but it is
+        commonly used a nm = 1e-9
+
+        shells ::
+
+        An integer specifying the number of shells of neighbours to be computed
+        and stored in the *ngbs array. By default, a value of 1 indicates
+        only nearest neighbours. The *ngbs array has the structure:
+
+        [ [ ngbs_1st_shell_0 negbs_2nd_shell_0 ...  ],      --> ngbs of spin 0
+          [ ngbs_1st_shell_1 negbs_2nd_shell_1 ...  ],      --> ngbs of spin 1
+          ...
+          [ ngbs_1st_shell_n negbs_2nd_shell_n ...  ]       --> ngbs of spin n
+        ]
+
+        where ngbs_1st_shell_i are the nearest neighbours of the i-th spin in
+        the order:
+            [ left right top_right bottom_left top_left bottom_right ]
+
+        For the other shells see the *_ngbs_Xth_shell methods from this class
 
         """
 
@@ -315,7 +343,7 @@ class HexagonalMesh(object):
                 i = 0            # to the left
         if self.periodicity[1]:
             if self.alignment == 'square':
-                raise Exception('PBCs Not well'
+                raise Exception('PBCs not well '
                                 'defined for a square arrangement')
                 # if j == -1:
                 #     i += int(self.ny / 2)
@@ -386,6 +414,9 @@ class HexagonalMesh(object):
                  0) for theta in angle_rad]
 
     # -------------------------------------------------------------------------
+    # Functions that return the number of neighbours at the n-th shell at
+    # a lattice site with position indexes (i, j). For example,
+    # the function _ngbs_first_shell returns the nearest neighbours
 
     def _ngbs_first_shell(self, i, j):
 

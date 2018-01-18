@@ -54,7 +54,7 @@ class CuboidMesh(object):
 
         """
 
-        # total number of neighbours per lattice site
+        # Total number of neighbours per lattice site
         # (only nearest ngbs for now)
         self.n_ngbs = 6
 
