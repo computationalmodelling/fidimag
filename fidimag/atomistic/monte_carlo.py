@@ -31,9 +31,9 @@ class MonteCarlo(object):
         self.create_tablewriter()
         self.vtk = SaveVTK(self.mesh, name=name)
 
-        self.hexagnoal_mesh = False
+        self.hexagonal_mesh = False
         if mesh.mesh_type == 'hexagonal':
-            self.hexagnoal_mesh =  True
+            self.hexagonal_mesh =  True
             #FIX ME !!!!
             self.nngbs = np.copy(mesh.neighbours)
         else:
@@ -116,7 +116,7 @@ class MonteCarlo(object):
         ny = self.mesh.ny
         nz = self.mesh.nz
         number = clib.compute_skyrmion_number(
-            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
+            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours, self.mesh.n_ngbs)
         self.skx_num = number
         return number
 
@@ -151,8 +151,10 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
-            self.mc.run_step(self.spin, self.random_spin, self.ngbs, self.nngbs,
-                self.J, self.J1, self.D, self.D1, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
+            self.mc.run_step(self.spin, self.random_spin,
+                             self.ngbs, self.nngbs, self.mesh.n_ngbs,
+                             self.J, self.J1, self.D, self.D1, self._H, self.Kc,
+                             self.n, self.T, self.hexagonal_mesh)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()
@@ -169,4 +171,4 @@ class MonteCarlo(object):
 
 
 if __name__ == '__main__':
-	pass
+    pass

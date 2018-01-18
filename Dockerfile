@@ -22,6 +22,14 @@ RUN apt-get install -y curl git
 RUN pip3 install --upgrade setuptools==20.4
 # ----------
 
+# ----------
+# hack to fix sudden breakage in CI
+# (fix from https://github.com/getsentry/sentry/issues/3143)
+# (first occurance of fail at https://travis-ci.org/computationalmodelling/fidimag/builds/319708056?utm_source=github_status&utm_medium=notification)
+# (which is part of this pull request: https://github.com/computationalmodelling/fidimag/pull/106)
+RUN pip3 install --upgrade setuptools==20.4
+# ----------
+
 RUN pip3 install ipywidgets nbval pyvtk six
 
 WORKDIR /fidimag

@@ -19,14 +19,19 @@ cdef extern from "time.h":
     time_t time(time_t *timer)
 
 cdef extern from "clib.h":
-    void run_step_mc(mt19937_state *state, double *spin, double *new_spin, int *ngbs, int *nngbs,
-                    double J, double J1, double D, double D1, double *h, double Kc, int n, double T, int hexagnoal_mesh)
+    void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
+                     int *ngbs, int *nngbs, int n_ngbs,
+                     double J, double J1, double D, double D1,
+                     double *h, double Kc, int n, double T, int hexagonal_mesh)
+
+    # -------------------------------------------------------------------------
+
     double skyrmion_number(double *spin, double *charge,
-                           int nx, int ny, int nz, int *ngbs)
+                           int nx, int ny, int nz, int *ngbs, int n_ngbs)
 
 
     double skyrmion_number_BergLuscher(double *spin, double *charge,
-                                       int nx, int ny, int nz, int *ngbs)
+                                       int nx, int ny, int nz, int *ngbs, int n_ngbs)
 
     void compute_guiding_center(double *spin, int nx, int ny, int nz, int nx_start,
                                 int nx_stop, int ny_start, int ny_stop,
@@ -35,36 +40,52 @@ cdef extern from "clib.h":
     void compute_px_py_c(double *spin, int nx, int ny, int nz,
                          double *px, double *py)
 
+    # -------------------------------------------------------------------------
+
     void compute_exch_field(double *spin, double *field, double *energy,
                             double Jx, double Jy, double Jz,
-                            int *ngbs, int n)
+                            int *ngbs, int n, int n_ngbs)
     void compute_exch_field_spatial(double *spin, double *field, double *energy,
-                            double *J, int *ngbs, int n)
+                            double *J, int *ngbs, int n, int n_ngbs)
 
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
                                int nx, int ny, int nz,
                                int xperiodic, int yperiodic)
 
+    void compute_full_exch_field(double *spin, double *field, double *energy,
+					      	     double *J, int *ngbs, int n, int n_ngbs,
+                                 int n_shells, int *n_ngbs_shell,
+                                 int *sum_ngbs_shell
+                                 )
+
+    # -------------------------------------------------------------------------
+
     void dmi_field_bulk(double *spin, double *field, double *energy,
-                        double *D, int *ngbs, int n)
+                        double *D, int *ngbs, int n, int n_ngbs)
 
     void dmi_field_interfacial_atomistic(double *spin, double *field,
                                          double *energy, double D, int *ngbs,
-                                         int n, int nneighbours,
+                                         int n, int n_ngbs, int n_ngbs_dmi,
                                          double *DMI_vec)
+
+    double dmi_energy(double *spin, double D, int nx, int ny, int nz,
+                      int xperiodic, int yperiodic)
+
+    # -------------------------------------------------------------------------
 
     void demag_full(double *spin, double *field, double *coords,
                     double *energy,
                     double *mu_s, double *mu_s_scale,
                     int n)
 
-    double dmi_energy(double *spin, double D, int nx, int ny, int nz,
-                      int xperiodic, int yperiodic)
+    # -------------------------------------------------------------------------
 
     void compute_anis(double *spin, double *field, double *energy,
                       double *Ku, double *axis, int n)
 
     void compute_anis_cubic(double *spin, double *field, double *energy, double *Kc, int n)
+
+    # -------------------------------------------------------------------------
 
     void normalise(double *m, int *pins, int n)
 
@@ -72,22 +93,28 @@ cdef extern from "clib.h":
     void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt)
 
 
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+
 def compute_skyrmion_number(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] charge,
                             nx, ny, nz,
-                            np.ndarray[int, ndim=2, mode="c"] ngbs
+                            np.ndarray[int, ndim=2, mode="c"] ngbs,
+                            n_ngbs
                             ):
 
-    return skyrmion_number(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0])
+    return skyrmion_number(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0], n_ngbs)
 
 
 def compute_skyrmion_number_BergLuscher(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] charge,
                             nx, ny, nz,
-                            np.ndarray[int, ndim=2, mode="c"] ngbs
+                            np.ndarray[int, ndim=2, mode="c"] ngbs,
+                            n_ngbs
                             ):
 
-    return skyrmion_number_BergLuscher(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0])
+    return skyrmion_number_BergLuscher(&spin[0], &charge[0], nx, ny, nz, &ngbs[0,0], n_ngbs)
 
 def compute_RxRy(np.ndarray[double, ndim=1, mode="c"] spin,
                             nx, ny, nz, nx_start=0, nx_stop=-1, ny_start=0, ny_stop=-1):
@@ -111,26 +138,27 @@ def compute_px_py(np.ndarray[double, ndim=1, mode="c"] spin,
 
     compute_px_py_c(&spin[0], nx, ny, nz, &px[0], &py[0])
 
+# -------------------------------------------------------------------------
+
 def compute_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
                             np.ndarray[double, ndim=1, mode="c"] energy,
                             Jx, Jy, Jz,
                             np.ndarray[int, ndim=2, mode="c"] ngbs,
-                            n
+                            n, n_ngbs
                             ):
 
-    compute_exch_field(&spin[0], &field[0], &energy[0],
-		       Jx, Jy, Jz,
-                       &ngbs[0, 0], n)
+    compute_exch_field(&spin[0], &field[0], &energy[0], Jx, Jy, Jz,
+                       &ngbs[0, 0], n, n_ngbs)
 
 def compute_exchange_field_spatial(np.ndarray[double, ndim=1, mode="c"] spin,
                             np.ndarray[double, ndim=1, mode="c"] field,
                             np.ndarray[double, ndim=1, mode="c"] energy,
                             np.ndarray[double, ndim=2, mode="c"] J,
                             np.ndarray[int, ndim=2, mode="c"] ngbs,
-                            n):
+                            n, n_ngbs):
 
-    compute_exch_field_spatial(&spin[0], &field[0], &energy[0],&J[0,0],&ngbs[0, 0], n)
+    compute_exch_field_spatial(&spin[0], &field[0], &energy[0],&J[0,0],&ngbs[0, 0], n, n_ngbs)
 
 
 def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -141,20 +169,39 @@ def compute_exchange_energy(np.ndarray[double, ndim=1, mode="c"] spin,
                                xperiodic, yperiodic)
 
 
-def compute_anisotropy(double [:] spin, double [:] field, double [:] energy, double [:] Ku, double [:] axis, n):
+def compute_full_exchange_field(np.ndarray[double, ndim=1, mode="c"] spin,
+                                np.ndarray[double, ndim=1, mode="c"] field,
+                                np.ndarray[double, ndim=1, mode="c"] energy,
+                                np.ndarray[double, ndim=1, mode="c"] J,
+                                np.ndarray[int, ndim=2, mode="c"] ngbs,
+                                n, n_ngbs, n_shells,
+                                np.ndarray[int, ndim=1, mode="c"] n_ngbs_shell,
+                                np.ndarray[int, ndim=1, mode="c"] sum_ngbs_shell
+                                ):
+
+    compute_full_exch_field(&spin[0], &field[0], &energy[0], &J[0],
+                            &ngbs[0, 0], n, n_ngbs, n_shells,
+                            &n_ngbs_shell[0], &sum_ngbs_shell[0])
+
+# -------------------------------------------------------------------------
+
+def compute_anisotropy(double [:] spin, double [:] field, double [:] energy,
+                       double [:] Ku, double [:] axis, n):
     compute_anis(&spin[0], &field[0], &energy[0], &Ku[0], &axis[0], n)
 
-def compute_anisotropy_cubic(double [:] spin, double [:] field, double [:] energy, double [:] Kc, n):
+def compute_anisotropy_cubic(double [:] spin, double [:] field, double [:] energy,
+                             double [:] Kc, n):
     compute_anis_cubic(&spin[0], &field[0], &energy[0], &Kc[0], n)
 
+# -----------------------------------------------------------------------------
 
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] field,
                       np.ndarray[double, ndim=1, mode="c"] energy,
                       np.ndarray[double, ndim=2, mode="c"] D,
                       np.ndarray[int, ndim=2, mode="c"] ngbs,
-                      n):
-    dmi_field_bulk(&spin[0], &field[0], &energy[0], &D[0,0], &ngbs[0, 0], n)
+                      n, n_ngbs):
+    dmi_field_bulk(&spin[0], &field[0], &energy[0], &D[0,0], &ngbs[0, 0], n, n_ngbs)
 
 
 def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
@@ -162,14 +209,21 @@ def compute_dmi_field_interfacial(np.ndarray[double, ndim=1, mode="c"] spin,
                                   np.ndarray[double, ndim=1, mode="c"] energy,
                                   D,
                                   np.ndarray[int, ndim=2, mode="c"] ngbs,
-                                  n, nneighbours,
+                                  n, n_ngbs, n_ngbs_dmi,
                                   np.ndarray[double, ndim=1, mode="c"] DMI_vec,
                                   ):
     dmi_field_interfacial_atomistic(&spin[0], &field[0], &energy[0],
                                     D, &ngbs[0, 0], n,
-                                    nneighbours,
+                                    n_ngbs, n_ngbs_dmi,
                                     &DMI_vec[0]
                                     )
+
+def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
+                        D, nx, ny, nz,
+                        xperiodic,yperiodic):
+    return dmi_energy(&spin[0], D, nx, ny, nz, xperiodic,yperiodic)
+
+# -------------------------------------------------------------------------
 
 def compute_demag_full(np.ndarray[double, ndim=1, mode="c"] spin,
                        np.ndarray[double, ndim=1, mode="c"] field,
@@ -182,10 +236,7 @@ def compute_demag_full(np.ndarray[double, ndim=1, mode="c"] spin,
     demag_full(&spin[0], &field[0], &energy[0],
                &coords[0, 0], &mu_s[0], &mu_s_scale[0], n)
 
-def compute_dmi_energy(np.ndarray[double, ndim=1, mode="c"] spin,
-                        D, nx, ny, nz,
-                        xperiodic,yperiodic):
-    return dmi_energy(&spin[0], D, nx, ny, nz, xperiodic,yperiodic)
+# -------------------------------------------------------------------------
 
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
               np.ndarray[int, ndim=1, mode="c"] pins, n):
@@ -200,6 +251,10 @@ def compute_llg_rhs_dw(np.ndarray[double, ndim=1, mode="c"] dm,
                 np.ndarray[double, ndim=1, mode="c"] eta,
                 np.ndarray[int, ndim=1, mode="c"] pin, n, gamma, dt):
     llg_rhs_dw_c(&spin[0], &field[0], &dm[0], &T[0], &alpha[0],  &mu_s_inv[0], &pin[0], &eta[0], n, gamma, dt)
+
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 
 cdef class rng_mt19937(object):
@@ -253,10 +308,11 @@ cdef class monte_carlo(object):
         initial_rng_mt19973(self._c_state, seed)
 
     def run_step(self,np.ndarray[double, ndim=1, mode="c"] spin,
-                np.ndarray[double, ndim=1, mode="c"] new_spin,
-                np.ndarray[int, ndim=2, mode="c"] ngbs,
-                np.ndarray[int, ndim=2, mode="c"] nngbs,
-                J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h,
-                Kc, n, T, hexagnoal_mesh):
+                 np.ndarray[double, ndim=1, mode="c"] new_spin,
+                 np.ndarray[int, ndim=2, mode="c"] ngbs,
+                 np.ndarray[int, ndim=2, mode="c"] nngbs,
+                 n_ngbs,
+                 J, J1, D, D1, np.ndarray[double, ndim=1, mode="c"] h,
+                 Kc, n, T, hexagonal_mesh):
 
-        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], J, J1, D, D1, &h[0], Kc, n, T, hexagnoal_mesh)
+        run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], n_ngbs, J, J1, D, D1, &h[0], Kc, n, T, hexagonal_mesh)

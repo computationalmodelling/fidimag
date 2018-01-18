@@ -85,16 +85,16 @@ class DMI(Energy):
         super(DMI, self).setup(mesh, spin, mu_s)
 
         if self.mesh_type == 'hexagonal':
-            self.nneighbours = 6
+            self.n_ngbs_dmi = 6
             # rdim = 3
 
         elif self.mesh_type == 'cuboid':
-            self.nneighbours = 4
+            self.n_ngbs_dmi = 4
             # rdim = 3
 
         # We will generate the Dzyaloshinskii vectors according
         # to the lattice, for the Interfacial DMI
-        self.DMI_vector = self.compute_DMI_vectors(self.nneighbours)
+        self.DMI_vector = self.compute_DMI_vectors(self.n_ngbs_dmi)
 
         if self.dmi_type == 'bulk':
             self._D = np.zeros(self.neighbours.shape)
@@ -123,7 +123,9 @@ class DMI(Energy):
                                    self.energy,
                                    self._D,
                                    self.neighbours,
-                                   self.n)
+                                   self.n,
+                                   self.n_ngbs
+                                   )
 
         elif self.dmi_type == 'interfacial':
 
@@ -133,7 +135,8 @@ class DMI(Energy):
                                                self.D,
                                                self.neighbours,
                                                self.n,
-                                               self.nneighbours,
+                                               self.n_ngbs,
+                                               self.n_ngbs_dmi,
                                                self.DMI_vector
                                                )
 
@@ -153,7 +156,7 @@ class DMI(Energy):
 
         return energy
 
-    def compute_DMI_vectors(self, nneighbours):
+    def compute_DMI_vectors(self, n_ngbs_dmi):
         """
 
         Returns a DMI vectors array, according to the order of the nearest
@@ -165,14 +168,14 @@ class DMI(Energy):
                                   top right, bottom left,
                                   top left, bottom right]
 
-        Then, the DMI vectors array has (3 * nneighbours) entries, 3 for every
+        Then, the DMI vectors array has (3 * n_ngbs_dmi) entries, 3 for every
         neighbouring site The vectors are normalised and computed according to:
         D_ij = r_ij X z where r_ij is the vector connecting a lattice site with
         the j-th neighbour (see Rohart and Thiaville PRB 88, 184422)
 
         """
 
-        dmi_vec = np.zeros(nneighbours * 3).reshape(-1, 3)
+        dmi_vec = np.zeros(n_ngbs_dmi * 3).reshape(-1, 3)
         r_vec = np.zeros_like(dmi_vec)
         z_vec = np.array([0, 0, 1])
 
@@ -193,7 +196,7 @@ class DMI(Energy):
 
         # Here we compute the cross product with the unitary z vector
         # and normalise
-        for j in range(nneighbours):
+        for j in range(n_ngbs_dmi):
             dmi_vec[j] = np.cross(r_vec[j], z_vec)
             dmi_vec[j] /= np.linalg.norm(dmi_vec[j])
 
