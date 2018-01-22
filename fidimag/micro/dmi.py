@@ -136,10 +136,10 @@ class DMI(Energy):
                                    ])
 
         elif self.dmi_type == 'D_2d':
-            dmi_vector = np.array([0, 1., 0,  # -x
-                                   0, -1., 0,   # +x
-                                   1., 0, 0,   # -y
-                                   -1., 0, 0,  # +y
+            dmi_vector = np.array([1., 0, 0,   # -x
+                                   -1., 0, 0,  # +x
+                                   0, -1., 0,  # -y
+                                   0, 1., 0,   # +y
                                    0, 0, 0,    # -z
                                    0, 0, 0     # +z
                                    ])
