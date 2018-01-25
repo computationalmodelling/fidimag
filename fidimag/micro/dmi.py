@@ -90,6 +90,12 @@ class DMI(Energy):
             self.n_dmi_ngbs = 4
         elif self.dmi_type == 'D_2d':
             self.n_dmi_ngbs = 4
+        else:
+            raise Exception(
+                "Unsupported DMI type: {}, " +
+                "available options: ".format(self.dmi_type) +
+                "'bulk', 'interfacial', 'D_2d'."
+                )
 
     def setup(self, mesh, spin, Ms):
         super(DMI, self).setup(mesh, spin, Ms)
@@ -143,12 +149,6 @@ class DMI(Energy):
                                    0, 0, 0,    # -z
                                    0, 0, 0     # +z
                                    ])
-        else:
-            raise Exception(
-                "Unsupported DMI type: {}, " +
-                "available options: ".format(self.dmi_type) +
-                "'bulk', 'interfacial', 'D_2d'."
-                )
 
         micro_clib.compute_dmi_field(m,
                                      self.field,
