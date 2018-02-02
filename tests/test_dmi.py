@@ -156,7 +156,7 @@ def test_micro_dmi_array_interfacial():
     assert np.abs(hz) < 1e-10
 
 if __name__ == '__main__':
-    test_atom_dmi_1d()
-    test_atom_dmi_1d_field()
-    test_micro_dmi_array_bulk()
+    # test_atom_dmi_1d()
+    # test_atom_dmi_1d_field()
+    # test_micro_dmi_array_bulk()
     test_micro_dmi_array_interfacial()

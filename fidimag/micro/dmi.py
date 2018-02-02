@@ -39,6 +39,15 @@ class DMI(Energy):
                        neighbouring sites in the xy plane and not between
                        layers in the z direction.
 
+        D_2d        :: The energy density of this DMI is
+
+                            w = D * ( L_{xz}^{(y)} + L_{yz}^{(x)} )
+
+                       where L are Lifshitz invariants. This DMI is for
+                       materials with symmetry class D_{2d}. Structures
+                       known as anti-skyrmions are stabilised with this
+                       DMI type
+
     ARGUMENTS: ----------------------------------------------------------------
 
     D       :: DMI vector norm which can be specified as an int, float, (X * n)
@@ -55,12 +64,12 @@ class DMI(Energy):
 
                (X * n) array: Manually specify the DMI vector norm for every NN
                at every mesh node. The bulk DMI considers the 6 NNs from every
-               node an interfacial DMI is D so it only considers 4 NNs from the
-               xy plane.
+               node and interfacial and D_2d DMI are 2D so they only consider 4
+               NNs from the xy plane.
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
 
-    dmi_type        :: 'bulk' or 'interfacial'
+    dmi_type        :: 'bulk' or 'interfacial' or 'D_2d'
     name            :: Interaction name
 
     """
@@ -73,26 +82,37 @@ class DMI(Energy):
         self.jac = True
         self.dmi_type = dmi_type
 
+        # Number of NNs for the calculation of the corresponding DMI
+        # Interfacial or D_2d are 2D so we use 4 ngbs
         if self.dmi_type == 'bulk':
-            self.NN = 6
+            self.n_dmi_ngbs = 6
         elif self.dmi_type == 'interfacial':
-            self.NN = 4
+            self.n_dmi_ngbs = 4
+        elif self.dmi_type == 'D_2d':
+            self.n_dmi_ngbs = 4
+        else:
+            raise Exception(
+                "Unsupported DMI type: {}, " +
+                "available options: ".format(self.dmi_type) +
+                "'bulk', 'interfacial', 'D_2d'."
+                )
 
     def setup(self, mesh, spin, Ms):
         super(DMI, self).setup(mesh, spin, Ms)
 
         # We will allow to completely specify the DMI vectors according to the
-        # NNs of every lattice site, thus we need a matrix of NN * n entries
-        self.Ds = np.zeros(self.NN * self.n, dtype=np.float)
+        # NNs of every lattice site, thus we need a matrix of n_dmi_ngbs * n entries
+        self.Ds = np.zeros(self.n_dmi_ngbs * self.n, dtype=np.float)
 
-        if isinstance(self.D, np.ndarray) and len(self.D) == self.NN * self.n:
+        if isinstance(self.D, np.ndarray) and len(self.D) == self.n_dmi_ngbs * self.n:
             self.Ds = self.D.astype('float')
-        # If we do not pass a (NN * n) array, we just create a scalar field as
-        # usual and then repeat the entries NN times so every neighbour will
-        # have the same DMI per lattice site (can vary spatially)
+        # If we do not pass a (n_dmi_ngbs * n) array, we just create a scalar
+        # field as usual and then repeat the entries NN times so every
+        # neighbour will have the same DMI per lattice site (can vary
+        # spatially)
         else:
             D_array = helper.init_scalar(self.D, self.mesh)
-            self.Ds = np.repeat(D_array, self.NN)
+            self.Ds = np.repeat(D_array, self.n_dmi_ngbs)
 
         # This is from the original code:
         # self.Ds[:] = helper.init_scalar(self.D, self.mesh)
@@ -104,32 +124,43 @@ class DMI(Energy):
             m = self.spin
 
         if self.dmi_type == 'bulk':
-            micro_clib.compute_dmi_field_bulk(m,
-                                              self.field,
-                                              self.energy,
-                                              self.Ms_inv,
-                                              self.Ds,
-                                              self.dx,
-                                              self.dy,
-                                              self.dz,
-                                              self.n,
-                                              self.neighbours
-                                              )
+            dmi_vector = np.array([-1., 0, 0,
+                                   1., 0, 0,
+                                   0, -1., 0,
+                                   0, 1., 0,
+                                   0, 0, -1.,
+                                   0, 0, 1.
+                                   ])
 
         elif self.dmi_type == 'interfacial':
-            micro_clib.compute_dmi_field_interfacial(m,
-                                                     self.field,
-                                                     self.energy,
-                                                     self.Ms_inv,
-                                                     self.Ds,
-                                                     self.dx,
-                                                     self.dy,
-                                                     self.dz,
-                                                     self.n,
-                                                     self.neighbours
-                                                     )
-        else:
-            raise Exception(
-                "Unsupported DMI type: {}, avaiable options: 'bulk', 'interfacial'.".format(self.dmi_type))
+            dmi_vector = np.array([0, -1., 0,  # -x
+                                   0, 1., 0,   # +x
+                                   1., 0, 0,   # -y
+                                   -1., 0, 0,  # +y
+                                   0, 0, 0,    # -z
+                                   0, 0, 0     # +z
+                                   ])
 
+        elif self.dmi_type == 'D_2d':
+            dmi_vector = np.array([1., 0, 0,   # -x
+                                   -1., 0, 0,  # +x
+                                   0, -1., 0,  # -y
+                                   0, 1., 0,   # +y
+                                   0, 0, 0,    # -z
+                                   0, 0, 0     # +z
+                                   ])
+
+        micro_clib.compute_dmi_field(m,
+                                     self.field,
+                                     self.energy,
+                                     self.Ms_inv,
+                                     self.Ds,
+                                     dmi_vector,
+                                     self.n_dmi_ngbs,
+                                     self.dx,
+                                     self.dy,
+                                     self.dz,
+                                     self.n,
+                                     self.neighbours
+                                     )
         return self.field
