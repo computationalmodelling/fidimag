@@ -176,7 +176,7 @@ For bulk materials :math:`\vec{D}_{ij} = D \vec{r}_{ij}` and for interfacial DMI
 In the continuum limit the bulk DMI energy is written as 
 
 .. math::
-   E_{dmi} = \int_\Omega D_a \vec{m} \cdot (\nabla \times \vec{m}) dx
+   E_{\text{DMI}} = \int_\Omega D_a \vec{m} \cdot (\nabla \times \vec{m}) dx
 
 where :math:`D_a = -D/a^2` and the effective field is
 
@@ -188,15 +188,25 @@ where :math:`D_a = -D/a^2` and the effective field is
 For the interfacial case, the effective field becomes,
 
 .. math::
-   \vec{H}=\frac{2 D}{M_s a^2} (\vec{e}_x \times \frac{\partial \vec{m}}{\partial y} - \vec{e}_y \times \frac{\partial \vec{m}}{\partial x} )
+   \vec{H}=\frac{2 D}{M_s a^2} (\hat{x} \times \frac{\partial \vec{m}}{\partial y} - \hat{y} \times \frac{\partial \vec{m}}{\partial x} )
 
 Compared with the effective field [PRB 88 184422]
 
 .. math::
-   \vec{H}=\frac{2 D_a}{\mu_0 M_s} ((\nabla \cdot \vec{m}) \vec{e}_z - \nabla m_z)
+   \vec{H}=\frac{2 D_a}{\mu_0 M_s} ((\nabla \cdot \vec{m}) \hat{z} - \nabla m_z)
 
 where :math:`D_a = D/a^2`. Notice that there is no negative sign for the interfacial case.
 
+In the micromagnetic code, it is also implemented DMI for materials with
+:math:`D_{2d}` symmetry. The energy of this interaction reads
+
+.. math::
+    E_{\text{DMI}} = D_a \vec{m} \cdot \left( 
+                     \frac{\partial \vec{m}}{\partial x} \times \hat{x}
+                     - \frac{\partial \vec{m}}{\partial y} \times \hat{y}
+                     \right)
+
+where :math:`D_a` is the DMI constant.
 
 .. Similar to the exchange case, the effective field in the continuum case
 .. can be computed by the same codes with 
