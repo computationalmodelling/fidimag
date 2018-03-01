@@ -15,7 +15,7 @@ clean:
 	touch ${EXTENSIONS_DIR}/__init__.py
 
 docker:
-	docker build -t fidimag ./docker/travis
+	docker build -t fidimag -f ./docker/travis/Dockerfile .
 	docker run -ti -d --name fidimag fidimag
 
 #########
