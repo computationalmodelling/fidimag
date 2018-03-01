@@ -33,7 +33,7 @@ RUN pip3 install --upgrade setuptools==20.4
 RUN pip3 install ipywidgets nbval pyvtk six
 
 WORKDIR /fidimag
-ADD . /fidimag
+ADD ../.. /fidimag
 RUN ./bin/install-sundials.sh
 RUN ./bin/install-fftw.sh
 RUN make build
