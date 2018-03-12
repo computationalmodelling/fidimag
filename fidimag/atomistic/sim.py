@@ -2,6 +2,7 @@ from .llg import LLG
 from .sllg import SLLG
 from .llg_stt import LLG_STT
 from .llg_stt_cpp import LLG_STT_CPP
+from .steepest_descent import SteepestDescent
 
 import fidimag.common.skyrmion_number
 import fidimag.common.helper as helper
@@ -13,7 +14,8 @@ from fidimag.common.sim_base import SimBase
 KNOWN_DRIVERS = {'llg': LLG,
                  'sllg': SLLG,
                  'llg_stt': LLG_STT,
-                 'llg_stt_cpp': LLG_STT_CPP
+                 'llg_stt_cpp': LLG_STT_CPP,
+                 'steepest_descent': SteepestDescent
                  }
 
 

@@ -25,6 +25,8 @@ class SteepestDescent(AtomisticDriver):
                  interactions,
                  name,
                  data_saver,
+                 use_jac=False,
+                 integrator=None
                  ):
 
         # self.mesh = mesh
@@ -41,8 +43,8 @@ class SteepestDescent(AtomisticDriver):
         super(SteepestDescent, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
                                               pins, interactions, name,
                                               data_saver,
-                                              # use_jac=use_jac,
-                                              # integrator=integrator
+                                              use_jac=use_jac,
+                                              integrator=integrator
                                               )
 
         self.mxH = np.zeros_like(self.field)
@@ -53,7 +55,7 @@ class SteepestDescent(AtomisticDriver):
         # self.set_options()
 
     def field_cross_product(self, a, b):
-        aXb = np.cross(a(-1, 3), b(-1, 3))
+        aXb = np.cross(a.reshape(-1, 3), b.reshape(-1, 3))
         return aXb.reshape(-1,)
 
     def get_time_step(self):
@@ -72,52 +74,54 @@ class SteepestDescent(AtomisticDriver):
         else:
             return 1e-4
 
-    def compute_rhs(self, t):
+    def compute_rhs(self):
 
-        den = 4 + 
+        mxH_sq_norm = np.sum(self.mxH ** 2)
 
-    def run_step(self):
+        factor_plus = 4 + (self.t ** 2) * mxH_sq_norm
+        factor_minus = 4 - (self.t ** 2) * mxH_sq_norm
 
-        self.update_effective_field(self.spin, self.t)
-        self.mxH = self.field_cross_product(self.spin, self.field)
-        self.mxmxH = self.field_cross_product(self.spin, self.mxH)
-        self.t = self.get_time_step()
-
-        
+        self.spin = factor_minus * self.spin - 4 * self.t * self.mxmxH
 
         clib.normalise_spin(self.spin, self._pins, self.n)
 
+        self.spin /= factor_plus
 
-    def update_effective_field(self, y, t):
+    def run_step(self):
+
+        self.update_effective_field()
+        self.mxH = self.field_cross_product(self.spin, self.field)
+        self.mxmxH = self.field_cross_product(self.spin, self.mxH)
+        self.t = self.get_time_step()
+        self.compute_rhs()
+
+    def update_effective_field(self):
 
         self.field[:] = 0
 
         for obj in self.interactions:
-            self.field += obj.compute_field(t, spin=y)
+            self.field += obj.compute_field(t=0, spin=self.spin)
 
-    def minimize(self, max_dmdt=1e-2):
+    def minimize(self, stopping_dmdt=1e-2, max_count=2000):
         self.counter = 0
 
-        while dmdt:
+        while self.counter < max_count:
             self.spin_last[:] = self.spin[:]
+            self.mxmxH_last[:] = self.mxmxH[:]
             self.run_step()
-            self.dmdt = self.compute_dmdt(self.t)
 
-            if dmdt < stopping_dmdt * self._dmdt_factor:
+            dmdt = self.compute_dmdt(self.t)
+            print("#step={:<8.3g} max_dmdt={:<10.3g} counter={}".format(
+                self.t,
+                dmdt, self.counter))
+            if dmdt < stopping_dmdt:
                 break
-            
-            self.counter = 0
 
-    def run_until(self, t):
+            self.counter += 1
 
-        self.counter = 0
+            # update field before saving data
+            self.update_effective_field()
+            self.data_saver.save()
 
-        self.spin_last[:] = self.spin[:]
-
-        while (self.t < t):
-            self.run_step()
-        self.step += 1
-
-        # update field before saving data
-        self.compute_effective_field(t)
-        self.data_saver.save()
+    def relax(self):
+        print('Not implemented for the minimizer')
