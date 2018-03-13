@@ -138,7 +138,6 @@ class SteepestDescent(AtomisticDriver):
         self.spin.shape = (-1,)
 
         self.spin_last[:] = self.spin[:]
-
         self.spin[:] = new_spin.reshape(-1,)[:]
 
         # ---------------------------------------------------------------------
