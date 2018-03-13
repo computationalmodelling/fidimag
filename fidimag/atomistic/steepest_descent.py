@@ -100,6 +100,7 @@ class SteepestDescent(AtomisticDriver):
     def run_step(self):
 
         self.update_effective_field()
+        self.mxmxH_last[:] = self.mxmxH[:]
         self.mxH = self.field_cross_product(self.spin, self.field)
         self.mxmxH = self.field_cross_product(self.spin, self.mxH)
 
@@ -136,9 +137,7 @@ class SteepestDescent(AtomisticDriver):
         self.mxmxH.shape = (-1,)
         self.spin.shape = (-1,)
 
-        if self.counter > 1:
-            self.spin_last[:] = self.spin[:]
-            self.mxmxH_last[:] = self.mxmxH[:]
+        self.spin_last[:] = self.spin[:]
 
         self.spin[:] = new_spin.reshape(-1,)[:]
 
@@ -158,6 +157,10 @@ class SteepestDescent(AtomisticDriver):
     def minimize(self, stopping_dm=1e-2, max_count=2000):
         self.counter = 0
 
+        self.spin_last[:] = self.spin[:]
+        self.update_effective_field()
+        self.mxH = self.field_cross_product(self.spin, self.field)
+        self.mxmxH = self.field_cross_product(self.spin, self.mxH)
         while self.counter < max_count:
 
             self.run_step()
@@ -175,6 +178,8 @@ class SteepestDescent(AtomisticDriver):
             # update field before saving data
             # self.update_effective_field()
             # self.data_saver.save()
+
+        # clib.normalise_spin(self.spin, self._pins, self.n)
 
     def relax(self):
         print('Not implemented for the minimizer')
