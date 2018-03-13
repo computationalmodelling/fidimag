@@ -99,10 +99,10 @@ class SteepestDescent(AtomisticDriver):
 
     def run_step(self):
 
-        self.update_effective_field()
         self.mxmxH_last[:] = self.mxmxH[:]
-        self.mxH = self.field_cross_product(self.spin, self.field)
-        self.mxmxH = self.field_cross_product(self.spin, self.mxH)
+        self.update_effective_field()
+        self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
+        self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
 
         # ---------------------------------------------------------------------
         # self.tau = self.get_time_step()
@@ -116,7 +116,7 @@ class SteepestDescent(AtomisticDriver):
             num = np.sum(ds * dy, axis=1)
             den = np.sum(dy * dy, axis=1)
 
-        # Denominators equal to zero are set to 1e-4
+        # Terms with denominators equal to zero are set to 1e-4
         self.tau = 1e-4 * np.ones_like(num)
         self.tau[den != 0] = num[den != 0] / den[den != 0]
 
@@ -130,7 +130,7 @@ class SteepestDescent(AtomisticDriver):
         factor_plus = 4 + (self.tau ** 2) * mxH_sq_norm
         factor_minus = 4 - (self.tau ** 2) * mxH_sq_norm
 
-        new_spin = factor_minus[:, np.newaxis] * self.spin - 4 * (self.tau[:, np.newaxis] * self.mxmxH)
+        new_spin = factor_minus[:, np.newaxis] * self.spin - (4 * self.tau)[:, np.newaxis] * self.mxmxH
         new_spin = new_spin / factor_plus[:, np.newaxis]
 
         self.mxH.shape = (-1,)
@@ -158,18 +158,18 @@ class SteepestDescent(AtomisticDriver):
 
         self.spin_last[:] = self.spin[:]
         self.update_effective_field()
-        self.mxH = self.field_cross_product(self.spin, self.field)
-        self.mxmxH = self.field_cross_product(self.spin, self.mxH)
+        self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
+        self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         while self.counter < max_count:
 
             self.run_step()
 
-            max_dm = (self.spin.reshape(-1, 3) - self.spin_last.reshape(-1, 3)) ** 2
+            max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sum(max_dm, axis=1))
             print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
                 np.max(np.abs(self.tau)),
                 max_dm, self.counter))
-            if max_dm < stopping_dm:
+            if max_dm < stopping_dm and self.counter > 0:
                 break
 
             self.counter += 1
