@@ -51,49 +51,102 @@ class SteepestDescent(AtomisticDriver):
         self.mxmxH = np.zeros_like(self.field)
         self.mxmxH_last = np.zeros_like(self.field)
         self.t = 1e-4
+        self.tau = 1e-4 * np.ones(len(self.spin) // 3)
 
         # self.set_options()
+
+    def get_time_step(self):
+        ds = (self.spin - self.spin_last).reshape(-1, 3)
+        dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
+
+        print(ds)
+        print(dy)
+
+        if self.counter % 2 == 0:
+            num = np.sum(ds * ds, axis=1)
+            den = np.sum(ds * dy, axis=1)
+        else:
+            num = np.sum(ds * dy, axis=1)
+            den = np.sum(dy * dy, axis=1)
+
+        # Denominators equal to zero are set to 1e-4
+        tau = 1e-4 * np.ones_like(num)
+        tau[den != 0] = num[den != 0] / den[den != 0]
+
+        print(tau)
+
+        return tau
+
+    def compute_rhs(self, tau):
+        self.mxH.shape = (-1, 3)
+        self.mxmxH.shape = (-1, 3)
+        self.spin.shape = (-1, 3)
+
+        mxH_sq_norm = np.sum(self.mxH ** 2, axis=1)
+        factor_plus = 4 + (tau ** 2) * mxH_sq_norm
+        factor_minus = 4 - (tau ** 2) * mxH_sq_norm
+
+        self.spin = factor_minus[:, np.newaxis] * self.spin - 4 * (tau[:, np.newaxis] * self.mxmxH)
+        self.spin = self.spin / factor_plus[:, np.newaxis]
+
+        self.mxH.shape = (-1,)
+        self.mxmxH.shape = (-1,)
+        self.spin.shape = (-1,)
 
     def field_cross_product(self, a, b):
         aXb = np.cross(a.reshape(-1, 3), b.reshape(-1, 3))
         return aXb.reshape(-1,)
-
-    def get_time_step(self):
-        ds = self.spin - self.spin_last
-        dy = self.mxmxH - self.mxmxH_last
-
-        if self.counter % 2 == 0:
-            num = np.dot(ds, ds)
-            den = np.dot(ds, dy)
-        else:
-            num = np.dot(ds, dy)
-            den = np.dot(dy, dy)
-
-        if den != 0:
-            return num / den
-        else:
-            return 1e-4
-
-    def compute_rhs(self):
-
-        mxH_sq_norm = np.sum(self.mxH ** 2)
-
-        factor_plus = 4 + (self.t ** 2) * mxH_sq_norm
-        factor_minus = 4 - (self.t ** 2) * mxH_sq_norm
-
-        self.spin = factor_minus * self.spin - 4 * self.t * self.mxmxH
-
-        clib.normalise_spin(self.spin, self._pins, self.n)
-
-        self.spin /= factor_plus
 
     def run_step(self):
 
         self.update_effective_field()
         self.mxH = self.field_cross_product(self.spin, self.field)
         self.mxmxH = self.field_cross_product(self.spin, self.mxH)
-        self.t = self.get_time_step()
-        self.compute_rhs()
+
+        # ---------------------------------------------------------------------
+        # self.tau = self.get_time_step()
+        ds = (self.spin - self.spin_last).reshape(-1, 3)
+        dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
+
+        if self.counter % 2 == 0:
+            num = np.sum(ds * ds, axis=1)
+            den = np.sum(ds * dy, axis=1)
+        else:
+            num = np.sum(ds * dy, axis=1)
+            den = np.sum(dy * dy, axis=1)
+
+        # Denominators equal to zero are set to 1e-4
+        self.tau = 1e-4 * np.ones_like(num)
+        self.tau[den != 0] = num[den != 0] / den[den != 0]
+
+        # ---------------------------------------------------------------------
+
+        self.mxH.shape = (-1, 3)
+        self.mxmxH.shape = (-1, 3)
+        self.spin.shape = (-1, 3)
+
+        mxH_sq_norm = np.sum(self.mxH ** 2, axis=1)
+        factor_plus = 4 + (self.tau ** 2) * mxH_sq_norm
+        factor_minus = 4 - (self.tau ** 2) * mxH_sq_norm
+
+        new_spin = factor_minus[:, np.newaxis] * self.spin - 4 * (self.tau[:, np.newaxis] * self.mxmxH)
+        new_spin = new_spin / factor_plus[:, np.newaxis]
+
+        self.mxH.shape = (-1,)
+        self.mxmxH.shape = (-1,)
+        self.spin.shape = (-1,)
+
+        if self.counter > 1:
+            self.spin_last[:] = self.spin[:]
+            self.mxmxH_last[:] = self.mxmxH[:]
+
+        self.spin[:] = new_spin.reshape(-1,)[:]
+
+        # ---------------------------------------------------------------------
+
+        # self.compute_rhs(self.tau)
+
+        clib.normalise_spin(self.spin, self._pins, self.n)
 
     def update_effective_field(self):
 
@@ -102,26 +155,26 @@ class SteepestDescent(AtomisticDriver):
         for obj in self.interactions:
             self.field += obj.compute_field(t=0, spin=self.spin)
 
-    def minimize(self, stopping_dmdt=1e-2, max_count=2000):
+    def minimize(self, stopping_dm=1e-2, max_count=2000):
         self.counter = 0
 
         while self.counter < max_count:
-            self.spin_last[:] = self.spin[:]
-            self.mxmxH_last[:] = self.mxmxH[:]
+
             self.run_step()
 
-            dmdt = self.compute_dmdt(self.t)
-            print("#step={:<8.3g} max_dmdt={:<10.3g} counter={}".format(
-                self.t,
-                dmdt, self.counter))
-            if dmdt < stopping_dmdt:
+            max_dm = (self.spin.reshape(-1, 3) - self.spin_last.reshape(-1, 3)) ** 2
+            max_dm = np.max(np.sum(max_dm, axis=1))
+            print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
+                np.max(np.abs(self.tau)),
+                max_dm, self.counter))
+            if max_dm < stopping_dm:
                 break
 
             self.counter += 1
 
             # update field before saving data
-            self.update_effective_field()
-            self.data_saver.save()
+            # self.update_effective_field()
+            # self.data_saver.save()
 
     def relax(self):
         print('Not implemented for the minimizer')
