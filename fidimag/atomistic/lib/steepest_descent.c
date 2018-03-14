@@ -34,13 +34,12 @@ void sd_update_spin (double *spin, double *spin_last, double *field, double *mxH
         for (int j = 0; j < 3; j++) {
             new_spin[j] = factor_minus * spin[spin_idx + j]
                           - 4 * tau[i] * mxmxH[spin_idx + j];
-
             new_spin[j] = new_spin[j] / factor_plus;
 
             spin[spin_idx + j] = new_spin[j];
         }
     }
-    normalise(spin, pins, n);
+    // normalise(spin, pins, n);
 }
 
 void sd_compute_step (double *spin, double *spin_last, double *field, double *mxH,
@@ -75,6 +74,7 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
         mxmxH[spin_idx + 2] = cross_z(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                       mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
 
+        // Compute terms for the calculation of the time step tau
         for (int j = 0; j < 3; j++) {
             ds[j] = spin[spin_idx + j] - spin_last[spin_idx + j];
             dy[j] = mxmxH[spin_idx + j] - mxmxH_last[spin_idx + j];
@@ -95,6 +95,8 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
             }
         }
 
+        // Why 1e-4 ?? --> Refer to https://github.com/mumax/3/blob/master/engine/minimizer.go
+        // although it looks like a magic number
         if (den == 0.0) {
             res = 1e-4;
         }
@@ -105,5 +107,6 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
         tau[i] = res;
     }
 
-    // normalise(spin, pins, n);
+    // Normalising here seems more stable, but the algorithm still doesn't work in 2D
+    normalise(spin, pins, n);
 }
