@@ -92,6 +92,18 @@ cdef extern from "clib.h":
     # used for sllg
     void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt)
 
+    # -------------------------------------------------------------------------
+
+
+    void sd_update_spin(double *spin, double *spin_last, double *field, double *mxH,
+                        double *mxmxH, double *mxmxH_last, double *tau,
+                        int* pins, int n)
+
+    void sd_compute_step(double *spin, double *spin_last, double *field, double *mxH,
+                         double *mxmxH, double *mxmxH, double *tau,
+                         int *pins, int n, int counter)
+
+
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -316,3 +328,34 @@ cdef class monte_carlo(object):
                  Kc, n, T, hexagonal_mesh):
 
         run_step_mc(self._c_state, &spin[0], &new_spin[0], &ngbs[0,0], &nngbs[0,0], n_ngbs, J, J1, D, D1, &h[0], Kc, n, T, hexagonal_mesh)
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+def compute_sd_spin(np.ndarray[double, ndim=1, mode="c"] spin,
+                    np.ndarray[double, ndim=1, mode="c"] spin_last,
+                    np.ndarray[double, ndim=1, mode="c"] field,
+                    np.ndarray[double, ndim=1, mode="c"] mxH,
+                    np.ndarray[double, ndim=1, mode="c"] mxmxH,
+                    np.ndarray[double, ndim=1, mode="c"] mxmxH_last,
+                    np.ndarray[double, ndim=1, mode="c"] tau,
+                    np.ndarray[int, ndim=1, mode="c"] pins,
+                    n):
+
+    sd_update_spin(&spin[0], &spin_last[0], &field[0], &mxH[0], 
+                   &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0], n
+                   )
+
+def compute_sd_step(np.ndarray[double, ndim=1, mode="c"] spin,
+                    np.ndarray[double, ndim=1, mode="c"] spin_last,
+                    np.ndarray[double, ndim=1, mode="c"] field,
+                    np.ndarray[double, ndim=1, mode="c"] mxH,
+                    np.ndarray[double, ndim=1, mode="c"] mxmxH,
+                    np.ndarray[double, ndim=1, mode="c"] mxmxH_last,
+                    np.ndarray[double, ndim=1, mode="c"] tau,
+                    np.ndarray[int, ndim=1, mode="c"] pins,
+                    n, counter):
+
+    sd_compute_step(&spin[0], &spin_last[0], &field[0], &mxH[0], 
+                    &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0], n, counter
+                    )
