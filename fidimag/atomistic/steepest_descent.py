@@ -55,54 +55,102 @@ class SteepestDescent(AtomisticDriver):
 
         # self.set_options()
 
-    def get_time_step(self):
-        ds = (self.spin - self.spin_last).reshape(-1, 3)
-        dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
+    # def get_time_step(self):
+    #     ds = (self.spin - self.spin_last).reshape(-1, 3)
+    #     dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
 
-        print(ds)
-        print(dy)
+    #     print(ds)
+    #     print(dy)
 
-        if self.counter % 2 == 0:
-            num = np.sum(ds * ds, axis=1)
-            den = np.sum(ds * dy, axis=1)
-        else:
-            num = np.sum(ds * dy, axis=1)
-            den = np.sum(dy * dy, axis=1)
+    #     if self.counter % 2 == 0:
+    #         num = np.sum(ds * ds, axis=1)
+    #         den = np.sum(ds * dy, axis=1)
+    #     else:
+    #         num = np.sum(ds * dy, axis=1)
+    #         den = np.sum(dy * dy, axis=1)
 
-        # Denominators equal to zero are set to 1e-4
-        tau = 1e-4 * np.ones_like(num)
-        tau[den != 0] = num[den != 0] / den[den != 0]
+    #     # Denominators equal to zero are set to 1e-4
+    #     tau = 1e-4 * np.ones_like(num)
+    #     tau[den != 0] = num[den != 0] / den[den != 0]
 
-        print(tau)
+    #     print(tau)
 
-        return tau
+    #     return tau
 
-    def compute_rhs(self, tau):
+    # def compute_rhs(self, tau):
+    #     self.mxH.shape = (-1, 3)
+    #     self.mxmxH.shape = (-1, 3)
+    #     self.spin.shape = (-1, 3)
+
+    #     mxH_sq_norm = np.sum(self.mxH ** 2, axis=1)
+    #     factor_plus = 4 + (tau ** 2) * mxH_sq_norm
+    #     factor_minus = 4 - (tau ** 2) * mxH_sq_norm
+
+    #     self.spin = factor_minus[:, np.newaxis] * self.spin - 4 * (tau[:, np.newaxis] * self.mxmxH)
+    #     self.spin = self.spin / factor_plus[:, np.newaxis]
+
+    #     self.mxH.shape = (-1,)
+    #     self.mxmxH.shape = (-1,)
+    #     self.spin.shape = (-1,)
+
+    def normalise_field(self, a):
+        norm = np.sqrt(np.sum(a.reshape(-1, 3) ** 2, axis=1))
+        norm_a = a.reshape(-1, 3) / norm[:, np.newaxis]
+        norm_a.shape = (-1,)
+        return norm_a
+
+    def field_cross_product(self, a, b):
+        aXb = np.cross(a.reshape(-1, 3), b.reshape(-1, 3))
+        return aXb.reshape(-1,)
+        # a.shape, b.shape = (-1, 3), (-1, 3)
+        # aXb = np.zeros_like(a)
+        # for i, row in enumerate(aXb):
+        #     aXb[i][0] = a[i][1] * b[i][2] - a[i][2] * b[i][1]
+        #     aXb[i][1] = a[i][2] * b[i][0] - a[i][0] * b[i][2]
+        #     aXb[i][2] = a[i][0] * b[i][1] - a[i][1] * b[i][0]
+
+        # a.shape, b.shape = (-1,), (-1,)
+        # aXb.shape = (-1,)
+
+        # return aXb
+
+    def run_step(self):
+
+        # ---------------------------------------------------------------------
+
         self.mxH.shape = (-1, 3)
         self.mxmxH.shape = (-1, 3)
         self.spin.shape = (-1, 3)
 
         mxH_sq_norm = np.sum(self.mxH ** 2, axis=1)
-        factor_plus = 4 + (tau ** 2) * mxH_sq_norm
-        factor_minus = 4 - (tau ** 2) * mxH_sq_norm
+        factor_plus = 4 + (self.tau ** 2) * mxH_sq_norm
+        factor_minus = 4 - (self.tau ** 2) * mxH_sq_norm
 
-        self.spin = factor_minus[:, np.newaxis] * self.spin - 4 * (tau[:, np.newaxis] * self.mxmxH)
-        self.spin = self.spin / factor_plus[:, np.newaxis]
+        new_spin = (factor_minus[:, np.newaxis] * self.spin
+                    - (4 * self.tau)[:, np.newaxis] * self.mxmxH
+                    # this term should be zero:
+                    # + (2 * (self.tau ** 2) * np.sum(self.mxH * self.spin, axis=1))[:, np.newaxis] * self.mxH
+                    )
+        new_spin = new_spin / factor_plus[:, np.newaxis]
 
         self.mxH.shape = (-1,)
         self.mxmxH.shape = (-1,)
         self.spin.shape = (-1,)
+        new_spin.shape = (-1,)
 
-    def field_cross_product(self, a, b):
-        aXb = np.cross(a.reshape(-1, 3), b.reshape(-1, 3))
-        return aXb.reshape(-1,)
+        self.spin_last[:] = self.spin[:]
+        self.spin[:] = new_spin[:]
 
-    def run_step(self):
+        # ---------------------------------------------------------------------
+
+        # Update the effective field, torques and time step for the next iter
+        self.update_effective_field()
 
         self.mxmxH_last[:] = self.mxmxH[:]
-        self.update_effective_field()
         self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
+
+        # clib.normalise_spin(self.spin, self._pins, self.n)
 
         # ---------------------------------------------------------------------
         # self.tau = self.get_time_step()
@@ -122,29 +170,10 @@ class SteepestDescent(AtomisticDriver):
 
         # ---------------------------------------------------------------------
 
-        self.mxH.shape = (-1, 3)
-        self.mxmxH.shape = (-1, 3)
-        self.spin.shape = (-1, 3)
-
-        mxH_sq_norm = np.sum(self.mxH ** 2, axis=1)
-        factor_plus = 4 + (self.tau ** 2) * mxH_sq_norm
-        factor_minus = 4 - (self.tau ** 2) * mxH_sq_norm
-
-        new_spin = factor_minus[:, np.newaxis] * self.spin - (4 * self.tau)[:, np.newaxis] * self.mxmxH
-        new_spin = new_spin / factor_plus[:, np.newaxis]
-
-        self.mxH.shape = (-1,)
-        self.mxmxH.shape = (-1,)
-        self.spin.shape = (-1,)
-
-        self.spin_last[:] = self.spin[:]
-        self.spin[:] = new_spin.reshape(-1,)[:]
-
-        # ---------------------------------------------------------------------
+        clib.normalise_spin(self.spin, self._pins, self.n)
+        # self.spin[:] = self.normalise_field(self.spin)[:]
 
         # self.compute_rhs(self.tau)
-
-        clib.normalise_spin(self.spin, self._pins, self.n)
 
     def update_effective_field(self):
 
@@ -160,6 +189,7 @@ class SteepestDescent(AtomisticDriver):
         self.update_effective_field()
         self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
+        self.mxmxH_last[:] = self.mxmxH[:]
         while self.counter < max_count:
 
             self.run_step()
