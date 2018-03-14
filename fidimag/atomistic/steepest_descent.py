@@ -114,7 +114,7 @@ class SteepestDescent(AtomisticDriver):
 
         # return aXb
 
-    def run_step(self):
+    def run_step_OLD(self):
 
         # ---------------------------------------------------------------------
 
@@ -138,6 +138,7 @@ class SteepestDescent(AtomisticDriver):
         self.spin.shape = (-1,)
         new_spin.shape = (-1,)
 
+        clib.normalise_spin(self.spin, self._pins, self.n)
         self.spin_last[:] = self.spin[:]
         self.spin[:] = new_spin[:]
 
@@ -170,10 +171,26 @@ class SteepestDescent(AtomisticDriver):
 
         # ---------------------------------------------------------------------
 
-        clib.normalise_spin(self.spin, self._pins, self.n)
+        # clib.normalise_spin(self.spin, self._pins, self.n)
         # self.spin[:] = self.normalise_field(self.spin)[:]
 
         # self.compute_rhs(self.tau)
+
+    def run_step(self):
+
+        clib.compute_sd_spin(self.spin, self.spin_last,
+                             self.field, self.mxH,
+                             self.mxmxH, self.mxmxH_last,
+                             self.tau, self._pins,
+                             self.n)
+
+        self.update_effective_field()
+
+        clib.compute_sd_step(self.spin, self.spin_last,
+                             self.field, self.mxH,
+                             self.mxmxH, self.mxmxH_last,
+                             self.tau, self._pins,
+                             self.n, self.counter)
 
     def update_effective_field(self):
 

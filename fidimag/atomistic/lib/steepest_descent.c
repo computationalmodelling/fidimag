@@ -18,9 +18,14 @@ void sd_update_spin (double *spin, double *spin_last, double *field, double *mxH
     for (int i = 0; i < n; i++) {
         spin_idx = 3 * i;
 
+        // Copy spin from previous (counter) step
+        for (int j = 0; j < 3; j++) {
+            spin_last[spin_idx + j] = spin[spin_idx + j];
+        }
+
         mxH_sq = 0;
         for (int j = 0; j < 3; j++) {
-            mxH_sq += mxH[spin_idx + j] * mxH[spin_idx + j]
+            mxH_sq += mxH[spin_idx + j] * mxH[spin_idx + j];
         }
 
         factor_plus = 4 + tau[i] * tau[i] * mxH_sq;
@@ -32,11 +37,10 @@ void sd_update_spin (double *spin, double *spin_last, double *field, double *mxH
 
             new_spin[j] = new_spin[j] / factor_plus;
 
-            spin_last[spin_idx + j] = spin[spin_idx + j];
             spin[spin_idx + j] = new_spin[j];
         }
-
-        normalise(spin, pins, n);
+    }
+    normalise(spin, pins, n);
 }
 
 void sd_compute_step (double *spin, double *spin_last, double *field, double *mxH,
@@ -51,27 +55,29 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
         spin_idx = 3 * i;
 
         // Copy mxmxH from previous (counter) step
-        mxmxH_last[i] = mxmxH[i];
+        for (int j = 0; j < 3; j++) {
+            mxmxH_last[spin_idx + j] = mxmxH[spin_idx + j];
+        }
 
         // Compute the torques
 
-        mxH[spin_idx]     = cross_x(m[spin_idx], m[spin_idx + 1], m[spin_idx + 2]
+        mxH[spin_idx]     = cross_x(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                     field[spin_idx], field[spin_idx + 1], field[spin_idx + 2]);
-        mxH[spin_idx + 1] = cross_y(m[spin_idx], m[spin_idx + 1], m[spin_idx + 2]
+        mxH[spin_idx + 1] = cross_y(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                     field[spin_idx], field[spin_idx + 1], field[spin_idx + 2]);
-        mxH[spin_idx + 2] = cross_z(m[spin_idx], m[spin_idx + 1], m[spin_idx + 2]
+        mxH[spin_idx + 2] = cross_z(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                     field[spin_idx], field[spin_idx + 1], field[spin_idx + 2]);
 
-        mxmxH[spin_idx]     = cross_x(m[spin_idx], m[spin_idx + 1], m[spin_idx + 2]
+        mxmxH[spin_idx]     = cross_x(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                       mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
-        mxmxH[spin_idx + 1] = cross_y(m[spin_idx], m[spin_idx + 1], m[spin_idx + 2]
+        mxmxH[spin_idx + 1] = cross_y(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                       mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
-        mxmxH[spin_idx + 2] = cross_z(m[spin_idx], m[spin_idx + 1], m[spin_idx + 2]
+        mxmxH[spin_idx + 2] = cross_z(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                       mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
 
         for (int j = 0; j < 3; j++) {
             ds[j] = spin[spin_idx + j] - spin_last[spin_idx + j];
-            dy[j] = spin[spin_idx + j] - spin_last[spin_idx + j];
+            dy[j] = mxmxH[spin_idx + j] - mxmxH_last[spin_idx + j];
         }
 
         num = 0;
@@ -97,4 +103,7 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
         }
 
         tau[i] = res;
+    }
+
+    // normalise(spin, pins, n);
 }
