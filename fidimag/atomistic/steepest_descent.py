@@ -52,46 +52,9 @@ class SteepestDescent(AtomisticDriver):
         self.mxmxH_last = np.zeros_like(self.field)
         self.t = 1e-4
         self.tau = 1e-4 * np.ones(len(self.spin) // 3)
+        # self._n_field = np.zeros_like(self.field)
 
         # self.set_options()
-
-    # def get_time_step(self):
-    #     ds = (self.spin - self.spin_last).reshape(-1, 3)
-    #     dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
-
-    #     print(ds)
-    #     print(dy)
-
-    #     if self.counter % 2 == 0:
-    #         num = np.sum(ds * ds, axis=1)
-    #         den = np.sum(ds * dy, axis=1)
-    #     else:
-    #         num = np.sum(ds * dy, axis=1)
-    #         den = np.sum(dy * dy, axis=1)
-
-    #     # Denominators equal to zero are set to 1e-4
-    #     tau = 1e-4 * np.ones_like(num)
-    #     tau[den != 0] = num[den != 0] / den[den != 0]
-
-    #     print(tau)
-
-    #     return tau
-
-    # def compute_rhs(self, tau):
-    #     self.mxH.shape = (-1, 3)
-    #     self.mxmxH.shape = (-1, 3)
-    #     self.spin.shape = (-1, 3)
-
-    #     mxH_sq_norm = np.sum(self.mxH ** 2, axis=1)
-    #     factor_plus = 4 + (tau ** 2) * mxH_sq_norm
-    #     factor_minus = 4 - (tau ** 2) * mxH_sq_norm
-
-    #     self.spin = factor_minus[:, np.newaxis] * self.spin - 4 * (tau[:, np.newaxis] * self.mxmxH)
-    #     self.spin = self.spin / factor_plus[:, np.newaxis]
-
-    #     self.mxH.shape = (-1,)
-    #     self.mxmxH.shape = (-1,)
-    #     self.spin.shape = (-1,)
 
     def normalise_field(self, a):
         norm = np.sqrt(np.sum(a.reshape(-1, 3) ** 2, axis=1))
@@ -102,19 +65,8 @@ class SteepestDescent(AtomisticDriver):
     def field_cross_product(self, a, b):
         aXb = np.cross(a.reshape(-1, 3), b.reshape(-1, 3))
         return aXb.reshape(-1,)
-        # a.shape, b.shape = (-1, 3), (-1, 3)
-        # aXb = np.zeros_like(a)
-        # for i, row in enumerate(aXb):
-        #     aXb[i][0] = a[i][1] * b[i][2] - a[i][2] * b[i][1]
-        #     aXb[i][1] = a[i][2] * b[i][0] - a[i][0] * b[i][2]
-        #     aXb[i][2] = a[i][0] * b[i][1] - a[i][1] * b[i][0]
 
-        # a.shape, b.shape = (-1,), (-1,)
-        # aXb.shape = (-1,)
-
-        # return aXb
-
-    def run_step_OLD(self):
+    def run_step(self):
 
         # ---------------------------------------------------------------------
 
@@ -146,6 +98,9 @@ class SteepestDescent(AtomisticDriver):
 
         # Update the effective field, torques and time step for the next iter
         self.update_effective_field()
+        #
+        # self._n_field[:] = self.field[:]
+        # clib.normalise_spin(self._n_field, self._pins, self.n)
 
         self.mxmxH_last[:] = self.mxmxH[:]
         self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
@@ -176,7 +131,10 @@ class SteepestDescent(AtomisticDriver):
 
         # self.compute_rhs(self.tau)
 
-    def run_step(self):
+    def run_step_CLIB(self):
+        """
+        Only use when run_step with Numpy is working
+        """
 
         clib.compute_sd_spin(self.spin, self.spin_last,
                              self.field, self.mxH,
@@ -204,6 +162,8 @@ class SteepestDescent(AtomisticDriver):
 
         self.spin_last[:] = self.spin[:]
         self.update_effective_field()
+        # self._n_field[:] = self.field[:]
+        # clib.normalise_spin(self._n_field, self._pins, self.n)
         self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         self.mxmxH_last[:] = self.mxmxH[:]
@@ -212,7 +172,7 @@ class SteepestDescent(AtomisticDriver):
             self.run_step()
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
-            max_dm = np.max(np.sum(max_dm, axis=1))
+            max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
             print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
                 np.max(np.abs(self.tau)),
                 max_dm, self.counter))
