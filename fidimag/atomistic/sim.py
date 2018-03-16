@@ -201,7 +201,7 @@ class Sim(SimBase):
             if self.mesh.mesh_type == 'cuboid':
                 number = clib.compute_skyrmion_number(
                     self.spin, self._skx_number, nx, ny, nz,
-                    self.mesh.neighbours)
+                    self.mesh.neighbours, self.mesh.n_ngbs)
             else:
                 raise ValueError('FiniteSpinChirality method only'
                                  ' defined for cuboid meshes')
@@ -209,7 +209,7 @@ class Sim(SimBase):
         elif method == 'BergLuscher':
             number = clib.compute_skyrmion_number_BergLuscher(
                 self.spin, self._skx_number, nx, ny, nz,
-                self.mesh.neighbours)
+                self.mesh.neighbours, self.mesh.n_ngbs)
         else:
             raise ValueError('Specify a valid method')
 

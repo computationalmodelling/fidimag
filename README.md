@@ -1,6 +1,7 @@
 FIDIMAG
 =======
 
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/computationalmodelling/fidimag/master)
 [![Build Status](https://travis-ci.org/computationalmodelling/fidimag.svg?branch=master)](https://travis-ci.org/computationalmodelling/fidimag)
 [![Documentation Status](https://readthedocs.org/projects/fidimag/badge/?version=latest)](http://fidimag.readthedocs.org/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/computationalmodelling/fidimag/branch/master/graph/badge.svg)](https://codecov.io/gh/computationalmodelling/fidimag)
@@ -42,11 +43,12 @@ BibTeX:
 }
 </pre>
 
-# Acknowledgement 
+# Acknowledgements
 
 We acknowledge financial support from
 
 - EPSRC’s Centre for Doctoral Training in Next Generation
-  Computational Modelling, http://ngcm.soton.ac.uk (#EP/L015382/1) and
-  EPSRC’s Doctoral Training Centre in Complex System Simulation
-  ((EP/G03690X/1), http://icss.soton.ac.uk
+  Computational Modelling, (EP/L015382/1)
+  
+- EPSRC’s Doctoral Training Centre in Complex System Simulation
+  (EP/G03690X/1)

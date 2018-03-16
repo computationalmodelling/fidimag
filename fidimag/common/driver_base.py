@@ -3,8 +3,10 @@ from __future__ import print_function
 
 import os
 import numpy as np
+import zipfile
 import fidimag.common.helper as helper
-from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, StepIntegrator
+from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
+    StepIntegrator, ScipyIntegrator
 
 
 class DriverBase(object):
@@ -87,8 +89,9 @@ class DriverBase(object):
         elif integrator == "sundials":
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = CvodeSolver(self.spin, self.step_rhs,
-                                          integrator)
+            self.integrator = StepIntegrator(self.spin, self.step_rhs)
+        elif integrator == "scipy":
+            self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
 
         elif integrator == "sundials_openmp" and use_jac:
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
@@ -189,54 +192,45 @@ class DriverBase(object):
         self.compute_effective_field(t)
         self.data_saver.save()
 
-    def relax(self, dt=1e-11, stopping_dmdt=0.01, max_steps=1000,
+    def relax(self, dt=10e-12, stopping_dmdt=0.01, max_steps=1000,
               save_m_steps=100, save_vtk_steps=100
               ):
         """
+        Evolve the system until meeting the `dmdt` < `stopping_dmdt` criteria.
 
-        Evolve the system until meeting the dmdt < stopping_dmdt criteria. We
-        can specify to save VTK and NPY files with the magnetisation vector
-        field, every certain number of the integrator steps
+        The magnetisation dynamics will be checked a maximum of `max_steps`
+        times at an interval of at least `dt` and compared to `stopping_dmdt`
+        which is given in units of degrees per nanosecond.
 
-        TODO: Check what dt is exactly doing
+        With `save_m_steps` and `save_vtk_steps` the magnetisation will be
+        saved every given number of integrator steps to npy resp. vtk files.
 
         """
+        while self.step < max_steps:
+            _dt = max(dt, self.integrator.get_current_step())
+            self.run_until(self.t + _dt)
+            # Explanation: For very small integrator steps, there is no use in
+            # checking for relaxation at every step and `dt` will provide the lower
+            # boundary of what is acceptable (every 10 picoseconds per default).
+            # On the other hand, when the integrator steps get larger than `dt`
+            # we might as well let the integrator do its work uninterrupted.
 
-        for i in range(0, max_steps + 1):
+            if (save_vtk_steps is not None) and (self.step % save_vtk_steps == 0):
+                self.save_vtk()
+            if (save_m_steps is not None) and (self.step % save_m_steps == 0):
+                self.save_m()
 
-            cvode_dt = self.integrator.get_current_step()
-
-            increment_dt = dt
-
-            if cvode_dt > dt:
-                increment_dt = cvode_dt
-
-            self.run_until(self.t + increment_dt)
-
-            if save_vtk_steps is not None:
-                if i % save_vtk_steps == 0:
-                    self.save_vtk()
-            if save_m_steps is not None:
-                if i % save_m_steps == 0:
-                    self.save_m()
-
-            dmdt = self.compute_dmdt(increment_dt)
-
-            print(('step=%d, ' +
-                   'time=%0.3g, ' +
-                   'max_dmdt=%0.3g ' +
-                   'ode_step=%0.3g') % (self.step,
-                                        self.t,
-                                        dmdt / self._dmdt_factor,
-                                        cvode_dt)
-                  )
-
+            dmdt = self.compute_dmdt(_dt)
+            print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}".format(
+                self.step,  # incremented in self.run_until (called above)
+                self.t,
+                _dt,
+                dmdt / self._dmdt_factor))
             if dmdt < stopping_dmdt * self._dmdt_factor:
                 break
 
         if save_m_steps is not None:
             self.save_m()
-
         if save_vtk_steps is not None:
             self.save_vtk()
 
@@ -247,17 +241,27 @@ class DriverBase(object):
     def save_vtk(self):
         pass
 
-    def save_m(self):
+    def save_m(self, ZIP=False):
         """
         Save the magnetisation/spin vector field as a numpy array in
         a NPY file. The files are saved in the `{name}_npys` folder, where
         `{name}` is the simulation name, with the file name `m_{step}.npy`
         where `{step}` is the simulation step (from the integrator)
         """
+
         if not os.path.exists('%s_npys' % self.name):
             os.makedirs('%s_npys' % self.name)
         name = '%s_npys/m_%g.npy' % (self.name, self.step)
         np.save(name, self.spin)
+        if ZIP:
+            with zipfile.ZipFile('%s_m.zip'%self.name, 'a') as myzip:
+                myzip.write(name)
+            try:
+                os.remove(name)
+            except OSError:
+                pass
+
+
 
     def save_skx(self):
         """

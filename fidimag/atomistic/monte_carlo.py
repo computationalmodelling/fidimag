@@ -31,9 +31,9 @@ class MonteCarlo(object):
         self.create_tablewriter()
         self.vtk = SaveVTK(self.mesh, name=name)
 
-        self.hexagnoal_mesh = False
+        self.hexagonal_mesh = False
         if mesh.mesh_type == 'hexagonal':
-            self.hexagnoal_mesh =  True
+            self.hexagonal_mesh =  True
             #FIX ME !!!!
             self.nngbs = np.copy(mesh.neighbours)
         else:
@@ -44,23 +44,23 @@ class MonteCarlo(object):
         self.mc = clib.monte_carlo()
         self.set_options()
 
-    def set_options(self, J=50.0, J1=0, D=0, D1=0, Kc=0, H=None, seed=100, T=10.0, S=1):
+    def set_options(self, J=50.0*const.k_B, J1=0, D=0, D1=0, Kc=0, H=None, seed=100, T=10.0, S=1):
         """
-        J, D and Kc in units of k_B
+        J, D and Kc in units of Joule
         H in units of Tesla.
         S is the spin length
         """
         self.mc.set_seed(seed)
-        self.J = J
-        self.J1 = J1
-        self.D = D
-        self.D1 = D1
+        self.J = J/const.k_B
+        self.J1 = J1/const.k_B
+        self.D = D/const.k_B
+        self.D1 = D1/const.k_B
         self.T = T
-        self.Kc = Kc
+        self.Kc = Kc/const.k_B
         self.mu_s =  1.0
         if H is not None:
             self._H[:] = helper.init_vector(H, self.mesh)
-            self._H[:] = self._H[:]*const.mu_s_1*S/const.k_B  #We have set k_B = 1
+            self._H[:] = self._H[:]*const.mu_s_1*S/const.k_B
 
     def create_tablewriter(self):
 
@@ -71,8 +71,8 @@ class MonteCarlo(object):
             'm': {'unit': '<>',
                   'get': lambda sim: sim.compute_average(),
                   'header': ('m_x', 'm_y', 'm_z')},
-            'skx_num':{'unit': '<>', 
-                      'get': lambda sim: sim.skyrmion_number(), 
+            'skx_num':{'unit': '<>',
+                      'get': lambda sim: sim.skyrmion_number(),
                       'header': 'skx_num'}
         }
 
@@ -116,7 +116,7 @@ class MonteCarlo(object):
         ny = self.mesh.ny
         nz = self.mesh.nz
         number = clib.compute_skyrmion_number(
-            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours)
+            self.spin, self._skx_number, nx, ny, nz, self.mesh.neighbours, self.mesh.n_ngbs)
         self.skx_num = number
         return number
 
@@ -151,8 +151,10 @@ class MonteCarlo(object):
 
         for step in range(1, steps + 1):
             self.step = step
-            self.mc.run_step(self.spin, self.random_spin, self.ngbs, self.nngbs, 
-                self.J, self.J1, self.D, self.D1, self._H, self.Kc, self.n, self.T, self.hexagnoal_mesh)
+            self.mc.run_step(self.spin, self.random_spin,
+                             self.ngbs, self.nngbs, self.mesh.n_ngbs,
+                             self.J, self.J1, self.D, self.D1, self._H, self.Kc,
+                             self.n, self.T, self.hexagonal_mesh)
             if save_data_steps is not None:
                 if step % save_data_steps == 0:
                     self.saver.save()
@@ -164,9 +166,9 @@ class MonteCarlo(object):
             if save_m_steps is not None:
                 if step % save_m_steps == 0:
                     self.save_m()
-            
-            
+
+
 
 
 if __name__ == '__main__':
-	pass
+    pass

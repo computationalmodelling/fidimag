@@ -75,80 +75,207 @@
 *       we only put the 0.5 factor and don't worry about the "2"s in the
 *       field
 *
+* -----------------------------------------------------------------------------
+* -----------------------------------------------------------------------------
+* DMI
+* -----------------------------------------------------------------------------
+* -----------------------------------------------------------------------------
+*
+* In the atomic model, the effective field in the i-th spin site has the
+* summation: D_{ij} x S_{ij}
+*
+* where j is the index of a NN neighbour and D_{ij} = D * r_{ij}, r_{ij}
+* being the position vector connectin the site i with the site j
+*
+* ------------------------------------------------------------------------
+* BULK DMI
+* ------------------------------------------------------------------------
+*
+* In the continuum, the field can be written as (M = Ms m):
+*                                           ->
+*                  - (2 D / mu0 Ms) nabla X m ,
+*
+* which can be discretised with an expression similar to the atomic model
+* one when doing the finite difference approximation of the derivative,
+* thus we only need the DMI vector as:  -D * r_{ij}. Specifically, we have
+* that:
+*
+*      ---->                  ->                       ^         ^
+*      field = - 2 D  nabla X m = -D [ (d m_z - d m_y) x + (...) y +  ]
+*               ----                    -----   -----
+*               mu0 Ms                   d y     d z
+*
+* Discretising the derivatives, the field components are:
+*
+*      field_x = - (2 D / mu0 Ms) [ (1 / 2 dy) * (mz[+y] - mz[-y]) -
+*                                   (1 / 2 dz) * (my[+z] - my[-z])
+*                                 ]
+*
+*      field_y = - (2 D / mu0 Ms) [ (1 / 2 dz) * (mx[+z] - mx[-z]) -
+*                                   (1 / 2 dx) * (mz[+x] - mz[-x])
+*                                 ]
+*      ...
+*
+* where +x, -x, etc are the neighbours at position +x, -x, etc
+* We now can collect the terms involving the neighbours at
+* +x, -x, +y, -y, +z and -z.
+* For example the field H where the +x neighbour is involved is:
+*
+*  ->                                 ^          ^
+*  H(+x) = (-2 D / mu0 Ms) * ( my(+x) z - mz(+x) y ) * (1 / 2 dx)
+*
+*                                 ^     ->
+*        = (- D / mu0 Ms dx) * (  x  X  m  )
+*
+*  In general, the field for every component will be the cross product of
+*  r_ij with m, where r_ij is the vector towards the j-th neighbour, as in
+*  the discrete case. This term is divided by the mesh discretisation
+*  (dx, dy or dz) in the corresponding direction
+*
+*  The DMI vector norms are given by the *D array. If our simulation has
+*  n mesh nodes, then the D array is (6 * n) long, i.e. the DMI vector norm
+*  per every neighbour per every mesh node. The order is the same than the NNs
+*  array, i.e.
+*
+*      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(z)_0, D(-z)_0, D(x)_1, ...]
+*
+*  where D(j)_i means the DMI vector norm of the NN in the j-direction at
+*  the i-th mesh node. Remember that the DMI vector points in a single
+*  direction towards the NN site, e.g. the DMI vector of the NN in the
+*  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
+*
+*  NOTE:
+*  To compute the DMI for other point groups we will have to find
+*  the vectors and how to discretise the derivative
+*
+* ------------------------------------------------------------------------
+* INTERFACIAL DMI
+* ------------------------------------------------------------------------
+*
+* For the Interfacial DMI, we use the following energy density structure
+* with Lifshitz invariants (see Rohart et al. Phys. Rev. B 88, 184422))
+*
+*      w_DM = D ( L_{xz}^{(x)} + L_{yz}^{(y)} )
+*
+* Hence, using a variational derivative, the field can be computed as
+*
+*                       /        ->           ->  \
+*      field = - 2  D  |  ^     dm     ^     dm    |
+*                ----  |  y  X  --  -  x  X  --    |
+*               mu0 Ms  \       dx           dy   /
+*
+* Using finite differences for the derivatives, we can get the components
+* contributed to the field by the neighbours in the +x, -x, +y and -y
+* directions. For instance,
+*
+*                        /                        \
+*  field(+x)  = -2  D   |  mz(+x) ^      mx(+x) ^  | 
+*                ----   |  -----  x  -   -----  z  | 
+*               mu0 Ms   \  2 dx          2 dx    /  
+* 
+*               - D     1     ^   ->     
+*             =  ----   --  ( y X M(+x) )
+*               mu0 Ms  dx            
+*
+*
+* In general, the derivative will be given as in the discrete spin model
+* by using the Dzyaloshinskii vector as 
+*
+*                 ^   -> 
+*          D_ij = z X r_ij
+*
+* and dividing by the mesh discretisation in the direction of the 
+* neighbour.
+* This DMI vector convention is given by [Yang et al. PRL 115, 267210]
+*
+* The Dzyaloshinskii vectors are IN plane. This function only works along
+* the XY plane since we assume there is a non magnetic material below with
+* a different SOC which gives the DMI for neighbouring in plane spins
+*
+* As in the atomic model, when going through the neighbours
+* loop, we can obtain the field doing the following cross products:
+*
+*   neighbour          field sum
+*     -x:      (D / dx) * (-y  X  M)
+*     +x:      (D / dx) * (+y  X  M)
+*     -y:      (D / dy) * (+x  X  M)
+*     +y       (D / dy) * (-x  X  M)
+*
+* So, our Dzyaloshinskii vectors can be depicted in the cuboid mesh as
+*
+*                     o  +y
+*                     |
+*                   <--  D
+*                     |     ^
+*       -x  o __ | __ o __  | _ o  +x
+*                v    |
+*                    -->
+*                     |
+*                     o  -y
+*
+* If we start with this picture in the atomic model, we can get the
+* continuum expression when doing the limit  a_x a_y a_z  --> 0
+*
+*  The DMI vector norms are given by the *D array. If our simulation has
+*  n mesh nodes, then the D array is (4 * n) long, i.e. the DMI vector norm
+*  per every neighbour per every mesh node. The order is the same than the NNs
+*  array, i.e.
+*
+*      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(x)_1, ...]
+*
+*  where D(j)_i means the DMI vector norm of the NN in the j-direction at
+*  the i-th mesh node. Remember that the DMI vector points in a single
+*  direction towards the NN site, e.g. the DMI vector of the NN in the
+*  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
 */
 
-void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
-                    double *D, double dx, double dy, double dz,
-                    int n, int *ngbs) {
 
-    /* In the atomic model, the effective field in the i-th spin site has the
-     * summation: D_{ij} x S_{ij}
-     *
-     * where j is the index of a NN neighbour and D_{ij} = D * r_{ij}, r_{ij}
-     * being the position vector connectin the site i with the site j
-     *
-     * In the continuum, the field can be written as : - nabla X M , which can
-     * be discretised with an expression similar to the atomic model one when
-     * doing the finite difference approximation of the derivative, thus we
-     * only need the DMI vector as:  -D * r_{ij}
-     *
-     * So, in the loop through neighbours we compute:
-     *
-     * neighbour          field sum                this gives
-     *   -x:      (D / dx) * (+x  X  M)   --> Components in y, z
-     *   +x:      (D / dx) * (-x  X  M)   --> %
-     *   -y:      (D / dy) * (+y  X  M)   --> Components in x, z
-     *   +y:      (D / dy) * (-y  X  M)   --> %
-     *   -z:      (D / dz) * (+z  X  M)   --> Components in x, y
-     *   +z:      (D / dz) * (-z  X  M)   --> %
-     *
-     * which gives:
-     *      field_x = (D / dx) * (mz[-x] - mz[+x])
-     *                  + (D / dz) * (mx[-z] - mx[+x])
-     *      ...
-     *
-     *  which are the first order derivatives.
-     *
-     *  The DMI vector norms are given by the *D array. If our simulation has
-     *  n mesh nodes, then the D array is (6 * n) long, i.e. the DMI vector norm
-     *  per every neighbour per every mesh node. The order is the same than the NNs
-     *  array, i.e. 
-     *
-     *      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(z)_0, D(-z)_0, D(x)_1, ...]
-     *
-     *  where D(j)_i means the DMI vector norm of the NN in the j-direction at
-     *  the i-th mesh node. Remember that the DMI vector points in a single
-     *  direction towards the NN site, e.g. the DMI vector of the NN in the
-     *  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
-     *
-     *  NOTE:
-     *  To compute the DMI for other point groups we will have to find
-     *  the vectors and how to discretise the derivative
-     *
-     */
+// ----------------------------------------------------------------------------
 
-    /* The DMI vector directions are the same according to the neighbours
-     * positions. Thus we set them here to avoid compute them
-     * every time in the loop . So, if we have the j-th NN,
-     * the DMI vector will be dmivector[3 * j] */
-    double dmivector[18] = {-1,  0,  0,
-                             1,  0,  0,
-                             0, -1,  0,
-                             0,  1,  0,
-                             0,  0, -1,
-                             0,  0,  1
-                             };
+
+/* A function to compute any DMI given the corresponding DM vectors
+ * obtained from discretising the Lifshitz invariants using the
+ * finite differences:
+ *
+ * The calculation of the field for the neighbour in the i-direction is done as:
+ *
+ *      H_DMI = -2 D     1       ->        ->
+ *              ----    ----     x_{i}  X  m 
+ *              mu0 Ms  2 dxi
+ *
+ * where x_{i} is the DM vector orientation in the i-direction and dxi
+ * is the mesh spacing in that direction, i.e. for a neighbour in the
+ * +y direction it is dy
+ * These orientations are specified in the dmi_vector array
+ *
+ * DM vectors for bulk and interfacial DMI are explained at the beginning
+ * of this library
+ *
+ * dmi_vector   :: an array with a vector for every nearest neighbour from
+ *                 the finite differences model. For DMIs defined in 2D
+ *                 the last 6 terms are set to zero
+ *
+ * n_dmi_ngbs   :: number of neighbours used for the specified DMI
+ *                 For example, interfacial DMI is 2D so we only use 4 neighbours
+ *                 which are -x, +x, -y and +y
+ *
+ */
+void dmi_field(double *m, double *field, double *energy, double *Ms_inv,
+               double *D, double dmi_vector[18], int n_dmi_ngbs,
+               double dx, double dy, double dz,
+               int n, int *ngbs) {
 
     /* These are for the DMI prefactor or coefficient */
     double dxs[6] = {dx, dx, dy, dy, dz, dz};
 
     /* Here we iterate through every mesh node */
-	#pragma omp parallel for shared(dmivector, dxs)
+	#pragma omp parallel for shared(dxs)
 	for (int i = 0; i < n; i++) {
         double DMIc;
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours
+	    int idn_DMI = n_dmi_ngbs * i; // index for the neighbours for the DMI array
 
         /* Set a zero field for sites without magnetic material */
 	    if (Ms_inv[i] == 0.0){
@@ -161,7 +288,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
 
         /* Here we iterate through the neighbours. Remember:
          * j = 0, 1, 2, 3, 4, 5  --> -x, +x, -y, +y, -z, +z */
-        for (int j = 0; j < 6; j++) {
+        for (int j = 0; j < n_dmi_ngbs; j++) {
 
             /* Remember that index=-1 is for sites without material, so
              * we skip those sites */
@@ -175,7 +302,7 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
                  * is larger than zero */
                 if (Ms_inv[ngbs[idn + j]] > 0){
 
-                    /* We do here:  (D / dx_i) * ( r_{ij} X M_{j} )
+                    /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
                      * The cross_i function gives the i component of the
                      * cross product. The coefficient is computed according
                      * to the DMI strength of the current lattice site.
@@ -183,167 +310,25 @@ void dmi_field_bulk(double *m, double *field, double *energy, double *Ms_inv,
                      * dxs[j] = dy
                      * The D vector is 6 * n which is specified for every neighbour
                      */
-                    DMIc = -D[idn + j] / dxs[j];
+                    DMIc = -D[idn_DMI + j] / dxs[j];
 
                     /* Compute only for DMI vectors largr than zero */
                     if (abs(DMIc) > 0) {
                         /* The x component of the cross product of +-x
                          * times anything is zero (similar for the other comps) */
-                        if (j != 0 && j != 1) {
-                            fx += DMIc * cross_x(dmivector[3 * j],
-                                                 dmivector[3 * j + 1],
-                                                 dmivector[3 * j + 2],
-                                                 m[idnm], m[idnm + 1], m[idnm + 2]);
-                        }
-                        if (j != 2 && j != 3) {
-                            fy += DMIc * cross_y(dmivector[3 * j],
-                                                 dmivector[3 * j + 1],
-                                                 dmivector[3 * j + 2],
-                                                 m[idnm], m[idnm + 1], m[idnm + 2]);
-                        }
-                        if (j != 4 && j != 5) {
-                            fz += DMIc * cross_z(dmivector[3 * j],
-                                                 dmivector[3 * j + 1],
-                                                 dmivector[3 * j + 2],
-                                                 m[idnm], m[idnm + 1], m[idnm + 2]);
-                        }
+                        fx += DMIc * cross_x(dmi_vector[3 * j],
+                                             dmi_vector[3 * j + 1],
+                                             dmi_vector[3 * j + 2],
+                                             m[idnm], m[idnm + 1], m[idnm + 2]);
+                        fy += DMIc * cross_y(dmi_vector[3 * j],
+                                             dmi_vector[3 * j + 1],
+                                             dmi_vector[3 * j + 2],
+                                             m[idnm], m[idnm + 1], m[idnm + 2]);
+                        fz += DMIc * cross_z(dmi_vector[3 * j],
+                                             dmi_vector[3 * j + 1],
+                                             dmi_vector[3 * j + 2],
+                                             m[idnm], m[idnm + 1], m[idnm + 2]);
                     }
-                }
-            }
-        }
-
-        /* Energy as: (-mu0 * Ms / 2) * [ H_dmi * m ]   */
-        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
-                            + fz * m[3 * i + 2]);
-
-        /* Update the field H_dmi which has the same structure than *m */
-        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
-        field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
-        field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
-
-    }
-}
-
-
-void dmi_field_interfacial(double *m, double *field, double *energy, double *Ms_inv,
-                    double *D, double dx, double dy, double dz,
-                    int n, int *ngbs) {
-
-    /* In the atomic model, the effective field in the i-th spin site has the
-     * summation: D_{ij} x S_{ij}
-     *
-     * For the Interfacial DMI, D_{ij} has the structure: D_{ij} = r_{ij} X z
-     * See Rohart et al. Phys. Rev. B 88, 184422)
-     *
-     * but [Yang et al. Phys. Rev. Lett. 115, 267210] uses the opposite sign (?)
-     *
-     * so the Dzyaloshinskii vectors are IN plane. This function only works
-     * along the XY plane since we assume there is a non magnetic material below
-     * with a different SOC which gives the DMI for neighbouring in plane spins
-     *
-     * The computation is similar than before, only that we no longer have
-     * a z component. In the continuum the H_dmi field is:
-     *          H_dmi = (2 * D / (Ms a a_z)) * ( x X dM/dy  - y X dM/dx )
-     * where "a" is the lattice spacing in the plane and "a_z" the system
-     * thickness along z
-     * This derivative can be obtained doing the cross product
-     * as in the atomic model, hence when going through the neighbours
-     * loop, we can obtain the field doing the following cross products:
-     *
-     *   neighbour          field sum
-     *     -x:      (D / dx) * (+y  X  M)
-     *     +x:      (D / dx) * (-y  X  M)
-     *     -y:      (D / dy) * (-x  X  M)
-     *     +y       (D / dy) * (+x  X  M)
-     *
-     * So, our Dzyaloshinskii vectors can be depicted in a square lattice as
-     *
-     *                     o  +y
-     *                     |
-     *                    --> D
-     *                ^    |     
-     *       -x  o __ | __ o __  | _ o  +x
-     *                     |     v
-     *                    <--
-     *                     |
-     *                     o  -y
-     *
-     * If we start with this picture in the atomic model, we can get the
-     * continuum expression when doing the limit  a_x a_y a_z  --> 0
-     *
-     *  The DMI vector norms are given by the *D array. If our simulation has
-     *  n mesh nodes, then the D array is (4 * n) long, i.e. the DMI vector norm
-     *  per every neighbour per every mesh node. The order is the same than the NNs
-     *  array, i.e. 
-     *
-     *      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(x)_1, ...]
-     *
-     *  where D(j)_i means the DMI vector norm of the NN in the j-direction at
-     *  the i-th mesh node. Remember that the DMI vector points in a single
-     *  direction towards the NN site, e.g. the DMI vector of the NN in the
-     *  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
-     */
-
-    /* We set the DMi vectors here. For the j-th NN, the DMI
-     * vector starts at dmivector[3 * j]
-     * (NNs are in the order: -x, +x, -y, +y)
-     * For interfacial DMI we only compute the DMI in 2D
-     * */
-    double dmivector[12] = { 0,  1,  0,
-                             0, -1,  0,
-                            -1,  0,  0,
-                             1,  0,  0,
-                             };
-    double dxs[4] = {dx, dx, dy, dy};
-
-    /* Here we iterate through every mesh node */
-	#pragma omp parallel for shared(dmivector, dxs)
-	for (int i = 0; i < n; i++) {
-        double sign;
-        double DMIc;
-	    double fx = 0, fy = 0, fz = 0;
-	    int idnm = 0;     // Index for the magnetisation matrix
-	    int idn = 6 * i; // index for the neighbours
-	    int idn_DMI = 4 * i; // index for the neighbours for the DMI array
-
-        /* Set a zero field for sites without magnetic material */
-	    if (Ms_inv[i] == 0.0){
-	        field[3 * i] = 0;
-	        field[3 * i + 1] = 0;
-	        field[3 * i + 2] = 0;
-            energy[i] = 0;
-	        continue;
-	    }
-
-        /* Here we iterate through the neighbours in the XY plane */
-        for (int j = 0; j < 4; j++) {
-
-            /* Remember that index=-1 is for sites without material */
-	        if (ngbs[idn + j] >= 0) {
-
-                /* DMI coefficient according to the neighbour position */
-                DMIc = D[idn_DMI + j] / dxs[j];
-
-                /* Magnetisation array index of the neighbouring spin
-                 * since ngbs gives the neighbour's index */
-	            idnm = 3 * ngbs[idn + j];
-
-                /* Check that the magnetisation of the neighbouring spin
-                 * is larger than zero, as well as the DMI coefficient */
-                if (Ms_inv[ngbs[idn + j]] > 0 && abs(DMIc) > 0) {
-
-                    fx += DMIc * cross_x(dmivector[3 * j],
-                                         dmivector[3 * j + 1],
-                                         dmivector[3 * j + 2],
-                                         m[idnm], m[idnm + 1], m[idnm + 2]);
-                    fy += DMIc * cross_y(dmivector[3 * j],
-                                         dmivector[3 * j + 1],
-                                         dmivector[3 * j + 2],
-                                         m[idnm], m[idnm + 1], m[idnm + 2]);
-                    fz += DMIc * cross_z(dmivector[3 * j],
-                                         dmivector[3 * j + 1],
-                                         dmivector[3 * j + 2],
-                                         m[idnm], m[idnm + 1], m[idnm + 2]);
                 }
             }
         }
