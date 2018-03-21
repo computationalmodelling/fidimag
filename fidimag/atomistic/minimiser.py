@@ -70,8 +70,12 @@ class Minimiser(AtomisticDriver):
         for obj in self.interactions:
             self.field += obj.compute_field(t=0, spin=self.spin)
 
-    def minimize(self, stopping_dm=1e-2, max_count=2000):
-        self.counter = 0
+    def minimise(self, stopping_dm=1e-2, max_steps=2000, save_data_steps=10):
+        """
+
+        """
+
+        self.step = 0
 
         self.alpha_field = np.repeat(self.alpha, 3)
 
@@ -81,22 +85,23 @@ class Minimiser(AtomisticDriver):
 
         self.spin_last[:] = self.spin[:]
         self.update_effective_field()
-        while self.counter < max_count:
+        while self.step < max_steps:
 
             self.run_step()
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
-            print("#max_dm={:<10.3g} counter={}".format(max_dm, self.counter))
+            print("#max_dm={:<10.3g} step={}".format(max_dm, self.step))
 
-            if max_dm < stopping_dm and self.counter > 0:
+            if max_dm < stopping_dm and self.step > 0:
                 break
 
-            self.counter += 1
+            if self.step % save_data_steps == 0:
+                # update field before saving data
+                self.update_effective_field()
+                self.data_saver.save()
 
-            # update field before saving data
-            # self.update_effective_field()
-            # self.data_saver.save()
+            self.step += 1
 
     def relax(self):
         print('Not implemented for the minimizer')
