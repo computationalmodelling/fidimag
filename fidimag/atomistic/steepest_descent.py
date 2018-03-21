@@ -120,10 +120,18 @@ class SteepestDescent(AtomisticDriver):
         else:
             num = np.sum(ds * dy, axis=1)
             den = np.sum(dy * dy, axis=1)
-
-        # Terms with denominators equal to zero are set to 1e-4 (magic number?)
-        self.tau = 1e-4 * np.ones_like(num)
+      
+        # Set to tmin
+        self.tau = 1e-2 * np.ones_like(num)
         self.tau[den != 0] = num[den != 0] / den[den != 0]
+
+        tau_signs = np.sign(self.tau)
+
+        self._tmax[:, 0] = np.abs(self.tau)
+        # Set the minimum between the abs value of tau and the max tolerance
+        self._tmin[:, 0] = np.min(self._tmax, axis=1)
+        # Set the maximum between the previous minimum and the min tolerance
+        self.tau = tau_signs * np.max(self._tmin, axis=1)
 
         # ---------------------------------------------------------------------
 
@@ -157,8 +165,12 @@ class SteepestDescent(AtomisticDriver):
         for obj in self.interactions:
             self.field += obj.compute_field(t=0, spin=self.spin)
 
-    def minimise(self, stopping_dm=1e-2, max_steps=2000):
+    def minimise(self, stopping_dm=1e-2, max_steps=2000, 
+                 tmax=1e-2, tmin=1e-16):
         self.step = 0
+
+        self._tmax = tmax * np.ones((len(self.tau), 2))
+        self._tmin = tmin * np.ones((len(self.tau), 2))
 
         self.spin_last[:] = self.spin[:]
         self.update_effective_field()
@@ -180,6 +192,10 @@ class SteepestDescent(AtomisticDriver):
                 break
 
             self.step += 1
+
+            # print('spin=', self.spin.reshape(-1, 3)[33])
+            # print('field=', self.field.reshape(-1, 3)[33])
+            # print('tau', self.tau[33])
 
             # update field before saving data
             # self.update_effective_field()
