@@ -59,7 +59,7 @@ class SteepestDescent(AtomisticDriver):
         self._tmin = 1e-16
 
     def get_tmax(self):
-        return self.__tmax
+        return self._tmax
 
     def set_tmax(self, t):
         self._tmax = t
@@ -68,7 +68,7 @@ class SteepestDescent(AtomisticDriver):
     tmax = property(fget=get_tmax, fset=set_tmax)
 
     def get_tmin(self):
-        return self.__tmin
+        return self._tmin
 
     def set_tmin(self, t):
         self._tmin = t
