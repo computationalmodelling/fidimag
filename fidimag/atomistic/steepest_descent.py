@@ -186,7 +186,8 @@ class SteepestDescent(AtomisticDriver):
             self.field += obj.compute_field(t=0, spin=self.spin)
 
     def minimise(self, stopping_dm=1e-2, max_steps=2000, 
-                 save_data_steps=10, save_m_steps=None, save_vtk_steps=None
+                 save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
+                 log_steps=1000
                  ):
 
         # Rewrite tmax and tmin arrays and variable
@@ -208,9 +209,10 @@ class SteepestDescent(AtomisticDriver):
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
-            print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                np.max(np.abs(self.tau)),
-                max_dm, self.step))
+            if self.step % log_steps == 0:
+                print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
+                    np.max(np.abs(self.tau)),
+                    max_dm, self.step))
             if max_dm < stopping_dm and self.step > 0:
                 break
 
