@@ -78,6 +78,8 @@ class SteepestDescent(AtomisticDriver):
         factor_plus = 4 + (self.tau ** 2) * mxH_sq_norm
         factor_minus = 4 - (self.tau ** 2) * mxH_sq_norm
 
+        # Compute: m[i+1] = ((4 - t^2 A^2) * m[i] - 4 * t * m[i] x m[i] x H) / (4 + t^2 A^2) 
+        # where "t = self.tau" is the time step and "A = m[i] x H"
         new_spin = (factor_minus[:, np.newaxis] * self.spin
                     - (4 * self.tau)[:, np.newaxis] * self.mxmxH
                     # this term should be zero:
@@ -98,7 +100,6 @@ class SteepestDescent(AtomisticDriver):
 
         # Update the effective field, torques and time step for the next iter
         self.update_effective_field()
-        #
         # self._n_field[:] = self.field[:]
         # clib.normalise_spin(self._n_field, self._pins, self.n)
 
@@ -113,14 +114,14 @@ class SteepestDescent(AtomisticDriver):
         ds = (self.spin - self.spin_last).reshape(-1, 3)
         dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
 
-        if self.counter % 2 == 0:
+        if self.step % 2 == 0:
             num = np.sum(ds * ds, axis=1)
             den = np.sum(ds * dy, axis=1)
         else:
             num = np.sum(ds * dy, axis=1)
             den = np.sum(dy * dy, axis=1)
 
-        # Terms with denominators equal to zero are set to 1e-4
+        # Terms with denominators equal to zero are set to 1e-4 (magic number?)
         self.tau = 1e-4 * np.ones_like(num)
         self.tau[den != 0] = num[den != 0] / den[den != 0]
 
@@ -128,7 +129,6 @@ class SteepestDescent(AtomisticDriver):
 
         # clib.normalise_spin(self.spin, self._pins, self.n)
         # self.spin[:] = self.normalise_field(self.spin)[:]
-
         # self.compute_rhs(self.tau)
 
     def run_step_CLIB(self):
@@ -148,7 +148,7 @@ class SteepestDescent(AtomisticDriver):
                              self.field, self.mxH,
                              self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
-                             self.n, self.counter)
+                             self.n, self.step)
 
     def update_effective_field(self):
 
@@ -157,8 +157,8 @@ class SteepestDescent(AtomisticDriver):
         for obj in self.interactions:
             self.field += obj.compute_field(t=0, spin=self.spin)
 
-    def minimize(self, stopping_dm=1e-2, max_count=2000):
-        self.counter = 0
+    def minimise(self, stopping_dm=1e-2, max_steps=2000):
+        self.step = 0
 
         self.spin_last[:] = self.spin[:]
         self.update_effective_field()
@@ -167,7 +167,7 @@ class SteepestDescent(AtomisticDriver):
         self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         self.mxmxH_last[:] = self.mxmxH[:]
-        while self.counter < max_count:
+        while self.step < max_steps:
 
             self.run_step()
 
@@ -175,11 +175,11 @@ class SteepestDescent(AtomisticDriver):
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
             print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
                 np.max(np.abs(self.tau)),
-                max_dm, self.counter))
-            if max_dm < stopping_dm and self.counter > 0:
+                max_dm, self.step))
+            if max_dm < stopping_dm and self.step > 0:
                 break
 
-            self.counter += 1
+            self.step += 1
 
             # update field before saving data
             # self.update_effective_field()
@@ -188,4 +188,4 @@ class SteepestDescent(AtomisticDriver):
         # clib.normalise_spin(self.spin, self._pins, self.n)
 
     def relax(self):
-        print('Not implemented for the minimizer')
+        print('Not implemented for the SD minimiser')
