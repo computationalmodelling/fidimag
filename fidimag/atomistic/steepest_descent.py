@@ -55,6 +55,26 @@ class SteepestDescent(AtomisticDriver):
         # self._n_field = np.zeros_like(self.field)
 
         # self.set_options()
+        self._tmax = 1e-2
+        self._tmin = 1e-16
+
+    def get_tmax(self):
+        return self.__tmax
+
+    def set_tmax(self, t):
+        self._tmax = t
+        self.__tmax = t * np.ones((len(self.tau), 2))
+
+    tmax = property(fget=get_tmax, fset=set_tmax)
+
+    def get_tmin(self):
+        return self.__tmin
+
+    def set_tmin(self, t):
+        self._tmin = t
+        self.__tmin = t * np.ones((len(self.tau), 2))
+
+    tmin = property(fget=set_tmin, fset=set_tmin)
 
     def normalise_field(self, a):
         norm = np.sqrt(np.sum(a.reshape(-1, 3) ** 2, axis=1))
@@ -122,16 +142,16 @@ class SteepestDescent(AtomisticDriver):
             den = np.sum(dy * dy, axis=1)
       
         # Set to tmin
-        self.tau = 1e-2 * np.ones_like(num)
+        self.tau = self._tmax * np.ones_like(num)
         self.tau[den != 0] = num[den != 0] / den[den != 0]
 
         tau_signs = np.sign(self.tau)
 
-        self._tmax[:, 0] = np.abs(self.tau)
+        self.__tmax[:, 0] = np.abs(self.tau)
         # Set the minimum between the abs value of tau and the max tolerance
-        self._tmin[:, 0] = np.min(self._tmax, axis=1)
+        self.__tmin[:, 0] = np.min(self.__tmax, axis=1)
         # Set the maximum between the previous minimum and the min tolerance
-        self.tau = tau_signs * np.max(self._tmin, axis=1)
+        self.tau = tau_signs * np.max(self.__tmin, axis=1)
 
         # ---------------------------------------------------------------------
 
@@ -166,11 +186,14 @@ class SteepestDescent(AtomisticDriver):
             self.field += obj.compute_field(t=0, spin=self.spin)
 
     def minimise(self, stopping_dm=1e-2, max_steps=2000, 
-                 tmax=1e-2, tmin=1e-16):
-        self.step = 0
+                 save_data_steps=10, save_m_steps=None, save_vtk_steps=None
+                 ):
 
-        self._tmax = tmax * np.ones((len(self.tau), 2))
-        self._tmin = tmin * np.ones((len(self.tau), 2))
+        # Rewrite tmax and tmin arrays and variable
+        self.tmax = self._tmax
+        self.tmin = self._tmin
+
+        self.step = 0
 
         self.spin_last[:] = self.spin[:]
         self.update_effective_field()
@@ -191,15 +214,21 @@ class SteepestDescent(AtomisticDriver):
             if max_dm < stopping_dm and self.step > 0:
                 break
 
-            self.step += 1
-
             # print('spin=', self.spin.reshape(-1, 3)[33])
             # print('field=', self.field.reshape(-1, 3)[33])
             # print('tau', self.tau[33])
 
-            # update field before saving data
-            # self.update_effective_field()
-            # self.data_saver.save()
+            if self.step % save_data_steps == 0:
+                # update field before saving data
+                self.update_effective_field()
+                self.data_saver.save()
+
+            if (save_vtk_steps is not None) and (self.step % save_vtk_steps == 0):
+                self.save_vtk()
+            if (save_m_steps is not None) and (self.step % save_m_steps == 0):
+                self.save_m()
+
+            self.step += 1
 
         # clib.normalise_spin(self.spin, self._pins, self.n)
 
