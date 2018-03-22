@@ -40,4 +40,6 @@ The following publications, in reverse chronological order, have used Fidimag:
 
 [3] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain, W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430)
 
+[4] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction, W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 – Published 26 February 2015](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203)
+
 We acknowledge financial support from EPSRC’s Centre for Doctoral Training in Next Generation Computational Modelling (EP/L015382/1) and EPSRC’s Doctoral Training Centre in Complex System Simulation (EP/G03690X/1)
