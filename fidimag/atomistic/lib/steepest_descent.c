@@ -113,6 +113,6 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *sc
         }
 
         sign = (res > 0) ? 1 : ((res < 0) ? -1 : 0);
-        tau[i] = fmax(fmin(fabs(tau[i]), tmax), tmin) * sign;
+        tau[i] = fmax(fmin(fabs(res), tmax), tmin) * sign;
     }
 }

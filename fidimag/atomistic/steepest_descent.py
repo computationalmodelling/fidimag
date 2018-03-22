@@ -177,7 +177,7 @@ class SteepestDescent(AtomisticDriver):
                              self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
                              self.n, self.step,
-                             tmin, tmax
+                             self._tmin, self._tmax
                              )
 
     def update_effective_field(self):
