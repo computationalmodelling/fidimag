@@ -1,8 +1,8 @@
 #include "clib.h"
 #include "math.h"
 
-void sd_update_spin (double *spin, double *spin_last, double *field, double *mxH,
-                     double *mxmxH, double *mxmxH_last, double *tau,
+void sd_update_spin (double *spin, double *spin_last,
+                     double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                      int* pins, int n) {
 
     // A step for the SD method
@@ -39,16 +39,16 @@ void sd_update_spin (double *spin, double *spin_last, double *field, double *mxH
             spin[spin_idx + j] = new_spin[j];
         }
     }
-    // normalise(spin, pins, n);
+    normalise(spin, pins, n);
 }
 
-void sd_compute_step (double *spin, double *spin_last, double *field, double *mxH,
-                      double *mxmxH, double *mxmxH_last, double *tau,
-                      int *pins, int n, int counter) {
+void sd_compute_step (double *spin, double *spin_last, double *field, double *scale,
+                      double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                      int *pins, int n, int counter, double tmin, double tmax) {
 
     int spin_idx;
     double ds[3], dy[3];
-    double num, den, res;
+    double num, den, res, sign;
 
     for (int i = 0; i < n; i++) {
         spin_idx = 3 * i;
@@ -61,11 +61,19 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
         // Compute the torques
 
         mxH[spin_idx]     = cross_x(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
-                                    field[spin_idx], field[spin_idx + 1], field[spin_idx + 2]);
+                                    field[spin_idx]     * scale[i],
+                                    field[spin_idx + 1] * scale[i],
+                                    field[spin_idx + 2] * scale[i]);
+
         mxH[spin_idx + 1] = cross_y(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
-                                    field[spin_idx], field[spin_idx + 1], field[spin_idx + 2]);
+                                    field[spin_idx]     * scale[i],
+                                    field[spin_idx + 1] * scale[i],
+                                    field[spin_idx + 2] * scale[i]);
+
         mxH[spin_idx + 2] = cross_z(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
-                                    field[spin_idx], field[spin_idx + 1], field[spin_idx + 2]);
+                                    field[spin_idx]     * scale[i],
+                                    field[spin_idx + 1] * scale[i],
+                                    field[spin_idx + 2] * scale[i]);
 
         mxmxH[spin_idx]     = cross_x(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                       mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
@@ -95,18 +103,16 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *mx
             }
         }
 
-        // Why 1e-4 ?? --> Refer to https://github.com/mumax/3/blob/master/engine/minimizer.go
-        // although it looks like a magic number
+        // Criteria for the evaluation of tau is in line 96 of:
+        //https://github.com/MicroMagnum/MicroMagnum/blob/minimizer/src/magnum/micromagnetics/micro_magnetics_solver.py
         if (den == 0.0) {
-            res = 1e-4;
+            res = tmax;
         }
         else {
             res = num / den;
         }
 
-        tau[i] = res;
+        sign = (res > 0) ? 1 : ((res < 0) ? -1 : 0);
+        tau[i] = fmax(fmin(fabs(tau[i]), tmax), tmin) * sign;
     }
-
-    // Normalising here seems more stable, but the algorithm still doesn't work in 2D
-    normalise(spin, pins, n);
 }

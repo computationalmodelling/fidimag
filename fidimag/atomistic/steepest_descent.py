@@ -112,9 +112,9 @@ class SteepestDescent(AtomisticDriver):
         self.spin.shape = (-1,)
         new_spin.shape = (-1,)
 
-        clib.normalise_spin(self.spin, self._pins, self.n)
         self.spin_last[:] = self.spin[:]
         self.spin[:] = new_spin[:]
+        clib.normalise_spin(self.spin, self._pins, self.n)
 
         # ---------------------------------------------------------------------
 
@@ -159,24 +159,26 @@ class SteepestDescent(AtomisticDriver):
         # self.spin[:] = self.normalise_field(self.spin)[:]
         # self.compute_rhs(self.tau)
 
-    def run_step_CLIB(self):
+    def run_step_CLIB(self, scale):
         """
         Only use when run_step with Numpy is working
         """
 
         clib.compute_sd_spin(self.spin, self.spin_last,
-                             self.field, self.mxH,
-                             self.mxmxH, self.mxmxH_last,
+                             self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
-                             self.n)
+                             self.n
+                             )
 
         self.update_effective_field()
 
         clib.compute_sd_step(self.spin, self.spin_last,
-                             self.field, self.mxH,
-                             self.mxmxH, self.mxmxH_last,
+                             self.field, scale,
+                             self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
-                             self.n, self.step)
+                             self.n, self.step,
+                             tmin, tmax
+                             )
 
     def update_effective_field(self):
 
@@ -189,6 +191,8 @@ class SteepestDescent(AtomisticDriver):
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_steps=1000
                  ):
+
+        scale = np.ones_like(self._mu_s)
 
         # Rewrite tmax and tmin arrays and variable
         self.tmax = self._tmax
@@ -205,7 +209,7 @@ class SteepestDescent(AtomisticDriver):
         self.mxmxH_last[:] = self.mxmxH[:]
         while self.step < max_steps:
 
-            self.run_step()
+            self.run_step_CLIB(scale)
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
@@ -214,6 +218,9 @@ class SteepestDescent(AtomisticDriver):
                     np.max(np.abs(self.tau)),
                     max_dm, self.step))
             if max_dm < stopping_dm and self.step > 0:
+                print("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
+                      np.max(np.abs(self.tau)),
+                      max_dm, self.step))
                 break
 
             # print('spin=', self.spin.reshape(-1, 3)[33])
@@ -231,8 +238,6 @@ class SteepestDescent(AtomisticDriver):
                 self.save_m()
 
             self.step += 1
-
-        # clib.normalise_spin(self.spin, self._pins, self.n)
 
     def relax(self):
         print('Not implemented for the SD minimiser')

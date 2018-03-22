@@ -111,13 +111,12 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
 // ----------------------------------------------------------------------------
 // From steepest_descent.c
 
-
-void sd_update_spin (double *spin, double *spin_last, double *field, double *mxH,
-                     double *mxmxH, double *mxmxH_last, double *tau,
+void sd_update_spin (double *spin, double *spin_last,
+                     double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                      int* pins, int n);
 
-void sd_compute_step (double *spin, double *spin_last, double *field, double *mxH,
-                      double *mxmxH, double *mxmxH_last, double *tau,
-                      int *pins, int n, int counter);
+void sd_compute_step (double *spin, double *spin_last, double *field, double *scale,
+                      double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                      int *pins, int n, int counter, double tmin, double tmax);
 
 #endif
