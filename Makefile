@@ -1,7 +1,7 @@
 PROJECT_DIR = $(abspath .)
 EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 PYTHON = python3
-PYTEST = py.test-3
+PYTEST = ${PYTHON} -m pytest
 
 #####################
 # Cython Extensions #
