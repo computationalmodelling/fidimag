@@ -19,6 +19,7 @@ Fidimag solves finite-difference micromagnetic problems and supports atomistic s
 * Parallelised using OpenMP.
 * Easily extensible to add new features.
 * Cubic and Hexagonal Meshes in atomistic simulations.
+* Open source with an MIT Licence.
 
 ## Example
 Here we show how to relax a nanodisk system from an initial state. We have many more examples in the [documentation](http://fidimag.readthedocs.io/en/latest/?badge=latest)!
