@@ -58,23 +58,26 @@ class SteepestDescent(AtomisticDriver):
         self._tmax = 1e-2
         self._tmin = 1e-16
 
-    def get_tmax(self):
+    @property
+    def tmax(self):
         return self._tmax
 
-    def set_tmax(self, t):
+    @tmax.setter
+    def tmax(self, t):
         self._tmax = t
         self.__tmax = t * np.ones((len(self.tau), 2))
 
-    tmax = property(fget=get_tmax, fset=set_tmax)
-
-    def get_tmin(self):
+    @property
+    def tmin(self):
         return self._tmin
 
-    def set_tmin(self, t):
+    @tmin.setter
+    def tmin(self, t):
         self._tmin = t
         self.__tmin = t * np.ones((len(self.tau), 2))
 
-    tmin = property(fget=set_tmin, fset=set_tmin)
+    # Same as:
+    # tmin = property(fget=set_tmin, fset=set_tmin)
 
     def normalise_field(self, a):
         norm = np.sqrt(np.sum(a.reshape(-1, 3) ** 2, axis=1))
