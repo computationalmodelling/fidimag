@@ -79,12 +79,12 @@ David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kl
 
 The following publications, in reverse chronological order, have used Fidimag:
 
-[1] [Thermal stability and topological protection of skyrmions in nanotracks, D. Cortés-Ortuño, W. Wang, M. Beg, R.A. Pepper, M-A. Bisotti, R. Carey, M. Vousden, T. Kluyver, O. Hovorka & H. Fangohr, Scientific Reports 7, 4060 (2017)](https://www.nature.com/articles/s41598-017-03391-8)
+[1] [Thermal stability and topological protection of skyrmions in nanotracks](https://www.nature.com/articles/s41598-017-03391-8), D. Cortés-Ortuño, W. Wang, M. Beg, R.A. Pepper, M-A. Bisotti, R. Carey, M. Vousden, T. Kluyver, O. Hovorka & H. Fangohr, Scientific Reports 7, 4060 (2017)
 
-[2] [Current-induced instability of domain walls in cylindrical nanowires, W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta)
+[2] [Current-induced instability of domain walls in cylindrical nanowires](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta), W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)
 
-[3] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain, W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430)
+[3] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430), W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96 (2017)
 
-[4] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction, W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 – Published 26 February 2015](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203)
+[4] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
 
 We acknowledge financial support from EPSRC’s Centre for Doctoral Training in Next Generation Computational Modelling (EP/L015382/1) and EPSRC’s Doctoral Training Centre in Complex System Simulation (EP/G03690X/1)
