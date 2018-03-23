@@ -12,7 +12,7 @@
 
 Fidimag solves finite-difference micromagnetic problems and supports atomistic simulations, using Python interface. The interface to both types of simulation is similar.
 
-## Features
+### Features
 * Offers LLG and LLG with spin torque terms (Zhang-Li and Sloncewski)
 * Calculations using the Nudged-Elastic-Band method to compute energy barriers.
 * Exchange, Zeeman, Demagnetising, Uniaxial Anisotropy energy classes.
@@ -21,7 +21,7 @@ Fidimag solves finite-difference micromagnetic problems and supports atomistic s
 * Cubic and Hexagonal Meshes in atomistic simulations.
 * Open-source under the 2-clause BSD Licence.
 
-## Example
+### Example
 Here we show how to relax a nanodisk system from an initial state. We have many more examples in the [documentation](http://fidimag.readthedocs.io/en/latest/?badge=latest)!
 
 ```python
@@ -63,11 +63,14 @@ sim.relax()
 sim.save_vtk()
 ```
 The results can be straightforwardly visualised from the outputted VTK files using programs such as Paraview:
-<img src="http://computationalmodelling.github.io/fidimag/figs/target.png" alt="Target Skyrmion State" width="200" align="centre">
+<p align="center">
+<img src="http://computationalmodelling.github.io/fidimag/figs/target.png" alt="Target Skyrmion State" width="250">
+</p>
 
 
 
-#### Attributions 
+
+### Attributions 
 The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
 
 This is an early experimental version; contributions and pull requests to both the code and documentation are welcome.
@@ -75,7 +78,7 @@ If you use Fidimag, please cite as:
 
 David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, & Hans Fangohr. (2016). Fidimag v2.0 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.167858A bib file is provided in the repository.
 
-#### Publications
+### Publications
 
 The following publications, in reverse chronological order, have used Fidimag:
 
@@ -87,4 +90,5 @@ The following publications, in reverse chronological order, have used Fidimag:
 
 [4] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
 
+### Acknowledgements
 We acknowledge financial support from EPSRC’s Centre for Doctoral Training in Next Generation Computational Modelling (EP/L015382/1) and EPSRC’s Doctoral Training Centre in Complex System Simulation (EP/G03690X/1)
