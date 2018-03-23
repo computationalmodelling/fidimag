@@ -2,7 +2,7 @@
 #include "math.h"
 #include <stdlib.h>
 
-void cross_product(double * output, double * A, double * B){
+void cross_product(double *restrict output, double * A, double * B){
     /* Cross product between arrays A and B, assuming they
      * have length = 3
      * Every resulting component is stored in the *output array
@@ -25,7 +25,7 @@ double dot_product(double * A, double * B, int n){
     return dotp;
 }
 
-double compute_norm(double *a, int n, int scale) {
+double compute_norm(double *restrict a, int n, int scale) {
     /* Compute the norm of an array *a
 
      * This function is necessary to either normalise a vector or compute the
@@ -56,7 +56,7 @@ double compute_norm(double *a, int n, int scale) {
     return norm;
 }
 
-void normalise(double *a, int n){
+void normalise(double *restrict a, int n){
 
     /* Normalise the *a array, whose length is n (3 * number of nodes in
      * cartesian, and 2 * number of nodes in spherical) To do this we compute
@@ -81,7 +81,7 @@ void normalise(double *a, int n){
 }
 
 
-void normalise_images_C(double * y, int n_images, int n_dofs_image){
+void normalise_images_C(double *restrict y, int n_images, int n_dofs_image){
 
     int i;
 
@@ -100,7 +100,7 @@ void normalise_images_C(double * y, int n_images, int n_dofs_image){
 /* ------------------------------------------------------------------------- */
 
 
-void compute_tangents_C(double *tangents, double *y, double *energies,
+void compute_tangents_C(double *restrict tangents, double *restrict y, double *restrict energies,
                         int n_dofs_image, int n_images
                         ) {
 
@@ -253,14 +253,14 @@ void compute_tangents_C(double *tangents, double *y, double *energies,
 
 
 void compute_spring_force_C(
-        double *spring_force,
-        double *y,
-        double *tangents,
+        double *restrict spring_force,
+        double *restrict y,
+        double *restrict tangents,
         double k,
         int n_images,
         int n_dofs_image,
         double (* compute_distance)(double *, double *, int, int *, int),
-        int * material,
+        int *restrict material,
         int n_dofs_image_material
         ) {
 
@@ -335,10 +335,10 @@ void compute_spring_force_C(
 /* ------------------------------------------------------------------------- */
 
 
-void compute_effective_force_C(double * G,
-                               double * tangents,
-                               double * gradientE,
-                               double * spring_force,
+void compute_effective_force_C(double *restrict G,
+                               double *restrict tangents,
+                               double *restrict gradientE,
+                               double *restrict spring_force,
                                int climbing_image,
                                int n_images,
                                int n_dofs_image) {

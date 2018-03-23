@@ -134,7 +134,7 @@ void compute_demag_tensors(fft_demag_plan *plan) {
 
 
 //used for debug
-void print_r(char *str, double *x, int n) {
+void print_r(char *str, double *restrict x, int n) {
 	int i;
 	printf("%s:\n", str);
 	for (i = 0; i < n; i++) {
@@ -144,7 +144,7 @@ void print_r(char *str, double *x, int n) {
 
 }
 
-void print_c(char *str, fftw_complex *x, int n) {
+void print_c(char *str, fftw_complex *restrict x, int n) {
 	int i;
 	printf("%s\n", str);
 	for (i = 0; i < n; i++) {
@@ -161,7 +161,7 @@ fft_demag_plan *create_plan(void) {
 	return plan;
 }
 
-void init_plan(fft_demag_plan *plan, double dx, double dy,
+void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
 		double dz, int nx, int ny, int nz) {
 
 	//plan->mu_s = mu_s;
@@ -218,7 +218,7 @@ void init_plan(fft_demag_plan *plan, double dx, double dy,
 }
 
 
-void create_fftw_plan(fft_demag_plan *plan) {
+void create_fftw_plan(fft_demag_plan *restrict plan) {
 
 	
 	plan->tensor_plan = fftw_plan_dft_r2c_3d(plan->lenz, plan->leny,
@@ -265,7 +265,7 @@ void create_fftw_plan(fft_demag_plan *plan) {
 
 //The computed results doesn't consider the coefficient of \frac{\mu_0}{4 \pi}, the
 //reason is in future we can use the following code directly for continuum case
-void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *field) {
+void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field) {
 
 	int i, j, k, id1, id2;
 
@@ -355,7 +355,7 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *fi
 }
 
 //only used for debug
-void exact_compute(fft_demag_plan *plan, double *spin,  double *mu_s, double *field) {
+void exact_compute(fft_demag_plan *restrict plan, double *restrict spin,  double *restrict mu_s, double *restrict field) {
 	int i, j, k, index;
 	int ip, jp, kp, idf, ids;
 	int nx = plan->nx;
@@ -410,7 +410,7 @@ void exact_compute(fft_demag_plan *plan, double *spin,  double *mu_s, double *fi
 
 }
 
-double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field) {
+double compute_demag_energy(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field) {
 
 	int i,j;
 
@@ -429,7 +429,7 @@ double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, do
 
 }
 
-void finalize_plan(fft_demag_plan *plan) {
+void finalize_plan(fft_demag_plan *restrict plan) {
 
 	fftw_destroy_plan(plan->m_plan);
 	fftw_destroy_plan(plan->h_plan);

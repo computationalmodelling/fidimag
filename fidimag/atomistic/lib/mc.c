@@ -75,7 +75,7 @@ inline double cubic_energy_site(double *m, double Kc) {
   return -Kc * (mx2 * mx2 + my2 * my2 + mz2 * mz2);
 }
 
-double compute_deltaE_anisotropy(double *spin, double *new_spin, double *h,
+double compute_deltaE_anisotropy(double *restrict spin, double *restrict new_spin, double *restrict h,
                                  double Kc, int i, int new_i) {
 
   double energy1 = -dot(&spin[3 * i], &h[3 * i]); // zeeman energy

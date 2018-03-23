@@ -8,8 +8,8 @@ inline double volume(double S[3], double Si[3], double Sj[3]) {
 	return tx + ty + tz;
 }
 
-double skyrmion_number(double *spin, double *charge,
-                       int nx, int ny, int nz, int *ngbs) {
+double skyrmion_number(double *restrict spin, double *restrict charge,
+                       int nx, int ny, int nz, int *restrict ngbs) {
 
     /* Compute the skyrmion number Q, defined as:
      *                      _

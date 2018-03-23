@@ -79,7 +79,7 @@
  * value for the prefactor (6). 
  */
 
-void llg_rhs(double * dm_dt, double * m, double * h, double * alpha, int * pins,
+void llg_rhs(double *restrict dm_dt, double *restrict m, double *restrict h, double *restrict alpha, int *restrict pins,
         double gamma, int n, int do_precession, double default_c) {
 
     int i, j, k;
@@ -166,7 +166,7 @@ void llg_rhs(double * dm_dt, double * m, double * h, double * alpha, int * pins,
 }
 
 
-void llg_rhs_jtimes(double *jtn, double *m, double *h, double *mp, double *hp, double *alpha, int *pins,
+void llg_rhs_jtimes(double *restrict jtn, double *restrict m, double *restrict h, double *restrict mp, double *restrict hp, double *restrict alpha, int *restrict pins,
         double gamma, int n, int do_precession, double default_c) {
 
     //#pragma omp parallel for private(i,j,k,coeff,mm, mh, c, hpi,hpj,hpk)

@@ -29,47 +29,47 @@ inline double cross_z(double a0, double a1, double a2, double b0, double b1,
 // ----------------------------------------------------------------------------
 // From exch.c
 
-void compute_exch_field(double *spin, double *field, double *energy, double Jx,
-                        double Jy, double Jz, int *ngbs, int n, int n_ngbs);
+void compute_exch_field(double *restrict spin, double *restrict field, double *restrict energy, double Jx,
+                        double Jy, double Jz, int *restrict ngbs, int n, int n_ngbs);
 
-void compute_exch_field_spatial(double *spin, double *field, double *energy,
-                                double *J, int *ngbs, int n, int n_ngbs);
+void compute_exch_field_spatial(double *restrict spin, double *restrict field, double *restrict energy,
+                                double *restrict J, int *restrict ngbs, int n, int n_ngbs);
 
-double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
+double compute_exch_energy(double *restrict spin, double Jx, double Jy, double Jz,
                            int nx, int ny, int nz, int xperiodic,
                            int yperiodic);
 
-void compute_full_exch_field(double *spin, double *field, double *energy,
-					      	 double *J, int *ngbs, int n, int n_ngbs,
-                             int n_shells, int *n_ngbs_shell, int *sum_ngbs_shell
+void compute_full_exch_field(double *restrict spin, double *restrict field, double *restrict energy,
+					      	 double *restrict J, int *restrict ngbs, int n, int n_ngbs,
+                             int n_shells, int *restrict n_ngbs_shell, int *restrict sum_ngbs_shell
                              );
 
 // -----------------------------------------------------------------------------
 // From anis.c
 
-void compute_anis(double *spin, double *field, double *energy, double *Ku,
-                  double *axis, int n);
-void compute_anis_cubic(double *spin, double *field, double *energy,
+void compute_anis(double *restrict spin, double *restrict field, double *restrict energy, double *restrict Ku,
+                  double *restrict axis, int n);
+void compute_anis_cubic(double *restrict spin, double *restrict field, double *restrict energy,
 	          double *Kc, int n); 
 
 // ----------------------------------------------------------------------------
 // From dmi.c
 
-void dmi_field_bulk(double *spin, double *field, double *energy, double *D,
-                    int *ngbs, int n, int n_ngbs);
+void dmi_field_bulk(double *restrict spin, double *restrict field, double *restrict energy, double *D,
+                    int *restrict ngbs, int n, int n_ngbs);
 
 void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *energy, double D, int *ngbs, int n,
                                      int n_ngbs, int n_ngbs_dmi, double *DMI_vec);
 
-double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic,
+double dmi_energy(double *restrict spin, double D, int nx, int ny, int nz, int xperiodic,
                   int yperiodic);
 
 // ----------------------------------------------------------------------------
 // From demag_full.c
 
-void demag_full(double *spin, double *field, double *energy, double *coords,
-                double *mu_s, double *mu_s_scale, int n);
+void demag_full(double *restrict spin, double *restrict field, double *restrict energy, double *restrict coords,
+                double *restrict mu_s, double *restrict mu_s_scale, int n);
 
 // ----------------------------------------------------------------------------
 // From util.c
@@ -93,15 +93,15 @@ void compute_px_py_c(double *spin, int nx, int ny, int nz, double *px,
 
 void normalise(double *m, int *pins, int n);
 
-void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha,
-                  double *mu_s_inv, int *pins, double *eta, int n, double gamma,
+void llg_rhs_dw_c(double *restrict m, double *restrict h, double *restrict dm, double *restrict T, double *restrict alpha,
+                  double *restrict mu_s_inv, int *pins, double *restrict eta, int n, double gamma,
                   double dt);
 
 // ----------------------------------------------------------------------------
 // From mc.c
 
-void llg_s_rhs(double *dm_dt, double *spin, double *h, double *alpha,
-               double *chi, double gamma, int n);
+void llg_s_rhs(double *restrict dm_dt, double *restrict spin, double *restrict h, double *restrict alpha,
+               double *restrict chi, double gamma, int n);
 
 void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
                  int *ngbs, int *nngbs, int n_ngbs, double J, double J1, double D,
