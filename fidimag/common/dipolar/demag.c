@@ -5,7 +5,7 @@
 #include "demagcoef.h"
 
 
-double Nxxdipole(double x, double y, double z) {
+inline double Nxxdipole(double x, double y, double z) {
 	double x2 = x * x;
 	double y2 = y * y;
 	double z2 = z * z;
@@ -16,7 +16,7 @@ double Nxxdipole(double x, double y, double z) {
 	return -(2 * x2 - y2 - z2) / (R * R * r);
 }
 
-double Nxydipole(double x, double y, double z) {
+inline double Nxydipole(double x, double y, double z) {
 	double R = x * x + y * y + z * z;
 	if (R == 0)
 		return 0.0;
@@ -54,9 +54,16 @@ void compute_dipolar_tensors(fft_demag_plan *plan) {
 	int lenx = plan->lenx;
 	int leny = plan->leny;
 	int lenz = plan->lenz;
-    int lenxy = lenx * leny;
-
-	
+        int lenxy = lenx * leny;
+	// Parallelising this like this
+	// means that z should be the largest index
+	// in order to get better performance from threading.
+	// The data writing is not very clever here; we're 
+        // going to be invalidating the cache a lot. It would be better
+        // maybe to split this into six seperate loops for each component
+        // of the tensor in order that each thread is working on a smaller
+        // memory address range
+	#pragma omp parallel for private(j, i, x, y, z, id) schedule(dynamic, 32)
 	for (k = 0; k < lenz; k++) {
 		for (j = 0; j < leny; j++) {
 			for (i = 0; i < lenx; i++) {
@@ -81,7 +88,7 @@ void compute_dipolar_tensors(fft_demag_plan *plan) {
 void compute_demag_tensors(fft_demag_plan *plan) {
 
 	int i, j, k, id;
-	double x, y, z;
+	double x, y, z, radius_sq;
 
 	int nx = plan->nx;
 	int ny = plan->ny;
@@ -97,7 +104,7 @@ void compute_demag_tensors(fft_demag_plan *plan) {
 
 	double length = pow(dx*dy*dz, 1/3.0);
 	double asymptotic_radius_sq = pow(26.0*length,2.0);
-
+	#pragma omp parallel for private(j, i, id, x, y, z, radius_sq) schedule(dynamic, 32)
 	for (k = 0; k < lenz; k++) {
 		for (j = 0; j < leny; j++) {
 			for (i = 0; i < lenx; i++) {
@@ -107,7 +114,7 @@ void compute_demag_tensors(fft_demag_plan *plan) {
 				y = (j - ny + 1) * dy;
 				z = (k - nz + 1) * dz;
 
-				double radius_sq = x*x+y*y+z*z;
+				radius_sq = x*x+y*y+z*z;
 
 				if (radius_sq>asymptotic_radius_sq){
 					//printf("%g %g %g %g %g %g\n",x,y,z,dx,dy,dz);
@@ -338,7 +345,7 @@ void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *fi
 	//print_r("hz", plan->hz, plan->total_length);
 
 	double scale = -1.0  / plan->total_length;
-
+        #pragma omp parallel for private(j, i, id1, id2) schedule(dynamic, 32)
 	for (k = 0; k < nz; k++) {
 		for (j = 0; j < ny; j++) {
 			for (i = 0; i < nx; i++) {
