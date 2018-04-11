@@ -92,17 +92,6 @@ cdef extern from "clib.h":
     # used for sllg
     void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt)
 
-    # -------------------------------------------------------------------------
-
-
-    void sd_update_spin (double *spin, double *spin_last,
-                         double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
-                         int* pins, int n)
-
-    void sd_compute_step (double *spin, double *spin_last, double *field, double *scale,
-                          double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
-                          int *pins, int n, int counter, double tmin, double tmax)
-
 
 
 # -----------------------------------------------------------------------------
@@ -331,35 +320,3 @@ cdef class monte_carlo(object):
         run_step_mc(self._c_state, &spin[0], &new_spin[0],
                     &ngbs[0,0], &nngbs[0,0], n_ngbs,
                     J, J1, D, D1, &h[0], Kc, n, T, hexagonal_mesh)
-
-# -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-def compute_sd_spin(double [:] spin,
-                    double [:] spin_last,
-                    double [:] mxH,
-                    double [:] mxmxH,
-                    double [:] mxmxH_last,
-                    double [:] tau,
-                    int [:] pins,
-                    n):
-
-    sd_update_spin(&spin[0], &spin_last[0], &mxH[0],
-                   &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0], n
-                   )
-
-def compute_sd_step(double [:] spin,
-                    double [:] spin_last,
-                    double [:] field,
-                    double [:] scale,
-                    double [:] mxH,
-                    double [:] mxmxH,
-                    double [:] mxmxH_last,
-                    double [:] tau,
-                    int [:] pins,
-                    n, counter, tmin, tmax):
-
-    sd_compute_step(&spin[0], &spin_last[0], &field[0], &scale[0], &mxH[0],
-                    &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0],
-                    n, counter, tmin, tmax
-                    )

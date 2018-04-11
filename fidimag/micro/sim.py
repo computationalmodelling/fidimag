@@ -4,6 +4,8 @@ from . import llg
 from . import llg_stt
 from . import llg_stt_cpp
 from . import baryakhtar
+from fidimag.common import steepest_descent
+from . import minimiser
 
 import fidimag.extensions.micro_clib as micro_clib
 import fidimag.common.helper as helper
@@ -16,7 +18,10 @@ KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llg_stt': llg_stt.LLG_STT,
                  'llg_stt_cpp': llg_stt_cpp.LLG_STT_CPP,
                  'llbar': baryakhtar.LLBar,
-                 'llbar_full': baryakhtar.LLBarFull}
+                 'llbar_full': baryakhtar.LLBarFull,
+                 'steepest_descent': steepest_descent.SteepestDescent,
+                 'minimiser': minimiser.Minimiser
+                 }
 
 
 class Sim(SimBase):
@@ -69,6 +74,7 @@ class Sim(SimBase):
         self.driver = KNOWN_DRIVERS[driver](self.mesh,
                                             self.spin,
                                             self._Ms,
+                                            self._Ms_inv,
                                             self.field,
                                             self._pins,
                                             self.interactions,
@@ -77,6 +83,11 @@ class Sim(SimBase):
                                             integrator=integrator,
                                             use_jac=use_jac
                                             )
+
+        # For the SD in the micromagnetic class we need to scale the mxmxH factor
+        # by 1/Ms (need more tests)
+        if driver == 'steepest_descent':
+            self.driver.scale = np.repeat(self._Ms_inv, 3)
 
         # Some references to functions in the corresponding driver classes
         # that can be accessed through the Simulation class
@@ -107,7 +118,7 @@ class Sim(SimBase):
         value     :: * For a homogeneous single material sample, specify a
                        float with a magnitude in A /m
 
-                     * In addition, you can specify a function that returns
+                     * Alternatively, you can specify a function that returns
                        values in A /m, which depends on the spatial
                        coordinates. For example, a 2 nm wide cylinder centered
                        at (x, y) = (1, 1) can be specified with (if you set the
@@ -137,7 +148,7 @@ class Sim(SimBase):
         nonzero = 0
         for i in range(self.n):
             if self._Ms[i] > 0.0:
-                self._Ms_inv = 1.0 / self._Ms[i]
+                self._Ms_inv[i] = 1.0 / self._Ms[i]
                 nonzero += 1
 
         # We moved this variable to the micro_driver class

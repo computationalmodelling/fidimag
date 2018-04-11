@@ -3,25 +3,24 @@ import numpy as np
 import fidimag.extensions.clib as clib
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
+from fidimag.common.vtk import VTK
 
-from .atomistic_driver import AtomisticDriver
+from .driver_base import DriverBase
 
 
-class SteepestDescent(AtomisticDriver):
+class SteepestDescent(DriverBase):
     """
 
     This class is the driver to minimise a system using a Steepest Descent
     algorithm
 
-
-
-    This class inherits common methods to evolve the system using CVODE, from
-    the micro_driver.AtomisticDriver class. Arrays with the system information
-    are taken as references from the main micromagnetic Simulation class
+    NOTE: We are inheriting from DriverBase, but it would be better if we
+          create a MinimiserBase class in the future, removing the
+          methods from the Driver class that are not being used at all
 
     """
 
-    def __init__(self, mesh, spin, mu_s, mu_s_inv, field, pins,
+    def __init__(self, mesh, spin, magnetisation, magnetisation_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -31,8 +30,8 @@ class SteepestDescent(AtomisticDriver):
 
         # self.mesh = mesh
         # self.spin = spin
-        # self.mu_s mu_s
-        # self._mu_s_inv = mu_s_inv
+        # self.magnetisation magnetisation
+        # self._magnetisation_inv = magnetisation_inv
         # self.field = field
         # self.pins = pins
         # self.interactions = interactions
@@ -40,12 +39,26 @@ class SteepestDescent(AtomisticDriver):
         # self.data_saver = data_saver
 
         # Inherit from the driver class
-        super(SteepestDescent, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
+        super(SteepestDescent, self).__init__(mesh, spin, magnetisation, magnetisation_inv, field,
                                               pins, interactions, name,
                                               data_saver,
-                                              use_jac=use_jac,
-                                              integrator=integrator
+                                              use_jac=None,    # not used here
+                                              integrator=None  # not used here
                                               )
+
+        # Strings are not referenced, this is a copy:
+        self.name = name
+
+        # VTK saver for the magnetisation/spin field
+        self.VTK = VTK(self.mesh,
+                       directory='{}_vtks'.format(self.name),
+                       filename='m'
+                       )
+
+        # Another reference to either mu_s or Ms to use a common lib for
+        # this minimiser
+        self._magnetisation = magnetisation
+        self._magnetisation_inv = magnetisation_inv
 
         self.mxH = np.zeros_like(self.field)
         self.mxmxH = np.zeros_like(self.field)
@@ -57,6 +70,9 @@ class SteepestDescent(AtomisticDriver):
         # self.set_options()
         self._tmax = 1e-2
         self._tmin = 1e-16
+
+        # If the magnetisation changes, this needs updating! 
+        self.scale = np.ones_like(self._magnetisation)
 
     @property
     def tmax(self):
@@ -162,7 +178,7 @@ class SteepestDescent(AtomisticDriver):
         # self.spin[:] = self.normalise_field(self.spin)[:]
         # self.compute_rhs(self.tau)
 
-    def run_step_CLIB(self, scale):
+    def run_step_CLIB(self):
         """
         Only use when run_step with Numpy is working
         """
@@ -176,7 +192,7 @@ class SteepestDescent(AtomisticDriver):
         self.update_effective_field()
 
         clib.compute_sd_step(self.spin, self.spin_last,
-                             self.field, scale,
+                             self.field, self.scale,
                              self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
                              self.n, self.step,
@@ -195,7 +211,6 @@ class SteepestDescent(AtomisticDriver):
                  log_steps=1000
                  ):
 
-        scale = np.ones_like(self._mu_s)
 
         # Rewrite tmax and tmin arrays and variable
         self.tmax = self._tmax
@@ -212,18 +227,24 @@ class SteepestDescent(AtomisticDriver):
         self.mxmxH_last[:] = self.mxmxH[:]
         while self.step < max_steps:
 
-            self.run_step_CLIB(scale)
+            self.run_step_CLIB(self.scale)
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
+
             if self.step % log_steps == 0:
                 print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
                     np.max(np.abs(self.tau)),
                     max_dm, self.step))
+
             if max_dm < stopping_dm and self.step > 0:
                 print("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
                       np.max(np.abs(self.tau)),
                       max_dm, self.step))
+
+                self.update_effective_field()
+                self.data_saver.save()
+
                 break
 
             # print('spin=', self.spin.reshape(-1, 3)[33])
@@ -244,3 +265,20 @@ class SteepestDescent(AtomisticDriver):
 
     def relax(self):
         print('Not implemented for the SD minimiser')
+
+    def save_vtk(self):
+        """
+        Save a VTK file with the magnetisation vector field and magnetic
+        moments as cell data. Magnetic moments are saved in units of
+        Bohr magnetons
+
+        NOTE: It is recommended to use a *cell to point data* filter in
+        Paraview or Mayavi to plot the vector field
+        """
+        self.VTK.reset_data()
+
+        # Here we save both Ms and spins as cell data
+        self.VTK.save_scalar(self._magnetisation / const.mu_B, name='magnetisation')
+        self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
+
+        self.VTK.write_file(step=self.step)

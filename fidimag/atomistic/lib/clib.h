@@ -108,15 +108,4 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
                  double D1, double *h, double Kc, int n, double T,
                  int hexagonal_mesh);
 
-// ----------------------------------------------------------------------------
-// From steepest_descent.c
-
-void sd_update_spin (double *spin, double *spin_last,
-                     double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
-                     int* pins, int n);
-
-void sd_compute_step (double *spin, double *spin_last, double *field, double *scale,
-                      double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
-                      int *pins, int n, int counter, double tmin, double tmax);
-
 #endif

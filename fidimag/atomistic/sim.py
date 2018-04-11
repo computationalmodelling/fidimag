@@ -2,7 +2,7 @@ from .llg import LLG
 from .sllg import SLLG
 from .llg_stt import LLG_STT
 from .llg_stt_cpp import LLG_STT_CPP
-from .steepest_descent import SteepestDescent
+from fidimag.common.steepest_descent import SteepestDescent
 from .minimiser import Minimiser
 
 import fidimag.common.skyrmion_number

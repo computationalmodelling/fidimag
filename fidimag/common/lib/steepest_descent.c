@@ -1,21 +1,20 @@
-#include "clib.h"
+#include "common_clib.h"
 #include "math.h"
 
 void sd_update_spin (double *spin, double *spin_last,
                      double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                      int* pins, int n) {
 
-    // A step for the SD method
-
-    int spin_idx;
-    double mxH_sq;
-    double factor_plus;
-    double factor_minus;
-    double new_spin[3];
-
-
     // Update the field -------------------------------------------------------
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) {
+
+        int spin_idx;
+        double mxH_sq;
+        double factor_plus;
+        double factor_minus;
+        double new_spin[3];
+
         spin_idx = 3 * i;
 
         // Copy spin from previous (counter) step
@@ -46,11 +45,13 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *sc
                       double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                       int *pins, int n, int counter, double tmin, double tmax) {
 
-    int spin_idx;
-    double ds[3], dy[3];
-    double num, den, res, sign;
-
+    #pragma omp parallel for
     for (int i = 0; i < n; i++) {
+
+        int spin_idx;
+        double ds[3], dy[3];
+        double num, den, res, sign;
+
         spin_idx = 3 * i;
 
         // Copy mxmxH from previous (counter) step
