@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-import fidimag.extensions.clib as clib
+import fidimag.extensions.common_clib as clib
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 from fidimag.common.vtk import VTK
@@ -8,7 +8,7 @@ from fidimag.common.vtk import VTK
 from .driver_base import DriverBase
 
 
-class SteepestDescent(DriverBase):
+class SteepestDescent(object):
     """
 
     This class is the driver to minimise a system using a Steepest Descent
@@ -20,7 +20,8 @@ class SteepestDescent(DriverBase):
 
     """
 
-    def __init__(self, mesh, spin, magnetisation, magnetisation_inv, field, pins,
+    def __init__(self, mesh, spin,
+                 magnetisation, magnetisation_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -28,37 +29,37 @@ class SteepestDescent(DriverBase):
                  integrator=None
                  ):
 
-        # self.mesh = mesh
-        # self.spin = spin
-        # self.magnetisation magnetisation
-        # self._magnetisation_inv = magnetisation_inv
-        # self.field = field
-        # self.pins = pins
-        # self.interactions = interactions
-        # self.name = name
-        # self.data_saver = data_saver
+        # ---------------------------------------------------------------------
+        # These are (ideally) references to arrays taken from the Simulation
+        # class. Variables with underscore are arrays changed by a property in
+        # the simulation class
+        self.mesh = mesh
+        self.spin = spin
 
-        # Inherit from the driver class
-        super(SteepestDescent, self).__init__(mesh, spin, magnetisation, magnetisation_inv, field,
-                                              pins, interactions, name,
-                                              data_saver,
-                                              use_jac=None,    # not used here
-                                              integrator=None  # not used here
-                                              )
+        # A reference to either mu_s or Ms to use a common lib for this
+        # minimiser
+        self._magnetisation = magnetisation
+        self._magnetisation_inv = magnetisation_inv
 
+        self.field = field
+        self._pins = pins
+        self.interactions = interactions
         # Strings are not referenced, this is a copy:
         self.name = name
+
+        self.data_saver = data_saver
+
+        # ---------------------------------------------------------------------
+        # Variables defined in this class
+
+        self.spin_last = np.ones_like(self.spin)
+        self.n = self.mesh.n
 
         # VTK saver for the magnetisation/spin field
         self.VTK = VTK(self.mesh,
                        directory='{}_vtks'.format(self.name),
                        filename='m'
                        )
-
-        # Another reference to either mu_s or Ms to use a common lib for
-        # this minimiser
-        self._magnetisation = magnetisation
-        self._magnetisation_inv = magnetisation_inv
 
         self.mxH = np.zeros_like(self.field)
         self.mxmxH = np.zeros_like(self.field)
@@ -227,7 +228,7 @@ class SteepestDescent(DriverBase):
         self.mxmxH_last[:] = self.mxmxH[:]
         while self.step < max_steps:
 
-            self.run_step_CLIB(self.scale)
+            self.run_step_CLIB()
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
@@ -266,6 +267,23 @@ class SteepestDescent(DriverBase):
     def relax(self):
         print('Not implemented for the SD minimiser')
 
+    # -------------------------------------------------------------------------
+
+    def compute_effective_field(self, t):
+        """
+        Compute the effective field from the simulation interactions,
+        calling the method from the corresponding Energy class
+        """
+
+        # self.spin[:] = y[:]
+
+        self.field[:] = 0
+
+        for obj in self.interactions:
+            self.field += obj.compute_field(t)
+
+    # -------------------------------------------------------------------------
+
     def save_vtk(self):
         """
         Save a VTK file with the magnetisation vector field and magnetic
@@ -282,3 +300,38 @@ class SteepestDescent(DriverBase):
         self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
 
         self.VTK.write_file(step=self.step)
+
+    def save_m(self, ZIP=False):
+        """
+        Save the magnetisation/spin vector field as a numpy array in
+        a NPY file. The files are saved in the `{name}_npys` folder, where
+        `{name}` is the simulation name, with the file name `m_{step}.npy`
+        where `{step}` is the simulation step (from the integrator)
+        """
+
+        if not os.path.exists('%s_npys' % self.name):
+            os.makedirs('%s_npys' % self.name)
+        name = '%s_npys/m_%g.npy' % (self.name, self.step)
+        np.save(name, self.spin)
+        if ZIP:
+            with zipfile.ZipFile('%s_m.zip'%self.name, 'a') as myzip:
+                myzip.write(name)
+            try:
+                os.remove(name)
+            except OSError:
+                pass
+
+    def save_skx(self):
+        """
+        Save the skyrmion number density (sk number per mesh site)
+        as a numpy array in a NPY file.
+        The files are saved in the `{name}_skx_npys` folder, where
+        `{name}` is the simulation name, with the file name `skx_{step}.npy`
+        where `{step}` is the simulation step (from the integrator)
+        """
+        if not os.path.exists('%s_skx_npys' % self.name):
+            os.makedirs('%s_skx_npys' % self.name)
+        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
+
+        # The _skx_number array is defined in the SimBase class in Common
+        np.save(name, self._skx_number)

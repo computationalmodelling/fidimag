@@ -102,7 +102,11 @@ class SimBase(object):
 
         # Set the initial state for the Sundials integrator using the
         # spins array
-        self.driver.integrator.set_initial_value(self.spin, self.driver.t)
+        # Minimiser methods do not have integrator
+        try:
+            self.driver.integrator.set_initial_value(self.spin, self.driver.t)
+        except AttributeError:
+            pass
 
     def get_pins(self):
         """
