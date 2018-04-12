@@ -1,8 +1,3 @@
-import numpy
-cimport numpy as np
-np.import_array()
-
-
 cdef extern from "nebm_geodesic_lib.h":
 
     double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
@@ -24,13 +19,13 @@ cdef extern from "nebm_lib.h":
                                 )
 
 
-def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
-                         np.ndarray[double, ndim=1, mode="c"] y,
-                         np.ndarray[double, ndim=1, mode="c"] tangents,
+def compute_spring_force(double [:] spring_force,
+                         double [:] y,
+                         double [:] tangents,
                          k,
                          n_images,
                          n_dofs_image,
-                         np.ndarray[int, ndim=1, mode="c"] material,
+                         int [:] material,
                          n_dofs_image_material
                          ):
 
@@ -40,10 +35,10 @@ def compute_spring_force(np.ndarray[double, ndim=1, mode="c"] spring_force,
                            &material[0], n_dofs_image_material
                            )
 
-def geodesic_distance(np.ndarray[double, ndim=1, mode="c"] A,
-                      np.ndarray[double, ndim=1, mode="c"] B,
+def geodesic_distance(double [:] A,
+                      double [:] B,
                       n_dofs_image,
-                      np.ndarray[int, ndim=1, mode="c"] material,
+                      int [:] material,
                       n_dofs_image_material
                       ):
 
