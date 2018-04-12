@@ -1,6 +1,8 @@
 from __future__ import division
 import numpy as np
 import fidimag.extensions.common_clib as clib
+# Change int he future to common clib:
+import fidimag.extensions.clib as atom_clib
 
 from .minimiser_base import MinimiserBase
 
