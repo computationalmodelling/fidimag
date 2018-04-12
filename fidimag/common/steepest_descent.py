@@ -1,15 +1,13 @@
 from __future__ import division
 import numpy as np
 import fidimag.extensions.common_clib as clib
-import fidimag.extensions.clib as atom_clib
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
-from fidimag.common.vtk import VTK
 
-from .driver_base import DriverBase
+from .minimiser_base import MinimiserBase
 
 
-class SteepestDescent(object):
+class SteepestDescent(MinimiserBase):
     """
 
     This class is the driver to minimise a system using an optimised Steepest
@@ -64,7 +62,11 @@ class SteepestDescent(object):
                  ):
 
         # Define
-        super(SteepestDescent, self).__init__()
+        super(SteepestDescent, self).__init__(mesh, spin,
+                 magnetisation, magnetisation_inv, field, pins,
+                 interactions,
+                 name,
+                 data_saver)
 
         # ---------------------------------------------------------------------
         # Variables defined in this SteepestDescent

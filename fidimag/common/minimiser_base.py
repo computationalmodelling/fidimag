@@ -6,18 +6,11 @@ import fidimag.common.helper as helper
 import fidimag.common.constant as const
 from fidimag.common.vtk import VTK
 
-from .driver_base import DriverBase
 
-
-class MinimiserBase(MinimiserBase):
+class MinimiserBase(object):
     """
-
-    This class is the driver to minimise a system using a Steepest Descent
-    algorithm
-
-    NOTE: We are inheriting from DriverBase, but it would be better if we
-          create a MinimiserBase class in the future, removing the
-          methods from the Driver class that are not being used at all
+    
+    Base class for minimiser class. No dependency of CVODE
 
     """
 
