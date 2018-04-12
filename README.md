@@ -1,54 +1,94 @@
-FIDIMAG
-=======
+# Fidimag
+
 
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/computationalmodelling/fidimag/master)
 [![Build Status](https://travis-ci.org/computationalmodelling/fidimag.svg?branch=master)](https://travis-ci.org/computationalmodelling/fidimag)
 [![Documentation Status](https://readthedocs.org/projects/fidimag/badge/?version=latest)](http://fidimag.readthedocs.org/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/computationalmodelling/fidimag/branch/master/graph/badge.svg)](https://codecov.io/gh/computationalmodelling/fidimag)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.167858.svg)](https://doi.org/10.5281/zenodo.167858)
+[![Website](https://img.shields.io/website-up-down-green-red/http/shields.io.svg?label=Fidimag-Website)](http://computationalmodelling.github.io/fidimag/)
 
-FIDIMAG - a FInite DIfference microMAGnetic simulation environment
+<img src="http://computationalmodelling.github.io/fidimag/figs/skyrmion.jpg" alt="Fidimag Image" width="400" align="right">
 
-Fidimag solves finite-difference micromagnetic problems and
-supports atomistic simulations, using Python interface.
+Fidimag solves finite-difference micromagnetic problems and supports atomistic simulations, using Python interface. The interface to both types of simulation is similar.
 
-The webpage of the project is http://computationalmodelling.github.io/fidimag/
+### Features
+* Offers LLG and LLG with spin torque terms (Zhang-Li and Sloncewski)
+* Calculations using the Nudged-Elastic-Band method to compute energy barriers.
+* Exchange, Zeeman, Demagnetising, Uniaxial Anisotropy energy classes.
+* Parallelised using OpenMP.
+* Easily extensible to add new features.
+* Cubic and Hexagonal Meshes in atomistic simulations.
+* Open-source under the 2-clause BSD Licence.
 
-The GitHub page of the project is https://github.com/computationalmodelling/fidimag
+### Example
+Here we show how to relax a nanodisk system from an initial state. We have many more examples in the [documentation](http://fidimag.readthedocs.io/en/latest/?badge=latest)!
 
-The documentation is available at http://fidimag.readthedocs.io/en/latest/?badge=latest. Within the documentation are details on how to install Fidimag, and some example simulations are provided.
+```python
+import fidimag
+from fidimag.common import CuboidMesh
+from fidimag.micro import Sim, UniformExchange, Demag, DMI, UniaxialAnisotropy
+mesh = CuboidMesh(nx=60, ny=60, nz=1, dx=2.0, dy=2.0, dz=2.0, unit_length=1e-9)
 
-Various options of installation are described in the documentation, mostly by compiling from source. If you decide to install from source, you will need to add the path to this file is in to your $PYTHONPATH. Check the [documentation](http://fidimag.readthedocs.org) for more
-detailed installation help. The Virtual Micromagnetics project at http://virtualmicromagnetics.org provides virtual machines and Docker containers in which Fidimag can be executed. 
+def Ms_init(position):
+    """
+    Set where the system has magnetic material
+    Form a nanodisk shape
+    """
+    Ms = 8.6e5
+    x, y, z = position
+    if (x - 60)**2 + (y - 60)**2 < 60**2:
+        return Ms
+    else:
+        return 0
 
+def m_init(position):
+    """
+    Approximate skyrmion profile
+    """
+    x, y, z = position
+    if (x - 60)**2 + (y - 60)**2 < 40**2:
+        return (0, 0, 1)
+    else:
+        return (0, 0, -1)
+
+sim = Sim(mesh, name='target_skyrmion')
+sim.set_Ms(Ms_init)
+sim.set_m(m_init)
+sim.add(Demag())
+sim.add(UniformExchange(A=1e-11))
+sim.add(DMI(D=3e-3))
+sim.add(UniaxialAnisotropy(Ku=4e5, axis=(0, 0, 1)))
+sim.relax()
+sim.save_vtk()
+```
+The results can be straightforwardly visualised from the outputted VTK files using programs such as Paraview:
+<p align="center">
+<img src="http://computationalmodelling.github.io/fidimag/figs/target.png" alt="Target Skyrmion State" width="250">
+</p>
+
+
+
+
+### Attributions 
 The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr at the University of Southampton.
 
 This is an early experimental version; contributions and pull requests to both the code and documentation are welcome.
+If you use Fidimag, please cite as:
 
-# How to cite Fidimag
+David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, & Hans Fangohr. (2016). Fidimag v2.0 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.167858A bib file is provided in the repository.
 
-David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, & Hans Fangohr. (2016). Fidimag v2.0 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.167858
+### Publications
 
-BibTeX:
+The following publications, in reverse chronological order, have used Fidimag:
 
-<pre>
-@misc{htt&#8203;ps://doi.org/10.5281/zenodo.167858,
- doi = {10.5281/zenodo.167858},
- url = {ht&#8203;tps://doi.org/10.5281/zenodo.167858},
- author = {David Cort{\'e}s-Ortu{\~n}o and Weiwei Wang and Ryan Pepper and Marc-Antonio Bisotti and 
-           Thomas Kluyver and Mark Vousden and Hans Fangohr},
- publisher = {Zenodo},
- title = {Fidimag V2.0}, 
- year = {2016}
-}
-</pre>
+[1] [Thermal stability and topological protection of skyrmions in nanotracks](https://www.nature.com/articles/s41598-017-03391-8), D. Cortés-Ortuño, W. Wang, M. Beg, R.A. Pepper, M-A. Bisotti, R. Carey, M. Vousden, T. Kluyver, O. Hovorka & H. Fangohr, Scientific Reports 7, 4060 (2017)
 
-# Acknowledgements
+[2] [Current-induced instability of domain walls in cylindrical nanowires](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta), W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)
 
-We acknowledge financial support from
+[3] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430), W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96 (2017)
 
-- EPSRC’s Centre for Doctoral Training in Next Generation
-  Computational Modelling, (EP/L015382/1)
-  
-- EPSRC’s Doctoral Training Centre in Complex System Simulation
-  (EP/G03690X/1)
+[4] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
+
+### Acknowledgements
+We acknowledge financial support from EPSRC’s Centre for Doctoral Training in Next Generation Computational Modelling (EP/L015382/1) and EPSRC’s Doctoral Training Centre in Complex System Simulation (EP/G03690X/1)
