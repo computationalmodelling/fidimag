@@ -41,7 +41,7 @@ void sd_update_spin (double *spin, double *spin_last,
     normalise(spin, pins, n);
 }
 
-void sd_compute_step (double *spin, double *spin_last, double *field, double *scale,
+void sd_compute_step (double *spin, double *spin_last, double *field,
                       double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                       int *pins, int n, int counter, double tmin, double tmax) {
 
@@ -62,19 +62,19 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *sc
         // Compute the torques
 
         mxH[spin_idx]     = cross_x(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
-                                    field[spin_idx]     * scale[i],
-                                    field[spin_idx + 1] * scale[i],
-                                    field[spin_idx + 2] * scale[i]);
+                                    field[spin_idx],
+                                    field[spin_idx + 1],
+                                    field[spin_idx + 2]);
 
         mxH[spin_idx + 1] = cross_y(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
-                                    field[spin_idx]     * scale[i],
-                                    field[spin_idx + 1] * scale[i],
-                                    field[spin_idx + 2] * scale[i]);
+                                    field[spin_idx],
+                                    field[spin_idx + 1],
+                                    field[spin_idx + 2]);
 
         mxH[spin_idx + 2] = cross_z(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
-                                    field[spin_idx]     * scale[i],
-                                    field[spin_idx + 1] * scale[i],
-                                    field[spin_idx + 2] * scale[i]);
+                                    field[spin_idx],
+                                    field[spin_idx + 1],
+                                    field[spin_idx + 2]);
 
         mxmxH[spin_idx]     = cross_x(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                       mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
@@ -115,5 +115,9 @@ void sd_compute_step (double *spin, double *spin_last, double *field, double *sc
 
         sign = (res > 0) ? 1 : ((res < 0) ? -1 : 0);
         tau[i] = fmax(fmin(fabs(res), tmax), tmin) * sign;
+
+        // In MuMax3 they only define a specific value:
+        // https://github.com/mumax/3/blob/master/engine/minimizer.go
+        // tau[i] = res;
     }
 }
