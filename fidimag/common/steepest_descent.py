@@ -1,8 +1,6 @@
 from __future__ import division
 import numpy as np
 import fidimag.extensions.common_clib as clib
-import fidimag.common.helper as helper
-import fidimag.common.constant as const
 
 from .minimiser_base import MinimiserBase
 
@@ -63,10 +61,12 @@ class SteepestDescent(MinimiserBase):
 
         # Define
         super(SteepestDescent, self).__init__(mesh, spin,
-                 magnetisation, magnetisation_inv, field, pins,
-                 interactions,
-                 name,
-                 data_saver)
+                                              magnetisation, magnetisation_inv,
+                                              field,
+                                              pins,
+                                              interactions,
+                                              name,
+                                              data_saver)
 
         # ---------------------------------------------------------------------
         # Variables defined in this SteepestDescent
@@ -194,6 +194,7 @@ class SteepestDescent(MinimiserBase):
         """
 
         clib.compute_sd_spin(self.spin, self.spin_last,
+                             self._magnetisation,
                              self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
                              self.n
@@ -203,6 +204,7 @@ class SteepestDescent(MinimiserBase):
 
         # Notice that the field is scaled (in the micro class we use Tesla)
         clib.compute_sd_step(self.spin, self.spin_last,
+                             self._magnetisation,
                              self.scale * self.field,
                              self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,

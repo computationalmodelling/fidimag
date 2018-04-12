@@ -1,6 +1,3 @@
-import numpy
-# cimport numpy as np
-# np.import_array()
 
 # -----------------------------------------------------------------------------
 
@@ -32,11 +29,12 @@ cdef extern from "common_clib.h":
     # -------------------------------------------------------------------------
     # From steepest_descent.c
 
-    void sd_update_spin (double *spin, double *spin_last,
+    void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
                          double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                          int* pins, int n)
 
-    void sd_compute_step (double *spin, double *spin_last, double *field,
+    void sd_compute_step (double *spin, double *spin_last, double *magnetisation, 
+                          double *field,
                           double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                           int *pins, int n, int counter, double tmin, double tmax)
 
@@ -107,6 +105,7 @@ def compute_llg_stt_cpp(double [:] dm_dt,
 
 def compute_sd_spin(double [:] spin,
                     double [:] spin_last,
+                    double [:] magnetisation,
                     double [:] mxH,
                     double [:] mxmxH,
                     double [:] mxmxH_last,
@@ -114,12 +113,13 @@ def compute_sd_spin(double [:] spin,
                     int [:] pins,
                     n):
 
-    sd_update_spin(&spin[0], &spin_last[0], &mxH[0],
+    sd_update_spin(&spin[0], &spin_last[0], &magnetisation[0], &mxH[0],
                    &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0], n
                    )
 
 def compute_sd_step(double [:] spin,
                     double [:] spin_last,
+                    double [:] magnetisation,
                     double [:] field,
                     double [:] mxH,
                     double [:] mxmxH,
@@ -128,7 +128,8 @@ def compute_sd_step(double [:] spin,
                     int [:] pins,
                     n, counter, tmin, tmax):
 
-    sd_compute_step(&spin[0], &spin_last[0], &field[0], &mxH[0],
+    sd_compute_step(&spin[0], &spin_last[0], &magnetisation[0], 
+                    &field[0], &mxH[0],
                     &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0],
                     n, counter, tmin, tmax
                     )

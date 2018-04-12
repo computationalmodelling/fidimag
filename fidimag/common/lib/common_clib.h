@@ -67,11 +67,11 @@ void llg_stt_cpp(double *dm_dt, double *m, double *h, double *p, double *alpha,
 // ----------------------------------------------------------------------------
 // From steepest_descent.c
 
-void sd_update_spin (double *spin, double *spin_last,
+void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
                      double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                      int* pins, int n);
 
-void sd_compute_step (double *spin, double *spin_last, double *field,
+void sd_compute_step (double *spin, double *spin_last, double *magnetisation, double *field, 
                       double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                       int *pins, int n, int counter, double tmin, double tmax);
 
