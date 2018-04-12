@@ -5,7 +5,6 @@ from . import llg_stt
 from . import llg_stt_cpp
 from . import baryakhtar
 from fidimag.common import steepest_descent
-from . import minimiser
 
 import fidimag.extensions.micro_clib as micro_clib
 import fidimag.common.helper as helper
@@ -20,7 +19,6 @@ KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llbar': baryakhtar.LLBar,
                  'llbar_full': baryakhtar.LLBarFull,
                  'steepest_descent': steepest_descent.SteepestDescent,
-                 'minimiser': minimiser.Minimiser
                  }
 
 
@@ -39,13 +37,19 @@ class Sim(SimBase):
     driver  :: A string with one of the following drivers to evolve
                the micromagnetic system:
 
-                    llg         - (default) the Landau-Lifshitz-Gilbert
-                                  equation
-                    llg_stt     - LLG w. spin transfer torque
-                    llg_stt_cpp - LLG w. spin transfer torque perpendicular
-                                  to the plane (?)
-                    llbar       - Landau-Lifshitz-Baryakhtar equation
-                    llbar_full
+                llg               - (default) the Landau-Lifshitz-Gilbert
+                                    equation
+
+                llg_stt           - LLG w. spin transfer torque
+
+                llg_stt_cpp       - LLG w. spin transfer torque perpendicular
+                                    to the plane (?)
+
+                llbar             - Landau-Lifshitz-Baryakhtar equation
+                llbar_full
+
+                steepest_descent  - Optimised steepest descent minimisation
+                                    [JAP 115, 17D118 (2014)]
 
     ** Most of the methods inherit from the Base Simulation class that
     can be found in the common folder

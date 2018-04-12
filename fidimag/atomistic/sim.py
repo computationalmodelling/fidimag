@@ -3,7 +3,7 @@ from .sllg import SLLG
 from .llg_stt import LLG_STT
 from .llg_stt_cpp import LLG_STT_CPP
 from fidimag.common.steepest_descent import SteepestDescent
-from .minimiser import Minimiser
+# from .minimiser import Minimiser
 
 import fidimag.common.skyrmion_number
 import fidimag.common.helper as helper
@@ -17,7 +17,7 @@ KNOWN_DRIVERS = {'llg': LLG,
                  'llg_stt': LLG_STT,
                  'llg_stt_cpp': LLG_STT_CPP,
                  'steepest_descent': SteepestDescent,
-                 'minimiser': Minimiser
+                 # 'minimiser': Minimiser
                  }
 
 
