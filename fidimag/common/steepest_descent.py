@@ -12,12 +12,45 @@ from .driver_base import DriverBase
 class SteepestDescent(object):
     """
 
-    This class is the driver to minimise a system using a Steepest Descent
-    algorithm
+    This class is the driver to minimise a system using an optimised Steepest
+    Descent algorithm defined in [1].
 
-    NOTE: We are inheriting from DriverBase, but it would be better if we
-          create a MinimiserBase class in the future, removing the
-          methods from the Driver class that are not being used at all
+    The evolution step is written as
+
+        m_i+1 = FM * (FP * m_i - 4 * tau * (m_i X m_i x H))
+
+    where
+
+        FM = (1 - tau^2 * (m_i X H)^2)
+        FP = (1 + tau^2 * (m_i X H)^2)
+
+    and tau is a "time step" that needs to be defined according to
+    eq. 10 of [1].
+
+    NOTES:
+
+    - We use the simplest criteria for choosing tau. However, it is not exactly
+      clear how to deal with the denominators defined in tau when they are
+      zero.  For now we refer to the methods defined in the minimizer branch of
+      https://github.com/MicroMagnum/MicroMagnum.
+
+    - The effective field H is defined in Tesla units (it works in the
+      atomistic case). This is defined in the MuMax3 code, so we scale the
+      field with mu0 when using this class with the micromagnetic classes.
+
+    - This minimiser seems to not work effectively with the micromagnetic
+      simulations, it may require further inspection of the code, since in
+      MuMax3 it works fine.
+
+    - Methods for the calculations using Numpy are defined for debugging. In
+      this class we use a C library to speed up the evolution step.
+
+
+    REFS:
+
+    [1] Exl et al., Journal of Applied Physics 115, 17D118 (2014).
+    https://doi.org/10.1063/1.4862839
+
 
     """
 
@@ -30,37 +63,11 @@ class SteepestDescent(object):
                  integrator=None
                  ):
 
-        # ---------------------------------------------------------------------
-        # These are (ideally) references to arrays taken from the Simulation
-        # class. Variables with underscore are arrays changed by a property in
-        # the simulation class
-        self.mesh = mesh
-        self.spin = spin
-
-        # A reference to either mu_s or Ms to use a common lib for this
-        # minimiser
-        self._magnetisation = magnetisation
-        self._magnetisation_inv = magnetisation_inv
-
-        self.field = field
-        self._pins = pins
-        self.interactions = interactions
-        # Strings are not referenced, this is a copy:
-        self.name = name
-
-        self.data_saver = data_saver
+        # Define
+        super(SteepestDescent, self).__init__()
 
         # ---------------------------------------------------------------------
-        # Variables defined in this class
-
-        self.spin_last = np.ones_like(self.spin)
-        self.n = self.mesh.n
-
-        # VTK saver for the magnetisation/spin field
-        self.VTK = VTK(self.mesh,
-                       directory='{}_vtks'.format(self.name),
-                       filename='m'
-                       )
+        # Variables defined in this SteepestDescent
 
         self.mxH = np.zeros_like(self.field)
         self.mxmxH = np.zeros_like(self.field)
@@ -70,7 +77,8 @@ class SteepestDescent(object):
         self.tau = 1e-4 * np.ones_like(self._magnetisation)
         # self._n_field = np.zeros_like(self.field)
 
-        # self.set_options()
+        # Threshold values for the criteria to choose the T factor.
+        # They are defined as properties with the corr decoration
         self._tmax = 1e-2
         self._tmin = 1e-16
 
@@ -109,6 +117,9 @@ class SteepestDescent(object):
         return aXb.reshape(-1,)
 
     def run_step(self):
+        """
+        Numpy version of the calculation
+        """
 
         # ---------------------------------------------------------------------
 
@@ -120,7 +131,7 @@ class SteepestDescent(object):
         factor_plus = 4 + (self.tau ** 2) * mxH_sq_norm
         factor_minus = 4 - (self.tau ** 2) * mxH_sq_norm
 
-        # Compute: m[i+1] = ((4 - t^2 A^2) * m[i] - 4 * t * m[i] x m[i] x H) / (4 + t^2 A^2) 
+        # Compute: m[i+1] = ((4 - t^2 A^2) * m[i] - 4 * t * m[i] x m[i] x H) / (4 + t^2 A^2)
         # where "t = self.tau" is the time step and "A = m[i] x H"
         new_spin = (factor_minus[:, np.newaxis] * self.spin
                     - (4 * self.tau)[:, np.newaxis] * self.mxmxH
@@ -144,15 +155,13 @@ class SteepestDescent(object):
         self.compute_effective_field()
         # self._n_field[:] = self.field[:]
         # atom_clib.normalise_spin(self._n_field, self._pins, self.n)
-
         self.mxmxH_last[:] = self.mxmxH[:]
         self.mxH[:] = self.field_cross_product(self.spin, self.scale * self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
 
-        # clib.normalise_spin(self.spin, self._pins, self.n)
-
         # ---------------------------------------------------------------------
-        # self.tau = self.get_time_step()
+        # Define the time step tau
+
         ds = (self.spin - self.spin_last).reshape(-1, 3)
         dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
 
@@ -162,8 +171,8 @@ class SteepestDescent(object):
         else:
             num = np.sum(ds * dy, axis=1)
             den = np.sum(dy * dy, axis=1)
-      
-        # Set to tmin
+
+        # The criteria is taken from the Micromagnum code
         self.tau = self._tmax * np.ones_like(num)
         self.tau[den != 0] = num[den != 0] / den[den != 0]
 
@@ -177,13 +186,9 @@ class SteepestDescent(object):
 
         # ---------------------------------------------------------------------
 
-        # clib.normalise_spin(self.spin, self._pins, self.n)
-        # self.spin[:] = self.normalise_field(self.spin)[:]
-        # self.compute_rhs(self.tau)
-
     def run_step_CLIB(self):
         """
-        Only use when run_step with Numpy is working
+        C version of the calculation from common/lib/steepest_descent.c
         """
 
         clib.compute_sd_spin(self.spin, self.spin_last,
@@ -203,10 +208,13 @@ class SteepestDescent(object):
                              self._tmin, self._tmax
                              )
 
-    def minimise(self, stopping_dm=1e-2, max_steps=2000, 
+    def minimise(self, stopping_dm=1e-2, max_steps=2000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_steps=1000
                  ):
+        """
+        Run the minimisation until meeting the stopping_dm criteria
+        """
 
 
         # Rewrite tmax and tmin arrays and variable
@@ -246,10 +254,6 @@ class SteepestDescent(object):
 
                 break
 
-            # print('spin=', self.spin.reshape(-1, 3)[33])
-            # print('field=', self.field.reshape(-1, 3)[33])
-            # print('tau', self.tau[33])
-
             if self.step % save_data_steps == 0:
                 # update field before saving data
                 self.compute_effective_field()
@@ -261,73 +265,3 @@ class SteepestDescent(object):
                 self.save_m()
 
             self.step += 1
-
-    def relax(self):
-        print('Not implemented for the SD minimiser')
-
-    # -------------------------------------------------------------------------
-
-    def compute_effective_field(self, t=0):
-        """
-        Compute the effective field from the simulation interactions,
-        calling the method from the corresponding Energy class
-        """
-
-        self.field[:] = 0
-
-        for obj in self.interactions:
-            self.field += obj.compute_field(t=0, spin=self.spin)
-
-    # -------------------------------------------------------------------------
-
-    def save_vtk(self):
-        """
-        Save a VTK file with the magnetisation vector field and magnetic
-        moments as cell data. Magnetic moments are saved in units of
-        Bohr magnetons
-
-        NOTE: It is recommended to use a *cell to point data* filter in
-        Paraview or Mayavi to plot the vector field
-        """
-        self.VTK.reset_data()
-
-        # Here we save both Ms and spins as cell data
-        self.VTK.save_scalar(self._magnetisation / const.mu_B, name='magnetisation')
-        self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
-
-        self.VTK.write_file(step=self.step)
-
-    def save_m(self, ZIP=False):
-        """
-        Save the magnetisation/spin vector field as a numpy array in
-        a NPY file. The files are saved in the `{name}_npys` folder, where
-        `{name}` is the simulation name, with the file name `m_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-
-        if not os.path.exists('%s_npys' % self.name):
-            os.makedirs('%s_npys' % self.name)
-        name = '%s_npys/m_%g.npy' % (self.name, self.step)
-        np.save(name, self.spin)
-        if ZIP:
-            with zipfile.ZipFile('%s_m.zip'%self.name, 'a') as myzip:
-                myzip.write(name)
-            try:
-                os.remove(name)
-            except OSError:
-                pass
-
-    def save_skx(self):
-        """
-        Save the skyrmion number density (sk number per mesh site)
-        as a numpy array in a NPY file.
-        The files are saved in the `{name}_skx_npys` folder, where
-        `{name}` is the simulation name, with the file name `skx_{step}.npy`
-        where `{step}` is the simulation step (from the integrator)
-        """
-        if not os.path.exists('%s_skx_npys' % self.name):
-            os.makedirs('%s_skx_npys' % self.name)
-        name = '%s_skx_npys/m_%g.npy' % (self.name, self.step)
-
-        # The _skx_number array is defined in the SimBase class in Common
-        np.save(name, self._skx_number)
