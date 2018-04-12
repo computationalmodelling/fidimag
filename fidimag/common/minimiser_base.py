@@ -1,17 +1,14 @@
 from __future__ import division
 import numpy as np
-import fidimag.extensions.common_clib as clib
-import fidimag.extensions.clib as atom_clib
-import fidimag.common.helper as helper
+import os
+import zipfile
 import fidimag.common.constant as const
 from fidimag.common.vtk import VTK
 
 
 class MinimiserBase(object):
     """
-    
-    Base class for minimiser class. No dependency of CVODE
-
+    Base class for minimiser class. No dependency on CVODE
     """
 
     def __init__(self, mesh, spin,
@@ -71,7 +68,6 @@ class MinimiserBase(object):
         """
         pass
 
-
     def run_step_CLIB(self):
         """
         Cython implementation of the step. Normally you would define
@@ -79,8 +75,7 @@ class MinimiserBase(object):
         """
         pass
 
-
-    def minimise(self, stopping_dm=1e-2, max_steps=2000, 
+    def minimise(self, stopping_dm=1e-2, max_steps=2000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_steps=1000):
         pass
@@ -116,7 +111,8 @@ class MinimiserBase(object):
         self.VTK.reset_data()
 
         # Here we save both Ms and spins as cell data
-        self.VTK.save_scalar(self._magnetisation / const.mu_B, name='magnetisation')
+        self.VTK.save_scalar(self._magnetisation / const.mu_B,
+                             name='magnetisation')
         self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
 
         self.VTK.write_file(step=self.step)
@@ -134,7 +130,7 @@ class MinimiserBase(object):
         name = '%s_npys/m_%g.npy' % (self.name, self.step)
         np.save(name, self.spin)
         if ZIP:
-            with zipfile.ZipFile('%s_m.zip'%self.name, 'a') as myzip:
+            with zipfile.ZipFile('%s_m.zip' % self.name, 'a') as myzip:
                 myzip.write(name)
             try:
                 os.remove(name)
