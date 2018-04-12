@@ -85,9 +85,9 @@ class Sim(SimBase):
                                             )
 
         # For the SD in the micromagnetic class we need to scale the mxmxH factor
-        # by 1/Ms (need more tests)
-        if driver == 'steepest_descent':
-            self.driver.scale = np.repeat(self._Ms_inv, 3)
+        # by mu0 to leave the field in Tesla units
+        if self.driver.__class__.__name__ == 'SteepestDescent':
+            self.driver.scale = fidimag.common.constant.mu_0
 
         # Some references to functions in the corresponding driver classes
         # that can be accessed through the Simulation class
