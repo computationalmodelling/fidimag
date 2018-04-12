@@ -36,7 +36,7 @@ cdef extern from "common_clib.h":
                          double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                          int* pins, int n)
 
-    void sd_compute_step (double *spin, double *spin_last, double *field, double *scale,
+    void sd_compute_step (double *spin, double *spin_last, double *field,
                           double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
                           int *pins, int n, int counter, double tmin, double tmax)
 
@@ -121,7 +121,6 @@ def compute_sd_spin(double [:] spin,
 def compute_sd_step(double [:] spin,
                     double [:] spin_last,
                     double [:] field,
-                    double [:] scale,
                     double [:] mxH,
                     double [:] mxmxH,
                     double [:] mxmxH_last,
@@ -129,7 +128,7 @@ def compute_sd_step(double [:] spin,
                     int [:] pins,
                     n, counter, tmin, tmax):
 
-    sd_compute_step(&spin[0], &spin_last[0], &field[0], &scale[0], &mxH[0],
+    sd_compute_step(&spin[0], &spin_last[0], &field[0], &mxH[0],
                     &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0],
                     n, counter, tmin, tmax
                     )

@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import fidimag.extensions.common_clib as clib
+import fidimag.extensions.clib as atom_clib
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
 from fidimag.common.vtk import VTK
@@ -64,16 +65,17 @@ class SteepestDescent(object):
         self.mxH = np.zeros_like(self.field)
         self.mxmxH = np.zeros_like(self.field)
         self.mxmxH_last = np.zeros_like(self.field)
-        self.t = 1e-4
-        self.tau = 1e-4 * np.ones(len(self.spin) // 3)
+        # time as zero
+        self.t = 0
+        self.tau = 1e-4 * np.ones_like(self._magnetisation)
         # self._n_field = np.zeros_like(self.field)
 
         # self.set_options()
         self._tmax = 1e-2
         self._tmin = 1e-16
 
-        # If the magnetisation changes, this needs updating! 
-        self.scale = np.ones_like(self._magnetisation)
+        # Scaling of the field
+        self.scale = 1.
 
     @property
     def tmax(self):
@@ -82,7 +84,7 @@ class SteepestDescent(object):
     @tmax.setter
     def tmax(self, t):
         self._tmax = t
-        self.__tmax = t * np.ones((len(self.tau), 2))
+        self._tmax_arr = t * np.ones((len(self.tau), 2))
 
     @property
     def tmin(self):
@@ -91,7 +93,7 @@ class SteepestDescent(object):
     @tmin.setter
     def tmin(self, t):
         self._tmin = t
-        self.__tmin = t * np.ones((len(self.tau), 2))
+        self._tmin_arr = t * np.ones((len(self.tau), 2))
 
     # Same as:
     # tmin = property(fget=set_tmin, fset=set_tmin)
@@ -134,17 +136,17 @@ class SteepestDescent(object):
 
         self.spin_last[:] = self.spin[:]
         self.spin[:] = new_spin[:]
-        clib.normalise_spin(self.spin, self._pins, self.n)
+        atom_clib.normalise_spin(self.spin, self._pins, self.n)
 
         # ---------------------------------------------------------------------
 
         # Update the effective field, torques and time step for the next iter
-        self.update_effective_field()
+        self.compute_effective_field()
         # self._n_field[:] = self.field[:]
-        # clib.normalise_spin(self._n_field, self._pins, self.n)
+        # atom_clib.normalise_spin(self._n_field, self._pins, self.n)
 
         self.mxmxH_last[:] = self.mxmxH[:]
-        self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
+        self.mxH[:] = self.field_cross_product(self.spin, self.scale * self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
 
         # clib.normalise_spin(self.spin, self._pins, self.n)
@@ -167,11 +169,11 @@ class SteepestDescent(object):
 
         tau_signs = np.sign(self.tau)
 
-        self.__tmax[:, 0] = np.abs(self.tau)
+        self._tmax_arr[:, 0] = np.abs(self.tau)
         # Set the minimum between the abs value of tau and the max tolerance
-        self.__tmin[:, 0] = np.min(self.__tmax, axis=1)
+        self._tmin_arr[:, 0] = np.min(self._tmax_arr, axis=1)
         # Set the maximum between the previous minimum and the min tolerance
-        self.tau = tau_signs * np.max(self.__tmin, axis=1)
+        self.tau = tau_signs * np.max(self._tmin_arr, axis=1)
 
         # ---------------------------------------------------------------------
 
@@ -190,22 +192,16 @@ class SteepestDescent(object):
                              self.n
                              )
 
-        self.update_effective_field()
+        self.compute_effective_field()
 
+        # Notice that the field is scaled (in the micro class we use Tesla)
         clib.compute_sd_step(self.spin, self.spin_last,
-                             self.field, self.scale,
+                             self.scale * self.field,
                              self.mxH, self.mxmxH, self.mxmxH_last,
                              self.tau, self._pins,
                              self.n, self.step,
                              self._tmin, self._tmax
                              )
-
-    def update_effective_field(self):
-
-        self.field[:] = 0
-
-        for obj in self.interactions:
-            self.field += obj.compute_field(t=0, spin=self.spin)
 
     def minimise(self, stopping_dm=1e-2, max_steps=2000, 
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
@@ -218,17 +214,19 @@ class SteepestDescent(object):
         self.tmin = self._tmin
 
         self.step = 0
+        # Initial "time" step: the algorithm seems sensitive to this value
+        self.tau[:] = 1e-4
 
         self.spin_last[:] = self.spin[:]
-        self.update_effective_field()
-        # self._n_field[:] = self.field[:]
-        # clib.normalise_spin(self._n_field, self._pins, self.n)
-        self.mxH[:] = self.field_cross_product(self.spin, self.field)[:]
+        self.compute_effective_field()
+        self.mxH[:] = self.field_cross_product(self.spin, self.scale * self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         self.mxmxH_last[:] = self.mxmxH[:]
         while self.step < max_steps:
 
             self.run_step_CLIB()
+            # Vectorised calculation with Numpy:
+            # self.run_step()
 
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
@@ -243,7 +241,7 @@ class SteepestDescent(object):
                       np.max(np.abs(self.tau)),
                       max_dm, self.step))
 
-                self.update_effective_field()
+                self.compute_effective_field()
                 self.data_saver.save()
 
                 break
@@ -254,7 +252,7 @@ class SteepestDescent(object):
 
             if self.step % save_data_steps == 0:
                 # update field before saving data
-                self.update_effective_field()
+                self.compute_effective_field()
                 self.data_saver.save()
 
             if (save_vtk_steps is not None) and (self.step % save_vtk_steps == 0):
@@ -269,18 +267,16 @@ class SteepestDescent(object):
 
     # -------------------------------------------------------------------------
 
-    def compute_effective_field(self, t):
+    def compute_effective_field(self, t=0):
         """
         Compute the effective field from the simulation interactions,
         calling the method from the corresponding Energy class
         """
 
-        # self.spin[:] = y[:]
-
         self.field[:] = 0
 
         for obj in self.interactions:
-            self.field += obj.compute_field(t)
+            self.field += obj.compute_field(t=0, spin=self.spin)
 
     # -------------------------------------------------------------------------
 
