@@ -3,12 +3,12 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim
-from common import CuboidMesh
+from fidimag.micro import Sim
+from fidimag.common import CuboidMesh
 
 # The energies, we can use DMI in a future simulation
-from micro import UniformExchange
-from micro import UniaxialAnisotropy
+from fidimag.micro import UniformExchange
+from fidimag.micro import UniaxialAnisotropy
 # from micro import DMI
 
 mu0 = 4 * np.pi * 1e-7
@@ -21,11 +21,11 @@ def init_m(pos):
     x = pos[0]
 
     if x < 400:
-        return (1, 0, 0)
+        return (-1, 0, 0)
     elif 400 <= x < 500:
         return (0, 1, 1)
     else:
-        return (-1, 0, 0)
+        return (1, 0, 0)
 
 
 def relax_system(mesh):
@@ -38,7 +38,7 @@ def relax_system(mesh):
     sim.driver.alpha = 0.5
     sim.driver.gamma = 2.211e5
     sim.Ms = 8.6e5
-    sim.do_precession = False
+    sim.driver.do_precession = False
 
     # The initial state passed as a function
     sim.set_m(init_m)
@@ -59,8 +59,8 @@ def relax_system(mesh):
     # ONE_DEGREE_PER_NS = 17453292.52
 
     # Start relaxation and save the state in m0.npy
-    sim.relax(dt=1e-14, stopping_dmdt=0.00001, max_steps=5000,
-              save_m_steps=None, save_vtk_steps=None)
+    sim.relax(dt=1e-14, stopping_dmdt=0.01, max_steps=5000,
+              save_m_steps=None, save_vtk_steps=50)
 
     np.save('m0.npy', sim.spin)
 
@@ -106,8 +106,7 @@ def deal_plot(_list, output_file):
 
 
 # THIS NEEDS REVISION
-def deal_plot_dynamics(spin, m_component='mz',
-                       output_file):
+def deal_plot_dynamics(spin, m_component='mz', output_file='output.pdf'):
     """
     The dynamics of the m_component of the i-th spin
     of the chain, from the magnetisation snapshot
@@ -140,10 +139,10 @@ def deal_plot_dynamics(spin, m_component='mz',
 def excite_system(mesh):
 
     # Specify the stt dynamics in the simulation
-    sim = Sim(mesh, name='dyn', driver='llg_stt')
+    sim = Sim(mesh, name='dyn2', driver='llg_stt')
 
     sim.driver.set_tols(rtol=1e-12, atol=1e-14)
-    sim.driver.alpha = 0.05
+    sim.driver.alpha = 0.2
     sim.driver.gamma = 2.211e5
     sim.Ms = 8.6e5
 
@@ -163,8 +162,8 @@ def excite_system(mesh):
 
     # Set the current in the x direction, in A / m
     # beta is the parameter in the STT torque
-    sim.jx = -1e12
-    sim.beta = 1
+    sim.driver.jx = -1e12
+    sim.driver.beta = 0.01
 
     # The simulation will run for 5 ns and save
     # 500 snapshots of the system in the process
@@ -172,7 +171,7 @@ def excite_system(mesh):
 
     for t in ts:
         print 'time', t
-        sim.run_until(t)
+        sim.driver.run_until(t)
         sim.save_vtk()
         sim.save_m()
 

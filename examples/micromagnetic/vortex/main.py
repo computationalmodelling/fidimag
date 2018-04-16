@@ -3,10 +3,10 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from micro import Sim
-from common import CuboidMesh
-from micro import UniformExchange, Demag
-from micro import Zeeman, TimeZeeman
+from fidimag.micro import Sim
+from fidimag.common import CuboidMesh
+from fidimag.micro import UniformExchange, Demag
+from fidimag.micro import Zeeman, TimeZeeman
 from fidimag.common.fileio import DataReader
 
 mu0 = 4 * np.pi * 1e-7
@@ -46,7 +46,7 @@ def relax_system(mesh):
     sim.driver.alpha = 0.5
     sim.driver.gamma = 2.211e5
     sim.Ms = spatial_Ms
-    sim.do_precession = False
+    sim.driver.do_precession = False
 
     sim.set_m(init_m)
     # sim.set_m(np.load('m0.npy'))
@@ -55,7 +55,7 @@ def relax_system(mesh):
     exch = UniformExchange(A=A)
     sim.add(exch)
 
-    demag = Demag()
+    demag = Demag(pbc_2d=True)
     sim.add(demag)
 
     mT = 795.7747154594767
@@ -84,7 +84,7 @@ def excite_system(mesh):
     exch = UniformExchange(A=A)
     sim.add(exch)
 
-    demag = Demag()
+    demag = Demag(pbc_2d=True)
     sim.add(demag)
 
     mT = 795.7747154594767
@@ -110,9 +110,9 @@ if __name__ == '__main__':
 
     mesh = CuboidMesh(nx=80, ny=80, nz=2, dx=2.5, dy=2.5, dz=5.0, unit_length=1e-9)
 
-    # relax_system(mesh)
+    relax_system(mesh)
 
-    excite_system(mesh)
+    #excite_system(mesh)
 
     # apply_field1(mesh)
     # deal_plot()
