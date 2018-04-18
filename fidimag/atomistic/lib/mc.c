@@ -165,8 +165,8 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
       delta_E += compute_deltaE_exchange_DMI_hexagonal(
           &spin[0], &new_spin[0], &ngbs[0], n_ngbs, J, D, i, new_i);
     } else {
-      delta_E += compute_deltaE_exchange_DMI(&spin[0], &new_spin[0], &ngbs[0], n_ngbs,
-                                             &nngbs[0], J, J1, D, D1, i, new_i);
+      delta_E += compute_deltaE_exchange_DMI(&spin[0], &new_spin[0], &ngbs[0], 
+                                             &nngbs[0], n_ngbs, J, J1, D, D1, i, new_i);
     }
 
     update = 0;
