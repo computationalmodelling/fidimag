@@ -7,6 +7,9 @@ cdef extern from "micro_clib.h":
                                   double *energy, double *Ms_inv,
                                   double A, double dx, double dy, double dz,
                                   int n, int *ngbs)
+    void compute_exch_field_rkky_micro(double *m, double *field, double *energy, 
+                                  double *Ms_inv, double sigma, int nx, double ny, 
+                                  double nz, int z_bottom, int z_top)
 
     void dmi_field(double *m, double *field, double *energy, double *Ms_inv,
                    double *D, double dmi_vector[18], int n_dmi_ngbs,
@@ -31,6 +34,16 @@ def compute_exchange_field_micro(np.ndarray[double, ndim=1, mode="c"] m,
 
     compute_exch_field_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], A,
                              dx, dy, dz, n, &ngbs[0, 0])
+
+
+def compute_exchange_field_micro_rkky(np.ndarray[double, ndim=1, mode="c"] m,
+                                 np.ndarray[double, ndim=1, mode="c"] field,
+                                 np.ndarray[double, ndim=1, mode="c"] energy,
+                                 np.ndarray[double, ndim=1, mode="c"] Ms_inv,
+                                 sigma, nx, ny, nz, z_bottom, z_top):
+
+    compute_exch_field_rkky_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], sigma,
+                             nx, ny, nz, z_bottom, z_top)
     
 
 def compute_dmi_field(np.ndarray[double, ndim=1, mode="c"] m,

@@ -6,7 +6,15 @@ from .energy import Energy
 class UniformExchange(Energy):
 
     """
+    UniformExchange(A, name='UniformExchange')
+
     Compute the exchange field in micromagnetics.
+    
+    Inputs:
+        A: float
+            A is the exchange stiffness constant measured in 
+            Joules / Meter (J / M)
+    
     """
 
     def __init__(self, A, name='UniformExchange'):
