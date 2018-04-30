@@ -4,7 +4,8 @@
 * n is the spin number
 * eta is the random number array
 */
-void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt) {
+void llg_rhs_dw_c(double *restrict m, double *restrict h, double *restrict dm, double *restrict T, double *restrict alpha,
+                  double *restrict mu_s_inv, int *restrict pins, double *restrict eta, int n, double gamma, double dt) {
         
         double k_B = 1.3806505e-23;
         double Q = 2 * k_B * dt / gamma;
@@ -41,7 +42,7 @@ void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, do
 	}
 }
 
-void normalise(double *m, int *pins, int n){
+void normalise(double *restrict m, int *restrict pins, int n){
 	int i, j, k;
 	double mm;
 	for (int id = 0; id < n; id++) {

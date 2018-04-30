@@ -1,9 +1,10 @@
+#include<stdio.h>
 #include "nebm_cartesian_lib.h"
 #include "nebm_lib.h"
 #include "math.h"
 
 
-void project_vector_C(double * vector, double * y_i,
+void project_vector_C(double *restrict vector, double *restrict y_i,
                       int n_dofs_image
                       ){
 
@@ -46,7 +47,7 @@ void project_vector_C(double * vector, double * y_i,
 }
 
 
-void project_images_C(double * vector, double * y,
+void project_images_C(double *restrict vector, double *restrict y,
                       int n_images, int n_dofs_image
                       ){
 
@@ -92,8 +93,8 @@ void project_images_C(double * vector, double * y,
 }
 
 
-double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
-                                  int * material, int n_dofs_image_material
+double compute_distance_cartesian(double *restrict A, double *restrict B, int n_dofs_image,
+                                  int *restrict material, int n_dofs_image_material
                                   ) {
 
     /* Compute the distance between two images, A and B, discarding the sites
@@ -138,8 +139,8 @@ double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
  *
  */
 
-void compute_dYdt(double * Y, double * G, double * dYdt,
-                  int * pins,
+void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
+                  int *restrict pins,
                   int n_dofs_image
                   ) {
 
@@ -171,10 +172,11 @@ void compute_dYdt(double * Y, double * G, double * dYdt,
     }
 }
 
-void compute_dYdt_C(double * y, double * G, double * dYdt, int * pins, 
+void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYdt, int *restrict pins, 
                     int n_images, int n_dofs_image) {
-
+    #pragma omp parallel for schedule(static)
 	for(int i = 1; i < n_images - 1; i++){
+        //printf("");
         int j = i * n_dofs_image;
         compute_dYdt(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
     }

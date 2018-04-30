@@ -2,8 +2,8 @@
 #include "nebm_lib.h"
 #include "math.h"
 
-double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
-                                 int * material, int n_dofs_image_material
+double compute_distance_geodesic(double *restrict A, double *restrict B, int n_dofs_image,
+                                 int *restrict material, int n_dofs_image_material
                                  ) {
 
     /* Compute the Geodesic distance between two images: A and B,  of an energy
@@ -59,10 +59,10 @@ double compute_distance_geodesic(double * A, double * B, int n_dofs_image,
     // For every spin we will compute the corresponding cross and dot products
     // of A and B. The i-th spin components start at the 3 * i position
     // in the arrays
-    // We do not sum sites without material
+    // We do not sum sites without
     for(int i = 0; i < n_spins; i++){
         // We only need to know if the spin is in a site with material (Ms, mu_s > 0)
-        // so we skip the material for m_y and m_z which are basically the same than
+        // so we skip the material for m_y and m_z which are the same as
         // the material for m_x
         if (material[3 * i] > 0) {
             spin_i = 3 * i;

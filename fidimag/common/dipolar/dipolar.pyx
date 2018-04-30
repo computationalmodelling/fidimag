@@ -50,7 +50,7 @@ cdef extern from "dipolar.h":
 
 cdef class FFTDemag(object):
     cdef fft_demag_plan *_c_plan
-    cdef int total_length
+    cdef public int total_length, lenx, leny, lenz, lenxy
     cdef np.float64_t[:] tensor_xx_p, tensor_xy_p, tensor_xz_p, tensor_yy_p, \
                          tensor_yz_p, tensor_zz_p, hx_p, hy_p, hz_p, mx_p, my_p, mz_p
     cdef np.complex128_t[:] Nxx_p, Nxy_p, Nxz_p, Nyy_p, Nyz_p, Nzz_p, Hx_p, \
@@ -78,6 +78,10 @@ cdef class FFTDemag(object):
             raise Exception("Only support options 'dipolar', 'demag' and '2d_pbc'.")
 
         self.total_length = int(self._c_plan.total_length)
+        self.lenx = int(self._c_plan.lenx)
+        self.leny = int(self._c_plan.leny)
+        self.lenz = int(self._c_plan.lenz)
+        self.lenxy = self.lenx*self.leny
         self.tensor_xx_p = <np.float64_t[:self.total_length]> self._c_plan.tensor_xx
         self.tensor_xx = np.asarray(self.tensor_xx_p)
 
