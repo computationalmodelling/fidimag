@@ -32,7 +32,7 @@ def test_prb88_184422():
 
     sim.set_m((0, 0, 1))
 
-    sim.add(UniformExchange(A))
+    sim.add(UniformExchange(A=A))
     sim.add(DMI(-D, type='interfacial'))
     sim.add(UniaxialAnisotropy(K, axis=(0, 0, 1)))
 

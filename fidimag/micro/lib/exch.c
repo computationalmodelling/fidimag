@@ -10,22 +10,22 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
      *
      * Ms_inv     :: Array with the (1 / Ms) values for every mesh node.
      *               The values are zero for points with Ms = 0 (no material)
-     *  
+     *
      * A          :: Exchange constant
-     * 
+     *
      * dx, dy, dz :: Mesh spacings in the corresponding directions
-     * 
+     *
      * n          :: Number of mesh nodes
      *
      * ngbs       :: The array of neighbouring spins, which has (6 * n)
-     *               entries. Specifically, it contains the indexes of 
+     *               entries. Specifically, it contains the indexes of
      *               the neighbours of every mesh node, in the following order:
      *                      -x, +x, -y, +y, -z, +z
-     *  
+     *
      *               Thus, the array is like:
      *              | 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, 1-x, 1+x, 1-y, ...  |
      *                i=0                           i=1                ...
-     *                           
+     *
      *              where  0-y  is the index of the neighbour of the 0th spin,
      *              in the -y direction, for example. The index value for a
      *              neighbour where Ms = 0, is evaluated as -1. The array
@@ -48,15 +48,15 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
      *              since it is the left neighbour which is the PBC in x, etc..)
      *
      *  For the exchange computation, the field is defined as:
-     *          H_ex = (2 * A / (mu0 * Ms)) * nabla^2 (mx, my, mz) 
+     *          H_ex = (2 * A / (mu0 * Ms)) * nabla^2 (mx, my, mz)
      *
      *  Therefore, for the i-th mesh node (spin), we approximate the
      *  derivatives as:
-     *          nabla^2 mx = (1 / dx^2) * ( m[i-x] - 2 * m[i] + m[i+x] ) + 
-     *                       (1 / dy^2) * ( m[i-y] - 2 * m[i] + m[i+y] ) +  
+     *          nabla^2 mx = (1 / dx^2) * ( m[i-x] - 2 * m[i] + m[i+x] ) +
+     *                       (1 / dy^2) * ( m[i-y] - 2 * m[i] + m[i+y] ) +
      *                       (1 / dz^2) * ( m[i-z] - 2 * m[i] + m[i+z] )
-     * 
-     *  Where i-x is the neighbour in the -x direction. This is similar 
+     *
+     *  Where i-x is the neighbour in the -x direction. This is similar
      *  for my and mz.
      *  We can notice that the sum is the same if we do:
      *        ( m[i-x] - m[i] ) + ( m[i+x] - m[i] )
@@ -101,7 +101,7 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
 	        field[3 * i + 2] = 0;
 	        continue;
 	    }
-        
+
         /* Here we iterate through the neighbours */
         for (int j = 0; j < 6; j++) {
             /* Remember that index=-1 is for sites without material */
@@ -113,15 +113,15 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
                 /* Check that the magnetisation of the neighbouring spin
                  * is larger than zero */
                 if (Ms_inv[ngbs[idn + j]] > 0){
-                
-                    /* Neighbours in the -x and +x directions 
+
+                    /* Neighbours in the -x and +x directions
                      * giving: ( m[i-x] - m[i] ) + ( m[i+x] - m[i] )
                      * when ngbs[idn + j] > 0 for j = 0 and j=1
                      * If, for example, there is no
                      * neighbour at -x (j=0) in the 0th node (no PBCs),
                      * the second derivative would only be avaluated as:
                      *      (1 / dx * dx) * ( m[i+x] - m[i] )
-                     * which, according to 
+                     * which, according to
                      * [M.J. Donahue and D.G. Porter; Physica B, 343, 177-183 (2004)]
                      * when performing the integration of the energy, we still
                      * have error of the order O(dx^2)
@@ -159,4 +159,78 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
         field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
         field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
     }
+}
+
+inline int get_index(int nx, int ny, int i, int j, int k){
+ return k * nx*ny + j * nx + i;
+}
+
+void compute_exch_field_rkky_micro(double *m, double *field, double *energy, double *Ms_inv,
+                         double sigma, int nx, double ny, double nz, int z_bottom, int z_top){
+
+    /* Compute the micromagnetic exchange field and energy using the
+     * matrix of neighbouring spins and a second order approximation
+     * for the derivative
+     *
+     * Ms_inv     :: Array with the (1 / Ms) values for every mesh node.
+     *               The values are zero for points with Ms = 0 (no material)
+     *
+     * sigma          :: Exchange constant
+     *
+     * nx, ny, nz :: Mesh dimensions.
+     *  The exchange field at the top (bottom) layer can be computed as:
+     *
+     *          H_top = (sigma / (mu0 * Ms)) * m_bottom
+     *          H_bottom = (sigma / (mu0 * Ms)) * m_top
+     *
+     *  The *m array contains the spins as:
+     *      [mx0, my0, mz0, mx1, my1, mz1, mx2, ...]
+     *  so if we want the starting position of the magnetisation for the
+     *  i-th spin, we only have to do (3 * i) for mx, (3 * i + 1) for my
+     *  and (3 * i + 2) for mz
+     *
+     *
+     *
+     */
+
+		 int n = nx*ny*nz;
+		 for (int i = 0; i < n; i++){
+        energy[i] = 0;
+				field[3*i]=0;
+				field[3*i+1]=0;
+				field[3*i+2]=0;
+		 }
+
+		 #pragma omp parallel for
+		 for (int i = 0; i < nx; i++) {
+			 for (int j = 0; j < ny; j++){
+				 double mtx=0, mty=0, mtz=0;
+				 double mbx=0, mby=0, mbz=0;
+				 int id1 = get_index(nx,ny, i, j, z_bottom);
+				 int id2 = get_index(nx,ny, i, j, z_top);
+				 mtx = m[3*id2];
+				 mty = m[3*id2+1];
+				 mtz = m[3*id2+2];
+
+				 mbx = m[3*id1];
+				 mby = m[3*id1+1];
+				 mbz = m[3*id1+2];
+
+				 if (Ms_inv[id1] != 0.0){
+					 energy[id1]  = sigma*(1-mtx*mbx-mty*mby-mtz*mbz);
+					 field[3*id1]   = sigma * mtx * Ms_inv[id1] * MU0_INV;
+					 field[3*id1+1] = sigma * mty * Ms_inv[id1] * MU0_INV;
+					 field[3*id1+2] = sigma * mtz * Ms_inv[id1] * MU0_INV;
+				 }
+
+				 if (Ms_inv[id2] != 0.0){
+					 energy[id2]  = sigma*(1-mtx*mbx-mty*mby-mtz*mbz);
+					 field[3*id2]   = sigma * mbx * Ms_inv[id2] * MU0_INV;
+					 field[3*id2+1] = sigma * mby * Ms_inv[id2] * MU0_INV;
+					 field[3*id2+2] = sigma * mbz * Ms_inv[id2] * MU0_INV;
+				 }
+			 }
+		 }
+
+
 }

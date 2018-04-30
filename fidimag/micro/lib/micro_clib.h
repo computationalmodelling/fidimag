@@ -1,6 +1,6 @@
 #include<math.h>
 
-//#include<omp.h>
+#include<omp.h>
 
 #define WIDE_PI 3.1415926535897932384626433832795L
 #define MU0 1.25663706143591728850e-6
@@ -18,8 +18,11 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
 
 void dmi_field(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
                double *restrict D, double dmi_vector[18], int n_dmi_ngbs,
-               double dx, double dy, double dz,
-               int n, int *ngbs);
+	       double dx, double dy, double dz,
+	       int n, int *ngbs);
+
+void compute_exch_field_rkky_micro(double *m, double *field, double *energy, double *Ms_inv,
+                         double sigma, int nx, double ny, double nz, int z_bottom, int z_top);
 
 void compute_uniaxial_anis(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv, 
 	double *restrict Ku, double *restrict axis, int nx, int ny, int nz);

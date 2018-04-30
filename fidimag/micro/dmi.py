@@ -52,7 +52,8 @@ class DMI(Energy):
 
     D       :: DMI vector norm which can be specified as an int, float, (X * n)
                array (X=6 for bulk DMI and X=4 for interfacial DMI), (n) array
-               or spatially dependent scalar field function.
+               or spatially dependent scalar field function. The units are 
+               Joules / ( meter **2 ).
 
                int, float: D will have the same magnitude for every NN of the
                spins at every mesh node, given by this magnitude
