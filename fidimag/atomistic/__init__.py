@@ -10,3 +10,4 @@ from .dmi import DMI
 from .monte_carlo import MonteCarlo
 import fidimag.common.constant as const
 from .materials import UnitMaterial, Nickel
+from .demag_multipole import *
