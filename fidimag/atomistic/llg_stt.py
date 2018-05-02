@@ -23,12 +23,12 @@ class LLG_STT(AtomisticDriver):
           dt             2
                   ( 1 + a  )
 
-                        u  
+                        u
                   +  --------  s X [ (1 + a * b) (j . grad) s  - (b - a) s X (j . grad) s ]
                            2
                     ( 1 + a  )
 
-        
+
         with         g mu_B P
                 u =  --------
                      2 mu_s e
@@ -72,7 +72,8 @@ class LLG_STT(AtomisticDriver):
         self.jz_function = None
 
         # FIXME: change the u0 to spatial
-        v = self.mesh.dx * self.mesh.dy * self.mesh.dz * (self.mesh.unit_length ** 3)
+        v = self.mesh.dx * self.mesh.dy * \
+            self.mesh.dz * (self.mesh.unit_length ** 3)
         self.u0 = const.g_e * const.mu_B / (2 * const.c_e) * v
 
     def get_jx(self):
@@ -98,7 +99,6 @@ class LLG_STT(AtomisticDriver):
         self._jz[:] = helper.init_scalar(value, self.mesh)
 
     jz = property(get_jz, set_jz)
-
 
     def sundials_rhs(self, t, y, ydot):
         self.t = t
@@ -130,6 +130,6 @@ class LLG_STT(AtomisticDriver):
                                  self.field_stt,
                                  self._alpha,
                                  self.beta,
-                                 self.u0 * self.p / self.Ms_const,
+                                 self.u0 * self.p / self.mu_s_const,
                                  self.gamma,
                                  self.n)
