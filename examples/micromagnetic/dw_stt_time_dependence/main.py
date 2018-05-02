@@ -153,18 +153,20 @@ def excite_system(mesh):
     # Set the current in the x direction, in A / m
     # beta is the parameter in the STT torque
     def jx_func(pos, t):
-        return (-1e12 +  -0.1e12 * np.sin(t))
+        T = 1e-9
+        return (-1e12 +  -0.1e12 * np.sin(t/T))
 
     sim.driver.jx_function = jx_func
     sim.driver.beta = 0.01
 
     # The simulation will run for 5 ns and save
     # 500 snapshots of the system in the process
-    ts = np.linspace(0, 5e-9, 501)
+    ts = np.linspace(0, 10e-9, 1001)
 
     for t in ts:
         print('time', t)
         sim.driver.run_until(t)
+        print('j = {}'.format(sim.driver._jx[0]))
         sim.save_vtk()
         sim.save_m()
 
