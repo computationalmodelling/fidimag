@@ -8,11 +8,10 @@ import glob
 import re
 import sys
 
-#if sys.platform == 'darwin':
+# if sys.platform == 'darwin':
 #    from distutils import sysconfig
 #    vars = sysconfig.get_config_vars()
 #    vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
-
 
 
 if 'CC' in os.environ:
@@ -32,7 +31,7 @@ COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
-FMM_DIR = os.path.join(SRC_DIR, "atomistic", "lib", "demag_multipoles")
+FMM_DIR = os.path.join(SRC_DIR, "atomistic", "lib", "fmmlib")
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
@@ -51,6 +50,7 @@ def get_version():
                 return m.group(2)
     raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
 
+
 version = get_version()
 
 
@@ -61,6 +61,7 @@ def glob_cfiles(path, excludes, extension="*.c"):
         if not filename in tuple(excludes):
             cfiles.append(cfile)
     return cfiles
+
 
 sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
@@ -119,11 +120,12 @@ fmm_sources = []
 fmm_sources.append(os.path.join(FMM_DIR, 'fmmlib.pyx'))
 fmm_sources += glob_cfiles(FMM_DIR, excludes=[], extension="*.cpp")
 
+print(fmm_sources)
 
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
-com_args = ['-std=c99', '-O3']
+com_args = ['-O3']
 # rpath is the path relative to the compiled shared object files (e.g. clib.so, etc)
 # which the dynamic linker looks for the linked libraries (e.g. libsundials_*.so) in.
 # We need to set it relatively in order for it to be preserved if the parent directory is moved
@@ -153,7 +155,9 @@ if 'FFTW_DIR' in os.environ:
     com_inc.append(os.environ['FFTW_INC'])
 
 com_args_cpp = com_args.copy()
-com_args_cpp.append('std=c++14')
+com_args_cpp.append('-std=c++14')
+
+com_args.append('-std=c99')
 com_inc_cpp = com_inc.copy()
 com_link_cpp = com_link.copy()
 com_libs_cpp = com_libs.copy()
@@ -164,7 +168,7 @@ ext_modules = [
               sources=sources,
               include_dirs=com_inc,
               libraries=com_libs,
-	          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -172,7 +176,7 @@ ext_modules = [
               sources=common_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-	          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -271,6 +275,7 @@ ext_modules = [
               library_dirs=lib_paths_cpp, runtime_library_dirs=lib_paths_cpp,
               extra_compile_args=com_args_cpp,
               extra_link_args=com_link_cpp,
+              language="c++",
               )
 ]
 
