@@ -67,7 +67,9 @@ class LLG_STT(AtomisticDriver):
 
         self.p = 0.5
         self.beta = 0
-        self.update_j_fun = None
+        self.jx_function = None
+        self.jy_function = None
+        self.jz_function = None
 
         # FIXME: change the u0 to spatial
         v = self.mesh.dx * self.mesh.dy * self.mesh.dz * (self.mesh.unit_length ** 3)
@@ -97,39 +99,30 @@ class LLG_STT(AtomisticDriver):
 
     jz = property(get_jz, set_jz)
 
+
     def sundials_rhs(self, t, y, ydot):
-
         self.t = t
-
         # already synchronized when call this funciton
         # self.spin[:]=y[:]
-
         self.compute_effective_field(t)
+        if self.jx_function:
+            self.set_jx(self.jx_function, t)
+        if self.jy_function:
+            self.set_jy(self.jy_function, t)
+        if self.jz_function:
+            self.set_jz(self.jz_function, t)
 
-        if self.update_j_fun is not None:
-            clib.compute_stt_field(self.spin,
-                                   self.field_stt,
-                                   self._jx * self.update_j_fun(t),
-                                   self._jy * self.update_j_fun(t),
-                                   self._jz * self.update_j_fun(t),
-                                   self.mesh.dx * self.mesh.unit_length,
-                                   self.mesh.dy * self.mesh.unit_length,
-                                   self.mesh.dz * self.mesh.unit_length,
-                                   self.mesh.neighbours,
-                                   self.n
-                                   )
-        else:
-            clib.compute_stt_field(self.spin,
-                                   self.field_stt,
-                                   self._jx,
-                                   self._jy,
-                                   self._jz,
-                                   self.mesh.dx * self.mesh.unit_length,
-                                   self.mesh.dy * self.mesh.unit_length,
-                                   self.mesh.dz * self.mesh.unit_length,
-                                   self.mesh.neighbours,
-                                   self.n
-                                   )
+        clib.compute_stt_field(self.spin,
+                               self.field_stt,
+                               self._jx,
+                               self._jy,
+                               self._jz,
+                               self.mesh.dx * self.mesh.unit_length,
+                               self.mesh.dy * self.mesh.unit_length,
+                               self.mesh.dz * self.mesh.unit_length,
+                               self.mesh.neighbours,
+                               self.n
+                               )
 
         clib.compute_llg_stt_rhs(ydot,
                                  self.spin,
@@ -137,6 +130,6 @@ class LLG_STT(AtomisticDriver):
                                  self.field_stt,
                                  self._alpha,
                                  self.beta,
-                                 self.u0 * self.p / self.mu_s_const,
+                                 self.u0 * self.p / self.Ms_const,
                                  self.gamma,
                                  self.n)
