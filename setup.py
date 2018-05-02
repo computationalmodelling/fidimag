@@ -32,7 +32,7 @@ COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
-
+FMM_DIR = os.path.join(SRC_DIR, "atomistic", "lib", "demag_multipoles")
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
@@ -54,9 +54,9 @@ def get_version():
 version = get_version()
 
 
-def glob_cfiles(path, excludes):
+def glob_cfiles(path, excludes, extension="*.c"):
     cfiles = []
-    for cfile in glob.glob(os.path.join(path, "*.c")):
+    for cfile in glob.glob(os.path.join(path, extension)):
         filename = os.path.basename(cfile)
         if not filename in tuple(excludes):
             cfiles.append(cfile)
@@ -115,6 +115,10 @@ dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
 dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 
+fmm_sources = []
+fmm_sources.append(os.path.join(FMM_DIR, 'fmmlib.pyx'))
+fmm_sources += glob_cfiles(FMM_DIR, excludes=[], extension="*.cpp")
+
 
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
@@ -135,9 +139,6 @@ if 'icc' in os.environ['CC']:
     com_link.append('-openmp')
 else:
     com_args.append('-fopenmp')
-
-
-
     com_link.append('-fopenmp')
 
 
@@ -150,6 +151,13 @@ if 'SUNDIALS_DIR' in os.environ:
 if 'FFTW_DIR' in os.environ:
     lib_paths.append(os.environ['FFTW_DIR'])
     com_inc.append(os.environ['FFTW_INC'])
+
+com_args_cpp = com_args.copy()
+com_args_cpp.append('std=c++14')
+com_inc_cpp = com_inc.copy()
+com_link_cpp = com_link.copy()
+com_libs_cpp = com_libs.copy()
+lib_paths_cpp = lib_paths.copy()
 
 ext_modules = [
     Extension("fidimag.extensions.clib",
@@ -256,6 +264,14 @@ ext_modules = [
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
+    Extension("fidimag.extensions.fmm",
+              sources=fmm_sources,
+              include_dirs=com_inc_cpp,
+              libraries=com_libs_cpp,
+              library_dirs=lib_paths_cpp, runtime_library_dirs=lib_paths_cpp,
+              extra_compile_args=com_args_cpp,
+              extra_link_args=com_link_cpp,
+              )
 ]
 
 setup(
