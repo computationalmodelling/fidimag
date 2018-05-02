@@ -27,18 +27,18 @@ cdef extern from "micro_clib.h":
 
 def compute_exchange_field_micro(double[:] m,
                                  double[:] field,
-                                 double[:] energy[:],
-                                 double[:] Ms_inv[:],
+                                 double[:] energy,
+                                 double[:] Ms_inv,
                                  A, dx, dy, dz, n,
                                  int ngbs[:, :]):
     compute_exch_field_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], A,
                              dx, dy, dz, n, &ngbs[0, 0])
 
 
-def compute_exchange_field_micro_rkky(double[:] m[:],
-                                 double[:] field[:],
-                                 double[:] energy[:],
-                                 double[:] Ms_inv[:],
+def compute_exchange_field_micro_rkky(double[:] m,
+                                 double[:] field,
+                                 double[:] energy,
+                                 double[:] Ms_inv,
                                  sigma, nx, ny, nz, z_bottom, z_top):
     compute_exch_field_rkky_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], sigma,
                              nx, ny, nz, z_bottom, z_top)
