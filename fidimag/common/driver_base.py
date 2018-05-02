@@ -261,8 +261,6 @@ class DriverBase(object):
             except OSError:
                 pass
 
-
-
     def save_skx(self):
         """
         Save the skyrmion number density (sk number per mesh site)

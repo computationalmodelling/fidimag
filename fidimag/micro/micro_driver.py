@@ -40,7 +40,7 @@ class MicroDriver(DriverBase):
 
     """
 
-    def __init__(self, mesh, spin, Ms, field, pins,
+    def __init__(self, mesh, spin, Ms, Ms_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -56,6 +56,7 @@ class MicroDriver(DriverBase):
         self.mesh = mesh
         self.spin = spin
         self._Ms = Ms
+        self._Ms_inv = Ms_inv
 
         # Only for LLG STT: (??)
         self.Ms_const = 0

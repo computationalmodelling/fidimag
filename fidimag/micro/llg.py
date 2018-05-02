@@ -28,7 +28,7 @@ class LLG(MicroDriver):
 
     """
 
-    def __init__(self, mesh, spin, Ms, field, pins,
+    def __init__(self, mesh, spin, Ms, Ms_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -37,7 +37,7 @@ class LLG(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLG, self).__init__(mesh, spin, Ms, field,
+        super(LLG, self).__init__(mesh, spin, Ms, Ms_inv, field,
                                   pins, interactions, name,
                                   data_saver,
                                   integrator=integrator,
