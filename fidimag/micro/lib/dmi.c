@@ -260,10 +260,10 @@
  *                 which are -x, +x, -y and +y
  *
  */
-void dmi_field(double *m, double *field, double *energy, double *Ms_inv,
-               double *D, double dmi_vector[18], int n_dmi_ngbs,
+void dmi_field(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
+               double *restrict D, double dmi_vector[18], int n_dmi_ngbs,
                double dx, double dy, double dz,
-               int n, int *ngbs) {
+               int n, int *restrict ngbs) {
 
     /* These are for the DMI prefactor or coefficient */
     double dxs[6] = {dx, dx, dy, dy, dz, dz};

@@ -6,6 +6,8 @@ np.import_array()  # don't remove or you'll segfault
 from libc.string cimport memcpy
 import sys
 
+from cvodedecs cimport *
+
 cdef extern from "../../atomistic/lib/clib.h":
     void normalise(double * m, int nxyz)
 

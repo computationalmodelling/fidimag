@@ -66,19 +66,19 @@ typedef struct {
 } fft_demag_plan;
 
 fft_demag_plan *create_plan(void);
-void finalize_plan(fft_demag_plan *plan);
+void finalize_plan(fft_demag_plan *restrict plan);
 void init_plan(fft_demag_plan *plan, double dx, double dy,
 		double dz, int nx, int ny, int nz);
-void compute_dipolar_tensors(fft_demag_plan *plan); 
-void compute_demag_tensors(fft_demag_plan *plan);
-void create_fftw_plan(fft_demag_plan *plan);
+void compute_dipolar_tensors(fft_demag_plan *restrict plan); 
+void compute_demag_tensors(fft_demag_plan *restrict plan);
+void create_fftw_plan(fft_demag_plan *restrict plan);
 
-void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double *tensors, double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, double dipolar_radius);
-void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors);
+void compute_demag_tensors_2dpbc(fft_demag_plan *restrict plan, double *restrict tensors, double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, double dipolar_radius);
+void fill_demag_tensors_c(fft_demag_plan *restrict plan, double *restrict tensors);
 
-void compute_fields(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
-void exact_compute(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
-double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field);
+void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double *mu_s, double *restrict field);
+void exact_compute(fft_demag_plan *restrict plan, double *restrict spin, double *mu_s, double *restrict field);
+double compute_demag_energy(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field);
 
 
 

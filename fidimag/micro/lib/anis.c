@@ -1,8 +1,8 @@
 #include "micro_clib.h"
 
 
-void compute_uniaxial_anis(double *m, double *field, double *energy, double *Ms_inv, 
-	double *Ku, double *axis, int nx, int ny, int nz) {
+void compute_uniaxial_anis(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv, 
+	double *restrict Ku, double *restrict axis, int nx, int ny, int nz) {
 	
 	int n = nx * ny * nz;
 

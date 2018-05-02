@@ -27,8 +27,8 @@ boundaries
 
 */
 
-void dmi_field_bulk(double *spin, double *field,
-                    double *energy, double *_D, int *ngbs, int nxyz, int n_ngbs) {
+void dmi_field_bulk(double *restrict spin, double *restrict field,
+                    double *restrict energy, double *restrict _D, int *restrict ngbs, int nxyz, int n_ngbs) {
 
     /* Bulk DMI field and energy computation
      *
@@ -112,8 +112,8 @@ void dmi_field_bulk(double *spin, double *field,
     }
 }
 
-void dmi_field_interfacial_atomistic(double *spin, double *field, double *energy,
-    double D, int *ngbs, int n, int n_ngbs, int n_ngbs_dmi, double *DMI_vec) {
+void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict field, double *restrict energy,
+    double D, int *restrict ngbs, int n, int n_ngbs, int n_ngbs_dmi, double *restrict DMI_vec) {
     
     /* Interfacial DMI field and energy computation
      *
@@ -217,7 +217,7 @@ inline double single_energy_z(double D, double Si[3], double Sj[3]){
     return tz;
 }
 
-double dmi_energy(double *spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
+double dmi_energy(double *restrict spin, double D, int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
 	int nyz = ny * nz;
 	int n1 = nx * nyz, n2 = 2 * n1;

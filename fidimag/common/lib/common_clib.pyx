@@ -1,6 +1,3 @@
-import numpy
-cimport numpy as np
-np.import_array()
 
 # -----------------------------------------------------------------------------
 
@@ -29,62 +26,110 @@ cdef extern from "common_clib.h":
                      double *alpha, int *pins, double *a_J,
                      double beta, double gamma, int n)
 
+    # -------------------------------------------------------------------------
+    # From steepest_descent.c
+
+    void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
+                         double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                         int* pins, int n)
+
+    void sd_compute_step (double *spin, double *spin_last, double *magnetisation, 
+                          double *field,
+                          double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                          int *pins, int n, int counter, double tmin, double tmax)
+
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-def compute_llg_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                    np.ndarray[double, ndim=1, mode="c"] spin,
-                    np.ndarray[double, ndim=1, mode="c"] field,
-                    np.ndarray[double, ndim=1, mode="c"] alpha,
-                    np.ndarray[int, ndim=1, mode="c"] pins,
+def compute_llg_rhs(double [:] dm_dt,
+                    double [:] spin,
+                    double [:] field,
+                    double [:] alpha,
+                    int [:] pins,
                     gamma, n, do_precession, default_c):
     llg_rhs(&dm_dt[0], &spin[0], &field[0], &alpha[0], &pins[0],
             gamma, n, do_precession, default_c)
 
 
-def compute_llg_jtimes(np.ndarray[double, ndim=1, mode="c"] jtn,
-                       np.ndarray[double, ndim=1, mode="c"] m,
-                       np.ndarray[double, ndim=1, mode="c"] field,
-                       np.ndarray[double, ndim=1, mode="c"] mp,
-                       np.ndarray[double, ndim=1, mode="c"] field_p,
-                       np.ndarray[double, ndim=1, mode="c"] alpha,
-                       np.ndarray[int, ndim=1, mode="c"] pins,
+def compute_llg_jtimes(double [:] jtn,
+                       double [:] m,
+                       double [:] field,
+                       double [:] mp,
+                       double [:] field_p,
+                       double [:] alpha,
+                       int [:] pins,
                        gamma, n, do_precession, default_c):
     llg_rhs_jtimes(&jtn[0], &m[0], &field[0], &mp[0], &field_p[0],
                    &alpha[0], &pins[0], gamma, n, do_precession, default_c)
 
 # -----------------------------------------------------------------------------
 
-def compute_stt_field(np.ndarray[double, ndim=1, mode="c"] spin,
-                      np.ndarray[double, ndim=1, mode="c"] field,
-                      np.ndarray[double, ndim=1, mode="c"] jx,
-                      np.ndarray[double, ndim=1, mode="c"] jy,
-                      np.ndarray[double, ndim=1, mode="c"] jz,
+def compute_stt_field(double [:] spin,
+                      double [:] field,
+                      double [:] jx,
+                      double [:] jy,
+                      double [:] jz,
                       dx, dy, dz,
-                      np.ndarray[int, ndim=2, mode="c"] ngbs,
+                      int [:, :] ngbs,
                       n
                       ):
     compute_stt_field_c(&spin[0], &field[0], &jx[0], &jy[0],&jz[0],
                         dx, dy, dz, &ngbs[0, 0], n)
 
-def compute_llg_stt_rhs(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                        np.ndarray[double, ndim=1, mode="c"] spin,
-                        np.ndarray[double, ndim=1, mode="c"] field,
-                        np.ndarray[double, ndim=1, mode="c"] field_stt,
-                        np.ndarray[double, ndim=1, mode="c"] alpha,
+def compute_llg_stt_rhs(double [:] dm_dt,
+                        double [:] spin,
+                        double [:] field,
+                        double [:] field_stt,
+                        double [:] alpha,
                         beta, u0, gamma, n):
     llg_stt_rhs(&dm_dt[0], &spin[0], &field[0], &field_stt[0],
                 &alpha[0], beta, u0, gamma, n)
 
 
 
-def compute_llg_stt_cpp(np.ndarray[double, ndim=1, mode="c"] dm_dt,
-                        np.ndarray[double, ndim=1, mode="c"] spin,
-                        np.ndarray[double, ndim=1, mode="c"] field,
-                        np.ndarray[double, ndim=1, mode="c"] p,
-                        np.ndarray[double, ndim=1, mode="c"] alpha,
-       	                np.ndarray[int, ndim=1, mode="c"] pin,
-                        np.ndarray[double, ndim=1, mode="c"] a_J,
+def compute_llg_stt_cpp(double [:] dm_dt,
+                        double [:] spin,
+                        double [:] field,
+                        double [:] p,
+                        double [:] alpha,
+                        int [:] pin,
+                        double [:] a_J,
                         beta, gamma, n):
     llg_stt_cpp(&dm_dt[0], &spin[0], &field[0], &p[0],
                 &alpha[0], &pin[0], &a_J[0], beta, gamma, n)
+
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+
+def compute_sd_spin(double [:] spin,
+                    double [:] spin_last,
+                    double [:] magnetisation,
+                    double [:] mxH,
+                    double [:] mxmxH,
+                    double [:] mxmxH_last,
+                    double [:] tau,
+                    int [:] pins,
+                    n):
+
+    sd_update_spin(&spin[0], &spin_last[0], &magnetisation[0], &mxH[0],
+                   &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0], n
+                   )
+
+def compute_sd_step(double [:] spin,
+                    double [:] spin_last,
+                    double [:] magnetisation,
+                    double [:] field,
+                    double [:] mxH,
+                    double [:] mxmxH,
+                    double [:] mxmxH_last,
+                    double [:] tau,
+                    int [:] pins,
+                    n, counter, tmin, tmax):
+
+    sd_compute_step(&spin[0], &spin_last[0], &magnetisation[0], 
+                    &field[0], &mxH[0],
+                    &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0],
+                    n, counter, tmin, tmax
+                    )
