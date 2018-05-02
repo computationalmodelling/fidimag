@@ -169,7 +169,6 @@ def excite_system(mesh):
         sim.save_m()
 
 if __name__ == '__main__':
-
     # We will crate a mesh with 1000 elements of elements
     # in the x direction, and 1 along y and z
     # (so we have a 1D system)
@@ -182,7 +181,7 @@ if __name__ == '__main__':
     deal_plot([['m0.npy', 'mx']], 'initial_state.pdf')
 
     # Now we excite the system with the current
-#    excite_system(mesh)
+    excite_system(mesh)
 
     # Plot the dynamics of a single spin
     deal_plot_dynamics(0)
