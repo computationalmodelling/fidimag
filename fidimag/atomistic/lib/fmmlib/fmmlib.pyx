@@ -30,14 +30,21 @@ cdef vector[Particle] sim_to_particles(mesh, mu_s):
     Convert the positions of the lattice spins to C++ Particle objects
     for the building of the trees.
     """
-    pass
+    ids = []
+    for k in range(mesh.nz):
+        for j in range(mesh.ny):
+            for i in range(mesh.nx):
+                id = k * mesh.nx * mesh.ny + j * mesh.nx + i
+                // Check that the spin is not a 'ghost' spin
+                if mus[id] != 0:
+                    ids.append(id)
+                
+
 
 
 
 def build_tree(mesh, mus):
     pass
-    # particles = 
-    # cells = build_tree()
 
 
 
