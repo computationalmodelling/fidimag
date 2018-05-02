@@ -1,10 +1,8 @@
-<<<<<<< HEAD
 import numpy as np
 cimport numpy as np
 np.import_array()
-=======
-import numpy
->>>>>>> origin/master
+
+
 
 cdef extern from "micro_clib.h":
     void compute_exch_field_micro(double *m, double *field,
