@@ -115,9 +115,22 @@ class TimeZeeman(Zeeman):
 
     """
     The time dependent external field, also can vary with space
+
+    The function time_fun must be a function which takes two arguments:
+
+    def time_fun(pos, t):
+        x, y, z = pos
+        # compute Bx, By, Bz as a function of x y, z and t.
+        Bx = ...
+        By = ...
+        Bz = ...
+        return (Bx, By, Bz)
+
+
     """
 
     def __init__(self, H0, time_fun, name='TimeZeeman'):
+
         self.H0 = H0
         self.time_fun = time_fun
         self.name = name
@@ -128,5 +141,8 @@ class TimeZeeman(Zeeman):
         self.H_init = self.field.copy()
 
     def compute_field(self, t=0, spin=None):
-        self.field[:] = self.H_init[:] * self.time_fun(t)
+        self.field[:] = helper.init_vector(self.time_fun,
+                                           self.mesh,
+                                           False,
+                                           t)
         return self.field
