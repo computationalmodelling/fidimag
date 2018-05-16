@@ -51,7 +51,7 @@ class LLG_STT_CPP(MicroDriver):
 
         self.a_J = 1
         self.beta = 0
-        self.J_time_fun = None
+        self.j_function = None
         self.p = (0,0,1)
 
     def get_p(self):
@@ -78,25 +78,16 @@ class LLG_STT_CPP(MicroDriver):
 
         self.compute_effective_field(t)
 
-        if self.J_time_fun is not None:
-            clib.compute_llg_stt_cpp(ydot,
-                                     self.spin,
-                                     self.field,
-                                     self._p,
-                                     self.alpha,
-                                     self._pins,
-                                     self._a_J*self.J_time_fun(t),
-                                     self.beta,
-                                     self.gamma,
-                                     self.n)
-        else:
-            clib.compute_llg_stt_cpp(ydot,
-                                     self.spin,
-                                     self.field,
-                                     self._p,
-                                     self.alpha,
-                                     self._pins,
-                                     self._a_J,
-                                     self.beta,
-                                     self.gamma,
-                                     self.n)
+        if self.j_function is not None:
+            self.set_a_J(self.j_function)
+
+        clib.compute_llg_stt_cpp(ydot,
+                                 self.spin,
+                                 self.field,
+                                 self._p,
+                                 self.alpha,
+                                 self._pins,
+                                 self._a_J,
+                                 self.beta,
+                                 self.gamma,
+                                 self.n)

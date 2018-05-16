@@ -24,7 +24,7 @@ def normalise(a):
     a.shape = (-1,)
 
 
-def init_vector(m0, mesh, norm=False):
+def init_vector(m0, mesh, norm=False, *args):
 
     n = mesh.n
 
@@ -36,7 +36,7 @@ def init_vector(m0, mesh, norm=False):
 
     elif hasattr(m0, '__call__'):
         for i in range(n):
-            v = m0(mesh.coordinates[i])
+            v = m0(mesh.coordinates[i], *args)
             if len(v) != 3:
                 raise Exception(
                     'The length of the value in init_vector method must be 3.')
@@ -58,7 +58,7 @@ def init_vector(m0, mesh, norm=False):
     return spin
 
 
-def init_scalar(value, mesh):
+def init_scalar(value, mesh, *args):
 
     n = mesh.n
 
@@ -68,7 +68,7 @@ def init_scalar(value, mesh):
         mesh_v[:] = value
     elif hasattr(value, '__call__'):
         for i in range(n):
-            mesh_v[i] = value(mesh.coordinates[i])
+            mesh_v[i] = value(mesh.coordinates[i], *args)
 
     elif isinstance(value, np.ndarray):
         if value.shape == mesh_v.shape:
