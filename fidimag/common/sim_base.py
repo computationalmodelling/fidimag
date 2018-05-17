@@ -11,6 +11,7 @@ class SimBase(object):
     atomistic simulations
 
     """
+
     def __init__(self, mesh, name):
 
         self.name = name
@@ -214,6 +215,44 @@ class SimBase(object):
             raise ValueError("Failed to find the interaction with name '{0}', "
                              "available interactions: {1}.".format(
                                  name, [x.name for x in self.interactions]))
+
+    def remove(self, name):
+        """
+        Removes an interaction from a simulation.
+
+        This is useful because it reduces the run-time
+        if the interaction calculation time is substantial.
+        """
+
+        interaction = None
+        # First we remove it from the list of interactions
+        print(self.interactions)
+        for i, intn in enumerate(self.interactions):
+            print(intn.name)
+            if intn.name == name:
+                interaction = self.interactions.pop(i)
+                break
+
+        if not interaction:
+            raise ValueError("Could not find the "
+                             "interaction with name {}".format(name))
+
+        # Next, we need to change the data saver entities.
+        # We don't want to remove the relevant interaction
+        # completely because if this is done, the table
+        # would be incorrect. What we need to do is therefore
+        # replace the lambda functions with dummy ones which
+        # just return zeros; for example.if no Zeeman intn then
+        # the Zeeman energy and field are zero anyway.
+        self.data_saver.entities['E_{}'.format(name)]['get'] = lambda sim: 0
+        # We don't save field by default, so need to check if
+        # save field is selected. Easiest just to use a try/except
+        # block here; not a performance critical function.
+        try:
+            self.data_saver.entities[name]['get'] = \
+                lambda sim: np.array([0.0, 0.0, 0.0])
+        except:
+            pass
 
     def skyrmion_number(self):
         pass
