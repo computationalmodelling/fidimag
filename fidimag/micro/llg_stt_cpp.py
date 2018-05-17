@@ -64,8 +64,8 @@ class LLG_STT_CPP(MicroDriver):
     def get_a_J(self):
         return self._a_J
 
-    def set_a_J(self, value):
-        self._a_J[:] = helper.init_scalar(value, self.mesh)
+    def set_a_J(self, value, *args):
+        self._a_J[:] = helper.init_scalar(value, self.mesh, *args)
 
     a_J = property(get_a_J, set_a_J)
 
@@ -79,7 +79,7 @@ class LLG_STT_CPP(MicroDriver):
         self.compute_effective_field(t)
 
         if self.j_function is not None:
-            self.set_a_J(self.j_function)
+            self.set_a_J(self.j_function, t)
 
         clib.compute_llg_stt_cpp(ydot,
                                  self.spin,
