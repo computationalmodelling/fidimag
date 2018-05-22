@@ -25,47 +25,43 @@ def normalise(a):
 
 
 def init_vector(m0, mesh, norm=False, *args):
-
     n = mesh.n
-
-    spin = np.zeros((n, 3))
+    field = np.zeros((n, 3))
 
     if isinstance(m0, list) or isinstance(m0, tuple):
-        spin[:, :] = m0
-        spin = np.reshape(spin, 3 * n, order='C')
+        field[:, :] = m0
+        field = np.reshape(field, 3 * n, order='C')
 
     elif hasattr(m0, '__call__'):
+        # Check only once that the function returns appropriately...
+        v = m0(mesh.coordinates[0], *args)
+        if len(v) != 3:
+            raise Exception(
+                'The length of the value in init_vector method must be 3.')
         for i in range(n):
-            v = m0(mesh.coordinates[i], *args)
-            if len(v) != 3:
-                raise Exception(
-                    'The length of the value in init_vector method must be 3.')
-            spin[i, :] = v[:]
-        spin = np.reshape(spin, 3 * n, order='C')
+            field[i, :] = m0(mesh.coordinates[i], *args)
+        field = np.reshape(field, 3 * n, order='C')
 
     elif isinstance(m0, np.ndarray):
         if m0.shape == (3, ):
-            spin[:] = m0  # broadcasting
+            field[:] = m0  # broadcasting
         else:
-            spin.shape = (-1)
-            spin[:] = m0  # overwriting the whole thing
-
-    spin.shape = (-1,)
-
+            field.shape = (-1)
+            field[:] = m0  # overwriting the whole thing
+    field.shape = (-1,)
     if norm:
-        normalise(spin)
+        normalise(field)
 
-    return spin
+    return field
 
 
 def init_scalar(value, mesh, *args):
-
     n = mesh.n
-
     mesh_v = np.zeros(n)
 
     if isinstance(value, (int, float)):
         mesh_v[:] = value
+    
     elif hasattr(value, '__call__'):
         for i in range(n):
             mesh_v[i] = value(mesh.coordinates[i], *args)
