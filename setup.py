@@ -13,8 +13,6 @@ import sys
 #    vars = sysconfig.get_config_vars()
 #    vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
-
-
 if 'CC' in os.environ:
     print("Using CC={}".format(os.environ['CC']))
 else:
@@ -32,6 +30,7 @@ COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
+USER_DIR = os.path.join(SRC_DIR, "user_ext")
 
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
@@ -65,6 +64,13 @@ def glob_cfiles(path, excludes):
 sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
 sources += glob_cfiles(ATOM_DIR, excludes=["clib.c"])
+
+user_sources = []
+
+user_cy = glob.glob(os.path.join(USER_DIR, '*.pyx'))
+print("Found user Cython files: {}".format(user_cy))
+user_sources += user_cy
+sources += glob_cfiles(USER_DIR, excludes=user_cy)
 
 common_sources = []
 common_sources.append(os.path.join(COMMON_DIR, 'common_clib.pyx'))
@@ -256,6 +262,15 @@ ext_modules = [
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
+    Extension("fidimag.extensions.user",
+              sources=user_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+
 ]
 
 setup(

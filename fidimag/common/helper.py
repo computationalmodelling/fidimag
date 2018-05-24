@@ -8,75 +8,56 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import colorConverter
 from matplotlib.collections import PolyCollection, LineCollection
+from numba import jit
+from fidimag.extensions.common_clib import normalise, init_scalar, init_vector #, \
+    # init_vector_func_fast
+
+# @jit
+# def init_vector(m0, mesh, norm=False, *args):
+
+#     n = mesh.n
+
+#     spin = np.zeros((n, 3))
+
+#     if isinstance(m0, list) or isinstance(m0, tuple):
+#         spin[:, :] = m0
+#         spin = np.reshape(spin, 3 * n, order='C')
+
+#     elif hasattr(m0, '__call__'):
+#         v = m0(mesh.coordinates[0], *args)
+#         if len(v) != 3:
+#             raise Exception(
+#                 'The length of the value in init_vector method must be 3.')
+#         for i in range(n):
+#             spin[i, :] = m0(mesh.coordinates[i], *args)
+#         spin = np.reshape(spin, 3 * n, order='C')
+
+#     elif isinstance(m0, np.ndarray):
+#         if m0.shape == (3, ):
+#             spin[:] = m0  # broadcasting
+#         else:
+#             spin.shape = (-1)
+#             spin[:] = m0  # overwriting the whole thing
+
+#     spin.shape = (-1,)
+
+#     if norm:
+#         normalise(spin)
+
+#     return spin
 
 
-def normalise(a):
-    """
-    normalise the given array a
-    """
-    a.shape = (-1, 3)
-    b = np.sqrt(a[:, 0] ** 2 + a[:, 1] ** 2 + a[:, 2] ** 2)
-    ids = (b == 0)
-    b[ids] = 1.0
-    a[:, 0] /= b
-    a[:, 1] /= b
-    a[:, 2] /= b
-    a.shape = (-1,)
+# @jit
+# def init_vector_func_fast(func, mesh, arr, norm=False, *args):
+#     # v = m0(mesh.coordinates[0], *args)
+#     # if len(v) != 3:
+#     #     raise Exception(
+#     #         'The length of the value in init_vector method must be 3.')
+#     m0(mesh, arr, *args)
 
-
-def init_vector(m0, mesh, norm=False, *args):
-
-    n = mesh.n
-
-    spin = np.zeros((n, 3))
-
-    if isinstance(m0, list) or isinstance(m0, tuple):
-        spin[:, :] = m0
-        spin = np.reshape(spin, 3 * n, order='C')
-
-    elif hasattr(m0, '__call__'):
-        for i in range(n):
-            v = m0(mesh.coordinates[i], *args)
-            if len(v) != 3:
-                raise Exception(
-                    'The length of the value in init_vector method must be 3.')
-            spin[i, :] = v[:]
-        spin = np.reshape(spin, 3 * n, order='C')
-
-    elif isinstance(m0, np.ndarray):
-        if m0.shape == (3, ):
-            spin[:] = m0  # broadcasting
-        else:
-            spin.shape = (-1)
-            spin[:] = m0  # overwriting the whole thing
-
-    spin.shape = (-1,)
-
-    if norm:
-        normalise(spin)
-
-    return spin
-
-
-def init_scalar(value, mesh, *args):
-
-    n = mesh.n
-
-    mesh_v = np.zeros(n)
-
-    if isinstance(value, (int, float)):
-        mesh_v[:] = value
-    elif hasattr(value, '__call__'):
-        for i in range(n):
-            mesh_v[i] = value(mesh.coordinates[i], *args)
-
-    elif isinstance(value, np.ndarray):
-        if value.shape == mesh_v.shape:
-            mesh_v[:] = value[:]
-        else:
-            raise ValueError("Array size must match the mesh size")
-
-    return mesh_v
+#     if norm:
+#         normalise(spin)
+#     return arr
 
 
 def extract_data(mesh, npys, pos, comp='x'):
@@ -132,7 +113,7 @@ def plot_m(mesh, npy, comp='x', based=None):
         data = data - based
 
     data.shape = (-1, 3)
-    m = data[:,cmpi]
+    m = data[:, cmpi]
 
     nx = mesh.nx
     ny = mesh.ny
@@ -140,7 +121,7 @@ def plot_m(mesh, npy, comp='x', based=None):
 
     m.shape = (nz, ny, nx)
 
-    m2 = m[0,:,:]
+    m2 = m[0, :, :]
 
     fig = plt.figure()
     # norm=color.Normalize(-1,1)
@@ -211,7 +192,7 @@ def plot_energy_3d(name, key_steps=50, filename=None):
     if each_n_step < 1:
         each_n_step = 1
 
-    cc = lambda arg: colorConverter.to_rgba(arg, alpha=0.6)
+    def cc(arg): return colorConverter.to_rgba(arg, alpha=0.6)
     colors = [cc('r'), cc('g'), cc('b'), cc('y')]
     facecolors = []
     line_data = []
@@ -245,5 +226,6 @@ def plot_energy_3d(name, key_steps=50, filename=None):
 
 
 def compute_RxRy(mesh, spin, nx_start=0, nx_stop=-1, ny_start=0, ny_stop=-1):
-    res = clib.compute_RxRy(spin, mesh.nx, mesh.ny, mesh.nz, nx_start, nx_stop, ny_start, ny_stop)
+    res = clib.compute_RxRy(spin, mesh.nx, mesh.ny,
+                            mesh.nz, nx_start, nx_stop, ny_start, ny_stop)
     return res
