@@ -201,3 +201,33 @@ def init_vector(m0, mesh, norm=False, *args):
         normalise(spin)
 
     return spin
+
+def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
+    """
+    An unsafe method of setting the field. Depends on
+    the setter code being memory safe.
+
+    m0 must be a Python function that takes the mesh
+    and field as arguments. Within that, the user
+    must handle evaluating the function at different
+    coordinate points. It needs to be able to handle
+    the spatial dependence itself, and write the
+    field valuse into the field array. This can 
+    be written with Cython which will give much
+    better performance. For example:
+
+    from libc.math cimport sin
+
+    def fast_sin_init(mesh, double[:] field, *params):
+        t, axis, Bmax, fc = params
+        for i in range(mesh.n):
+            field[3*i+0] = Bmax * axis[0] * sin(fc*t)
+            field[3*i+1] = Bmax * axis[1] * sin(fc*t)
+            field[3*i+2] = Bmax * axis[2] * sin(fc*t)
+
+    """
+    # field = np.zeros(mesh.n * 3)
+    m0(mesh, field, *args)
+    if norm:
+        normalise(field)
+    return field

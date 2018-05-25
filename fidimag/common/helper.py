@@ -9,55 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import colorConverter
 from matplotlib.collections import PolyCollection, LineCollection
 from numba import jit
-from fidimag.extensions.common_clib import normalise, init_scalar, init_vector #, \
-    # init_vector_func_fast
-
-# @jit
-# def init_vector(m0, mesh, norm=False, *args):
-
-#     n = mesh.n
-
-#     spin = np.zeros((n, 3))
-
-#     if isinstance(m0, list) or isinstance(m0, tuple):
-#         spin[:, :] = m0
-#         spin = np.reshape(spin, 3 * n, order='C')
-
-#     elif hasattr(m0, '__call__'):
-#         v = m0(mesh.coordinates[0], *args)
-#         if len(v) != 3:
-#             raise Exception(
-#                 'The length of the value in init_vector method must be 3.')
-#         for i in range(n):
-#             spin[i, :] = m0(mesh.coordinates[i], *args)
-#         spin = np.reshape(spin, 3 * n, order='C')
-
-#     elif isinstance(m0, np.ndarray):
-#         if m0.shape == (3, ):
-#             spin[:] = m0  # broadcasting
-#         else:
-#             spin.shape = (-1)
-#             spin[:] = m0  # overwriting the whole thing
-
-#     spin.shape = (-1,)
-
-#     if norm:
-#         normalise(spin)
-
-#     return spin
-
-
-# @jit
-# def init_vector_func_fast(func, mesh, arr, norm=False, *args):
-#     # v = m0(mesh.coordinates[0], *args)
-#     # if len(v) != 3:
-#     #     raise Exception(
-#     #         'The length of the value in init_vector method must be 3.')
-#     m0(mesh, arr, *args)
-
-#     if norm:
-#         normalise(spin)
-#     return arr
+from fidimag.extensions.common_clib import normalise, init_scalar, init_vector, init_vector_func_fast
 
 
 def extract_data(mesh, npys, pos, comp='x'):
