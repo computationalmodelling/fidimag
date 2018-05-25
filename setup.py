@@ -1,6 +1,6 @@
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
+# from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 import numpy
 import os
@@ -30,7 +30,8 @@ COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
-USER_DIR = os.path.join(SRC_DIR, "user_ext")
+USER_DIR = os.path.join(SRC_DIR, "user")
+print(USER_DIR)
 
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
@@ -270,7 +271,6 @@ ext_modules = [
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
-
 ]
 
 setup(
