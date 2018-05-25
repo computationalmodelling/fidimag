@@ -4,6 +4,7 @@ from fidimag.common.constant import mu_0
 import fidimag.common.helper as helper
 import inspect
 
+
 class Zeeman(object):
 
     """
@@ -153,10 +154,10 @@ class TimeZeeman(Zeeman):
         self.field = np.zeros(3 * self.n)
 
     def compute_field(self, t=0, spin=None):
-        self.field[:] = helper.init_vector(self.time_fun,
-                                           self.mesh,
-                                           False,
-                                           t)
+        self.field[:] = helper.init_vector_func_fast(self.time_fun,
+                                                     self.mesh,
+                                                     False,
+                                                     t)
         return self.field
 
 
@@ -182,6 +183,7 @@ class SimpleTimeZeeman(Zeeman):
         self.time_fun = time_fun
         self.name = name
         self.jac = True
+        self._v = np.zeros(3)
 
     def setup(self, mesh, spin, Ms):
         self.mesh = mesh
@@ -206,4 +208,58 @@ class SimpleTimeZeeman(Zeeman):
         self.field[0::3] = v[0]
         self.field[1::3] = v[1]
         self.field[2::3] = v[2]
+        #self.field[::3] = v
+        return self.field
+
+
+class TimeZeemanFast(Zeeman):
+
+    """
+    The time dependent external field, also can vary with space
+
+    The function time_fun must be a function which takes two arguments:
+
+    def time_fun(mesh, t):
+        x, y, z = pos
+        # compute Bx, By, Bz as a function of x y, z and t.
+        Bx = ...
+        By = ...
+        Bz = ...
+        return (Bx, By, Bz)
+
+    Add the function to the user modules and recompile.
+
+
+    """
+
+    def __init__(self, time_fun, extra_args, name='TimeZeeman'):
+        self.time_fun = time_fun
+        self.name = name
+        self.jac = True
+        self.extra_args = extra_args
+
+    def setup(self, mesh, spin, Ms):
+        self.mesh = mesh
+        self.spin = spin
+        self.n = mesh.n
+
+        self.Ms = Ms
+        self.Ms_long = np.zeros(3 * mesh.n)
+
+        # TODO: Check if it is necessary to define a 3D matrix for
+        # the Ms vectors. Maybe there is a way that uses less memory
+        # (see the calculation in the *compute_energy* function)
+        self.Ms_long.shape = (3, -1)
+        for i in range(mesh.n):
+            self.Ms_long[:, i] = Ms[i]
+
+        self.Ms_long.shape = (-1,)
+        self.field = np.zeros(3 * self.n)
+
+    def compute_field(self, t=0, spin=None):
+        helper.init_vector_func_fast(self.time_fun,
+                                     self.mesh,
+                                     self.field,
+                                     False,
+                                     t, *self.extra_args)
         return self.field
