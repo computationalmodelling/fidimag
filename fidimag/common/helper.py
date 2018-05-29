@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import colorConverter
 from matplotlib.collections import PolyCollection, LineCollection
-from numba import jit
 from fidimag.extensions.common_clib import normalise, init_scalar, init_vector, init_vector_func_fast
 
 
