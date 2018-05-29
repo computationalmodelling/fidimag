@@ -7,11 +7,14 @@ import os
 import glob
 import re
 import sys
-
 #if sys.platform == 'darwin':
 #    from distutils import sysconfig
 #    vars = sysconfig.get_config_vars()
 #    vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
+
+class BuildError(Exception):
+    pass
+
 
 if 'CC' in os.environ:
     print("Using CC={}".format(os.environ['CC']))
@@ -66,12 +69,7 @@ sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
 sources += glob_cfiles(ATOM_DIR, excludes=["clib.c"])
 
-user_sources = []
 
-user_cy = glob.glob(os.path.join(USER_DIR, '*.pyx'))
-print("Found user Cython files: {}".format(user_cy))
-user_sources += user_cy
-sources += glob_cfiles(USER_DIR, excludes=user_cy)
 
 common_sources = []
 common_sources.append(os.path.join(COMMON_DIR, 'common_clib.pyx'))
@@ -263,15 +261,29 @@ ext_modules = [
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
-    Extension("fidimag.extensions.user",
-              sources=user_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
 ]
+
+
+for folder in glob.glob(os.path.join(USER_DIR, '*/')):
+    module_name = folder.split('/')[-2]
+    print(folder.split('/'))
+    print('Found User Module: {}'.format(module_name))
+    user_sources = glob.glob(folder + '/*.pyx')
+    print('\tFound Cython sources: {}'.format(user_sources))
+    if len(user_sources) != 1:
+        raise BuildError("User Modules are only allowed one Cython .pyx file")
+    user_sources += glob_cfiles(folder, excludes=user_sources)
+    ext_modules.append(
+       Extension("fidimag.extensions.user.{}".format(module_name),
+          sources=user_sources,
+          include_dirs=com_inc,
+          libraries=com_libs,
+          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+          extra_compile_args=com_args,
+          extra_link_args=com_link,
+       ),
+    )
+
 
 setup(
     name='fidimag',
