@@ -1,5 +1,4 @@
 import numpy as np
-
 from fidimag.common.constant import mu_0
 import fidimag.common.helper as helper
 import inspect
@@ -113,7 +112,6 @@ class Zeeman(object):
 
 
 class TimeZeeman(Zeeman):
-
     """
     The time dependent external field, also can vary with space
 
@@ -127,13 +125,31 @@ class TimeZeeman(Zeeman):
         Bz = ...
         return (Bx, By, Bz)
 
+    Extra arguments can be passed to the function to allow more
+    general code. These must be set when initialising the TimeZeeman class. For
+    example:
+
+    freq = 10e9
+
+    def time_fun(pos, t, frequency):
+        x, y, z = pos
+        if x < 50:
+            return (0.0, 0.0, np.sin(frequency*t))
+        else:
+            return (0.0, 0.0, 0.0)
+
+    zee = TimeZeeman(time_fun, extra_args=[freq])
+
+    These arguments are then passed into the time_fun code function in
+    order.
 
     """
 
-    def __init__(self, time_fun, name='TimeZeeman'):
+    def __init__(self, time_fun, extra_args=[], name='TimeZeeman'):
         self.time_fun = time_fun
         self.name = name
         self.jac = True
+        self.extra_args = extra_args
 
     def setup(self, mesh, spin, Ms):
         self.mesh = mesh
@@ -154,19 +170,19 @@ class TimeZeeman(Zeeman):
         self.field = np.zeros(3 * self.n)
 
     def compute_field(self, t=0, spin=None):
-        self.field[:] = helper.init_vector_func_fast(self.time_fun,
-                                                     self.mesh,
-                                                     False,
-                                                     t)
+        self.field[:] = helper.init_vector(self.time_fun,
+                                           self.mesh,
+                                           False,
+                                           t, *self.extra_args)
         return self.field
 
 
-class SimpleTimeZeeman(Zeeman):
+class TimeZeemanSimple(Zeeman):
 
     """
-    The time dependent external field, also can vary with space
+    Time Dependent Zeeman Interaction with no spatial dependence.
 
-    The function time_fun must be a function which takes two arguments:
+    The function time_fun must be a function which takes one argument:
 
     def time_fun(t):
         x, y, z = pos
@@ -177,13 +193,29 @@ class SimpleTimeZeeman(Zeeman):
         return (Bx, By, Bz)
 
 
+    Extra arguments can be passed to the function to allow more
+    general code. These must be set when initialising the TimeZeeman class. For
+    example:
+
+    freq = 10e9
+
+    def time_fun(t, frequency):
+        return (0.0, 0.0, np.sin(frequency*t))
+
+    zee = SimpleTimeZeeman(time_fun, extra_args=[freq])
+
+    These arguments are then passed into the time_fun code function in
+    order.
+
+
     """
 
-    def __init__(self, time_fun, name='TimeZeeman'):
+    def __init__(self, time_fun, extra_args=[], name='TimeZeemanFast'):
         self.time_fun = time_fun
         self.name = name
         self.jac = True
         self._v = np.zeros(3)
+        self.extra_args = extra_args
 
     def setup(self, mesh, spin, Ms):
         self.mesh = mesh
@@ -204,7 +236,7 @@ class SimpleTimeZeeman(Zeeman):
         self.field = np.zeros(3 * self.n)
 
     def compute_field(self, t=0, spin=None):
-        v = self.time_fun(t)
+        v = self.time_fun(t, *self.extra_args)
         self.field[0::3] = v[0]
         self.field[1::3] = v[1]
         self.field[2::3] = v[2]
@@ -215,24 +247,32 @@ class SimpleTimeZeeman(Zeeman):
 class TimeZeemanFast(Zeeman):
 
     """
-    The time dependent external field, also can vary with space
+    The time dependent external field, also can vary with space. This uses
+    an unsafe setting function. Should not be used except by advanced users.
 
-    The function time_fun must be a function which takes two arguments:
+    The function must handle coordinates
 
-    def time_fun(mesh, t):
-        x, y, z = pos
-        # compute Bx, By, Bz as a function of x y, z and t.
-        Bx = ...
-        By = ...
-        Bz = ...
-        return (Bx, By, Bz)
+    The function time_fun must be a function which takes three or more arguments. The time variable is always passed in as the first argument
+    in params.
 
-    Add the function to the user modules and recompile.
+    e.g.
 
+    from libc.math cimport sin
+
+    def fast_sin_init(mesh, double[:] field, *params):
+        t, axis, Bmax, fc = params
+        for i in range(mesh.n):
+            x, y, z = mesh.coordinates[i]
+            if x < 10:
+                field[3*i+0] = Bmax * axis[0] * sin(fc*t)
+                field[3*i+1] = Bmax * axis[1] * sin(fc*t)
+                field[3*i+2] = Bmax * axis[2] * sin(fc*t)
+
+    Add the function to a user Cython module in fidimag/user/ and recompile.
 
     """
 
-    def __init__(self, time_fun, extra_args, name='TimeZeeman'):
+    def __init__(self, time_fun, extra_args=[], name='TimeZeemanFast'):
         self.time_fun = time_fun
         self.name = name
         self.jac = True

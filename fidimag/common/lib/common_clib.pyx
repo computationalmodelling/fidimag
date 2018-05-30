@@ -212,7 +212,7 @@ def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
     must handle evaluating the function at different
     coordinate points. It needs to be able to handle
     the spatial dependence itself, and write the
-    field valuse into the field array. This can 
+    field valuse into the field array. This can
     be written with Cython which will give much
     better performance. For example:
 
@@ -225,8 +225,7 @@ def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
             field[3*i+1] = Bmax * axis[1] * sin(fc*t)
             field[3*i+2] = Bmax * axis[2] * sin(fc*t)
 
-    """
-    # field = np.zeros(mesh.n * 3)
+    """  
     m0(mesh, field, *args)
     if norm:
         normalise(field)
