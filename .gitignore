@@ -5,6 +5,7 @@
 *.swp
 *.pdf
 *.tmp
+*.so
 /local/
 
 # ignore automatically generated cython files
