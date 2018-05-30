@@ -266,13 +266,19 @@ ext_modules = [
 
 for folder in glob.glob(os.path.join(USER_DIR, '*/')):
     module_name = folder.split('/')[-2]
-    print(folder.split('/'))
     print('Found User Module: {}'.format(module_name))
     user_sources = glob.glob(folder + '/*.pyx')
     print('\tFound Cython sources: {}'.format(user_sources))
+
     if len(user_sources) != 1:
         raise BuildError("User Modules are only allowed one Cython .pyx file")
-    user_sources += glob_cfiles(folder, excludes=user_sources)
+
+    cfilename = user_sources[0].split('/')[-1][:-4] + '.c'
+    print(cfilename)
+    user_sources += glob_cfiles(folder, excludes=[cfilename])
+
+    print(user_sources)
+
     ext_modules.append(
        Extension("fidimag.extensions.user.{}".format(module_name),
           sources=user_sources,
