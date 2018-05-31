@@ -274,7 +274,8 @@ for folder in glob.glob(os.path.join(USER_DIR, '*/')):
         raise BuildError("User Modules are only allowed one Cython .pyx file")
 
     filename_string = user_sources[0].split('/')[-1][:-4]
-    if filename_string is not module_name:
+    if filename_string != module_name:
+        print(filename_string, module_name)
         raise BuildError("The Cython source file in {} must match the folder name - i.e. it must be {}.pyx".format(module_name, module_name))
     cfilename = filename_string + '.c'
     print(cfilename)
