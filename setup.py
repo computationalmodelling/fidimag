@@ -1,18 +1,19 @@
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
+# from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 import numpy
 import os
 import glob
 import re
 import sys
-
 #if sys.platform == 'darwin':
 #    from distutils import sysconfig
 #    vars = sysconfig.get_config_vars()
 #    vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
 
+class BuildError(Exception):
+    pass
 
 
 if 'CC' in os.environ:
@@ -32,6 +33,8 @@ COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
+USER_DIR = os.path.join(SRC_DIR, "user")
+print(USER_DIR)
 
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
@@ -65,6 +68,8 @@ def glob_cfiles(path, excludes):
 sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
 sources += glob_cfiles(ATOM_DIR, excludes=["clib.c"])
+
+
 
 common_sources = []
 common_sources.append(os.path.join(COMMON_DIR, 'common_clib.pyx'))
@@ -257,6 +262,38 @@ ext_modules = [
               extra_link_args=com_link,
               ),
 ]
+
+
+for folder in glob.glob(os.path.join(USER_DIR, '*/')):
+    module_name = folder.split('/')[-2]
+    print('Found User Module: {}'.format(module_name))
+    user_sources = glob.glob(folder + '/*.pyx')
+    print('\tFound Cython sources: {}'.format(user_sources))
+
+    if len(user_sources) != 1:
+        raise BuildError("User Modules are only allowed one Cython .pyx file")
+
+    filename_string = user_sources[0].split('/')[-1][:-4]
+    if filename_string != module_name:
+        print(filename_string, module_name)
+        raise BuildError("The Cython source file in {} must match the folder name - i.e. it must be {}.pyx".format(module_name, module_name))
+    cfilename = filename_string + '.c'
+    print(cfilename)
+    user_sources += glob_cfiles(folder, excludes=[cfilename])
+
+    print(user_sources)
+
+    ext_modules.append(
+       Extension("fidimag.extensions.user.{}".format(module_name),
+          sources=user_sources,
+          include_dirs=com_inc,
+          libraries=com_libs,
+          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+          extra_compile_args=com_args,
+          extra_link_args=com_link,
+       ),
+    )
+
 
 setup(
     name='fidimag',

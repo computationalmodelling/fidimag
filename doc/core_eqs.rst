@@ -18,7 +18,6 @@ described at a semi-classical level.
 
   Interactions between magnetic moments are specified using the Heisenberg
   formalism.  
-|
 
 * Micromagnetics
 
