@@ -1,8 +1,6 @@
 import numpy as np
 from fidimag.common import CuboidMesh
 from fidimag.micro import TimeZeeman
-from fidimag.user.example2 import TimeZeemanFast_test_time_fun
-
 
 def time_fun(t, frequency):
    return 10*np.cos(frequency*t)
