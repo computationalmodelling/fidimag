@@ -122,11 +122,12 @@ class TimeZeeman(Zeeman):
         self.time_fun = time_fun
         self.name = name
         self.jac = True
+        self.extra_args = extra_args
 
     def setup(self, mesh, spin, Ms):
         super(TimeZeeman, self).setup(mesh, spin, Ms)
         self.H_init = self.field.copy()
 
     def compute_field(self, t=0, spin=None):
-        self.field[:] = self.H_init[:] * self.time_fun(t, *extra_args)
+        self.field[:] = self.H_init[:] * self.time_fun(t, *self.extra_args)
         return self.field
