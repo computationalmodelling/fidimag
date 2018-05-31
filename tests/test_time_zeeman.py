@@ -73,7 +73,7 @@ if __name__ == "__main__":
         nx = 10**i
         ny = nz = 10
         print('\nN = {} * {} * {} = '.format(nx, ny, nz,  nx*ny*nz))
-        mesh, frequency, spin, Ms = setup(nx, ny, nz)
+        mesh, frequency, spin, Ms = fixture_setup(nx, ny, nz)
 
         zee = TimeZeeman(time_fun_spatial, extra_args=[frequency])
         zee.setup(mesh, spin, Ms)
