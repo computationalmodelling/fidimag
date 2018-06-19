@@ -81,8 +81,8 @@ class DMI(Energy):
 
         self.jac = True
 
-    def setup(self, mesh, spin, mu_s):
-        super(DMI, self).setup(mesh, spin, mu_s)
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
+        super(DMI, self).setup(mesh, spin, mu_s, mu_s_inv)
 
         if self.mesh_type == 'hexagonal':
             self.n_ngbs_dmi = 6

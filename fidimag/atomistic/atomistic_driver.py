@@ -133,7 +133,11 @@ class AtomisticDriver(DriverBase):
         # When we create the simulation, mu_s is set to the default value. This
         # is overriden when calling the set_mu_s method from the Simulation
         # class or when setting mu_s directly (property)
+        # David Tue 19 Jun 2018: Not a very clear thing to do, we must set a
+        # WARNING
         self._mu_s[:] = mu_s
+        self._mu_s_inv[:] = 1. / mu_s
+
         self.mu_s_const = mu_s
         self.gamma = gamma
         self.do_precession = True

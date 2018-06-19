@@ -64,8 +64,11 @@ class Sim(SimBase):
 
         # Magnetic moments definitions:
         # self._mu_s = np.zeros(self.n, dtype=np.float)
+        # David: Be careful to change these references to the common
+        # magnetisation array
         self._mu_s = self._magnetisation
-        self._mu_s_inv = np.zeros(self.n, dtype=np.float)
+        # Remember this is a 3 * n array:
+        self._mu_s_inv = self._magnetisation_inv
 
         # This is only for old C files using the xperiodic variable
         (self.xperiodic,
@@ -158,10 +161,12 @@ class Sim(SimBase):
 
         self._mu_s[:] = helper.init_scalar(value, self.mesh)
         nonzero = 0
+        self._mu_s_inv.shape = (-1, 3)
         for i in range(self.n):
             if self._mu_s[i] > 0.0:
                 self._mu_s_inv[i] = 1.0 / self._mu_s[i]
                 nonzero += 1
+        self._mu_s_inv.shape = (-1,)
 
         # We moved this variable to the micro_driver class
         self.n_nonzero = nonzero
@@ -176,6 +181,19 @@ class Sim(SimBase):
         # TODO: Check if this is necessary here, it is only defined
         # for the LLG STT in the drivers
         self.driver.mu_s_const = np.max(self._mu_s)
+
+        # David Tue 19 Jun 2018
+        # Since the scaling variables in the HexagonalDemag class depend on
+        # mu_s, the safest way to avoid breaking the code is to update the
+        # variables here in case mu_s changes. Same for normal demag
+        if self.mesh.mesh_type == 'hexagonal':
+            for inter in self.interactions:
+                if isinstance(inter, fidimag.atomistic.DemagHexagonal):
+                    inter.mu_s_scale = self._mu_s * self.scale
+                    inter.scalar2cuboid(inter.mu_s_scale, inter.mu_s_scale_c)
+
+                if isinstance(inter, fidimag.atomistic.Demag):
+                    inter.mu_s_scale = self._mu_s * self.scale
 
     mu_s = property(get_mu_s, set_mu_s)
 

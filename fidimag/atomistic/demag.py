@@ -37,7 +37,7 @@ class Demag(object):
         self.name = name
         self.jac = True
 
-    def setup(self, mesh, spin, mu_s):
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
         self.mesh = mesh
         self.dx = mesh.dx
         self.dy = mesh.dy
@@ -46,6 +46,7 @@ class Demag(object):
         self.ny = mesh.ny
         self.nz = mesh.nz
         self.spin = spin
+        self.mu_s = mu_s
         self.n = mesh.n
         self.field = np.zeros(3 * self.n, dtype=np.float)
         unit_length = mesh.unit_length
@@ -55,6 +56,8 @@ class Demag(object):
         self.scale = 1e-7 / unit_length**3
 
         # could be wrong, needs carefully tests!!!
+        # David Tue 19 Jun 2018: This variable is updated in the SIM class in
+        # case mu_s changes
         self.mu_s_scale = mu_s * self.scale
 
         self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,

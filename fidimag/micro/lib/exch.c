@@ -10,6 +10,7 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
      *
      * Ms_inv     :: Array with the (1 / Ms) values for every mesh node.
      *               The values are zero for points with Ms = 0 (no material)
+     *               The array has size 3 * n (to multiply fields using Numpy)
      *
      * A          :: Exchange constant
      *
@@ -95,7 +96,7 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
 	    int idn = 6 * i; // index for the neighbours
 
         /* Set a zero field for sites without magnetic material */
-	    if (Ms_inv[i] == 0.0){
+	    if (Ms_inv[3 * i] == 0.0){
 	        field[3 * i] = 0;
 	        field[3 * i + 1] = 0;
 	        field[3 * i + 2] = 0;
@@ -112,7 +113,7 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
 
                 /* Check that the magnetisation of the neighbouring spin
                  * is larger than zero */
-                if (Ms_inv[ngbs[idn + j]] > 0){
+                if (Ms_inv[3 * ngbs[idn + j]] > 0){
 
                     /* Neighbours in the -x and +x directions
                      * giving: ( m[i-x] - m[i] ) + ( m[i+x] - m[i] )
@@ -155,9 +156,9 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
                             + fz * m[3 * i + 2]);
 
         /* Update the field H_ex which has the same structure than *m */
-        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
-        field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
-        field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
+        field[3 * i]     = fx * Ms_inv[3 * i] * MU0_INV;
+        field[3 * i + 1] = fy * Ms_inv[3 * i] * MU0_INV;
+        field[3 * i + 2] = fz * Ms_inv[3 * i] * MU0_INV;
     }
 }
 
@@ -174,6 +175,7 @@ void compute_exch_field_rkky_micro(double *m, double *field, double *energy, dou
      *
      * Ms_inv     :: Array with the (1 / Ms) values for every mesh node.
      *               The values are zero for points with Ms = 0 (no material)
+     *               The array has size 3 * n ! (as a field)
      *
      * sigma          :: Exchange constant
      *
@@ -216,18 +218,18 @@ void compute_exch_field_rkky_micro(double *m, double *field, double *energy, dou
 				 mby = m[3*id1+1];
 				 mbz = m[3*id1+2];
 
-				 if (Ms_inv[id1] != 0.0){
+				 if (Ms_inv[3 * id1] != 0.0){
 					 energy[id1]  = sigma*(1-mtx*mbx-mty*mby-mtz*mbz);
-					 field[3*id1]   = sigma * mtx * Ms_inv[id1] * MU0_INV;
-					 field[3*id1+1] = sigma * mty * Ms_inv[id1] * MU0_INV;
-					 field[3*id1+2] = sigma * mtz * Ms_inv[id1] * MU0_INV;
+					 field[3*id1]   = sigma * mtx * Ms_inv[3 * id1] * MU0_INV;
+					 field[3*id1+1] = sigma * mty * Ms_inv[3 * id1] * MU0_INV;
+					 field[3*id1+2] = sigma * mtz * Ms_inv[3 * id1] * MU0_INV;
 				 }
 
-				 if (Ms_inv[id2] != 0.0){
+				 if (Ms_inv[3 * id2] != 0.0){
 					 energy[id2]  = sigma*(1-mtx*mbx-mty*mby-mtz*mbz);
-					 field[3*id2]   = sigma * mbx * Ms_inv[id2] * MU0_INV;
-					 field[3*id2+1] = sigma * mby * Ms_inv[id2] * MU0_INV;
-					 field[3*id2+2] = sigma * mbz * Ms_inv[id2] * MU0_INV;
+					 field[3*id2]   = sigma * mbx * Ms_inv[3 * id2] * MU0_INV;
+					 field[3*id2+1] = sigma * mby * Ms_inv[3 * id2] * MU0_INV;
+					 field[3*id2+2] = sigma * mbz * Ms_inv[3 * id2] * MU0_INV;
 				 }
 			 }
 		 }

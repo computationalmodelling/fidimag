@@ -86,8 +86,8 @@ class Exchange(Energy):
         self.name = name
         self.jac = False
 
-    def setup(self, mesh, spin, mu_s):
-        super(Exchange, self).setup(mesh, spin, mu_s)
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
+        super(Exchange, self).setup(mesh, spin, mu_s, mu_s_inv)
 
         # Uniform exchange ----------------------------------------------------
         if isinstance(self.J, (int, float)):

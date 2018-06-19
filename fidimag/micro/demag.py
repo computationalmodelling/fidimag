@@ -23,7 +23,7 @@ class Demag(object):
         self.pbc_options = pbc_options
         self.jac = False
 
-    def setup(self, mesh, spin, Ms):
+    def setup(self, mesh, spin, Ms, Ms_inv):
         self.mesh = mesh
         self.dx = mesh.dx
         self.dy = mesh.dy

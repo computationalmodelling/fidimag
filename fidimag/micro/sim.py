@@ -67,8 +67,10 @@ class Sim(SimBase):
 
         # Saturation magnetisation definitions:
         # self._Ms = np.zeros(self.n, dtype=np.float)
+        # David: be careful to change these references to the common mag array
         self._Ms = self._magnetisation
-        self._Ms_inv = np.zeros(self.n, dtype=np.float)
+        # Remember this is a 3 * n array:
+        self._Ms_inv = self._magnetisation_inv
 
         # Here we link one of the drivers to evolve the LLG equation
         if driver not in KNOWN_DRIVERS:
@@ -150,10 +152,12 @@ class Sim(SimBase):
 
         self._Ms[:] = helper.init_scalar(value, self.mesh)
         nonzero = 0
+        self._Ms_inv.shape = (-1, 3)
         for i in range(self.n):
             if self._Ms[i] > 0.0:
                 self._Ms_inv[i] = 1.0 / self._Ms[i]
                 nonzero += 1
+        self._Ms_inv.shape = (-1,)
 
         # We moved this variable to the micro_driver class
         self.driver.n_nonzero = nonzero

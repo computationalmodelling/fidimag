@@ -64,7 +64,7 @@ class Zeeman(object):
         self.name = name
         self.jac = False
 
-    def setup(self, mesh, spin, Ms):
+    def setup(self, mesh, spin, Ms, Ms_inv):
         self.mesh = mesh
         self.spin = spin
         self.n = mesh.n
@@ -118,8 +118,8 @@ class TimeZeeman(Zeeman):
         self.jac = True
         self.extra_args = extra_args
 
-    def setup(self, mesh, spin, Ms):
-        super(TimeZeeman, self).setup(mesh, spin, Ms)
+    def setup(self, mesh, spin, Ms, Ms_inv):
+        super(TimeZeeman, self).setup(mesh, spin, Ms, Ms_inv)
         self.H_init = self.field.copy()
 
     def compute_field(self, t=0, spin=None):
