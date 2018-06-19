@@ -64,13 +64,6 @@ class Zeeman(object):
         self.n = mesh.n
 
         self.mu_s = mu_s
-        self.mu_s_long = np.zeros(3 * mesh.n)
-
-        self.mu_s_long.shape = (-1, 3)
-        for i in range(mesh.n):
-            self.mu_s_long[i, :] = mu_s[i]
-
-        self.mu_s_long.shape = (-1,)
 
         self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.B0, self.mesh)
@@ -92,11 +85,10 @@ class Zeeman(object):
 
     def compute_energy(self):
 
-        sf = self.field * self.spin * self.mu_s_long
+        sf = self.field * self.spin
+        energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.mu_s
 
-        energy = -np.sum(sf)
-
-        return energy
+        return np.sum(energy_density)
 
 
 class TimeZeeman(Zeeman):
