@@ -120,6 +120,7 @@ class DMI(Energy):
         if self.dmi_type == 'bulk':
             clib.compute_dmi_field(m,
                                    self.field,
+                                   self.mu_s_inv,
                                    self.energy,
                                    self._D,
                                    self.neighbours,
@@ -131,6 +132,7 @@ class DMI(Energy):
 
             clib.compute_dmi_field_interfacial(m,
                                                self.field,
+                                               self.mu_s_inv,
                                                self.energy,
                                                self.D,
                                                self.neighbours,
@@ -140,7 +142,7 @@ class DMI(Energy):
                                                self.DMI_vector
                                                )
 
-        return self.field * self.mu_s_inv
+        return self.field
 
     def compute_energy_direct(self):
         """

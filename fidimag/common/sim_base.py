@@ -21,9 +21,8 @@ class SimBase(object):
         self.unit_length = mesh.unit_length
 
         self._magnetisation = np.zeros(self.n, dtype=np.float)
-        # This array is the 1/mu_s factor which we use to multiply vector field
-        # arrays, thus we set up with 3 * n elements to avoid multiple reshaping
-        self._magnetisation_inv = np.zeros(3 * self.n, dtype=np.float)
+        # Inverse magnetisation
+        self._magnetisation_inv = np.zeros(self.n, dtype=np.float)
 
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)

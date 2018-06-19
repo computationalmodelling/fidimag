@@ -28,7 +28,9 @@ boundaries
 */
 
 void dmi_field_bulk(double *restrict spin, double *restrict field,
-                    double *restrict energy, double *restrict _D, int *restrict ngbs, int nxyz, int n_ngbs) {
+                    double *restrict mu_s_inv,
+                    double *restrict energy, double *restrict _D,
+                    int *restrict ngbs, int nxyz, int n_ngbs) {
 
     /* Bulk DMI field and energy computation
      *
@@ -101,7 +103,7 @@ void dmi_field_bulk(double *restrict spin, double *restrict field,
             }
         }
 
-		field[3 * i] = fx;
+		field[3 * i]     = fx;
         field[3 * i + 1] = fy;
         field[3 * i + 2] = fz;
 
@@ -109,11 +111,20 @@ void dmi_field_bulk(double *restrict spin, double *restrict field,
                             fy * spin[3 * i + 1] +
                             fz * spin[3 * i + 2]
                             );
+
+        // Scale field by 1/mu_s
+		field[3 * i]     *= mu_s_inv[i];
+		field[3 * i + 1] *= mu_s_inv[i];
+		field[3 * i + 2] *= mu_s_inv[i];
     }
 }
 
-void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict field, double *restrict energy,
-    double D, int *restrict ngbs, int n, int n_ngbs, int n_ngbs_dmi, double *restrict DMI_vec) {
+void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict field,
+                                     double *restrict mu_s_inv,
+                                     double *restrict energy,
+                                     double D, int *restrict ngbs, int n,
+                                     int n_ngbs, int n_ngbs_dmi,
+                                     double *restrict DMI_vec) {
     
     /* Interfacial DMI field and energy computation
      *
@@ -188,16 +199,21 @@ void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict fie
             }
         }
 
-        field[3 * i] = fx;
+        field[3 * i]     = fx;
   	    field[3 * i + 1] = fy;
   	    field[3 * i + 2] = fz;
 
         // TODO: check whether the energy is correct or not.
         /* Avoid second counting with 1/2 */
   	    energy[i] = -0.5 * (fx * spin[3 * i] +
-                            fy * spin[3 * i + 1]+
+                            fy * spin[3 * i + 1] +
                             fz * spin[3 * i + 2]
                             );
+
+        // Scale field by 1/mu_s
+		field[3 * i]     *= mu_s_inv[i];
+		field[3 * i + 1] *= mu_s_inv[i];
+		field[3 * i + 2] *= mu_s_inv[i];
     }
 }
 

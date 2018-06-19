@@ -42,28 +42,34 @@ cdef extern from "clib.h":
 
     # -------------------------------------------------------------------------
 
-    void compute_exch_field(double *spin, double *field, double *energy,
+    void compute_exch_field(double *spin, double *field, double *mu_s_inv,
+                            double *energy,
                             double Jx, double Jy, double Jz,
                             int *ngbs, int n, int n_ngbs)
-    void compute_exch_field_spatial(double *spin, double *field, double *energy,
-                            double *J, int *ngbs, int n, int n_ngbs)
+    void compute_exch_field_spatial(double *spin, double *field, double *mu_s_inv,
+                                    double *energy,
+                                    double *J, int *ngbs, int n, int n_ngbs)
 
     double compute_exch_energy(double *spin, double Jx, double Jy, double Jz,
                                int nx, int ny, int nz,
                                int xperiodic, int yperiodic)
 
-    void compute_full_exch_field(double *spin, double *field, double *energy,
-					      	     double *J, int *ngbs, int n, int n_ngbs,
+    void compute_full_exch_field(double *spin, double *field, double *mu_s_inv,
+                                 double *energy,
+				 double *J, int *ngbs, int n, int n_ngbs,
                                  int n_shells, int *n_ngbs_shell,
                                  int *sum_ngbs_shell
                                  )
 
     # -------------------------------------------------------------------------
 
-    void dmi_field_bulk(double *spin, double *field, double *energy,
+    void dmi_field_bulk(double *spin, double *field,
+                        double *mu_s_inv,
+                        double *energy,
                         double *D, int *ngbs, int n, int n_ngbs)
 
     void dmi_field_interfacial_atomistic(double *spin, double *field,
+                                         double *mu_s_inv,
                                          double *energy, double D, int *ngbs,
                                          int n, int n_ngbs, int n_ngbs_dmi,
                                          double *DMI_vec)
@@ -80,17 +86,21 @@ cdef extern from "clib.h":
 
     # -------------------------------------------------------------------------
 
-    void compute_anis(double *spin, double *field, double *energy,
+    void compute_anis(double *spin, double *field, double *mu_s_inv,
+                      double *energy,
                       double *Ku, double *axis, int n)
 
-    void compute_anis_cubic(double *spin, double *field, double *energy, double *Kc, int n)
+    void compute_anis_cubic(double *spin, double *field, double *mu_s_inv,
+                            double *energy, double *Kc, int n)
 
     # -------------------------------------------------------------------------
 
     void normalise(double *m, int *pins, int n)
 
     # used for sllg
-    void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha, double *mu_s_inv, int *pins, double *eta, int n, double gamma, double dt)
+    void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha,
+                      double *mu_s_inv, int *pins, double *eta, int n,
+                      double gamma, double dt)
 
 
 
@@ -143,23 +153,27 @@ def compute_px_py(double [:] spin,
 
 def compute_exchange_field(double [:] spin,
                            double [:] field,
+                           double [:] mu_s_inv,
                            double [:] energy,
                            Jx, Jy, Jz,
                            int [:, :] ngbs,
                            n, n_ngbs
                            ):
 
-    compute_exch_field(&spin[0], &field[0], &energy[0], Jx, Jy, Jz,
+    compute_exch_field(&spin[0], &field[0], &mu_s_inv[0],
+                       &energy[0], Jx, Jy, Jz,
                        &ngbs[0, 0], n, n_ngbs)
 
 def compute_exchange_field_spatial(double [:] spin,
                                    double [:] field,
+                                   double [:] mu_s_inv,
                                    double [:] energy,
                                    double [:, :] J,
                                    int [:, :] ngbs,
                                    n, n_ngbs):
 
-    compute_exch_field_spatial(&spin[0], &field[0], &energy[0],&J[0,0],&ngbs[0, 0], n, n_ngbs)
+    compute_exch_field_spatial(&spin[0], &field[0], &mu_s_inv[0],
+                               &energy[0],&J[0,0],&ngbs[0, 0], n, n_ngbs)
 
 
 def compute_exchange_energy(double [:] spin,
@@ -172,6 +186,7 @@ def compute_exchange_energy(double [:] spin,
 
 def compute_full_exchange_field(double [:] spin,
                                 double [:] field,
+                                double [:] mu_s_inv,
                                 double [:] energy,
                                 double [:] J,
                                 int [:, :] ngbs,
@@ -180,40 +195,54 @@ def compute_full_exchange_field(double [:] spin,
                                 int [:] sum_ngbs_shell
                                 ):
 
-    compute_full_exch_field(&spin[0], &field[0], &energy[0], &J[0],
+    compute_full_exch_field(&spin[0], &field[0], &mu_s_inv[0],
+                            &energy[0], &J[0],
                             &ngbs[0, 0], n, n_ngbs, n_shells,
                             &n_ngbs_shell[0], &sum_ngbs_shell[0])
 
 # -------------------------------------------------------------------------
 
-def compute_anisotropy(double [:] spin, double [:] field, double [:] energy,
+def compute_anisotropy(double [:] spin, double [:] field,
+                       double [:] mu_s_inv,
+                       double [:] energy,
                        double [:] Ku, double [:] axis, n):
-    compute_anis(&spin[0], &field[0], &energy[0], &Ku[0], &axis[0], n)
+    compute_anis(&spin[0], &field[0], &mu_s_inv[0],
+                 &energy[0], &Ku[0], &axis[0], n)
 
-def compute_anisotropy_cubic(double [:] spin, double [:] field, double [:] energy,
+def compute_anisotropy_cubic(double [:] spin, double [:] field,
+                             double [:] mu_s_inv,
+                             double [:] energy,
                              double [:] Kc, n):
-    compute_anis_cubic(&spin[0], &field[0], &energy[0], &Kc[0], n)
+
+    compute_anis_cubic(&spin[0], &field[0], &mu_s_inv[0],
+                       &energy[0], &Kc[0], n)
 
 # -----------------------------------------------------------------------------
 
 def compute_dmi_field(double [:] spin,
                       double [:] field,
+                      double [:] mu_s_inv,
                       double [:] energy,
                       double [:, :] D,
                       int [:, :] ngbs,
                       n, n_ngbs):
-    dmi_field_bulk(&spin[0], &field[0], &energy[0], &D[0,0], &ngbs[0, 0], n, n_ngbs)
+    dmi_field_bulk(&spin[0], &field[0],
+                   &mu_s_inv[0], &energy[0], &D[0,0],
+                   &ngbs[0, 0], n, n_ngbs)
 
 
 def compute_dmi_field_interfacial(double [:] spin,
                                   double [:] field,
+                                  double [:] mu_s_inv,
                                   double [:] energy,
                                   D,
                                   int [:, :] ngbs,
                                   n, n_ngbs, n_ngbs_dmi,
                                   double [:] DMI_vec,
                                   ):
-    dmi_field_interfacial_atomistic(&spin[0], &field[0], &energy[0],
+    dmi_field_interfacial_atomistic(&spin[0], &field[0],
+                                    &mu_s_inv[0],
+                                    &energy[0],
                                     D, &ngbs[0, 0], n,
                                     n_ngbs, n_ngbs_dmi,
                                     &DMI_vec[0]
@@ -251,7 +280,8 @@ def compute_llg_rhs_dw(double [:] dm,
                        double [:] mu_s_inv,
                        double [:] eta,
                        int [:] pin, n, gamma, dt):
-    llg_rhs_dw_c(&spin[0], &field[0], &dm[0], &T[0], &alpha[0],  &mu_s_inv[0], &pin[0], &eta[0], n, gamma, dt)
+    llg_rhs_dw_c(&spin[0], &field[0], &dm[0], &T[0], &alpha[0], 
+                 &mu_s_inv[0], &pin[0], &eta[0], n, gamma, dt)
 
 
 # -----------------------------------------------------------------------------

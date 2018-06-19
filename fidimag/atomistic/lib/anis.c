@@ -1,8 +1,10 @@
 #include "clib.h"
 
 
-void compute_anis(double *restrict spin, double *restrict field, double *restrict energy,
-	double *restrict Ku, double *restrict axis, int n) {
+void compute_anis(double *restrict spin, double *restrict field,
+                  double *restrict mu_s_inv,
+                  double *restrict energy,
+	              double *restrict Ku, double *restrict axis, int n) {
 
     /* Remember that the magnetisation order is
      *      mx1, my1, mz1, mx2, my2, mz2, mx3,...
@@ -28,13 +30,20 @@ void compute_anis(double *restrict spin, double *restrict field, double *restric
 
 		energy[i] = -Ku[i] * (m_u * m_u);
 
+        // Scale field by 1/mu_s
+		field[3 * i]     *= mu_s_inv[i];
+		field[3 * i + 1] *= mu_s_inv[i];
+		field[3 * i + 2] *= mu_s_inv[i];
+
 	}
 
 }
 
 
-void compute_anis_cubic(double *restrict spin, double *restrict field, double *restrict energy,
-	double *restrict Kc, int n) {
+void compute_anis_cubic(double *restrict spin, double *restrict field,
+                        double *restrict mu_s_inv,
+                        double *restrict energy,
+                        double *restrict Kc, int n) {
 
     /* Remember that the magnetisation order is
      *      mx1, my1, mz1, mx2, my2, mz2, mx3,...
@@ -42,14 +51,22 @@ void compute_anis_cubic(double *restrict spin, double *restrict field, double *r
      * by 3 in every iteration.
      *
      */
-      #pragma omp parallel for
-	    for (int i = 0; i < n; i++) {
-				int j = 3*i;
-				field[j] = - 4*Kc[i]*spin[j]*spin[j]*spin[j];
-				field[j+1] = - 4*Kc[i]*spin[j+1]*spin[j+1]*spin[j+1];
-				field[j+2] = - 4*Kc[i]*spin[j+2]*spin[j+2]*spin[j+2];
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        int j = 3 * i;
+      	field[j]   = - 4 * Kc[i] * spin[j]   * spin[j]   * spin[j];
+      	field[j+1] = - 4 * Kc[i] * spin[j+1] * spin[j+1] * spin[j+1];
+      	field[j+2] = - 4 * Kc[i] * spin[j+2] * spin[j+2] * spin[j+2];
 
-	      energy[i] = -0.25*(field[j]*spin[j]+field[j+1]*spin[j+1]+field[j+2]*spin[j+2]) ;
+	    energy[i] = -0.25 * (field[j]   * spin[j]   +
+                             field[j+1] * spin[j+1] +
+                             field[j+2] * spin[j+2]
+                             );
+
+        // Scale field by 1/mu_s
+		field[3 * i]     *= mu_s_inv[i];
+		field[3 * i + 1] *= mu_s_inv[i];
+		field[3 * i + 2] *= mu_s_inv[i];
 
 	    }
 

@@ -65,13 +65,14 @@ class Anisotropy(Energy):
 
         clib.compute_anisotropy(m,
                                 self.field,
+                                self.mu_s_inv,
                                 self.energy,
                                 self._Ku,
                                 self._axis,
                                 self.n
                                 )
 
-        return self.field * self.mu_s_inv
+        return self.field
 
 
 class CubicAnisotropy(Energy):
@@ -84,7 +85,6 @@ class CubicAnisotropy(Energy):
         self.name = name
         self.jac = True
 
-
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(CubicAnisotropy, self).setup(mesh, spin, mu_s, mu_s_inv)
         self._Kc = helper.init_scalar(self.Kc, self.mesh)
@@ -96,9 +96,10 @@ class CubicAnisotropy(Energy):
             m = self.spin
 
         clib.compute_anisotropy_cubic(m,
-                                self.field,
-                                self.energy,
-                                self._Kc,
-                                self.n)
+                                      self.field,
+                                      self.mu_s_inv,
+                                      self.energy,
+                                      self._Kc,
+                                      self.n)
 
-        return self.field * self.mu_s_inv
+        return self.field

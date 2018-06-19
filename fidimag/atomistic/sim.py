@@ -161,12 +161,10 @@ class Sim(SimBase):
 
         self._mu_s[:] = helper.init_scalar(value, self.mesh)
         nonzero = 0
-        self._mu_s_inv.shape = (-1, 3)
         for i in range(self.n):
             if self._mu_s[i] > 0.0:
                 self._mu_s_inv[i] = 1.0 / self._mu_s[i]
                 nonzero += 1
-        self._mu_s_inv.shape = (-1,)
 
         # We moved this variable to the micro_driver class
         self.n_nonzero = nonzero
