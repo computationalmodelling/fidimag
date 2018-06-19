@@ -50,6 +50,36 @@ def test_zeeman():
     assert field[7] == 2.3 * 0.5
 
 
+def test_zeeman_energy():
+
+    mu0 = 4 * np.pi * 1e-7
+    # A system of 8 cells ( not using nm units)
+    mesh = CuboidMesh(dx=2, dy=2, dz=2,
+                      nx=2, ny=2, nz=2
+                      )
+
+    sim = Sim(mesh)
+    Ms = 1e5
+    sim.set_Ms(Ms)
+
+    sim.set_m((0, 0, 1))
+
+    H = 0.1 / mu0
+    zeeman = Zeeman((0, 0, H))
+    sim.add(zeeman)
+
+    field = zeeman.compute_field()
+    zf = sim.get_interaction('Zeeman')
+
+    #                             ->    ->
+    # Expected energy: Int ( -mu0 M  *  H  )  dV
+    # Since we have 8 cells with the same M, we just sum their contrib 
+    exp_energy = 8 * (-mu0 * H * Ms * mesh.dx * mesh.dy * mesh.dz)
+
+    assert np.abs(zf.compute_energy() - exp_energy) < 1e-10
+
+
 if __name__ == "__main__":
     test_zeeman()
     test_H0_is_indexable_or_callable()
+    test_zeeman_energy()
