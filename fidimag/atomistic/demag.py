@@ -1,8 +1,9 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
+from .energy import Energy
 
 
-class Demag(object):
+class Demag(Energy):
     """
 
     Energy class for the demagnetising field (a.k.a. dipolar interactions,
@@ -38,22 +39,8 @@ class Demag(object):
         self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        self.mesh = mesh
-        self.dx = mesh.dx
-        self.dy = mesh.dy
-        self.dz = mesh.dz
-        self.nx = mesh.nx
-        self.ny = mesh.ny
-        self.nz = mesh.nz
-        self.spin = spin
-        self.mu_s = mu_s
-        self.n = mesh.n
-        self.field = np.zeros(3 * self.n, dtype=np.float)
-        unit_length = mesh.unit_length
-        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
-
-        # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
-        self.scale = 1e-7 / unit_length**3
+        super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
+        self.scale = 1e-7 / mesh.unit_length**3
 
         # could be wrong, needs carefully tests!!!
         # David Tue 19 Jun 2018: This variable is updated in the SIM class in
