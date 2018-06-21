@@ -1,6 +1,7 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
 import os
+from .energy import Energy
 
 mu_0 = 4 * np.pi * 1e-7
 
@@ -13,7 +14,7 @@ default_options={
 }
 
 
-class Demag(object):
+class Demag(Energy):
 
     def __init__(self, name='Demag', pbc_2d=False,
                  pbc_options=default_options):
@@ -24,17 +25,7 @@ class Demag(object):
         self.jac = False
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        self.mesh = mesh
-        self.dx = mesh.dx
-        self.dy = mesh.dy
-        self.dz = mesh.dz
-        self.nx = mesh.nx
-        self.ny = mesh.ny
-        self.nz = mesh.nz
-        self.spin = spin
-        self.field = np.zeros(3 * mesh.n, dtype=np.float)
-
-        self.Ms = Ms
+        super(Demag, self).setup(mesh, spin, Ms, Ms_inv)
 
         if self.pbc_2d is True:
 
@@ -91,7 +82,7 @@ class Demag(object):
 
         else:
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
-                                       self.nx, self.ny, self.nz, 
+                                       self.nx, self.ny, self.nz,
                                        tensor_type='demag')
 
 
