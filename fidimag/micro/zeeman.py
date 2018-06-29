@@ -70,16 +70,10 @@ class Zeeman(object):
         self.n = mesh.n
 
         self.Ms = Ms
-        self.Ms_long = np.zeros(3 * mesh.n)
 
         # TODO: Check if it is necessary to define a 3D matrix for
         # the Ms vectors. Maybe there is a way that uses less memory
         # (see the calculation in the *compute_energy* function)
-        self.Ms_long.shape = (3, -1)
-        for i in range(mesh.n):
-            self.Ms_long[:, i] = Ms[i]
-
-        self.Ms_long.shape = (-1,)
         self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.H0, self.mesh)
         # print self.field
@@ -101,14 +95,14 @@ class Zeeman(object):
 
     def compute_energy(self):
 
-        sf = self.field * self.spin * self.Ms_long * mu_0
+        sf = self.field * self.spin * mu_0
 
-        energy = -np.sum(sf)
+        energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.Ms
 
-        return energy * (self.mesh.dx *
-                         self.mesh.dy *
-                         self.mesh.dz *
-                         self.mesh.unit_length ** 3.)
+        return np.sum(energy_density) * (self.mesh.dx *
+                                         self.mesh.dy *
+                                         self.mesh.dz *
+                                         self.mesh.unit_length ** 3.)
 
 
 class TimeZeeman(Zeeman):
