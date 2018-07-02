@@ -58,7 +58,7 @@ class Zeeman(object):
         self.name = name
         self.jac = False
 
-    def setup(self, mesh, spin, mu_s):
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
         self.mesh = mesh
         self.spin = spin
         self.n = mesh.n

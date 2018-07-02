@@ -12,7 +12,7 @@ class Energy(object):
 
     """
 
-    def setup(self, mesh, spin, mu_s):
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
         self.mesh = mesh
         self.dx = mesh.dx * mesh.unit_length
         self.dy = mesh.dy * mesh.unit_length
@@ -30,16 +30,8 @@ class Energy(object):
 
         self.field = np.zeros(3 * self.n, dtype=np.float)
         self.energy = np.zeros(mesh.n, dtype=np.float)
-        self.mu_s_inv = np.zeros(3 * self.n, dtype=np.float)
 
-        self.mu_s_inv.shape = (-1, 3)
-        for i in range(mesh.n):
-            if self.mu_s[i] == 0.0:
-                self.mu_s_inv[i, :] = 0
-            else:
-                self.mu_s_inv[i, :] = 1.0 / self.mu_s[i]
-
-        self.mu_s_inv.shape = (-1,)
+        self.mu_s_inv = mu_s_inv
 
         self.xperiodic, self.yperiodic = (mesh.periodicity[0],
                                           mesh.periodicity[1])

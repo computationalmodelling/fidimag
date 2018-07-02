@@ -21,6 +21,9 @@ class SimBase(object):
         self.unit_length = mesh.unit_length
 
         self._magnetisation = np.zeros(self.n, dtype=np.float)
+        # Inverse magnetisation
+        self._magnetisation_inv = np.zeros(self.n, dtype=np.float)
+
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)
         self.field = np.zeros(3 * self.n, dtype=np.float)
@@ -170,7 +173,8 @@ class SimBase(object):
         # magnetisation is Ms for the micromagnetic Sim class, and it is
         # mu_s for the atomistic Sim class
         interaction.setup(self.mesh, self.spin,
-                          self._magnetisation
+                          self._magnetisation,
+                          self._magnetisation_inv
                           )
 
         # TODO: FIX  --> ??

@@ -51,7 +51,7 @@ class DemagHexagonal(object):
         self.name = name
         self.jac = True
 
-    def setup(self, mesh, spin, mu_s):
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
 
         if mesh.mesh_type != 'hexagonal':
             raise Exception('This interaction is only defined'
@@ -89,6 +89,8 @@ class DemagHexagonal(object):
         self.scale = 1e-7 / unit_length ** 3
 
         # could be wrong, needs carefully tests!!!
+        # David Tue 19 Jun 2018: this variable is upated in the sim class
+        # in case mu_s changes
         self.mu_s_scale = mu_s * self.scale
 
         # This seems not to be necessary

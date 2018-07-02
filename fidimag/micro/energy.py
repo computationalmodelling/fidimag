@@ -7,7 +7,7 @@ class Energy(object):
     An abstract class to implement the basic functions such as setup in micromagnetics.
     """
 
-    def setup(self, mesh, spin, Ms):
+    def setup(self, mesh, spin, Ms, Ms_inv):
         self.mesh = mesh
         self.dx = mesh.dx * mesh.unit_length
         self.dy = mesh.dy * mesh.unit_length
@@ -22,13 +22,7 @@ class Energy(object):
         self.energy = np.zeros(mesh.n)
         self.total_energy = 0
         self.Ms = Ms
-        self.Ms_inv = np.zeros(mesh.n)
-
-        for i in range(mesh.n):
-            if self.Ms[i] == 0.0:
-                self.Ms_inv[i] = 0
-            else:
-                self.Ms_inv[i] = 1.0 / self.Ms[i]
+        self.Ms_inv = Ms_inv
 
         # For old code compatibility
         self.xperiodic, self.yperiodic, self.zperiodic = mesh.periodicity

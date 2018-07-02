@@ -98,8 +98,8 @@ class DMI(Energy):
                 "'bulk', 'interfacial', 'D_2d'."
                 )
 
-    def setup(self, mesh, spin, Ms):
-        super(DMI, self).setup(mesh, spin, Ms)
+    def setup(self, mesh, spin, Ms, Ms_inv):
+        super(DMI, self).setup(mesh, spin, Ms, Ms_inv)
 
         # We will allow to completely specify the DMI vectors according to the
         # NNs of every lattice site, thus we need a matrix of n_dmi_ngbs * n entries

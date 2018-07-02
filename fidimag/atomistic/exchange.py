@@ -86,8 +86,8 @@ class Exchange(Energy):
         self.name = name
         self.jac = False
 
-    def setup(self, mesh, spin, mu_s):
-        super(Exchange, self).setup(mesh, spin, mu_s)
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
+        super(Exchange, self).setup(mesh, spin, mu_s, mu_s_inv)
 
         # Uniform exchange ----------------------------------------------------
         if isinstance(self.J, (int, float)):
@@ -128,6 +128,7 @@ class Exchange(Energy):
 
         clib.compute_exchange_field_spatial(m,
                                             self.field,
+                                            self.mu_s_inv,
                                             self.energy,
                                             self._J,
                                             self.neighbours,
@@ -135,7 +136,7 @@ class Exchange(Energy):
                                             self.n_ngbs
                                             )
 
-        return self.field * self.mu_s_inv
+        return self.field
 
     def compute_field_uniform(self, t=0, spin=None):
 
@@ -143,6 +144,7 @@ class Exchange(Energy):
 
         clib.compute_exchange_field(m,
                                     self.field,
+                                    self.mu_s_inv,
                                     self.energy,
                                     self.Jx,
                                     self.Jy,
@@ -152,13 +154,16 @@ class Exchange(Energy):
                                     self.n_ngbs
                                     )
 
-        return self.field * self.mu_s_inv
+        return self.field
 
     def compute_field_full(self, t=0, spin=None):
 
         m = spin if spin is not None else self.spin
 
-        clib.compute_full_exchange_field(m, self.field, self.energy,
+        clib.compute_full_exchange_field(m,
+                                         self.field,
+                                         self.mu_s_inv,
+                                         self.energy,
                                          self._J,
                                          self.neighbours,
                                          self.n, self.mesh.n_ngbs,
@@ -167,7 +172,7 @@ class Exchange(Energy):
                                          self.mesh._sum_ngbs_shell
                                          )
 
-        return self.field * self.mu_s_inv
+        return self.field
 
 
 class UniformExchange(Exchange):
