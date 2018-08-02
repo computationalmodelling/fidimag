@@ -194,7 +194,7 @@ class DriverBase(object):
 
     def relax(self, dt=10e-12, stopping_dmdt=0.01, max_steps=1000,
               save_m_steps=100, save_vtk_steps=100
-              ):
+              printing=True):
         """
         Evolve the system until meeting the `dmdt` < `stopping_dmdt` criteria.
 
@@ -221,11 +221,12 @@ class DriverBase(object):
                 self.save_m()
 
             dmdt = self.compute_dmdt(_dt)
-            print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}".format(
-                self.step,  # incremented in self.run_until (called above)
-                self.t,
-                _dt,
-                dmdt / self._dmdt_factor))
+            if printing:
+                print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}".format(
+                    self.step,  # incremented in self.run_until (called above)
+                    self.t,
+                    _dt,
+                    dmdt / self._dmdt_factor))
             if dmdt < stopping_dmdt * self._dmdt_factor:
                 break
 
