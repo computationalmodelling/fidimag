@@ -64,7 +64,7 @@ def excite_system(mesh):
 
     ts = np.linspace(0, 0.5e-9, 101)
     for t in ts:
-        print 'time', t
+        print('time', t)
         sim.run_until(t)
         sim.save_vtk()
         #sim.save_m()
