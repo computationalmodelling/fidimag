@@ -3,7 +3,7 @@ echo "HELLO"
 # This script installs FFTW locally. It may need to environment
 # variables to work, like 'export CC=gcc' in ARCHER.
 
-FFTW=fftw-3.3.4
+FFTW=fftw-3.3.8
 
 set -e
 
@@ -33,7 +33,7 @@ download_and_install() {
         tar -xzf ${1}.tar.gz
         cd ${1}
         echo "Configuring "${1}"."
-        ./configure --quiet --enable-shared --enable-openmp --prefix=${LIBS_DIR}
+        ./configure --enable-shared --enable-openmp --prefix=${LIBS_DIR}
         echo "Compiling and installing "${1}"."
         {
             make
