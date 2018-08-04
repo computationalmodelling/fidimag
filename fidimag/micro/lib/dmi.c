@@ -169,22 +169,22 @@
 * directions. For instance,
 *
 *                        /                        \
-*  field(+x)  = -2  D   |  mz(+x) ^      mx(+x) ^  | 
-*                ----   |  -----  x  -   -----  z  | 
-*               mu0 Ms   \  2 dx          2 dx    /  
-* 
-*               - D     1     ^   ->     
+*  field(+x)  = -2  D   |  mz(+x) ^      mx(+x) ^  |
+*                ----   |  -----  x  -   -----  z  |
+*               mu0 Ms   \  2 dx          2 dx    /
+*
+*               - D     1     ^   ->
 *             =  ----   --  ( y X M(+x) )
-*               mu0 Ms  dx            
+*               mu0 Ms  dx
 *
 *
 * In general, the derivative will be given as in the discrete spin model
-* by using the Dzyaloshinskii vector as 
+* by using the Dzyaloshinskii vector as
 *
-*                 ^   -> 
+*                 ^   ->
 *          D_ij = z X r_ij
 *
-* and dividing by the mesh discretisation in the direction of the 
+* and dividing by the mesh discretisation in the direction of the
 * neighbour.
 * This DMI vector convention is given by [Yang et al. PRL 115, 267210]
 *
@@ -240,7 +240,7 @@
  * The calculation of the field for the neighbour in the i-direction is done as:
  *
  *      H_DMI = -2 D     1       ->        ->
- *              ----    ----     x_{i}  X  m 
+ *              ----    ----     x_{i}  X  m
  *              mu0 Ms  2 dxi
  *
  * where x_{i} is the DM vector orientation in the i-direction and dxi
@@ -255,42 +255,44 @@
  *                 the finite differences model. For DMIs defined in 2D
  *                 the last 6 terms are set to zero
  *
- * n_dmi_ngbs   :: number of neighbours used for the specified DMI
- *                 For example, interfacial DMI is 2D so we only use 4 neighbours
- *                 which are -x, +x, -y and +y
- *
  */
 void dmi_field(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
-               double *restrict D, double dmi_vector[18], int n_dmi_ngbs,
+               double *restrict D, double *dmi_vector,
                double dx, double dy, double dz,
                int n, int *restrict ngbs) {
 
     /* These are for the DMI prefactor or coefficient */
-    double dxs[6] = {dx, dx, dy, dy, dz, dz};
+  double dxs[6] = {dx, dx, dy, dy, dz, dz};
 
     /* Here we iterate through every mesh node */
 	#pragma omp parallel for shared(dxs)
 	for (int i = 0; i < n; i++) {
-        double DMIc;
+      double DMIc;
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours
-	    int idn_DMI = n_dmi_ngbs * i; // index for the neighbours for the DMI array
+	    int idn_DMI = 6 * i; // index for the neighbours for the DMI array
 
         /* Set a zero field for sites without magnetic material */
 	    if (Ms_inv[i] == 0.0){
 	        field[3 * i] = 0;
 	        field[3 * i + 1] = 0;
 	        field[3 * i + 2] = 0;
-            energy[i] = 0;
+          energy[i] = 0;
 	        continue;
 	    }
 
         /* Here we iterate through the neighbours. Remember:
-         * j = 0, 1, 2, 3, 4, 5  --> -x, +x, -y, +y, -z, +z */
-        for (int j = 0; j < n_dmi_ngbs; j++) {
+         * j = 0, 1, 2, 3, 4, 5  --> -x, +x, -y, +y, -z, +z
+         Previously we had n_dmi_neighbours as a parameter,
+         but now we just skip if the vector entries are zero
+         instead, because we can have cases such as in D_n
+         where the D1 component has -x,+x,-y,+y,0,0
+         and the D2 component has 0,0,0,0,-z,+z.
+         */
 
-            /* Remember that index=-1 is for sites without material, so
+        for (int j = 0; j < 6; j++) {
+            /* Remember that index = -1 is for sites without material, so
              * we skip those sites */
 	        if (ngbs[idn + j] >= 0) {
 
@@ -312,8 +314,10 @@ void dmi_field(double *restrict m, double *restrict field, double *restrict ener
                      */
                     DMIc = -D[idn_DMI + j] / dxs[j];
 
-                    /* Compute only for DMI vectors largr than zero */
-                    if (abs(DMIc) > 0) {
+                    /* Compute only for DMI vectors largr than zero
+                       and check the DMI vector exists in a given direction.
+                    */
+                    if ((abs(DMIc) > 0) && ((dmi_vector[3 * j] + dmi_vector[3*j+1] + dmi_vector[3*j + 2]) > 0)) {
                         /* The x component of the cross product of +-x
                          * times anything is zero (similar for the other comps) */
                         fx += DMIc * cross_x(dmi_vector[3 * j],
