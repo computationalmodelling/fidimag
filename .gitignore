@@ -9,6 +9,7 @@
 local/
 *~
 *.bak
+.DS_Store
 .pytest_cache/
 # ignore automatically generated cython files
 fidimag/atomistic/lib/clib.c
