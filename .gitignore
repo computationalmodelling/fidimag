@@ -6,8 +6,10 @@
 *.pdf
 *.tmp
 *.so
-/local/
-
+local/
+*~
+*.bak
+.pytest_cache/
 # ignore automatically generated cython files
 fidimag/atomistic/lib/clib.c
 fidimag/common/lib/common_clib.c
