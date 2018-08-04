@@ -125,7 +125,7 @@ def test_micro_dmi_array_interfacial():
     """
     D = 1
     # The DMI norms for the NNs: -x +x -y +y -z +z
-    DMInorms = np.array([0, D, 0, D])
+    DMInorms = np.array([0, D, 0, D, 0, 0])
     # This norm is the same for every lattice site
     DMInorms = np.repeat(DMInorms[np.newaxis, :], 3, axis=0).flatten()
 
