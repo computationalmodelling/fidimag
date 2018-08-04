@@ -193,7 +193,7 @@ class DriverBase(object):
         self.data_saver.save()
 
     def relax(self, dt=10e-12, stopping_dmdt=0.01, max_steps=1000,
-              save_m_steps=100, save_vtk_steps=100
+              save_m_steps=100, save_vtk_steps=100,
               printing=True):
         """
         Evolve the system until meeting the `dmdt` < `stopping_dmdt` criteria.
