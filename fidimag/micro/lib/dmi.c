@@ -265,14 +265,11 @@ void dmi_field(double *restrict m, double *restrict field, double *restrict ener
   double dxs[6] = {dx, dx, dy, dy, dz, dz};
 
     /* Here we iterate through every mesh node */
-	#pragma omp parallel for shared(dxs)
 	for (int i = 0; i < n; i++) {
       double DMIc;
 	    double fx = 0, fy = 0, fz = 0;
 	    int idnm = 0;     // Index for the magnetisation matrix
 	    int idn = 6 * i; // index for the neighbours
-	    int idn_DMI = 6 * i; // index for the neighbours for the DMI array
-
         /* Set a zero field for sites without magnetic material */
 	    if (Ms_inv[i] == 0.0){
 	        field[3 * i] = 0;
@@ -292,34 +289,30 @@ void dmi_field(double *restrict m, double *restrict field, double *restrict ener
          */
 
         for (int j = 0; j < 6; j++) {
-            /* Remember that index = -1 is for sites without material, so
-             * we skip those sites */
-	        if (ngbs[idn + j] >= 0) {
+            /* We skip the neighbour if
+             (a) it doesn't exist (ngbs[idn + j] = -1)
+             (b) there is no material there
+             (c) DMI value is zero there
+            */
+	           if ((ngbs[idn + j] != -1) && (Ms_inv[ngbs[idn + j]] !=  0) && (D[ngbs[idn + j] != 0])) {
 
-                /* Magnetisation array index of the neighbouring spin
-                 * since ngbs gives the neighbour's index */
-	            idnm = 3 * ngbs[idn + j];
 
-                /* Check that the magnetisation of the neighbouring spin
-                 * is larger than zero */
-                if (Ms_inv[ngbs[idn + j]] > 0){
 
-                    /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
-                     * The cross_i function gives the i component of the
-                     * cross product. The coefficient is computed according
-                     * to the DMI strength of the current lattice site.
-                     * For the denominator, for example, if j=2 or 3, then
-                     * dxs[j] = dy
-                     * The D vector is 6 * n which is specified for every neighbour
-                     */
-                    DMIc = -D[idn_DMI + j] / dxs[j];
+            /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
+             * The cross_i function gives the i component of the
+             * cross product. The coefficient is computed according
+             * to the DMI strength of the current lattice site.
+             * For the denominator, for example, if j=2 or 3, then
+             * dxs[j] = dy
 
-                    /* Compute only for DMI vectors largr than zero
-                       and check the DMI vector exists in a given direction.
-                    */
-                    if ((abs(DMIc) > 0) && ((dmi_vector[3 * j] + dmi_vector[3*j+1] + dmi_vector[3*j + 2]) > 0)) {
+                    /* check the DMI vector exists */
+                    if ((dmi_vector[3 * j] != 0 ||  dmi_vector[3*j+1] != 0 ||  dmi_vector[3*j + 2] != 0) > 0) {
                         /* The x component of the cross product of +-x
                          * times anything is zero (similar for the other comps) */
+
+                        DMIc = -D[ngbs[idn + j]] / dxs[j]; // Get DMI constant from neighbour and scale
+                        idnm = 3 * ngbs[idn + j]; // index for magnetisation
+
                         fx += DMIc * cross_x(dmi_vector[3 * j],
                                              dmi_vector[3 * j + 1],
                                              dmi_vector[3 * j + 2],
@@ -332,7 +325,7 @@ void dmi_field(double *restrict m, double *restrict field, double *restrict ener
                                              dmi_vector[3 * j + 1],
                                              dmi_vector[3 * j + 2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
-                    }
+
                 }
             }
         }
