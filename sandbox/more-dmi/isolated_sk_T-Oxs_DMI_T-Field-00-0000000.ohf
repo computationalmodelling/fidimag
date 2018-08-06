@@ -7,22 +7,22 @@
 #
 # Title: Oxs_DMI_T::Field
 # Desc: Oxs vector field output
-# Desc:  MIF source file: /Users/ryan/test_dmi.mif
-# Desc:  Iteration: 0, State id: 9
+# Desc:  MIF source file: /Users/ryan/git/fidimag/sandbox/more-dmi/test_dmi_multi.mif
+# Desc:  Iteration: 0, State id: 179
 # Desc:  Stage: 0, Stage iteration: 0
 # Desc:  Stage simulation time: -1 s
 # Desc:  Total simulation time: -2 s
 # meshunit: m
 # meshtype: rectangular
 # xbase: 3.7499999999999997e-09
-# ybase: 3.7499999999999997e-09
-# zbase: 3.7499999999999997e-09
+# ybase: 7.4999999999999993e-09
+# zbase: 7.4999999999999993e-09
 # xnodes: 2
-# ynodes: 2
-# znodes: 2
+# ynodes: 1
+# znodes: 1
 # xstepsize: 7.4999999999999993e-09
-# ystepsize: 7.4999999999999993e-09
-# zstepsize: 7.4999999999999993e-09
+# ystepsize: 1.4999999999999999e-08
+# zstepsize: 1.4999999999999999e-08
 # xmin: 0
 # ymin: 0
 # zmin: 0
@@ -36,13 +36,7 @@
 # End: Header
 #
 # Begin: Data Text
- 376184.410944480 -376184.410944480 -0.00000000000000
- 376184.410944480 376184.410944480 -0.00000000000000
- -376184.410944480 -376184.410944480 -0.00000000000000
- -376184.410944480 376184.410944480 -0.00000000000000
- 376184.410944480 -376184.410944480 -0.00000000000000
- 376184.410944480 376184.410944480 -0.00000000000000
- -376184.410944480 -376184.410944480 -0.00000000000000
- -376184.410944480 376184.410944480 -0.00000000000000
+ -0.00000000000000 -376184.410944480 -0.00000000000000
+ -0.00000000000000 376184.410944480 -0.00000000000000
 # End: Data Text
 # End: Segment
