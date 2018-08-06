@@ -91,7 +91,7 @@ class SimBase(object):
 
         """
 
-        self.spin[:] = helper.init_vector(m0, self.mesh, normalise)
+        self.spin[:] = helper.init_vector(m0, self.mesh, 3, normalise)
 
         # TODO: carefully checking and requires to call set_mu first
 

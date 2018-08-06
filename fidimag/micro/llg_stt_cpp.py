@@ -58,7 +58,7 @@ class LLG_STT_CPP(MicroDriver):
         return self._p
 
     def set_p(self, value):
-        self._p[:] = helper.init_vector(value, self.mesh)
+        self._p[:] = helper.init_vector(value, self.mesh, 3)
     p = property(get_p, set_p)
 
     def get_a_J(self):

@@ -81,7 +81,7 @@ class MonteCarlo(object):
         self.saver.update_entity_order()
 
     def set_m(self, m0=(1, 0, 0), normalise=True):
-        self.spin[:] = helper.init_vector(m0, self.mesh, normalise)
+        self.spin[:] = helper.init_vector(m0, self.mesh, normalise=normalise)
 
         # TODO: carefully checking and requires to call set_mu first
 
