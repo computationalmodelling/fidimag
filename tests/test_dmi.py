@@ -76,31 +76,21 @@ def test_micro_dmi_array_bulk():
 
     """
     D = 1
-    # The DMI norms for the NNs: -x +x -y +y -z +z
-    DMInorms = np.array([0, 0, 0, 0, D, D])
-    # This norm is the same for every lattice site
-    DMInorms = np.repeat(DMInorms[np.newaxis, :], 4, axis=0).flatten()
 
-    mesh = CuboidMesh(nx=2, ny=1, nz=2, dx=1, dy=1, dz=1)
+    mesh = CuboidMesh(nx=3, ny=1, nz=1, dx=1, dy=1, dz=1)
     sim = microSim(mesh)
     sim.Ms = 1
-    sim.set_m(np.array([1, 0, 0,
-                        -1, 0, 0,
-                        0, 1, 0,
-                        0, 1, 0]))
+    sim.set_m(np.array([0, 0, 1]))
 
-    sim.add(microDMI(DMInorms, dmi_type='bulk'))
+
+    sim.add(microDMI(D, dmi_type='bulk'))
     sim.compute_effective_field(0)
+    D_field = C.mu_0 * sim.field.reshape(-1, 3)
+    print(D_field)
 
-    # The field is computed as: - (1 / mu_0 Ms) D ( r_ij X M )
-    # Thus the field at the 0th site should be: -D ( z X (0, 1, 0) )
-    # which is (1, 0, 0), since Ms=1 and D is defined only for the
-    # neighbours as +- z
-    D_field = sim.field.reshape(-1, 3)
-    hx, hy, hz = C.mu_0 * D_field[0]
-    assert np.abs(hx - 1) < 1e-10
-    assert np.abs(hy) < 1e-10
-    assert np.abs(hz) < 1e-10
+    np.testing.assert_allclose(np.array([[ 0.,  1.,  0.],
+ 										  [ 0.,  0.,  0.],
+ 										  [ 0., -1.,  0.]]), D_field, rtol=1e-14)
 
 
 def test_micro_dmi_array_interfacial():
@@ -124,19 +114,15 @@ def test_micro_dmi_array_interfacial():
 
     """
     D = 1
-    # The DMI norms for the NNs: -x +x -y +y -z +z
-    DMInorms = np.array([0, D, 0, D, 0, 0])
-    # This norm is the same for every lattice site
-    DMInorms = np.repeat(DMInorms[np.newaxis, :], 3, axis=0).flatten()
+
 
     mesh = CuboidMesh(nx=3, ny=1, nz=1, dx=1, dy=1, dz=1)
     sim = microSim(mesh)
     sim.Ms = 1
-    sim.set_m(np.array([1, 0, 0,
-                        0, 1, 0,
-                        0, 0, -1]))
+    sim.set_m(np.array([0, 0, 1]))
 
-    sim.add(microDMI(DMInorms, dmi_type='interfacial'))
+
+    sim.add(microDMI(D, dmi_type='interfacial'))
     sim.compute_effective_field(0)
 
     # The field is computed as: - (1 / mu_0 Ms) D ( (r_ij X z) X M )
@@ -144,16 +130,12 @@ def test_micro_dmi_array_interfacial():
     # which is (1, 0, 0), since Ms=1 and D is defined only for the
     # neighbours as +- z
     D_field = sim.field.reshape(-1, 3)
-    hx, hy, hz = C.mu_0 * D_field[1]
-    assert np.abs(hx - 1) < 1e-10
-    assert np.abs(hy) < 1e-10
-    assert np.abs(hz) < 1e-10
+    D_field = C.mu_0 * sim.field.reshape(-1, 3)
+    print(D_field)
+    np.testing.assert_allclose(np.array([[ -1.,  0.,  0.],
+ 										  [ 0.,  0.,  0.],
+ 										  [ 1.,  0.,  0.]]), D_field, rtol=1e-14)
 
-    # At the first site the field is zero
-    hx, hy, hz = C.mu_0 * D_field[0]
-    assert np.abs(hx) < 1e-10
-    assert np.abs(hy) < 1e-10
-    assert np.abs(hz) < 1e-10
 
 if __name__ == '__main__':
     # test_atom_dmi_1d()
