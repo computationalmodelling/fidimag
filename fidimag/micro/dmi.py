@@ -184,17 +184,18 @@ class DMI(Energy):
             # D2 = 2*i + 1
 
             micro_clib.compute_dmi_field(m,
-                                           self.field,
-                                           self.energy,
-                                           self.Ms_inv,
-                                           self.Ds[:self.n],
-                                           self.dmi_vector[:18],
-                                           self.dx,
-                                           self.dy,
-                                           self.dz,
-                                           self.n,
-                                           self.neighbours
-                                           )
+                                         self.field,
+                                         self.energy,
+                                         self.Ms_inv,
+                                         self.Ds[:self.n],
+                                         self.dmi_vector[:18],
+                                         self.dx,
+                                         self.dy,
+                                         self.dz,
+                                         self.n,
+                                         self.neighbours
+                                        )
+                                        
             field0 = np.zeros_like(self.field)
             micro_clib.compute_dmi_field(m,
                                          field0,
