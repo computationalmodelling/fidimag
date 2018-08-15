@@ -105,7 +105,13 @@ class Demag(Energy):
     def compute_energy(self):
 
         self.compute_field()
-        energy = self.demag.compute_energy(self.spin, self.Ms, self.field)
+        energy = self.demag.compute_energy(self.spin, self.Ms,
+                                           self.field, self.energy)
+
+        self.energy *= mu_0 * (self.mesh.dx *
+                               self.mesh.dy *
+                               self.mesh.dz *
+                               self.mesh.unit_length ** 3.)
 
         return energy * mu_0 * (self.mesh.dx *
                                 self.mesh.dy *

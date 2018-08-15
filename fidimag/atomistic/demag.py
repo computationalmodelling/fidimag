@@ -67,6 +67,6 @@ class Demag(Energy):
     def compute_energy(self):
 
         energy = self.demag.compute_energy(
-            self.spin, self.mu_s_scale, self.field)
+            self.spin, self.mu_s_scale, self.field, self.energy)
 
         return energy / self.scale

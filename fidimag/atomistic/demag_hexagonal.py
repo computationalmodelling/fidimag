@@ -81,6 +81,9 @@ class DemagHexagonal(object):
         self.field = np.zeros(3 * self.n, dtype=np.float)
         self.field_c = np.zeros(3 * self.n_c, dtype=np.float)
 
+        self.energy = np.zeros(self.n, dtype=np.float)
+        self.energy_c = np.zeros(self.n_c, dtype=np.float)
+
         unit_length = mesh.unit_length
         self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
         self.mu_s_scale_c = np.zeros(2 * self.n, dtype=np.float)
@@ -144,7 +147,7 @@ class DemagHexagonal(object):
         self.vector2cuboid(self.spin, self.spin_c)
 
         energy = self.demag.compute_energy(
-            self.spin_c, self.mu_s_scale_c, self.field_c)
+            self.spin_c, self.mu_s_scale_c, self.field_c, self.energy_c)
 
         return energy / self.scale
 
