@@ -48,25 +48,25 @@ class DMI(Energy):
                        known as anti-skyrmions are stabilised with this
                        DMI type
 
+        custom      :: Pass n number of DMI constants as the main argument and
+                       specify a dmi_vector array of length 18 * n. This array
+                       has the dmi vector components for every NN in the order
+
+                        [D1x(-x) D1y(-x) D1z(-x) D1x(+x) D1y(+x) ... D1z(+z)
+                         D2x(-x) D2y(-x) ...                         D2z(+z)
+                         ...
+                         ]
+
     ARGUMENTS: ----------------------------------------------------------------
 
     D       :: DMI vector norm which can be specified as an int, float, (X * n)
-               array (X=6 for bulk DMI and X=4 for interfacial DMI), (n) array
                or spatially dependent scalar field function. The units are
                Joules / ( meter **2 ).
 
                int, float: D will have the same magnitude for every NN of the
                spins at every mesh node, given by this magnitude
 
-               (n) array: D will have the same magnitude for every NN on every
-               mesh node but will vary according to the values of the array,
-               i.e. the value of D for the 6 NNs at the i-th mesh site will be
-               given by the i-th value of the array
-
-               (X * n) array: Manually specify the DMI vector norm for every NN
-               at every mesh node. The bulk DMI considers the 6 NNs from every
-               node and interfacial and D_2d DMI are 2D so they only consider 4
-               NNs from the xy plane.
+               (n) array or list: D for every DMI constant
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
 
@@ -75,18 +75,19 @@ class DMI(Energy):
 
     """
 
-    def __init__(self, D, name='DMI', dmi_type='bulk', D2=None):
+    def __init__(self, D, name='DMI', dmi_type='bulk', dmi_vector=None):
         """
         """
         self.D = D
         self.name = name
         self.jac = True
         self.dmi_type = dmi_type
+        self.dmi_vector = dmi_vector
 
         # Number of NNs for the calculation of the corresponding DMI
         # Interfacial or D_2d are 2D so we use 4 ngbs
-        types = ['bulk', 'interfacial', 'D_n', 'C_n', 'D_2d']
-        if self.dmi_type not in ['bulk', 'interfacial', 'D_n', 'C_n', 'D_2d']:
+        types = ['bulk', 'interfacial', 'D_n', 'C_n', 'D_2d', 'custom']
+        if self.dmi_type not in types:
             raise Exception(
                 "Unsupported DMI type: {}, " +
                 "available options:\n  {}".format(self.dmi_type, *types)
@@ -98,74 +99,100 @@ class DMI(Energy):
         #         raise Exception("For C_n and D_n symmetry, you must also pass a D2 value"
         #                          " as this material class has multiple DMI constants")
 
-
     def setup(self, mesh, spin, Ms, Ms_inv):
         super(DMI, self).setup(mesh, spin, Ms, Ms_inv)
 
         if self.dmi_type == 'bulk':
             self.dmi_vector = np.array([-1., 0, 0,
-                                   1., 0, 0,
-                                   0, -1., 0,
-                                   0, 1., 0,
-                                   0, 0, -1.,
-                                   0, 0, 1.
-                                   ])
+                                        1., 0, 0,
+                                        0, -1., 0,
+                                        0, 1., 0,
+                                        0, 0, -1.,
+                                        0, 0, 1.
+                                        ])
 
         elif self.dmi_type == 'interfacial':
             self.dmi_vector = np.array([0, -1., 0,  # -x
-                                   0, 1., 0,   # +x
-                                   1., 0, 0,   # -y
-                                   -1., 0, 0,  # +y
-                                   0, 0, 0,    # -z
-                                   0, 0, 0     # +z
-                                   ])
+                                        0, 1., 0,   # +x
+                                        1., 0, 0,   # -y
+                                        -1., 0, 0,  # +y
+                                        0, 0, 0,    # -z
+                                        0, 0, 0     # +z
+                                        ])
 
         elif self.dmi_type == 'D_2d':
             self.dmi_vector = np.array([1., 0, 0,   # -x
-                                   -1., 0, 0,  # +x
-                                   0, -1., 0,  # -y
-                                   0, 1., 0,   # +y
-                                   0, 0, 0,    # -z
-                                   0, 0, 0     # +z
-                                   ])
+                                        -1., 0, 0,  # +x
+                                        0, -1., 0,  # -y
+                                        0, 1., 0,   # +y
+                                        0, 0, 0,    # -z
+                                        0, 0, 0     # +z
+                                        ])
 
         elif self.dmi_type == 'D_n':
-            self.dmi_vector = np.array([1.0, 0, 0, # D1 components
-                                   -1, 0, 0,
-                                   0, -1, 0,
-                                   0, 1, 0,
-                                   0, 0, 0,
-                                   0, 0, 0,
-                                   0, 0, 0, # D2 components
-                                   0, 0, 0,
-                                   0, 0, 0,
-                                   0, 0, 0,
-                                   0, 0, 1,
-                                   0, 0, -1,
-                                  ])
+            self.dmi_vector = np.array([1.0, 0, 0,  # D1 components
+                                        -1, 0, 0,
+                                        0, -1, 0,
+                                        0, 1, 0,
+                                        0, 0, 0,
+                                        0, 0, 0,
+                                        0, 0, 0,    # D2 components
+                                        0, 0, 0,
+                                        0, 0, 0,
+                                        0, 0, 0,
+                                        0, 0, 1,
+                                        0, 0, -1,
+                                        ])
 
         elif self.dmi_type == 'C_n':
-            self.dmi_vector =np.array([0, -1., 0,  # -x
-                                       0, 1., 0,   # +x
-                                       1., 0, 0,   # -y
-                                       -1., 0, 0,  # +y
-                                       0, 0, 0,    # -z
-                                       0, 0, 0,     # +z
-                                       1, 0, 0, # D2 components
-                                       -1, 0, 0,
-                                       0, -1, 0,
-                                       0, 1, 0,
-                                       0, 0, 0,
-                                       0, 0, 0,
-                                  ])
+            self.dmi_vector = np.array([0, -1., 0,  # -x
+                                        0, 1., 0,   # +x
+                                        1., 0, 0,   # -y
+                                        -1., 0, 0,  # +y
+                                        0, 0, 0,    # -z
+                                        0, 0, 0,    # +z
+                                        1, 0, 0,    # D2 components
+                                        -1, 0, 0,
+                                        0, -1, 0,
+                                        0, 1, 0,
+                                        0, 0, 0,
+                                        0, 0, 0,
+                                        ])
+        elif self.dmi_type == 'custom':
+            self.dmi_vector = np.array(self.dmi_vector)
+            # Example:
+            # self.DMI_vector = [ 0, 0, D1,  # DMI 1
+            #                     0, 0, -D1,
+            #                     0, 0, 0,
+            #                     0, 0, 0,
+            #                     0, 0, 0,
+            #                     0, 0, 0,
+            #                     0, 0, 0,   # DMI 2
+            #                     0, 0, 0,
+            #                     0, D2, 0,
+            #                     0, -D2, 0,
+            #                     0, 0, 0,
+            #                     0, 0, 0,
+            #                   ]
+            n_Ds = len(self.dmi_vector) // 18
+
+            if len(self.dmi_vector) % 18 != 0:
+                raise Exception('The DMI vector length must be a mult of 18: '
+                                ' N of DMIs times 3 * number of ngbs = 18')
+
+            if n_Ds > 1:
+                self.Ds = helper.init_vector(self.D, self.mesh, dim=n_Ds)
+            else:
+                self.Ds = helper.init_scalar(self.D, self.mesh)
+
+            self.n_dmis = n_Ds
+
         if self.dmi_type == 'C_n' or self.dmi_type == 'D_n':
             self.Ds = helper.init_vector(self.D, self.mesh, dim=2)
-            D0 = self.Ds[::2]
-            D1 = self.Ds[1::2]
-            self.Ds[:] = np.hstack([D0, D1])
+            self.n_dmis = 2
         else:
             self.Ds = helper.init_scalar(self.D, self.mesh)
-
+            self.n_dmis = 1
 
     def compute_field(self, t=0, spin=None):
         if spin is not None:
@@ -173,67 +200,58 @@ class DMI(Energy):
         else:
             m = self.spin
 
+        # if self.dmi_type == 'D_n' or self.dmi_type == 'C_n':
+        #     # Now have two vaues for D,
+        #     # so what we can do is intersperse the D values, i.e.
+        #     # [D^1_0, D^2_0, D^1_1, D^2_1, ... D^1_n, D^2_n]
+        #     # So to address cell i's values, you can use
+        #     # D1 = 2*i
+        #     # D2 = 2*i + 1
 
+        #     micro_clib.compute_dmi_field(m,
+        #                                  self.field,
+        #                                  self.energy,
+        #                                  self.Ms_inv,
+        #                                  self.Ds[:self.n],
+        #                                  self.dmi_vector[:18],
+        #                                  self.dx,
+        #                                  self.dy,
+        #                                  self.dz,
+        #                                  self.n,
+        #                                  self.neighbours
+        #                                  )
 
-        if self.dmi_type == 'D_n' or self.dmi_type == 'C_n':
-            # Now have two vaues for D,
-            # so what we can do is intersperse the D values, i.e.
-            # [D^1_0, D^2_0, D^1_1, D^2_1, ... D^1_n, D^2_n]
-            # So to address cell i's values, you can use
-            # D1 = 2*i
-            # D2 = 2*i + 1
+        #     field0 = np.zeros_like(self.field)
+        #     micro_clib.compute_dmi_field(m,
+        #                                  field0,
+        #                                  self.energy,
+        #                                  self.Ms_inv,
+        #                                  self.Ds[self.n:],
+        #                                  self.dmi_vector[18:],
+        #                                  self.dx,
+        #                                  self.dy,
+        #                                  self.dz,
+        #                                  self.n,
+        #                                  self.neighbours
+        #                                  )
+        #     # print('field0 minmax =  ', np.min(field0), np.max(field0))
+        #     # print('D0 minmax = ', np.min(self.Ds[:self.n]), np.max(self.Ds[:self.n]))
+        #     # print('D1 minmax = ', np.min(self.Ds[self.n:]), np.max(self.Ds[self.n:]))
+        #     self.field += field0
 
-            micro_clib.compute_dmi_field(m,
-                                         self.field,
-                                         self.energy,
-                                         self.Ms_inv,
-                                         self.Ds[:self.n],
-                                         self.dmi_vector[:18],
-                                         self.dx,
-                                         self.dy,
-                                         self.dz,
-                                         self.n,
-                                         self.neighbours
-                                        )
-                                        
-            field0 = np.zeros_like(self.field)
-            micro_clib.compute_dmi_field(m,
-                                         field0,
-                                         self.energy,
-                                         self.Ms_inv,
-                                         self.Ds[self.n:],
-                                         self.dmi_vector[18:],
-                                         self.dx,
-                                         self.dy,
-                                         self.dz,
-                                         self.n,
-                                         self.neighbours
-                                         )
-            # print('field0 minmax =  ', np.min(field0), np.max(field0))
-            # print('D0 minmax = ', np.min(self.Ds[:self.n]), np.max(self.Ds[:self.n]))
-            # print('D1 minmax = ', np.min(self.Ds[self.n:]), np.max(self.Ds[self.n:]))
-            self.field += field0
-
-
-
-
-
-
-
-
-
-        else:
-            micro_clib.compute_dmi_field(m,
-                                         self.field,
-                                         self.energy,
-                                         self.Ms_inv,
-                                         self.Ds,
-                                         self.dmi_vector,
-                                         self.dx,
-                                         self.dy,
-                                         self.dz,
-                                         self.n,
-                                         self.neighbours
-                                         )
+        # else:
+        micro_clib.compute_dmi_field(m,
+                                     self.field,
+                                     self.energy,
+                                     self.Ms_inv,
+                                     self.Ds,
+                                     self.n_dmis,
+                                     self.dmi_vector,
+                                     self.dx,
+                                     self.dy,
+                                     self.dz,
+                                     self.n,
+                                     self.neighbours
+                                     )
 
         return self.field

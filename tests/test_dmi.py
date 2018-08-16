@@ -58,10 +58,10 @@ def test_atom_dmi_1d_field():
 def test_micro_dmi_array_bulk():
     """
     Test the DMI in a micromagnetic simulation when manually specifying
-    the DMI array. We use bulk DMI
+    the DMI vectors. We use the z modulation of bulk DMI
 
     We specify DMI only along the +- z directions by setting the
-    magnitude of the DMI vector along the other directions as 0
+    magnitude of the DMI vectors along the other directions as 0
 
     The system consists of 4 spins in the xz plane aligned as:
           2        3
@@ -76,10 +76,14 @@ def test_micro_dmi_array_bulk():
 
     """
     D = 1
-    # The DMI norms for the NNs: -x +x -y +y -z +z
-    DMInorms = np.array([0, 0, 0, 0, D, D])
-    # This norm is the same for every lattice site
-    DMInorms = np.repeat(DMInorms[np.newaxis, :], 4, axis=0).flatten()
+    # The DMI vectors
+    DMI_vector = [0., 0, 0,  # -x
+                  0, 0, 0,   # +x
+                  0, 0, 0,   # -y
+                  0, 0, 0,   # +y
+                  0, 0, -1,  # -z
+                  0, 0, 1,   # +z
+                  ]
 
     mesh = CuboidMesh(nx=2, ny=1, nz=2, dx=1, dy=1, dz=1)
     sim = microSim(mesh)
@@ -89,7 +93,10 @@ def test_micro_dmi_array_bulk():
                         0, 1, 0,
                         0, 1, 0]))
 
-    sim.add(microDMI(DMInorms, dmi_type='bulk'))
+    # sim.add(microDMI(DMInorms, dmi_type='bulk'))
+    # With the custom option, we manually pass a DMI vector array
+    # made of 18 * n components
+    sim.add(microDMI(D, dmi_type='custom', dmi_vector=DMI_vector))
     sim.compute_effective_field(0)
 
     # The field is computed as: - (1 / mu_0 Ms) D ( r_ij X M )
@@ -109,7 +116,7 @@ def test_micro_dmi_array_interfacial():
     the DMI array. Here we use interfacial DMI (only defined for NNs
     in the xy plane)
 
-    We specify DMI only along the +x direction by setting the
+    We specify DMI only along the +x / +y directions by setting the
     magnitude of the DMI vector along the other directions as 0
 
     The system consists of 3 spins in the xz plane aligned as:
@@ -123,11 +130,16 @@ def test_micro_dmi_array_interfacial():
     the 1st node, is only computed using the 2nd node.
 
     """
-    D = 1
-    # The DMI norms for the NNs: -x +x -y +y -z +z
-    DMInorms = np.array([0, D, 0, D, 0, 0])
     # This norm is the same for every lattice site
-    DMInorms = np.repeat(DMInorms[np.newaxis, :], 3, axis=0).flatten()
+    D = 1
+    # The DMI vectors as interfacial DMI with -x and -y vecs as zero
+    DMI_vector = [0., 0, 0,  # -x
+                  0, 1, 0,   # +x
+                  0, 0, 0,   # -y
+                  -1, 0, 0,  # +y
+                  0, 0, -1,  # -z
+                  0, 0, 1,   # +z
+                  ]
 
     mesh = CuboidMesh(nx=3, ny=1, nz=1, dx=1, dy=1, dz=1)
     sim = microSim(mesh)
@@ -136,7 +148,7 @@ def test_micro_dmi_array_interfacial():
                         0, 1, 0,
                         0, 0, -1]))
 
-    sim.add(microDMI(DMInorms, dmi_type='interfacial'))
+    sim.add(microDMI(D, dmi_type='custom', dmi_vector=DMI_vector))
     sim.compute_effective_field(0)
 
     # The field is computed as: - (1 / mu_0 Ms) D ( (r_ij X z) X M )
@@ -155,8 +167,9 @@ def test_micro_dmi_array_interfacial():
     assert np.abs(hy) < 1e-10
     assert np.abs(hz) < 1e-10
 
+
 if __name__ == '__main__':
     # test_atom_dmi_1d()
     # test_atom_dmi_1d_field()
-    # test_micro_dmi_array_bulk()
+    test_micro_dmi_array_bulk()
     test_micro_dmi_array_interfacial()

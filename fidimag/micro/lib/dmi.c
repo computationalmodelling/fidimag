@@ -1,5 +1,6 @@
 #include "micro_clib.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 /* Functions to Compute the micromagnetic Dzyaloshinskii Moriya interaction
@@ -51,7 +52,7 @@
  *
  *  For the DMI computation, the field  will depend on the interaction
  *  structure. Common types are Interfacial and Bulk DMI. For the
- *  Bulk DMI we use the interaction found in materials with
+ *  interfacial DMI we use the interaction found in materials with
  *  point group C_nv (although we can easily generalise the code for
  *  other symmetry classes)
  *
@@ -133,21 +134,40 @@
  *  (dx, dy or dz) in the corresponding direction
  *
  *  The DMI vector norms are given by the *D array. If our simulation has
- *  n mesh nodes, then the D array is (6 * n) long, i.e. the DMI vector norm
- *  per every neighbour per every mesh node. The order is the same than the NNs
+ *  n mesh nodes, then the D array len is n. The order is the same than the NNs
  *  array, i.e.
  *
- *      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(z)_0, D(-z)_0, D(x)_1, ...]
+ *      D = [D_0, D_1, ...]
  *
- *  where D(j)_i means the DMI vector norm of the NN in the j-direction at
- *  the i-th mesh node. Remember that the DMI vector points in a single
- *  direction towards the NN site, e.g. the DMI vector of the NN in the
- *  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
+ *  where D_i means the DMI vector norm of the i-th mesh node.
  *
  *  NOTE:
  *  To compute the DMI for other point groups we will have to find
  *  the vectors and how to discretise the derivative
  *
+ *  MULTIPLE DMI --------------------------------------------------------------
+ *
+ *  Multiple DMI vectors can be passed in the dmi_vector array. For ex, with
+ *  two DMIs:
+ *
+ *         dmi_vector = [ Dx(-x) Dy(-x) Dz(-x) -- DMI vector 1 per every NN
+ *                        Dx(+x) Dy(+x) Dz(+x) 
+ *                        Dx(-y) Dy(-y) Dz(-y) 
+ *                        ... 
+ *                        Dx(+z) Dy(+z) Dz(+z) --
+ *                        Dx(-x) Dy(-x) Dz(-x) -- DMI vector 2 per every NN
+ *                        Dx(+x) Dy(+x) Dz(+x) 
+ *                        Dx(-y) Dy(-y) Dz(-y) 
+ *                        ... 
+ *                        Dx(+z) Dy(+z) Dz(+z) 
+ *                      ]
+ *
+ * and DMI constants are passed inerspersed in the D array per every node
+ *   
+ *    D = [ D1_0 D2_0 D1_1 D2_1 ... D1_N D2_N]
+ *                      
+ *  where D1_i is the 1st DMI constant of the i-mesh node
+ * 
  * ------------------------------------------------------------------------
  * INTERFACIAL DMI
  * ------------------------------------------------------------------------
@@ -200,6 +220,8 @@
  *     +x:      (D / dx) * (+y  X  M)
  *     -y:      (D / dy) * (+x  X  M)
  *     +y       (D / dy) * (-x  X  M)
+ *     +z       0
+ *     -z       0
  *
  * So, our Dzyaloshinskii vectors can be depicted in the cuboid mesh as
  *
@@ -215,18 +237,6 @@
  *
  * If we start with this picture in the atomic model, we can get the
  * continuum expression when doing the limit  a_x a_y a_z  --> 0
- *
- *  The DMI vector norms are given by the *D array. If our simulation has
- *  n mesh nodes, then the D array is (4 * n) long, i.e. the DMI vector norm
- *  per every neighbour per every mesh node. The order is the same than the NNs
- *  array, i.e.
- *
- *      D = [D(x)_0, D(-x)_0, D(y)_0, D(-y)_0, D(x)_1, ...]
- *
- *  where D(j)_i means the DMI vector norm of the NN in the j-direction at
- *  the i-th mesh node. Remember that the DMI vector points in a single
- *  direction towards the NN site, e.g. the DMI vector of the NN in the
- *  +y direction for the 0th spin, is DMI_vector = D(y)_0 * (0, 1, 0)
  */
 
 
@@ -256,85 +266,100 @@
  *                 the last 6 terms are set to zero
  *
 */
-void dmi_field(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
-               double *restrict D, double *dmi_vector,
+void dmi_field(double *restrict m, double *restrict field,
+               double *restrict energy, double *restrict Ms_inv,
+               double *restrict D, int n_dmis, 
+               double *dmi_vector,
                double dx, double dy, double dz,
                int n, int *restrict ngbs) {
 
-  /* These are for the DMI prefactor or coefficient */
-  double dxs[6] = {dx, dx, dy, dy, dz, dz};
+    /* These are for the DMI prefactor or coefficient */
+    double dxs[6] = {dx, dx, dy, dy, dz, dz};
 
-  /* Here we iterate through every mesh node */
-  for (int i = 0; i < n; i++) {
-    double DMIc;
-    double fx = 0, fy = 0, fz = 0;
-    int idnm;     // Index for the magnetisation matrix
-    int idn = 6 * i; // index for the neighbours
-    /* Set a zero field for sites without magnetic material */
-    if (Ms_inv[i] == 0.0){
-      field[3 * i] = 0;
-      field[3 * i + 1] = 0;
-      field[3 * i + 2] = 0;
-      energy[i] = 0;
-      continue;
+    /* Here we iterate through every mesh node */
+    for (int i = 0; i < n; i++) {
+        double DMIc;
+        double fx = 0, fy = 0, fz = 0;
+        int idnm;     // Index for the magnetisation matrix
+        int idn = 6 * i; // index for the neighbours
+        /* Set a zero field for sites without magnetic material */
+        if (Ms_inv[i] == 0.0){
+            field[3 * i] = 0;
+            field[3 * i + 1] = 0;
+            field[3 * i + 2] = 0;
+            energy[i] = 0;
+            continue;
+        }
+
+        /* Here we iterate through the neighbours. Remember:
+         * j = 0, 1, 2, 3, 4, 5  --> -x, +x, -y, +y, -z, +z
+         Previously we had n_dmi_neighbours as a parameter,
+         but now we just skip if the vector entries are zero
+         instead, because we can have cases such as in D_n
+         where the D1 component has -x,+x,-y,+y,0,0
+         and the D2 component has 0,0,0,0,-z,+z.
+        */
+        for (int j = 0; j < 6; j++) {
+            /* Add the DMI field x times for every DMI constant */
+            for (int k = 0; k < n_dmis; k++) {
+                
+                // starting index of the DMI vector for this neighbour (j)
+                // (remember we have 18 comps of dmi_vector per DMI constant)
+                int ngbr_idx_D = k * 18 + 3 * j;
+
+                /* We skip the neighbour if
+                   (a) it doesn't exist (ngbs[idn + j] = -1)
+                   (b) there is no material there
+                   (c) DMI value is zero there
+                */
+                if ((ngbs[idn + j] != -1) && (Ms_inv[ngbs[idn + j]] !=  0)) {
+                /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
+                 * The cross_i function gives the i component of the
+                 * cross product. The coefficient is computed according
+                 * to the DMI strength of the current lattice site.
+                 * For the denominator, for example, if j=2 or 3, then
+                 * dxs[j] = dy
+                 */
+
+                    /* check the DMI vector exists */
+                    if (dmi_vector[ngbr_idx_D    ] != 0 ||
+                        dmi_vector[ngbr_idx_D + 1] != 0 ||
+                        dmi_vector[ngbr_idx_D + 2] != 0   ) {
+                        /* Notice the x component of the cross product of +-x
+                         * times anything is zero (similar for the other comps) */
+
+                        // Get DMI constant from neighbour and scale
+                        // DMI components are in consecutive order per neighbour,
+                        // i.e. if 2 DMI consts: [D0 D1 D0 D1 .... ]
+                        DMIc = -D[n_dmis * ngbs[idn + j] + k] / dxs[j];
+
+                        idnm = 3 * ngbs[idn + j]; // index for magnetisation
+
+                        fx += DMIc * cross_x(dmi_vector[ngbr_idx_D],
+                                             dmi_vector[ngbr_idx_D + 1],
+                                             dmi_vector[ngbr_idx_D + 2],
+                                             m[idnm], m[idnm + 1], m[idnm + 2]);
+                        fy += DMIc * cross_y(dmi_vector[ngbr_idx_D],
+                                             dmi_vector[ngbr_idx_D + 1],
+                                             dmi_vector[ngbr_idx_D + 2],
+                                             m[idnm], m[idnm + 1], m[idnm + 2]);
+                        fz += DMIc * cross_z(dmi_vector[ngbr_idx_D],
+                                             dmi_vector[ngbr_idx_D + 1],
+                                             dmi_vector[ngbr_idx_D + 2],
+                                             m[idnm], m[idnm + 1], m[idnm + 2]);
+
+                    }
+                }
+            }  // Close for loop through n of DMI constants
+        }  // Close for loop through neighbours per mesh site
+
+        /* Energy as: (-mu0 * Ms / 2) * [ H_dmi * m ]   */
+        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
+        		+ fz * m[3 * i + 2]);
+
+        /* Update the field H_dmi which has the same structure than *m */
+        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
+        field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
+        field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
     }
-
-    /* Here we iterate through the neighbours. Remember:
-     * j = 0, 1, 2, 3, 4, 5  --> -x, +x, -y, +y, -z, +z
-     Previously we had n_dmi_neighbours as a parameter,
-     but now we just skip if the vector entries are zero
-     instead, because we can have cases such as in D_n
-     where the D1 component has -x,+x,-y,+y,0,0
-     and the D2 component has 0,0,0,0,-z,+z.
-    */
-
-    for (int j = 0; j < 6; j++) {
-      /* We skip the neighbour if
-    	 (a) it doesn't exist (ngbs[idn + j] = -1)
-    	 (b) there is no material there
-    	 (c) DMI value is zero there
-      */
-      if ((ngbs[idn + j] != -1) && (Ms_inv[ngbs[idn + j]] !=  0)) {
-	/* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
-	 * The cross_i function gives the i component of the
-	 * cross product. The coefficient is computed according
-	 * to the DMI strength of the current lattice site.
-	 * For the denominator, for example, if j=2 or 3, then
-	 * dxs[j] = dy
-
-	 /* check the DMI vector exists */
-	if (dmi_vector[3 * j] != 0 ||  dmi_vector[3*j+1] != 0 ||  dmi_vector[3*j + 2] != 0) {
-	  /* The x component of the cross product of +-x
-	   * times anything is zero (similar for the other comps) */
-
-	  DMIc = -D[ngbs[idn + j]] / dxs[j]; // Get DMI constant from neighbour and scale
-	  idnm = 3 * ngbs[idn + j]; // index for magnetisation
-
-	  fx += DMIc * cross_x(dmi_vector[3 * j],
-			       dmi_vector[3 * j + 1],
-			       dmi_vector[3 * j + 2],
-			       m[idnm], m[idnm + 1], m[idnm + 2]);
-	  fy += DMIc * cross_y(dmi_vector[3 * j],
-			       dmi_vector[3 * j + 1],
-			       dmi_vector[3 * j + 2],
-			       m[idnm], m[idnm + 1], m[idnm + 2]);
-	  fz += DMIc * cross_z(dmi_vector[3 * j],
-			       dmi_vector[3 * j + 1],
-			       dmi_vector[3 * j + 2],
-			       m[idnm], m[idnm + 1], m[idnm + 2]);
-
-	}
-      }
-    }
-
-    /* Energy as: (-mu0 * Ms / 2) * [ H_dmi * m ]   */
-    energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
-			+ fz * m[3 * i + 2]);
-
-    /* Update the field H_dmi which has the same structure than *m */
-    field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
-    field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
-    field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
-
-  }
 }

@@ -11,7 +11,8 @@ cdef extern from "micro_clib.h":
                                   double nz, int z_bottom, int z_top)
 
     void dmi_field(double *m, double *field, double *energy, double *Ms_inv,
-                   double *D, double *dmi_vector,
+                   double *D, int n_dmis,
+                   double *dmi_vector,
                    double dx, double dy, double dz,
                    int n, int *ngbs)
 
@@ -50,6 +51,7 @@ def compute_dmi_field(double [:] m,
                       double [:] energy,
                       double [:] Ms_inv,
                       double [:] D,
+                      n_dmis,
                       double [:] dmi_vector,
                       dx, dy, dz,
                       n,
@@ -57,7 +59,7 @@ def compute_dmi_field(double [:] m,
                       ):
 
     dmi_field(&m[0], &field[0], &energy[0], &Ms_inv[0],
-              &D[0], &dmi_vector[0],
+              &D[0], n_dmis, &dmi_vector[0],
               dx, dy, dz, n, &ngbs[0, 0])
 
 
