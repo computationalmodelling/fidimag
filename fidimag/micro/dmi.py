@@ -200,46 +200,6 @@ class DMI(Energy):
         else:
             m = self.spin
 
-        # if self.dmi_type == 'D_n' or self.dmi_type == 'C_n':
-        #     # Now have two vaues for D,
-        #     # so what we can do is intersperse the D values, i.e.
-        #     # [D^1_0, D^2_0, D^1_1, D^2_1, ... D^1_n, D^2_n]
-        #     # So to address cell i's values, you can use
-        #     # D1 = 2*i
-        #     # D2 = 2*i + 1
-
-        #     micro_clib.compute_dmi_field(m,
-        #                                  self.field,
-        #                                  self.energy,
-        #                                  self.Ms_inv,
-        #                                  self.Ds[:self.n],
-        #                                  self.dmi_vector[:18],
-        #                                  self.dx,
-        #                                  self.dy,
-        #                                  self.dz,
-        #                                  self.n,
-        #                                  self.neighbours
-        #                                  )
-
-        #     field0 = np.zeros_like(self.field)
-        #     micro_clib.compute_dmi_field(m,
-        #                                  field0,
-        #                                  self.energy,
-        #                                  self.Ms_inv,
-        #                                  self.Ds[self.n:],
-        #                                  self.dmi_vector[18:],
-        #                                  self.dx,
-        #                                  self.dy,
-        #                                  self.dz,
-        #                                  self.n,
-        #                                  self.neighbours
-        #                                  )
-        #     # print('field0 minmax =  ', np.min(field0), np.max(field0))
-        #     # print('D0 minmax = ', np.min(self.Ds[:self.n]), np.max(self.Ds[:self.n]))
-        #     # print('D1 minmax = ', np.min(self.Ds[self.n:]), np.max(self.Ds[self.n:]))
-        #     self.field += field0
-
-        # else:
         micro_clib.compute_dmi_field(m,
                                      self.field,
                                      self.energy,
