@@ -97,6 +97,7 @@ def test_micro_dmi_array_bulk():
     # With the custom option, we manually pass a DMI vector array
     # made of 18 * n components
     sim.add(microDMI(D, dmi_type='custom', dmi_vector=DMI_vector))
+
     sim.compute_effective_field(0)
 
     # The field is computed as: - (1 / mu_0 Ms) D ( r_ij X M )
@@ -149,6 +150,7 @@ def test_micro_dmi_array_interfacial():
                         0, 0, -1]))
 
     sim.add(microDMI(D, dmi_type='custom', dmi_vector=DMI_vector))
+
     sim.compute_effective_field(0)
 
     # The field is computed as: - (1 / mu_0 Ms) D ( (r_ij X z) X M )
@@ -156,11 +158,6 @@ def test_micro_dmi_array_interfacial():
     # which is (1, 0, 0), since Ms=1 and D is defined only for the
     # neighbours as +- z
     D_field = sim.field.reshape(-1, 3)
-    hx, hy, hz = C.mu_0 * D_field[1]
-    assert np.abs(hx - 1) < 1e-10
-    assert np.abs(hy) < 1e-10
-    assert np.abs(hz) < 1e-10
-
     # At the first site the field is zero
     hx, hy, hz = C.mu_0 * D_field[0]
     assert np.abs(hx) < 1e-10
