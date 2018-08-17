@@ -149,7 +149,7 @@ class DemagHexagonal(object):
         energy = self.demag.compute_energy(
             self.spin_c, self.mu_s_scale_c, self.field_c, self.energy_c)
 
-        self.scalar2cuboid(self.energy_c, self.energy, invert=True)
+        self.scalar2cuboid(self.energy, self.energy_c, invert=True)
         self.energy /= self.scale
 
         return energy / self.scale
