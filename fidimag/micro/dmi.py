@@ -89,9 +89,9 @@ class DMI(Energy):
         types = ['bulk', 'interfacial', 'D_n', 'C_n', 'D_2d', 'custom']
         if self.dmi_type not in types:
             raise Exception(
-                "Unsupported DMI type: {}, " +
-                "available options:\n  {}".format(self.dmi_type, *types)
-                )
+                ("Unsupported DMI type: {}, "
+                 "available options:\n  {}").format(self.dmi_type, str(types))
+                 )
 
 
         # if self.dmi_type == 'D_n' or self.dmi_type == 'C_n':
