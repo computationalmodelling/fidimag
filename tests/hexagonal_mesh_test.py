@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 from math import sqrt
-from .hexagonal_mesh import HexagonalMesh
+from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 
 
 def allclose(a, b):
