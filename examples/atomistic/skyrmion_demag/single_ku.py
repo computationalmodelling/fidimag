@@ -1,13 +1,8 @@
 import numpy as np
-from pccp.pc import Sim
+from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh
-from pccp.pc import DMI
-from pccp.pc import UniformExchange
-from pccp.pc import Demag
-from pccp.pc import Anisotropy
+from fidimag.atomistic import DMI, UniformExchange, Demag, Anisotropy
 import fidimag.common.constant as const
-from pccp.pc.batch_task import BatchTasks
-
 
 def mu_s(pos):
     x, y, z = pos
@@ -42,14 +37,13 @@ def relax_system():
     mesh = CuboidMesh(nx=121, ny=121, dx=0.5, dy=0.5, unit_length=1e-9)
 
     sim = Sim(mesh, name='relax_skx')
-    sim.set_options(gamma=const.gamma, k_B=const.k_B)
+    sim.driver.gamma=const.gamma
 
     sim.driver.alpha = 1.0
 
     sim.mu_s = mu_s
 
     sim.set_m(init_m)
-    # sim.set_m(random_m)
 
     J = 50.0 * const.k_B
     exch = UniformExchange(J)
@@ -60,21 +54,20 @@ def relax_system():
     sim.add(dmi)
 
     K = 5e-3 * J
-    anis = Anisotropy(K, direction=(0, 0, 1), name='Ku')
+    anis = Anisotropy(K, axis=(0, 0, 1), name='Ku')
     sim.add(anis)
 
-    sim.add(Demag())
+    sim.add(Demag(calc_every=100))
 
     ONE_DEGREE_PER_NS = 17453292.52
 
-    sim.relax(dt=1e-12, stopping_dmdt=0.1 * ONE_DEGREE_PER_NS,
+    sim.relax(dt=1e-12, stopping_dmdt=0.1,
               max_steps=5000, save_m_steps=100, save_vtk_steps=100)
 
     # np.save('m0.npy',sim.spin)
-
+    sim.save_vtk()
 
 if __name__ == '__main__':
 
     np.random.seed(3)
-
     relax_system()
