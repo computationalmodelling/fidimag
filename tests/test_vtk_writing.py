@@ -4,10 +4,10 @@ from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 from fidimag.common.field import scalar_field, vector_field
 from fidimag.common.vtk import VTK
+import pyvtk
 
 MODULE_DIR = os.path.realpath(os.path.dirname(__file__))
-REF_DIR = os.path.join(os.path.dirname(os.path.dirname(MODULE_DIR)), "tests", "vtk_refs")
-
+REF_DIR = os.path.dirname(__file__) + '/vtk_refs/'
 
 def same_as_ref(filepath, ref_dir):
     """
@@ -18,6 +18,11 @@ def same_as_ref(filepath, ref_dir):
     filename = os.path.basename(filepath)
     reference = os.path.join(ref_dir, filename)
     ret = subprocess.call(["diff", filepath, reference])
+    f = open(filepath, 'r').read()
+    print('new\n', f)
+    f = open(reference, 'r').read()
+    print('ref\n', f)
+
     return ret == 0  # 0 means files are the same, c.f. man diff exit codes
 
 
