@@ -78,7 +78,7 @@ void fill_demag_tensors_c(fft_demag_plan *restrict plan, double *restrict tensor
 
 void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double *mu_s, double *restrict field);
 void exact_compute(fft_demag_plan *restrict plan, double *restrict spin, double *mu_s, double *restrict field);
-double compute_demag_energy(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field);
+double compute_demag_energy(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field, double *restrict energy);
 
 
 
