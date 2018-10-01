@@ -1,5 +1,7 @@
 import numpy as np
-from pc import *
+import fidimag
+from fidimag.atomistic import *
+from fidimag.common import CuboidMesh
 import time
 
 
@@ -18,8 +20,8 @@ def init_m(pos):
 
 
 def relax_system(mesh, mat):
-    sim = Sim(mesh, T=0, mat=mat, name='relax')
-
+    sim = Sim(mesh, name='relax')
+    sim.set_mu_s(mat.mu_B)
     exch = UniformExchange(mat.J)
     sim.add(exch)
 
@@ -32,15 +34,15 @@ def relax_system(mesh, mat):
     sim.save_vtk()
 
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
         sim.save_vtk()
 
     return sim.spin
 
 
 def dw_motion(mesh, m0, mat, H0=1):
-    sim = Sim(mesh, T=0, mat=mat)
-    sim.set_T(init_T)
+    sim = Sim(mesh, driver='sllg')
+    sim.driver.set_T(init_T)
 
     exch = UniformExchange(mat.J)
     sim.add(exch)
@@ -55,8 +57,8 @@ def dw_motion(mesh, m0, mat, H0=1):
 
     ts = np.linspace(0, 5e-10, 1001)
     for t in ts:
-        sim.run_until(t)
-        print t
+        sim.driver.run_until(t)
+        print(t)
         sim.save_vtk()
 
 
@@ -65,10 +67,10 @@ if __name__ == '__main__':
     ni = Nickel()
     ni.J *= 0.05
 
-    mesh = CuboidMesh(nx=200, ny=1, nz=1)
-    mesh.set_material(ni)
+    dl = dx=ni.a*ni.unit_length
+    mesh = fidimag.common.CuboidMesh(nx=200, ny=1, nz=1, dx=dl, dy=dl, dz=dl)
 
     m0 = relax_system(mesh, ni)
-    print 'relax system done'
+    print('relax system done')
     ni.alpha = 0.05
     dw_motion(mesh, m0, ni)

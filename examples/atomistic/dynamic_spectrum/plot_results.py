@@ -14,7 +14,7 @@ def deal_plot(Hy=0):
     #N = 8000
     
     dt = ts[1] - ts[0]
-    print 'dt=',dt
+    print('dt=',dt)
     
     freq = np.fft.fftshift(np.fft.fftfreq(N, dt))
     
@@ -33,7 +33,7 @@ def deal_plot(Hy=0):
     ix = (b*c-a*d)/(a*a+b*b)
     
     ind = np.argmax(ix)
-    print ind, freq[ind]*2*np.pi
+    print(ind, freq[ind]*2*np.pi)
     w_ix = np.array([freq*2*np.pi, ix])
     #np.savetxt('w_ix.txt',np.transpose(w_ix))
     
