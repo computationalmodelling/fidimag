@@ -16,12 +16,13 @@ To use it, you can try this:
 
 3. Start the container using
 
-       docker run -v `pwd`:/io -d -p 30008:8888 fidimag/notebook
+       docker run -v `pwd`:/io -p 30008:8888 fidimag/notebook
 
    This will start a notebook server. You can see it in your browser at
-http://localhost:30008/ on Linux, or http://192.168.99.100:30008/ on Mac (you may
+http://localhost:30008/ on Linux and Mac (you may
 need to change this IP address if your docker VM is at a different address).
 
+You will need to 
 To run a shell instead of the notebook server, run:
 
     docker run -v `pwd`:/io -ti fidimag/notebook bash
