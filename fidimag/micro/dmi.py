@@ -52,10 +52,76 @@ class DMI(Energy):
                        specify a dmi_vector array of length 18 * n. This array
                        has the dmi vector components for every NN in the order
 
-                        [D1x(-x) D1y(-x) D1z(-x) D1x(+x) D1y(+x) ... D1z(+z)
-                         D2x(-x) D2y(-x) ...                         D2z(+z)
+                        [D1x(-x) D1y(-x) D1z(-x) D1x(+x) D1y(+x) ... D1z(+z),
+                         D2x(-x) D2y(-x) ...                         D2z(+z),
                          ...
                          ]
+
+                       The DMI field at the i-th site is specified as:
+
+                              ---  ->     ->              ---  ->     ->
+                     2 * D1   \    D1_i X m_i     2 * D2  \    D2_i X m_i
+          H_DMI = -  ------   /    ----------  -  ------  /    ---------- - ...
+                     mu0 Ms   ---    2 dx_i       mu0 Ms  ---    2 dx_i
+                              NN                          NN
+
+                       where dx_i is the discretisation in the i-direction, m_i
+                       is the magnetisation in the i-direction.
+                       When using the `custom` option, it is necessary only to
+                       specify the D1_i, D2_i, etc components.
+                       To obtain the discretised DM vectors you can follow
+                       these steps:
+
+                         - Obtain the DMI field from the DMI Hamiltonian
+                         - Discretise the spatial derivatives of the
+                           magnetisation, for the i-th spin. Here you obtain
+                           the mesh spacings dx_i
+                         - Group terms for every of the 6 nearest neighbours,
+                           i.e. group terms with m(+x), m(-x), etc
+                         - Write the collected terms as in the discrete spin
+                           model: D_i X m_i ; and you directly obtain the
+                           DM vectors
+
+                      For example, for the interfacial case, where the DMI
+                      Hamiltonian reads
+
+                            w = D * ( L_{xz}^{(x)} + L_{yz}^{(y)} )
+
+                      the field is
+                                             /       ->           ->   \
+                           ->       - 2  D  |  ^     dm     ^     dm    |
+                           H_DMI =    ----  |  y  X  --  -  x  X  --    |
+                                     mu0 Ms  \       dx           dy   /
+
+                      After discretising the derivatives, you obtain
+
+                           ->                /  ->   ->        ->   ->
+                           H_DMI = - 2 D    |  -y  X m(-x)     y  X m(+x)
+                                     ---    |  ----------- +  -----------
+                                    mu0 Ms   \    2 dx           2 dx
+
+                                                 ->   ->         ->   ->    \
+                                                 x  X m(-y)     -x  X m(+y)  |
+                                              + ----------   +  ----------   |
+                                                   2 dy            2 dy     /
+
+                     where we see that the DM vector is (0, -1, 0) for the
+                     neighbour in the -x-direction, etc.
+                     Thus, we can specify the DMI in this class as:
+
+                     # Manually set an interfacial DMI
+                     fidimag.micro.DMI([D], 
+                                       dmi_type='custom',
+                                       dmi_vector=[0, -1., 0,  # -x neighbour
+                                                   0, 1., 0,   # +x
+                                                   1., 0, 0,   # -y
+                                                   -1., 0, 0,  # +y
+                                                   0, 0, 0,    # -z  NO DMI in
+                                                   0, 0, 0     # +z  z-dir
+                                                   ]
+                                       )
+                     
+                     For further examples, check the micro DMI class code
 
     ARGUMENTS: ----------------------------------------------------------------
 
