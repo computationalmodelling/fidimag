@@ -5,10 +5,11 @@ from fidimag.common import CuboidMesh
 import fidimag.common.constant as C
 
 
-R_sk = 2
-
-
 def init_m(r):
+    """
+    Initial magnetisation profile; a dot to obtain a skyrmion
+    """
+    R_sk = 2
     rho = np.sqrt(r[0] ** 2 + r[1] ** 2)
     if rho < R_sk:
         return (0, 0, -1)
@@ -37,7 +38,10 @@ sim.add(fidimag.micro.UniaxialAnisotropy(Ku, axis=(0, 0, 1)))
 sim.add(fidimag.micro.Zeeman((0, 0, Bz / C.mu_0)))
 
 # sim.add(fidimag.micro.DMI(D, dmi_type='interfacial'))
-sim.add(fidimag.micro.DMI([D, D], dmi_type='D_n'))
+
+# For a C_n material, there is a kind of instability when one of the DM
+# constants is larger than approx 0.7 times the other DM constant
+sim.add(fidimag.micro.DMI([D, 0.6 * D], dmi_type='C_n'))
 
 sim.set_m(init_m)
 
@@ -45,3 +49,16 @@ sim.driver.do_precession = False
 sim.driver.alpha = 0.9
 
 sim.relax()
+
+# ----------------------------------------------------------------------------
+# Plot the 2D system
+
+import matplotlib.pyplot as plt
+
+m = sim.spin.reshape(-1, 3)
+plt.figure(figsize=(8, 8))
+plt.quiver(mesh.coordinates[:, 0], mesh.coordinates[:, 1],
+           m[:, 0], m[:, 1],
+           m[:, 2], cmap='RdYlBu'
+           )
+plt.show()
