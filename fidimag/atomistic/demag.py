@@ -34,14 +34,14 @@ class Demag(Energy):
 
     """
 
-    def __init__(self, name='Demag'):
+    def __init__(self, calc_every=0, name='Demag'):
+        self.calc_every = calc_every
         self.name = name
         self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
         self.scale = 1e-7 / mesh.unit_length**3
-
         # could be wrong, needs carefully tests!!!
         # David Tue 19 Jun 2018: This variable is updated in the SIM class in
         # case mu_s changes
@@ -50,8 +50,13 @@ class Demag(Energy):
         self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                    self.nx, self.ny, self.nz,
                                    tensor_type='dipolar')
+        if not self.calc_every:
+            self.compute_field = self.compute_field_every
+        else:
+            self.count = 0
+            self.compute_field = self.compute_field_periodically
 
-    def compute_field(self, t=0, spin=None):
+    def compute_field_every(self, t=0, spin=None):
         if spin is not None:
             m = spin
         else:
@@ -59,14 +64,31 @@ class Demag(Energy):
         self.demag.compute_field(m, self.mu_s_scale, self.field)
         return self.field
 
+    def compute_field_periodically(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+
+        if not (self.count % self.calc_every == 0):
+            self.count += 1
+            return self.field
+        else:
+            print(self.count)
+            self.count += 1
+            self.demag.compute_field(m, self.mu_s_scale, self.field)
+            return self.field
+
+
     def compute_exact(self):
         field = np.zeros(3 * self.n)
         self.demag.compute_exact(self.spin, self.mu_s_scale, field)
         return field
 
     def compute_energy(self):
-
         energy = self.demag.compute_energy(
-            self.spin, self.mu_s_scale, self.field)
+            self.spin, self.mu_s_scale, self.field, self.energy)
+
+        self.energy /= self.scale
 
         return energy / self.scale

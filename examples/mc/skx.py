@@ -15,7 +15,7 @@ def run(mesh):
     mc.set_m(random_m)
     J = 50*const.k_B
     mc.set_options(H=[0,0,1.0], J=J, D=0.27*J, T=4.0)
-    mc.run(steps=100000, save_m_steps=None, save_vtk_steps=50000, save_data_steps=50000)
+    mc.run(steps=int(1e8), save_m_steps=None, save_vtk_steps=50000, save_data_steps=50000)
 
 if __name__=='__main__':
     mesh = CuboidMesh(nx=58, ny=33, nz=1, periodicity = (True, True, False))

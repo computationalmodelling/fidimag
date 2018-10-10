@@ -1,1 +1,1 @@
-Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Mark Vousden, Beckie Carey, Marijan Beg, Hans Fangohr
+Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas Kluyver, Mark Vousden, Ryan Pepper, Oliver Laslett, Rebecca Carey, and Hans Fangohr

@@ -417,22 +417,28 @@ void exact_compute(fft_demag_plan *restrict plan, double *restrict spin,  double
 
 }
 
-double compute_demag_energy(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field) {
+double compute_demag_energy(fft_demag_plan *restrict plan,
+                            double *restrict spin,
+                            double *restrict mu_s,
+                            double *restrict field,
+                            double *restrict energy
+                            ) {
 
 	int i,j;
 
 	int nxyz = plan->nx * plan->ny * plan->nz;
 
-	double energy = 0;
+	double total_energy = 0;
 
 	for (i = 0; i < nxyz; i++) {
 		j = 3*i;
-		energy += mu_s[i]*(spin[j]*field[j]+spin[j+1]*field[j+1]+spin[j+2]*field[j+2]);
+		energy[i] = -0.5 * mu_s[i] * (spin[j]   * field[j]   + 
+                                      spin[j+1] * field[j+1] + 
+                                      spin[j+2] * field[j+2] );
+        total_energy += energy[i];
 	}
 
-	energy = -energy / 2.0;
-
-	return energy;
+	return total_energy;
 
 }
 

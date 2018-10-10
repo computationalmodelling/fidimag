@@ -107,7 +107,7 @@ def skyrmion_number_lee(sim):
             skyrmionNumbers[zI] = fidimag.extensions.clib.compute_skyrmion_number(\
                                   spinSlice, sim._skx_number, sim.mesh.nx,
                                   sim.mesh.ny, sim.mesh.nz,
-                                  sim.mesh.neighbours)
+                                  sim.mesh.neighbours, 6)
 
     # Return the average. This is equivalent to the integral in the equation.
     return skyrmionNumbers.mean()

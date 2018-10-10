@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "HELLO"
+
 # This script installs FFTW locally. It may need to environment
 # variables to work, like 'export CC=gcc' in ARCHER.
 
@@ -33,12 +33,10 @@ download_and_install() {
         tar -xzf ${1}.tar.gz
         cd ${1}
         echo "Configuring "${1}"."
-        ./configure --enable-shared --enable-openmp --prefix=${LIBS_DIR}
+        ./configure --enable-shared --enable-openmp --enable-sse2 --enable-avx --prefix=${LIBS_DIR}
         echo "Compiling and installing "${1}"."
-        {
-            make
-            make install
-        } > /dev/null
+        make
+        make install
         echo "Done."
         cd ${LIBS_DIR}
     fi;
