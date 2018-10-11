@@ -110,7 +110,7 @@ class DMI(Energy):
                      Thus, we can specify the DMI in this class as:
 
                      # Manually set an interfacial DMI
-                     fidimag.micro.DMI([D], 
+                     fidimag.micro.DMI([D],
                                        dmi_type='custom',
                                        dmi_vector=[0, -1., 0,  # -x neighbour
                                                    0, 1., 0,   # +x
@@ -120,7 +120,7 @@ class DMI(Energy):
                                                    0, 0, 0     # +z  z-dir
                                                    ]
                                        )
-                     
+
                      For further examples, check the micro DMI class code
 
     ARGUMENTS: ----------------------------------------------------------------
@@ -195,9 +195,13 @@ class DMI(Energy):
                                         0, 0, 0     # +z
                                         ])
 
+        # For the following DMIs with two constants check:
+        # Leonov: Chiral skyrmion states in non-centrosymmetric magnets
+        # https://arxiv.org/pdf/1406.2177.pdf
+        # Leonov thesis: http://nbn-resolving.de/urn:nbn:de:bsz:14-qucosa-83823
         elif self.dmi_type == 'D_n':
-            self.dmi_vector = np.array([1.0, 0, 0,  # D1 components
-                                        -1, 0, 0,
+            self.dmi_vector = np.array([-1, 0, 0,  # D1 components
+                                        1, 0, 0,
                                         0, -1, 0,
                                         0, 1, 0,
                                         0, 0, 0,
