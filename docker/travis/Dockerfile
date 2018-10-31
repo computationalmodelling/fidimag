@@ -30,7 +30,7 @@ RUN pip3 install --upgrade setuptools==20.4
 RUN pip3 install --upgrade setuptools==20.4
 # ----------
 
-RUN pip3 install ipywidgets nbval pyvtk six
+RUN pip3 install ipywidgets nbval pyvtk six pytest -U
 
 WORKDIR /fidimag
 ADD . /fidimag
