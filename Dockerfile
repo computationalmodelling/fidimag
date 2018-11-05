@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 RUN apt -y update 
 RUN apt install -y git python3 python3-pip gcc psutils cmake wget make
 RUN apt install -y gfortran libblas-dev liblapack-dev python3-tk sudo fonts-lato
-RUN pip3 install cython matplotlib pytest scipy psutil pyvtk ipywidgets
+RUN pip3 install cython matplotlib pytest scipy psutil pyvtk ipywidgets -U
 RUN pip3 install --no-cache-dir notebook
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
