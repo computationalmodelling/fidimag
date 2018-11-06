@@ -89,7 +89,7 @@ def excite_system_K(mesh, Hx=2000):
 
     ts = np.linspace(0, 5e-9, 501)
     for t in ts:
-        print 'time', t
+        print('time', t)
         sim.run_until(t)
 
 def excite_system_D(mesh, Hx=2000):
@@ -123,7 +123,7 @@ def excite_system_D(mesh, Hx=2000):
 
     ts = np.linspace(0, 5e-9, 101)
     for t in ts:
-        print 'time', t
+        print('time', t)
         sim.run_until(t)
         #sim.save_vtk()
 

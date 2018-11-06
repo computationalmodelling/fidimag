@@ -54,7 +54,7 @@ class Anisotropy(Energy):
         super(Anisotropy, self).setup(mesh, spin, mu_s, mu_s_inv)
 
         self._Ku = helper.init_scalar(self.Ku, self.mesh)
-        self._axis = helper.init_vector(self.axis, self.mesh, True)
+        self._axis = helper.init_vector(self.axis, self.mesh, norm=True)
 
     def compute_field(self, t=0, spin=None):
 

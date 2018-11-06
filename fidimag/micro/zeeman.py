@@ -75,12 +75,12 @@ class Zeeman(object):
         # the Ms vectors. Maybe there is a way that uses less memory
         # (see the calculation in the *compute_energy* function)
         self.field = np.zeros(3 * self.n)
-        self.field[:] = helper.init_vector(self.H0, self.mesh)
+        self.field[:] = helper.init_vector(self.H0, self.mesh, 3)
         # print self.field
 
     def update_field(self, H0):
         self.H0 = H0
-        self.field[:] = helper.init_vector(self.H0, self.mesh)
+        self.field[:] = helper.init_vector(self.H0, self.mesh, 3)
 
     def compute_field(self, t=0, spin=None):
         return self.field
