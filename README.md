@@ -76,19 +76,24 @@ The code is developed by Weiwei Wang, Marc-Antonio Bisotti, David Cortes, Thomas
 This is an early experimental version; contributions and pull requests to both the code and documentation are welcome.
 If you use Fidimag, please cite as:
 
+Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. and Fangohr, H., 2018. Fidimag – A Finite Difference Atomistic and Micromagnetic Simulation Package. Journal of Open Research Software, 6(1), p.22. DOI: http://doi.org/10.5334/jors.223
+
 David Cortés-Ortuño, Weiwei Wang, Ryan Pepper, Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, & Hans Fangohr. (2016). Fidimag v2.0 [Data set]. Zenodo. http://doi.org/10.5281/zenodo.167858A bib file is provided in the repository.
 
 ### Publications
 
 The following publications, in reverse chronological order, have used Fidimag:
+[1] [Proposal for a micromagnetic standard problem for materials with Dzyaloshinskii–Moriya interaction](http://iopscience.iop.org/article/10.1088/1367-2630/aaea1c), D. C-Ortuño, M. Beg2, V. Nehruji3, L. Breth1, R. Pepper, T. Kluyver, G. Downing, T. Hesjedal, P. Hatton3, T. Lancaster, R. Hertel5, O. Hovorka and H. Fangohr, New Journal of Physics, Volume 20 (2018)
 
-[1] [Thermal stability and topological protection of skyrmions in nanotracks](https://www.nature.com/articles/s41598-017-03391-8), D. Cortés-Ortuño, W. Wang, M. Beg, R.A. Pepper, M-A. Bisotti, R. Carey, M. Vousden, T. Kluyver, O. Hovorka & H. Fangohr, Scientific Reports 7, 4060 (2017)
+[2] [Fidimag - A Finite Difference Atomistic and Micromagnetic Simulation Package](http://doi.org/10.5334/jors.223), Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. and Fangohr, H., Journal of Open Research Software, 6(1), p.22. (2018)
 
-[2] [Current-induced instability of domain walls in cylindrical nanowires](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta), W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)
+[2] [Thermal stability and topological protection of skyrmions in nanotracks](https://www.nature.com/articles/s41598-017-03391-8), D. Cortés-Ortuño, W. Wang, M. Beg, R.A. Pepper, M-A. Bisotti, R. Carey, M. Vousden, T. Kluyver, O. Hovorka & H. Fangohr, Scientific Reports 7, 4060 (2017)
 
-[3] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430), W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96 (2017)
+[3] [Current-induced instability of domain walls in cylindrical nanowires](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta), W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)
 
-[4] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
+[4] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430), W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96 (2017)
+
+[5] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
 
 ### Acknowledgements
 We acknowledge financial support from EPSRC’s Centre for Doctoral Training in Next Generation Computational Modelling (EP/L015382/1) and EPSRC’s Doctoral Training Centre in Complex System Simulation (EP/G03690X/1)
