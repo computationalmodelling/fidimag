@@ -20,12 +20,13 @@ patten = re.compile(r'libsundials[\w.]+\.dylib')
 def extract_library(so_file):
     cmd = ('otool', '-L', so_file)
     output = subprocess.check_output(cmd)
-    for line in output.split('\t'):
+    for line in output.decode().split('\t'):
         m = patten.match(line)
+        print(m, line)
         if m:
             lib_name =  m.group()
             full_name = os.path.join(LIB_DIR, lib_name)
-            #print lib_name, full_name
+            print(lib_name, full_name)
             cmd = ('install_name_tool', '-change',
                  lib_name, full_name, so_file
                  )
