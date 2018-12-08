@@ -150,7 +150,7 @@ class MonteCarlo(object):
             self.save_vtk()
 
         for step in range(1, steps + 1):
-            self.step = step
+            self.step += 1
             self.mc.run_step(self.spin, self.random_spin,
                              self.ngbs, self.nngbs, self.mesh.n_ngbs,
                              self.J, self.J1, self.D, self.D1, self._H, self.Kc,
