@@ -125,7 +125,7 @@ dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
-com_args = ['-std=c99', '-O3']
+com_args = ['-std=c99', '-O3', '-Wno-cpp', '-Wno-unused-function']
 # rpath is the path relative to the compiled shared object files (e.g. clib.so, etc)
 # which the dynamic linker looks for the linked libraries (e.g. libsundials_*.so) in.
 # We need to set it relatively in order for it to be preserved if the parent directory is moved

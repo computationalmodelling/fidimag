@@ -31,6 +31,7 @@ Contents:
    ipynb/spin-polarised-current-driven-skyrmion
    ipynb/spin-waves-in-periodic-system
    ipynb/FMR-stdprob
+   ipynb/steepest_descent_atomistic
 
 .. toctree::
    :maxdepth: 2

@@ -41,7 +41,7 @@ cdef extern from "dipolar.h":
     void init_plan(fft_demag_plan * plan, double dx, double dy, double dz, int nx,int ny, int nz)
     void compute_fields(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
     void exact_compute(fft_demag_plan * plan, double *spin, double *mu_s, double *field)
-    double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field)
+    double compute_demag_energy(fft_demag_plan *plan, double *spin, double *mu_s, double *field, double *energy)
     void compute_dipolar_tensors(fft_demag_plan *plan)
     void compute_demag_tensors(fft_demag_plan *plan)
     void create_fftw_plan(fft_demag_plan *plan)
@@ -177,9 +177,11 @@ cdef class FFTDemag(object):
     def compute_energy(self,
                       np.ndarray[double, ndim=1, mode="c"] spin,
                       np.ndarray[double, ndim=1, mode="c"] mu_s,
-                      np.ndarray[double, ndim=1, mode="c"] field):
+                      np.ndarray[double, ndim=1, mode="c"] field,
+                      np.ndarray[double, ndim=1, mode="c"] energy):
 
-        return compute_demag_energy(self._c_plan, &spin[0], &mu_s[0], &field[0])
+        return compute_demag_energy(self._c_plan, &spin[0], &mu_s[0],
+                                    &field[0], &energy[0])
 
 
 cdef extern from "demagcoef.h":

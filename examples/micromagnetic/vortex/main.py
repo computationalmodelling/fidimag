@@ -101,8 +101,8 @@ def excite_system(mesh):
     ts = np.linspace(0, 1e-9, 501)
 
     for t in ts:
-        print 'time', t
-        print 'length:', sim.spin_length()[0:200]
+        print('time', t)
+        print('length:', sim.spin_length()[0:200])
         sim.run_until(t)
         sim.save_vtk()
 

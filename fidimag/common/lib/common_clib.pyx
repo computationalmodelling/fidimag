@@ -169,37 +169,29 @@ def init_scalar(value, mesh, *args):
 
     return mesh_v
 
-def init_vector(m0, mesh, norm=False, *args):
-
+def init_vector(m0, mesh, dim=3, norm=False, *args):
     n = mesh.n
-
-    spin = np.zeros((n, 3))
-
+    spin = np.zeros((n, dim))
     if isinstance(m0, list) or isinstance(m0, tuple):
         spin[:, :] = m0
-        spin = np.reshape(spin, 3 * n, order='C')
-
+        spin = np.reshape(spin, dim * n, order='C')
     elif hasattr(m0, '__call__'):
         v = m0(mesh.coordinates[0], *args)
-        if len(v) != 3:
+        if len(v) != dim:
             raise Exception(
-                'The length of the value in init_vector method must be 3.')
+                'The length of the value in init_vector method must be {}.'.format(dim))
         for i in range(n):
             spin[i, :] = m0(mesh.coordinates[i], *args)
-        spin = np.reshape(spin, 3 * n, order='C')
-
+        spin = np.reshape(spin, dim * n, order='C')
     elif isinstance(m0, np.ndarray):
-        if m0.shape == (3, ):
+        if m0.shape == (dim, ):
             spin[:] = m0  # broadcasting
         else:
             spin.shape = (-1)
             spin[:] = m0  # overwriting the whole thing
-
     spin.shape = (-1,)
-
     if norm:
         normalise(spin)
-
     return spin
 
 def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
@@ -225,7 +217,7 @@ def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
             field[3*i+1] = Bmax * axis[1] * sin(fc*t)
             field[3*i+2] = Bmax * axis[2] * sin(fc*t)
 
-    """  
+    """
     m0(mesh, field, *args)
     if norm:
         normalise(field)

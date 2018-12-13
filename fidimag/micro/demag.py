@@ -17,31 +17,28 @@ default_options={
 class Demag(Energy):
 
     def __init__(self, name='Demag', pbc_2d=False,
-                 pbc_options=default_options):
+                 pbc_options=default_options, calc_every=0):
         self.name = name
         self.oommf = True
         self.pbc_2d = pbc_2d
         self.pbc_options = pbc_options
         self.jac = False
+        self.calc_every = calc_every
 
     def setup(self, mesh, spin, Ms, Ms_inv):
         super(Demag, self).setup(mesh, spin, Ms, Ms_inv)
 
         if self.pbc_2d is True:
-
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                        self.nx, self.ny, self.nz, tensor_type='2d_pbc')
-
             nxyz = self.nx*self.ny*self.nz
             tensors = np.zeros(6*nxyz, dtype=np.float)
-
             pbc_2d_error = 1e-10
             sample_repeat_nx = -1
             sample_repeat_ny = -1
             asymptotic_radius = 32.0
             dipolar_radius = 10000.0
-            tensor_file_name = ''
-
+            tensor_file_name = None
             options = self.pbc_options
 
             if 'sample_repeat_nx' in options:
@@ -56,9 +53,8 @@ class Demag(Energy):
             if 'tensor_file_name' in options:
                 tensor_file_name = options['tensor_file_name']
 
-            if len(tensor_file_name) > 0 :
+            if tensor_file_name:
                 if not (os.path.exists(tensor_file_name+'.npz')):
-
                     self.demag.compute_tensors_2dpbc(tensors, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
                 else:
                     npzfile = np.load(tensor_file_name+'.npz')
@@ -69,7 +65,6 @@ class Demag(Energy):
                         self.demag.compute_tensors_2dpbc(tensors, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
                     else:
                         tensors = npzfile['tensors']
-
                 geo_arr = np.array([self.nx, self.ny, self.nz, self.dx, self.dy, self.dz], dtype=np.float)
                 np.savez(tensor_file_name+'.npz', geo=geo_arr, tensors=tensors)
 
@@ -84,18 +79,33 @@ class Demag(Energy):
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                        self.nx, self.ny, self.nz,
                                        tensor_type='demag')
+        if not self.calc_every:
+            self.compute_field = self.compute_field_every
+        else:
+            self.count = 0
+            self.compute_field = self.compute_field_periodically
 
+    def compute_field_every(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+        self.demag.compute_field(m, self.Ms, self.field)
+        return self.field
 
-
-    def compute_field(self, t=0, spin=None):
+    def compute_field_periodically(self, t=0, spin=None):
         if spin is not None:
             m = spin
         else:
             m = self.spin
 
-        self.demag.compute_field(m, self.Ms, self.field)
-
-        return self.field
+        if not (self.count % self.calc_every == 0):
+            self.count += 1
+            return self.field
+        else:
+            self.count += 1
+            self.demag.compute_field(m, self.Ms, self.field)
+            return self.field
 
     def compute_exact(self):
         field = np.zeros(3 * self.mesh.n)
@@ -105,7 +115,13 @@ class Demag(Energy):
     def compute_energy(self):
 
         self.compute_field()
-        energy = self.demag.compute_energy(self.spin, self.Ms, self.field)
+        energy = self.demag.compute_energy(self.spin, self.Ms,
+                                           self.field, self.energy)
+
+        self.energy *= mu_0 * (self.mesh.dx *
+                               self.mesh.dy *
+                               self.mesh.dz *
+                               self.mesh.unit_length ** 3.)
 
         return energy * mu_0 * (self.mesh.dx *
                                 self.mesh.dy *

@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 from math import sqrt
-from .hexagonal_mesh import HexagonalMesh
+from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 
 
 def allclose(a, b):
@@ -15,7 +15,7 @@ def to_sets(arr):
 
 
 def test_coordinates_x():
-    """
+    r"""
 
      /\ /\
     |  |  |  Hexagon size 1.
@@ -34,7 +34,7 @@ def test_coordinates_x():
 
 
 def test_coordinates_y():
-    """
+    r"""
        /\ /\
       |  |  |
       | 2| 3|
@@ -61,7 +61,7 @@ def test_coordinates_y():
 
 
 def test_neighbours_x():
-    """
+    r"""
 
      /\ /\
     |  |  |  Hexagon size 1.
@@ -76,7 +76,7 @@ def test_neighbours_x():
 
 
 def test_neighbours_x_periodic():
-    """
+    r"""
 
      /\ /\
     |  |  |  Hexagon size 1.
@@ -90,7 +90,7 @@ def test_neighbours_x_periodic():
 
 
 def test_neighbours_x_periodic_all():
-    """
+    r"""
 
      /\ /\
     |  |  |  Hexagon size 1.
@@ -105,7 +105,7 @@ def test_neighbours_x_periodic_all():
 
 
 def test_neighbours_y():
-    """
+    r"""
        /\
       |  |
       | 1|
@@ -122,7 +122,7 @@ def test_neighbours_y():
 
 
 def test_neighbours_y_square():
-    """
+    r"""
     /\
    |  |
    | 1|
@@ -138,7 +138,7 @@ def test_neighbours_y_square():
 
 
 def test_neighbours_y_periodic():
-    """
+    r"""
        /\
       |  |
       | 1|
@@ -173,7 +173,7 @@ def test_neighbours_y_periodic():
 
 
 def test_nearest_neighbours_multiple():
-    """
+    r"""
          /\ /\ /\
         |  |  |  |
         | 6| 7| 8|
@@ -207,7 +207,7 @@ def test_nearest_neighbours_multiple():
 
 
 def test_nearest_neighbours_multiple_square():
-    """
+    r"""
 
        /\ /\ /\
       |  |  |  |
@@ -239,7 +239,7 @@ def test_nearest_neighbours_multiple_square():
 # -----------------------------------------------------------------------------
 
 def test_neighbours_9shells_square_odd_row():
-    """
+    r"""
 
     Testing neighbour indexes manually, for a 11x11 hexagonal mesh with square
     alignment. In this test we check the neighbours of the 60th lattice site,
