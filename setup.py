@@ -1,5 +1,6 @@
 from distutils.core import setup
 from distutils.extension import Extension
+import multiprocessing
 # from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 import numpy
@@ -294,7 +295,8 @@ for folder in glob.glob(os.path.join(USER_DIR, '*/')):
        ),
     )
 
-
+nthreads = multiprocessing.cpu_count()
+print('Building with {} threads'.format(nthreads))
 setup(
     name='fidimag',
     version=version,
@@ -305,5 +307,5 @@ setup(
               'fidimag.extensions',
               'fidimag.common',
               ],
-    ext_modules=cythonize(ext_modules),
+    ext_modules=cythonize(ext_modules, nthreads=nthreads),
 )
