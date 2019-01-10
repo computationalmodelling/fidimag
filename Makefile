@@ -1,6 +1,6 @@
 PROJECT_DIR = $(abspath .)
 EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
-PYTHON = python3
+PYTHON = python
 PYTEST = ${PYTHON} -m pytest
 
 #####################
