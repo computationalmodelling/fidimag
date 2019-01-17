@@ -158,7 +158,8 @@ class NEBM_Geodesic(NEBMBase):
                  spring_constant=1e5,
                  name='unnamed',
                  climbing_image=None,
-                 openmp=False
+                 openmp=False,
+                 integrator='sundials'  # or scipy
                  ):
 
         super(NEBM_Geodesic, self).__init__(sim,
@@ -178,7 +179,7 @@ class NEBM_Geodesic(NEBMBase):
 
         self.initialise_energies()
 
-        self.initialise_integrator()
+        self.initialise_integrator(integrator=integrator)
 
         self.create_tablewriter()
 
@@ -377,6 +378,38 @@ class NEBM_Geodesic(NEBMBase):
     #         return np.max(dYdt)
     #     else:
     #         return 0
+
+    def step_RHS(self, t, y):
+        """
+
+        This function is called on every iteration of the integrator (CVODE
+        solver). ydot refers to the Right Hand Side of the equation, since
+        we are solving dy/dt = 0
+
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        ydot = self.G[:]
+
+        # Update the step with the optimisation algorithm, in this
+        # case we use: dY /dt = Y x Y x D
+        # (check the C code in common/)
+        nebm_cartesian.compute_dYdt_nc(
+            y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
+
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        ydot[:self.n_dofs_image] = 0
+        ydot[-self.n_dofs_image:] = 0
+
+        return ydot
 
     def Sundials_RHS(self, t, y, ydot):
         """

@@ -7,6 +7,9 @@ cdef extern from "nebm_cartesian_lib.h":
     void compute_dYdt_C(double * y, double * G, double * dYdt, int * pins,
                         int n_images, int n_dofs_image)
 
+    void compute_dYdt_nc_C(double * y, double * G, double * dYdt, int * pins,
+                           int n_images, int n_dofs_image)
+
     void project_images_C(double * vector, double * y,
                           int n_images, int n_dofs_image,
                           )
@@ -113,3 +116,14 @@ def compute_dYdt(double [:]  y,
 
     compute_dYdt_C(&y[0], &G[0], &dYdt[0], &pins[0],
                    n_images, n_dofs_image)
+
+def compute_dYdt_nc(double [:]  y,
+                    double [:]  G,
+                    double [:]  dYdt,
+                    int [:] pins,
+                    n_images,
+                    n_dofs_image
+                    ):
+
+    compute_dYdt_nc_C(&y[0], &G[0], &dYdt[0], &pins[0],
+                      n_images, n_dofs_image)

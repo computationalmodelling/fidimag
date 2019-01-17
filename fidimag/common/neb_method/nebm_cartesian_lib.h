@@ -9,6 +9,10 @@ void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYd
                     int *restrict pins,
                     int n_images, int n_dofs_image);
 
+void compute_dYdt_nc_C(double *restrict y, double *restrict G, double *restrict dYdt,
+                       int *restrict pins,
+                       int n_images, int n_dofs_image);
+
 
 void project_images_C(double *restrict vector, double *restrict y,
                       int n_images, int n_dofs_image

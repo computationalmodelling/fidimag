@@ -5,6 +5,8 @@ import os
 import time
 
 import fidimag.extensions.cvode as cvode
+from .integrators import ScipyIntegrator, StepIntegrator
+from .nebm_integrators import VerletIntegrator
 from fidimag.common.vtk import VTK
 from .nebm_tools import compute_norm
 # from .nebm_tools import linear_interpolation_spherical
@@ -105,7 +107,7 @@ class NEBMBase(object):
     initial_images      :: A sequence of arrays or functions to set up the
                            magnetisation field profile
 
-    inteprolations      ::
+    interpolations      ::
 
     dof                 :: Degrees of freedom per spin. Spherical coordinates
                            have dof=2 and Cartesian have dof=3
@@ -341,19 +343,44 @@ class NEBMBase(object):
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self, rtol=1e-6, atol=1e-6):
+    def initialise_integrator(self,
+                              integrator='sundials',
+                              rtol=1e-6, atol=1e-6):
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
-        if not self.openmp:
-            self.integrator = cvode.CvodeSolver(self.band,
-                                                self.Sundials_RHS)
-            self.integrator.set_options(rtol, atol)
+        if integrator == 'sundials':
+            if not self.openmp:
+                self.integrator = cvode.CvodeSolver(self.band,
+                                                    self.Sundials_RHS)
+                self.integrator.set_options(rtol, atol)
+            else:
+                self.integrator = cvode.CvodeSolver_OpenMP(self.band,
+                                                           self.Sundials_RHS)
+                self.integrator.set_options(rtol, atol)
+        elif integrator == 'scipy':
+            self.integrator = ScipyIntegrator(self.band, self.step_RHS)
+            self.integrator.set_options()
+        elif integrator == 'step':
+            self.integrator = StepIntegrator(self.band, self.step_RHS,
+                                             step='rk4', stepsize=1e-3)
+            self.integrator.set_options()
+        elif integrator == 'verlet':
+            # if self.sim._micromagnetic:
+            #     m_inv = np.tile(self.sim.Ms, self.n_images)
+            # else:
+            #     m_inv = np.tile(self.sim.mu_s, self.n_images)
+
+            # m_inv[m_inv > 0] = 1 / m_inv[m_inv > 0]
+            self.integrator = VerletIntegrator(self.band,
+                                               self.step_RHS,
+                                               m=1,
+                                               stepsize=1e-5)
+            self.integrator.set_options()
         else:
-            self.integrator = cvode.CvodeSolver_OpenMP(self.band,
-                                                       self.Sundials_RHS)
-            self.integrator.set_options(rtol, atol)
+            raise Exception('No valid integrator specified. Available: '
+                            '"sundials", "scipy"')
 
     def create_tablewriter(self):
         entities_energy = {
@@ -423,6 +450,27 @@ class NEBMBase(object):
 
         return A_minus_B.reshape(-1)
 
+    def step_RHS(self, t, y):
+        """
+        The RHS of the ODE to be solved for the NEBM
+        This function is specified for the Scipy integrator
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        ydot = self.G[:]
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        ydot[:self.n_dofs_image] = 0
+        ydot[-self.n_dofs_image:] = 0
+
+        return ydot
+
     def Sundials_RHS(self, t, y, ydot):
         """
 
@@ -483,7 +531,7 @@ class NEBMBase(object):
 
         """
 
-        # We will not consider the images at the extremes to compute dY
+        # We will not consider the images at the extremes to compute dY.
         # Since we removed the extremes, we only have *n_images_inner_band*
         # images
         band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
@@ -553,7 +601,10 @@ class NEBMBase(object):
 
             # Get the current size of the time discretisation from the
             # integrator (variable step size)
-            cvode_dt = self.integrator.get_current_step()
+            try:
+                cvode_dt = self.integrator.get_current_step()
+            except AttributeError:
+                cvode_dt = dt
 
             # If the step size of the integrator is larger than the specified
             # discretisation, use the current integrator step size to

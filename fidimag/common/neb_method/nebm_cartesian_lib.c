@@ -182,3 +182,42 @@ void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYd
     }
     return;
 }
+
+// ----------------------------------------------------------------------------
+
+void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dYdt,
+                     int *restrict pins,
+                     int n_dofs_image
+                     ) {
+
+    int n_spins = n_dofs_image / 3;
+    for(int i = 0; i < n_spins; i++){
+       	int j = 3 * i;
+
+        if (pins[i] > 0){
+            dYdt[j] = 0;
+		    dYdt[j + 1] = 0;
+		    dYdt[j + 2] = 0;
+		    continue;
+		}
+
+        double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
+       	double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
+        // (Y * Y) G - (Y * G) Y = - Y x (Y x G)
+       	dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
+       	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
+       	dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
+    }
+}
+
+void compute_dYdt_nc_C(double *restrict y, double *restrict G, double *restrict dYdt,
+                       int *restrict pins, 
+                       int n_images, int n_dofs_image) {
+    #pragma omp parallel for schedule(static)
+	for(int i = 1; i < n_images - 1; i++){
+        //printf("");
+        int j = i * n_dofs_image;
+        compute_dYdt_nc(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
+    }
+    return;
+}
