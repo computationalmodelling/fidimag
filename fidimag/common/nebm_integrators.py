@@ -43,19 +43,21 @@ class VerletIntegrator(BaseIntegrator):
     A quick Verlet integration in Cartesian coordinates
     See: J. Chem. Theory Comput., 2017, 13 (7), pp 3250–3259
     """
-    def __init__(self, spins, rhs_fun, m=0.1, stepsize=1e-15):
-        super(VerletIntegrator, self).__init__(spins, rhs_fun)
+    def __init__(self, band, rhs_fun, n_images,
+                 m=0.1, stepsize=1e-15):
+        super(VerletIntegrator, self).__init__(band, rhs_fun)
 
+        self.n_images = n_images
         self.m = m
         self.stepsize = stepsize
-        self.velocity = np.zeros_like(spins).reshape(-1, 3)
-        self.velocity_new = np.zeros_like(spins).reshape(-1, 3)
+        self.velocity = np.zeros_like(band).reshape(n_images, -1)
+        self.velocity_new = np.zeros_like(band).reshape(n_images, -1)
         # self.velocity_proj = np.zeros(len(spins) // 3)
 
     def run_until(self, t):
         while abs(self.t - t) > EPSILON:
-            self.t, self.y = self._step(self.t, self.y,
-                                        self.stepsize, self.rhs)
+            self.t = self._step(self.t, self.y,
+                                self.stepsize, self.rhs)
 
             self.rhs_evals_nb += 0
             if self.t > t:
@@ -69,31 +71,39 @@ class VerletIntegrator(BaseIntegrator):
         """
         Quick-min Verlet step
         """
+
+        force_images = f(t, y).reshape(self.n_images, -1)
         # In this case f represents the force: a = dy/dt = f/m
-        force = f(t, y).reshape(-1, 3)  # * self.m_inv[:, np.newaxis]
-        y.shape = (-1, 3)
+        # * self.m_inv[:, np.newaxis]
+        y.shape = (self.n_images, -1)
+        # print(force_images[2])
 
-        velocity_proj = np.einsum('ij,ij->i',
-                                  force, self.velocity)
-        self.velocity_new[velocity_proj <= 0] = 0.0
+        for i in range(1, self.n_images - 1):
 
-        force_norm_2 = np.einsum('ij,ij->i', force, force)
-        fltr = np.logical_and(velocity_proj > 0, force_norm_2 > 0)
-        factor = np.zeros_like(velocity_proj)
-        factor[fltr] = velocity_proj[fltr] / force_norm_2[fltr]
-        self.velocity_new[fltr] = np.einsum('i,ij->ij', factor[fltr], force[fltr])
+            force = force_images[i]
+            velocity = self.velocity[i]
+            velocity_new = self.velocity_new[i]
 
-        self.velocity = self.velocity_new + (h / m) * force
+            velocity_proj = np.einsum('i,i',
+                                      force, velocity)
 
-        yp = y + h * (self.velocity + (h / (2 * m)) * force)
+            if velocity_proj <= 0:
+                velocity_new[:] = 0.0
+            else:
+                force_norm_2 = np.einsum('i,i', force, force)
+                # fltr = np.logical_and(velocity_proj > 0, force_norm_2 > 0)
+                # factor = np.zeros_like(velocity_proj)
+                factor = velocity_proj / force_norm_2
+                velocity_new[:] = factor * force
+
+            velocity[:] = velocity_new + (h / self.m) * force
+
+            y[i][:] = y[i] + h * (velocity + (h / (2 * self.m)) * force)
 
         y.shape = (-1,)
-
-        yp.shape = (-1,)
-        normalise_spins(yp)
-
+        normalise_spins(y)
         tp = t + h
-        return tp, yp
+        return tp
 
 
 def normalise_spins(y):

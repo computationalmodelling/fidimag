@@ -375,8 +375,9 @@ class NEBMBase(object):
             # m_inv[m_inv > 0] = 1 / m_inv[m_inv > 0]
             self.integrator = VerletIntegrator(self.band,
                                                self.step_RHS,
+                                               self.n_images,
                                                m=1,
-                                               stepsize=1e-5)
+                                               stepsize=1e-3)
             self.integrator.set_options()
         else:
             raise Exception('No valid integrator specified. Available: '
