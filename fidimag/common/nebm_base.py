@@ -271,6 +271,11 @@ class NEBMBase(object):
 
         # ---------------------------------------------------------------------
 
+        # If the integrator uses an LLG-like equation to relax the energy band
+        # we need to set this variable
+        # This variable only affects the StepIntegrators, NOT Sundials
+        self._llg_evolve = False
+
     def initialise_energies(self):
         pass
 
@@ -359,26 +364,24 @@ class NEBMBase(object):
                 self.integrator = cvode.CvodeSolver_OpenMP(self.band,
                                                            self.Sundials_RHS)
                 self.integrator.set_options(rtol, atol)
-        elif integrator == 'scipy':
-            self.integrator = ScipyIntegrator(self.band, self.step_RHS)
-            self.integrator.set_options()
-        elif integrator == 'step':
+        # elif integrator == 'scipy':
+        #     self.integrator = ScipyIntegrator(self.band, self.step_RHS)
+        #     self.integrator.set_options()
+        elif integrator == 'rk4' or self.integrator == 'euler':
             self.integrator = StepIntegrator(self.band, self.step_RHS,
-                                             step='rk4', stepsize=1e-3)
+                                             step=self.integrator,
+                                             stepsize=1e-3)
             self.integrator.set_options()
+            self._llg_evolve = True
         elif integrator == 'verlet':
-            # if self.sim._micromagnetic:
-            #     m_inv = np.tile(self.sim.Ms, self.n_images)
-            # else:
-            #     m_inv = np.tile(self.sim.mu_s, self.n_images)
-
-            # m_inv[m_inv > 0] = 1 / m_inv[m_inv > 0]
             self.integrator = VerletIntegrator(self.band,
                                                self.step_RHS,
                                                self.n_images,
-                                               m=1,
+                                               mass=1,
                                                stepsize=1e-3)
             self.integrator.set_options()
+            # In Verlet algorithm we only use the total force G and not YxYxG:
+            self._llg_evolve = False
         else:
             raise Exception('No valid integrator specified. Available: '
                             '"sundials", "scipy"')
@@ -573,6 +576,15 @@ class NEBMBase(object):
               ):
 
         """
+        Relax the energy band according to the specified integrator
+
+            Sundials:        dt is the initial stepsize which is updated
+                             by CVODE. Number of calls is given by CVODE
+            StepIntegrators: dt is the relaxation stepsize. These integrators
+                             evolve using an internal `stepsize`, thus the
+                             number of evaluations is dt / stepsize.
+                             You can update the integrator evolve step using:
+                                self.integrator.stepsize = 1e-4
 
         """
 

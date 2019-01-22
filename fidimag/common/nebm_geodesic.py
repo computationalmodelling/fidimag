@@ -401,8 +401,9 @@ class NEBM_Geodesic(NEBMBase):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D
         # (check the C code in common/)
-        nebm_cartesian.compute_dYdt_nc(
-            y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
+        if self._llg_evolve:
+            nebm_cartesian.compute_dYdt_nc(y, self.G, ydot, self.sim._pins,
+                                           self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value
