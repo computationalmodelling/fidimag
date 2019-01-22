@@ -44,15 +44,16 @@ class VerletIntegrator(BaseIntegrator):
     See: J. Chem. Theory Comput., 2017, 13 (7), pp 3250–3259
     """
     def __init__(self, band, rhs_fun, n_images,
-                 m=0.1, stepsize=1e-15):
+                 mass=0.1, stepsize=1e-15):
         super(VerletIntegrator, self).__init__(band, rhs_fun)
 
         self.n_images = n_images
-        self.m = m
+        self.mass = mass
         self.stepsize = stepsize
         self.velocity = np.zeros_like(band).reshape(n_images, -1)
         self.velocity_new = np.zeros_like(band).reshape(n_images, -1)
         # self.velocity_proj = np.zeros(len(spins) // 3)
+        self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
 
     def run_until(self, t):
         while abs(self.t - t) > EPSILON:
@@ -69,7 +70,7 @@ class VerletIntegrator(BaseIntegrator):
 
     def _step(self, t, y, h, f):
         """
-        Quick-min Verlet step
+        Quick-min Velocity Verlet step
         """
 
         force_images = f(t, y).reshape(self.n_images, -1)
@@ -78,27 +79,38 @@ class VerletIntegrator(BaseIntegrator):
         y.shape = (self.n_images, -1)
         # print(force_images[2])
 
+        # Loop through every image in the band
         for i in range(1, self.n_images - 1):
 
             force = force_images[i]
             velocity = self.velocity[i]
             velocity_new = self.velocity_new[i]
 
-            velocity_proj = np.einsum('i,i',
-                                      force, velocity)
+            # Update the velocity from a mean with the prev step
+            # (Velocity Verlet)
+            velocity[:] = velocity + (h / (2 * self.mass)) * (self.forces_prev[i] + force)
 
+            # Project the force of the image into the velocity vector: < v | F >
+            velocity_proj = np.einsum('i,i', force, velocity)
+
+            # Set velocity to zero when the proj = 0
             if velocity_proj <= 0:
                 velocity_new[:] = 0.0
             else:
+                # Norm of the force squared <F | F>
                 force_norm_2 = np.einsum('i,i', force, force)
-                # fltr = np.logical_and(velocity_proj > 0, force_norm_2 > 0)
-                # factor = np.zeros_like(velocity_proj)
                 factor = velocity_proj / force_norm_2
+                # Set updated velocity: v = v * (<v|F> / |F|^2)
                 velocity_new[:] = factor * force
 
-            velocity[:] = velocity_new + (h / self.m) * force
+            # New velocity from Newton equation
+            velocity[:] = velocity_new + (h / self.mass) * force
 
-            y[i][:] = y[i] + h * (velocity + (h / (2 * self.m)) * force)
+            # Update coordinates from Newton eq, which uses the "acceleration"
+            y[i][:] = y[i] + h * (velocity + (h / (2 * self.mass)) * force)
+
+        # Store the force for the Velocity Verlet algorithm
+        self.forces_prev[:] = force_images
 
         y.shape = (-1,)
         normalise_spins(y)
