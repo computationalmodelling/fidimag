@@ -654,15 +654,15 @@ class NEBMBase(object):
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      "step: {:.3g}, step_size: {:.3g},"
-                      "max_dYdt: {:.3g} "
-                      "|max_dE|: {:.3g} "
-                      "and |max_F_k|: {:.3g}".format(self.iterations,
-                                                     increment_dt,
-                                                     max_dYdt,
-                                                     np.max(np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)),
-                                                     np.max(np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1))
-                                                     )
+                      "step: {:.3g}, step_size: {:.3g}, "
+                      "max dYdt: {:.3g} "
+                      "max|G|: {:.3g} "
+                      "and max|F_k|: {:.3g}".format(self.iterations,
+                                                    increment_dt,
+                                                    max_dYdt,
+                                                    np.max(np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)),
+                                                    np.max(np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1))
+                                                    )
                       )
 
             # -----------------------------------------------------------------
