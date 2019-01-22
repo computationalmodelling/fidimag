@@ -82,7 +82,7 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used Fidimag:
 
-[1] [Binding a hopfion in a chiral magnet nanodisk](https://journals.aps.org/prb/pdf/10.1103/PhysRevB.98.174437), Y. Liu,1,* R. K. Lake, and J. Zang, Physical Review B 98, 174437 (2018)
+[1] [Binding a hopfion in a chiral magnet nanodisk](https://journals.aps.org/prb/pdf/10.1103/PhysRevB.98.174437), Y. Liu, R. K. Lake, and J. Zang, Physical Review B 98, 174437 (2018)
 
 [2] [Proposal for a micromagnetic standard problem for materials with Dzyaloshinskii–Moriya interaction](http://iopscience.iop.org/article/10.1088/1367-2630/aaea1c), D. C-Ortuño, M. Beg2, V. Nehruji3, L. Breth1, R. Pepper, T. Kluyver, G. Downing, T. Hesjedal, P. Hatton3, T. Lancaster, R. Hertel5, O. Hovorka and H. Fangohr, New Journal of Physics, Volume 20 (2018)
 
