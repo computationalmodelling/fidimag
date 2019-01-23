@@ -76,6 +76,14 @@ class Demag(Energy):
 
 
         else:
+            if True in mesh.periodicity:
+                print('Warning - you have enabled a periodic mesh, but not enabled the 2d_pbc parameter.\n'
+                      'Please look at the implementation of the demag class.\n'
+                      '  * You can either specify *both* of sample_repeat_nx and sample_repeat_ny'
+                      '  * Alternatively, specify relative_tensor_error to take enough\n'
+                      '    repetitions until the demag tensor components are not changing\n'
+                      '    more than this tolerance.\n')
+
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                        self.nx, self.ny, self.nz,
                                        tensor_type='demag')
