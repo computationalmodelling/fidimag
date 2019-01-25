@@ -367,7 +367,7 @@ class NEBMBase(object):
         # elif integrator == 'scipy':
         #     self.integrator = ScipyIntegrator(self.band, self.step_RHS)
         #     self.integrator.set_options()
-        elif integrator == 'rk4' or self.integrator == 'euler':
+        elif integrator == 'rk4' or integrator == 'euler':
             self.integrator = StepIntegrator(self.band, self.step_RHS,
                                              step=self.integrator,
                                              stepsize=1e-3)
@@ -665,6 +665,10 @@ class NEBMBase(object):
             # Print information about the simulation and the NEBM forces.
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
+            G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)
+            tot_G_norms = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
+            print(tot_G_norms)
+            Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1)
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
                       "step: {:.3g}, step_size: {:.3g}, "
                       "max dYdt: {:.3g} "
@@ -672,8 +676,8 @@ class NEBMBase(object):
                       "and max|F_k|: {:.3g}".format(self.iterations,
                                                     increment_dt,
                                                     max_dYdt,
-                                                    np.max(np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)),
-                                                    np.max(np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1))
+                                                    np.max(G_norms),
+                                                    np.max(Fk_norms)
                                                     )
                       )
 
