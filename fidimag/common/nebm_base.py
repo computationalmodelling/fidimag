@@ -186,9 +186,6 @@ class NEBMBase(object):
         # Number of spins in the system
         self.n_spins = len(self.mesh.coordinates)
 
-        # Spring constant (we could use an array in the future)
-        self.k = spring_constant
-
         # We will use this filter to know which sites of the system has
         # material, i.e. M_s or mu_s > 0 and norm(m) = 1
         if self.sim._micromagnetic:
@@ -234,6 +231,16 @@ class NEBMBase(object):
 
         # Total number of degrees of freedom in the NEBM band
         self.n_band = self.n_images * self.n_dofs_image
+
+        # Spring constant -----------------------------------------------------
+
+        # Spring constant (we could use an array in the future)
+        self.k = spring_constant * np.ones(self.n_images)
+
+        # Set to True to update spring constant values relative to the energies
+        # (TESTING)
+        self.variable_k = False
+        self.dk = 1
 
         # Climbing Image ------------------------------------------------------
 

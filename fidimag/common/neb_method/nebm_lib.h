@@ -18,7 +18,7 @@ void compute_spring_force_C(
         double *restrict spring_force,
         double *restrict y,
         double *restrict tangents,
-        double k,
+        double *restrict k,
         int n_images,
         int n_dofs_image,
         double (* compute_distance)(double *, double *, int, int *, int),

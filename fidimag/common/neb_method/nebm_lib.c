@@ -256,7 +256,7 @@ void compute_spring_force_C(
         double *restrict spring_force,
         double *restrict y,
         double *restrict tangents,
-        double k,
+        double *restrict k,
         int n_images,
         int n_dofs_image,
         double (* compute_distance)(double *, double *, int, int *, int),
@@ -325,7 +325,7 @@ void compute_spring_force_C(
 
         // Now compute the spring force
         for(j = 0; j < n_dofs_image; j++) {
-            sf[j] = k * (dY_plus_norm - dY_minus_norm) * t[j];
+            sf[j] = k[i] * (dY_plus_norm - dY_minus_norm) * t[j];
         }
     }
 

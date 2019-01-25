@@ -9,7 +9,7 @@ cdef extern from "nebm_lib.h":
     void compute_spring_force_C(double *spring_force,
                                 double *y,
                                 double *tangents,
-                                double k,
+                                double *k,
                                 int n_images,
                                 int n_dofs_image,
                                 double (* compute_distance)(double *, double *, int,
@@ -22,15 +22,15 @@ cdef extern from "nebm_lib.h":
 def compute_spring_force(double [:] spring_force,
                          double [:] y,
                          double [:] tangents,
-                         k,
+                         double [:] k,
                          n_images,
                          n_dofs_image,
                          int [:] material,
                          n_dofs_image_material
                          ):
 
-    compute_spring_force_C(&spring_force[0], &y[0], &tangents[0],
-                           k, n_images, n_dofs_image,
+    compute_spring_force_C(&spring_force[0], &y[0], &tangents[0], &k[0],
+                           n_images, n_dofs_image,
                            compute_distance_geodesic,
                            &material[0], n_dofs_image_material
                            )

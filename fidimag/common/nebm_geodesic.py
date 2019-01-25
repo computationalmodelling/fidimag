@@ -305,6 +305,27 @@ class NEBM_Geodesic(NEBMBase):
                                         )
 
     def compute_spring_force(self, y):
+        """
+        For variable spring constant (which is more effective if we have
+        a saddle point), see:
+             J. Chem. Phys. 113, 9901 (2000);
+        Seems to work when we only have a single saddle point
+        (TESTING functionality)
+        """
+        if self.variable_k:
+            E_max = np.max(self.energies)
+            E_i = np.maximum(self.energies[1:-1], self.energies[:-2])
+            E_ref = max(self.energies[0], self.energies[-1])
+
+            k = np.copy(self.k)
+            f = E_i > E_ref
+            k[1:-1][f] = k[1:-1][f] - self.dk * (E_max - E_i[f] / (E_max - E_ref))
+            f = E_i <= E_ref
+            k[1:-1][f] = k[1:-1][f] - self.dk
+
+        else:
+            k = self.k
+
         nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
                                            self.k, self.n_images,
                                            self.n_dofs_image,
