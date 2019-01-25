@@ -666,8 +666,8 @@ class NEBMBase(object):
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
             G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)
-            tot_G_norms = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
-            print(tot_G_norms)
+            # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
+            # print(mean_G_norms_per_image)
             Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1)
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
                       "step: {:.3g}, step_size: {:.3g}, "
