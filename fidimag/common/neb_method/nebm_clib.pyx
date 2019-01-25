@@ -11,7 +11,7 @@ cdef extern from "nebm_lib.h":
                                    double * tangents,
                                    double * gradientE,
                                    double * spring_force,
-                                   int climbing_image,
+                                   int * climbing_image,
                                    int n_images,
                                    int n_dofs_image)
 
@@ -30,13 +30,13 @@ def compute_effective_force(double [:] G,
                             double [:] tangents,
                             double [:] gradientE,
                             double [:] spring_force,
-                            climbing_image,
+                            int [:] climbing_image,
                             n_images,
                             n_dofs_image
                             ):
 
     compute_effective_force_C(&G[0], &tangents[0],
                               &gradientE[0], &spring_force[0],
-                              climbing_image,
+                              &climbing_image[0],
                               n_images, n_dofs_image
                               )

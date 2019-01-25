@@ -166,6 +166,10 @@ class NEBMBase(object):
                                  scaled norm.
         self.n_dofs_image_material :: Number of dofs where mu_s or Ms > 0
                                       (in a single image)
+        climbing_image        :: Any iterable with the indexes of the climbing
+                                 images. Climbing images are stored in the
+                                 self._climbing_image array, which the
+                                 self.climbing_image decorator populates
 
     """
     def __init__(self, sim,
@@ -247,13 +251,9 @@ class NEBMBase(object):
 
         # Climbing Image ------------------------------------------------------
 
-        if climbing_image is None:
-            self.climbing_image = -1
-        elif climbing_image in range(self.n_images):
-            self.climbing_image = climbing_image
-        else:
-            raise ValueError('The climbing image must be in the band. '
-                             'Specify a valid integer.')
+        # Set a list with the images where 1 is for climbing image and 0 for
+        # normal
+        self._climbing_image = np.zeros(self.n_images, dtype=np.int32)
 
         # NEBM Arrays ---------------------------------------------------------
         # We will initialise every array using the total number of images,
@@ -285,6 +285,20 @@ class NEBMBase(object):
         # we need to set this variable
         # This variable only affects the StepIntegrators, NOT Sundials
         self._llg_evolve = False
+
+    @property
+    def climbing_image(self):
+        return self._climbing_image
+
+    @climbing_image.setter
+    def set_climbing_image(self, climbing_image_list):
+        self._climbing_image[:] = 0
+        images = range(self.n_images)[1:-1]
+        for ci in np.array([climbing_image_list]).flatten():
+            if ci in images:
+                self._climbing_image[ci] = 1
+            else:
+                raise Exception('Cannot set image={} as climbing image'.format(ci))
 
     def initialise_energies(self):
         pass

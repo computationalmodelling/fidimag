@@ -339,7 +339,7 @@ void compute_effective_force_C(double *restrict G,
                                double *restrict tangents,
                                double *restrict gradientE,
                                double *restrict spring_force,
-                               int climbing_image,
+                               int    *restrict climbing_image,
                                int n_images,
                                int n_dofs_image) {
 
@@ -356,10 +356,12 @@ void compute_effective_force_C(double *restrict G,
      * where t_i is the tangent of the i-th image (see the coresponding
      * function for its definition) and e_i is the energy of the i-th image.
      * The gradient is with respect to the degrees of freedom (or magnetisation
-     * field), which we transform to spherical coordinates (see the Python
-     * code). Since, physically, the gradient of the energy is the effective
+     * field). Since, physically, the gradient of the energy is the effective
      * field, we use this fact to compute the gradient, but this is already
      * calculated in the gradientE array.
+     *
+     * For climbing images we invert the force component and remove the spring
+     * force
      *
      */
 
@@ -379,7 +381,7 @@ void compute_effective_force_C(double *restrict G,
 
         gradE_dot_t = dot_product(gradE, t, n_dofs_image);
 
-        if(climbing_image < 0 || i != climbing_image) {
+        if(climbing_image[i] == 0) {
             for(j = 0; j < n_dofs_image; j++) {
                 G[im_idx + j] = -gradE[j] + gradE_dot_t * t[j] + sf[j];
             }

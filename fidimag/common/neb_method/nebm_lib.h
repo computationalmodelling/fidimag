@@ -30,7 +30,7 @@ void compute_effective_force_C(double *restrict G,
                                double *restrict tangents,
                                double *restrict gradientE,
                                double *restrict spring_force,
-                               int climbing_image,
+                               int    *restrict climbing_image,
                                int n_images,
                                int n_dofs_image
                                );

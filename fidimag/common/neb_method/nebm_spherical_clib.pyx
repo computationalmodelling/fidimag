@@ -35,7 +35,7 @@ cdef extern from "nebm_lib.h":
                                    double * tangents,
                                    double * gradientE,
                                    double * spring_force,
-                                   int climbing_image,
+                                   int * climbing_image,
                                    int n_images,
                                    int n_dofs_image)
 
