@@ -254,6 +254,8 @@ class NEBMBase(object):
         # Set a list with the images where 1 is for climbing image and 0 for
         # normal
         self._climbing_image = np.zeros(self.n_images, dtype=np.int32)
+        if climbing_image is not None:
+            self.climbing_image = climbing_image
 
         # NEBM Arrays ---------------------------------------------------------
         # We will initialise every array using the total number of images,
@@ -291,7 +293,7 @@ class NEBMBase(object):
         return self._climbing_image
 
     @climbing_image.setter
-    def set_climbing_image(self, climbing_image_list):
+    def climbing_image(self, climbing_image_list):
         self._climbing_image[:] = 0
         images = range(self.n_images)[1:-1]
         for ci in np.array([climbing_image_list]).flatten():
@@ -299,6 +301,10 @@ class NEBMBase(object):
                 self._climbing_image[ci] = 1
             else:
                 raise Exception('Cannot set image={} as climbing image'.format(ci))
+
+    @climbing_image.deleter
+    def climbing_image(self):
+        self._climbing_image[:] = 0
 
     def initialise_energies(self):
         pass

@@ -293,7 +293,7 @@ class NEBM_Spherical(NEBMBase):
                                           self.tangents,
                                           self.gradientE,
                                           self.spring_force,
-                                          self.climbing_image,
+                                          self._climbing_image,
                                           self.n_images,
                                           self.n_dofs_image
                                           )
