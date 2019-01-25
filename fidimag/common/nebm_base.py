@@ -122,6 +122,9 @@ class NEBMBase(object):
         self.name             :: Name of the NEBM simulation
         self.n_spins          :: Number of spins per image
         self.k                :: Spring constant
+        self.variable_k(TEST) :: Set True to update k values acc to energy.
+                                 Need to specify self.dk var.
+                                 Default value: False
         self.VTK              :: Fidimag VTK object to save VTK files
         self.files_convert_f  :: Function to convert the coordinates from the
                                  band to Cartesian coordinates
