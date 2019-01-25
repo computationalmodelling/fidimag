@@ -99,11 +99,11 @@ def plot_m(sim, component='x', filename=None, figsize=(10, 5),
     mx[Ms == 0.0] = np.nan
     my[Ms == 0.0] = np.nan
     mz[Ms == 0.0] = np.nan
-    
-    mx = mx.reshape(mesh.nx, mesh.ny)
-    my = my.reshape(mesh.nx, mesh.ny)
-    mz = mz.reshape(mesh.nx, mesh.ny)
-    Ms = Ms.reshape(mesh.nx, mesh.ny)
+
+    mx = mx.reshape(mesh.ny, mesh.nx)
+    my = my.reshape(mesh.ny, mesh.nx)
+    mz = mz.reshape(mesh.ny, mesh.nx)
+    Ms = Ms.reshape(mesh.ny, mesh.nx)
     
 
     
