@@ -339,13 +339,14 @@ def test_iterate_over_cells_and_neighbours():
         for c_j in mesh.neighbours[c_i]:
             print("\tAnd I am its neighbour, cell #{}!".format(c_j))
 
-
+@pytest.mark.xfail("Skipping because this is not supported")
 def test_hexagonal_mesh_creation_periodic_x():
-    mesh = HexagonalMesh(1, 2, 2, periodicity=(True, False, False)
+    mesh = HexagonalMesh(1, 2, 2, alignment='square', periodicity=(True, False, False))
 
 
-def test_hexagonal_mesh_creation_periodic_y():
-    mesh = HexagonalMesh(1, 2, 2, periodicity=(True, False, False)
+@pytest.mark.xfail("Skipping because this is not supported")
+def test_hexagonal_mesh_creation_periodic_square_y():
+    mesh = HexagonalMesh(1, 2, 2, alignment='square', periodicity=(False, True, False))
                 
 
 
