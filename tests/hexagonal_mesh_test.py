@@ -341,11 +341,11 @@ def test_iterate_over_cells_and_neighbours():
 
 
 def test_hexagonal_mesh_creation_periodic_x():
-    mesh = HexagonalMesh(1, 2, 2, periodicity=(True, False, False)
+    mesh = HexagonalMesh(1, 2, 2, periodicity=(True, False, False))
 
 
 def test_hexagonal_mesh_creation_periodic_y():
-    mesh = HexagonalMesh(1, 2, 2, periodicity=(True, False, False)
+    mesh = HexagonalMesh(1, 2, 2, periodicity=(True, False, False))
                 
 
 
