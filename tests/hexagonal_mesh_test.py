@@ -1,4 +1,5 @@
 from __future__ import print_function
+import pytest
 import numpy as np
 from math import sqrt
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
