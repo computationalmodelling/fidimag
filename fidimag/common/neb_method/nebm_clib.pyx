@@ -15,6 +15,9 @@ cdef extern from "nebm_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
+    void normalise(double * a, int n)
+
+
 def compute_tangents(double [:] tangents,
                      double [:] y,
                      double [:] energies,
@@ -40,3 +43,7 @@ def compute_effective_force(double [:] G,
                               &climbing_image[0],
                               n_images, n_dofs_image
                               )
+
+def normalise_clib(double [:] a, n):
+
+    normalise(&a[0], n)

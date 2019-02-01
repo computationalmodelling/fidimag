@@ -8,6 +8,7 @@ Tests for the NEB Method implementation
 
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
+import fidimag.extensions.nebm_clib as nebm_lib
 import fidimag.common.nebm_tools as nebm_tools
 # import fidimag.common.nebm_spherical as nebm_spherical
 import numpy as np
@@ -162,7 +163,7 @@ def test_geodesic_distance():
     assert np.abs(d - np.pi * 0.5) < 1e-5
 
 
-# Cartesian NEBM library: common/neb_method/nebm_cartesian_lib.c
+# Cartesian NEBM library: common/neb_method/nebm_cartesian_lib.c --------------
 def test_project_vectors_into_image():
     """
     Project 3 vectors in array *a into an image made of
@@ -242,6 +243,47 @@ def test_project_images_into_image():
         assert a[i] == expected_res[i]
 
 
+def test_normalise_images():
+    """
+    Normalise an array of image-like arrays
+    We initialise the array "a" with 4 images. Extrema images
+    are set to zero. Then we normalise images 1 and 2 and compare
+    the normalisation with Numpy calculations
+    """
+
+    a = np.zeros(18 + 18, dtype=np.float)
+    a[9:27] = np.arange(18, dtype=np.float)
+    nebm_cartesian.normalise_images(a, 4, 9)
+
+    b = np.zeros(18 + 18, dtype=np.float)
+    b[9:27] = np.arange(18, dtype=np.float)
+    norms = [np.sqrt(np.sum(b[9:18] ** 2)),
+             np.sqrt(np.sum(b[18:27] ** 2))]
+
+    # print(a)
+    # print(b)
+    # print(norms)
+
+    for i in range(9):
+        assert np.abs(a[9 + i] - b[9 + i] / norms[0]) < 1e-12
+        assert np.abs(a[18 + i] - b[18 + i] / norms[1]) < 1e-12
+
+
+# From common/neb_method/nebm_lib.c -------------------------------------------
+def test_normalise():
+    """
+    Check normalise function in nebm lib
+    """
+
+    a = np.array([1, 0, 1.])
+    nebm_lib.normalise_clib(a, 3)
+
+    norm = 1.4142135623730951
+    assert a[0] - (1. / norm) < 1e-12
+    assert a[1] < 1e-12
+    assert a[2] - (1. / norm) < 1e-12
+
+
 if __name__ == "__main__":
 
     test_cartesian2spherical()
@@ -250,3 +292,6 @@ if __name__ == "__main__":
     test_geodesic_distance()
     test_project_vectors_into_image()
     test_project_images_into_image()
+    test_normalise_images()
+    #
+    test_normalise()

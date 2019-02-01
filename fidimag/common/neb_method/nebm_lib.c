@@ -25,34 +25,18 @@ double dot_product(double * A, double * B, int n){
     return dotp;
 }
 
-double compute_norm(double *restrict a, int n, int scale) {
+double compute_norm(double *restrict a, int n) {
     /* Compute the norm of an array *a
-
-     * This function is necessary to either normalise a vector or compute the
-     * distance between two images (see below)
      *
      * ARGUMENTS:
 
      * n        :: length of a
-     *
-     * scale    :: If scale is zero, we do not scale the norm
 
-     * Notice that, when computing the DISTANCE between two images, Y_i, Y_i+1
-     * for example, we just do the difference (Y_i - Y_(i+1)) and then compute
-     * its norm (using this function) but RESCALING the length by the number
-     * of components, thus we use scale=n
-     *
      */
 
     double norm = 0;
-
-    for(int i = 0; i < n; i++){
-        norm += a[i] * a[i];
-    }
-
-    if (scale == 0) norm = sqrt(norm);
-    else norm = sqrt(norm) / ((double) scale);
-
+    for(int i = 0; i < n; i++){ norm += a[i] * a[i]; }
+    norm = sqrt(norm);
     return norm;
 }
 
@@ -69,7 +53,7 @@ void normalise(double *restrict a, int n){
 
     double length;
 
-    length = compute_norm(a, n, 0);
+    length = compute_norm(a, n);
 
     if (length > 0){
         length = 1.0 / length;
@@ -282,12 +266,12 @@ void compute_spring_force_C(
      * distance, which depends on the coordinate system chosen.
      *
      * The function: (* compute_distance)(double *, double *, int, int *, int)
-     * depends on: (Image_1, 
-     *              Image_2, 
+     * depends on: (Image_1,
+     *              Image_2,
      *              number of spins per image,
      *              array indicating dofs (spins) in sites WITH material,
      *              number of dofs in sites with material
-     *              ) 
+     *              )
      *
      *  - With material we mean Ms > 0 or mu_s > 0
      */

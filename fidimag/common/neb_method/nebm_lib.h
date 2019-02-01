@@ -6,7 +6,7 @@ void cross_product(double * output, double * A, double * B);
 
 double dot_product(double * A, double * B, int n);
 
-double compute_norm(double *restrict a, int n, int scale);
+double compute_norm(double *restrict a, int n);
 
 void normalise(double *restrict a, int n);
 

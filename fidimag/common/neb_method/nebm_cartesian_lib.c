@@ -118,8 +118,8 @@ double compute_distance_cartesian(double *restrict A, double *restrict B, int n_
         }
     }
 
-    distance = compute_norm(A_minus_B, n_dofs_image_material,
-                            n_dofs_image_material);
+    // CHECK division by number of dofs
+    distance = compute_norm(A_minus_B, n_dofs_image_material) / n_dofs_image_material;
 
     return distance;
 }

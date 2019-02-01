@@ -68,7 +68,7 @@ double compute_distance_geodesic(double *restrict A, double *restrict B, int n_d
             spin_i = 3 * i;
 
             cross_product(A_cross_B, &A[spin_i], &B[spin_i]);
-            A_cross_B_norm = compute_norm(A_cross_B, 3, 0);
+            A_cross_B_norm = compute_norm(A_cross_B, 3);
             A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
 
             geo_dist = atan2(A_cross_B_norm, A_dot_B);

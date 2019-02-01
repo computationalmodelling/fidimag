@@ -21,7 +21,7 @@ cdef extern from "nebm_cartesian_lib.h":
 cdef extern from "nebm_lib.h":
     void normalise(double * a, int n)
 
-    double compute_norm(double *a, int n, int scale)
+    double compute_norm(double *a, int n)
 
     void compute_tangents_C(double *tangents,
                             double *y,
