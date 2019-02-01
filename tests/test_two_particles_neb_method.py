@@ -5,7 +5,6 @@ import pytest
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, UniaxialAnisotropy
-from fidimag.common.nebm_cartesian import NEBM_Cartesian
 from fidimag.common.nebm_spherical import NEBM_Spherical
 from fidimag.common.nebm_geodesic import NEBM_Geodesic
 import numpy as np
@@ -65,7 +64,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
     sim = Sim(mesh)
     sim.Ms = two_part
 
-    #sim.add(UniformExchange(A=A))
+    # sim.add(UniformExchange(A=A))
 
     # Uniaxial anisotropy along x-axis
     sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
@@ -81,13 +80,6 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
     # equal to 'the number of initial states specified', minus one.
     interpolations = interp
 
-    if coordinates == 'Cartesian':
-        neb = NEBM_Cartesian(sim,
-                             init_images,
-                             interpolations=interpolations,
-                             spring_constant=k,
-                             name=simname
-                             )
     if coordinates == 'Spherical':
         neb = NEBM_Spherical(sim,
                              init_images,
@@ -100,13 +92,20 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
                             init_images,
                             interpolations=interpolations,
                             spring_constant=k,
-                            name=simname
+                            name=simname,
+                            integrator='sundials'
                             )
 
-    neb.relax(max_iterations=maxst,
+    neb.relax(max_iterations=2000,
               save_vtks_every=save_every,
               save_npys_every=save_every,
-              stopping_dYdt=1e-2)
+              stopping_dYdt=1e-3,
+              dt=1e-6
+              )
+
+    # print(neb.G)
+    # print(neb.tangents)
+    # print(neb.spring_force)
 
 
 def mid_m(pos):
@@ -121,14 +120,14 @@ def test_energy_barrier_2particles():
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [6, 6]
 
-    coord_list = ['Cartesian', 'Spherical', 'Geodesic']
+    coord_list = ['Geodesic']
     barriers = []
 
     # Define different ks for multiple simulations
     # krange = ['1e8']
 
     for coordinates in coord_list:
-        relax_neb(1e8, 2000,
+        relax_neb(100, 2000,
                   'neb_2particles_k1e8_10-10int_{}'.format(coordinates),
                   init_im,
                   interp,
@@ -143,6 +142,7 @@ def test_energy_barrier_2particles():
         assert np.abs(barriers[-1] - 0.016019) < 1e-5
 
     print(barriers)
+
 
 if __name__ == '__main__':
     test_energy_barrier_2particles()
