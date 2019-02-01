@@ -165,6 +165,7 @@ void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
        	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
        	dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
 
+        // Correction factor to rescale the spin length at every iteration step
        	double c = 6 * sqrt(dYdt[j]     * dYdt[j]     +
                             dYdt[j + 1] * dYdt[j + 1] +
                             dYdt[j + 2] * dYdt[j + 2]);
@@ -187,6 +188,8 @@ void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYd
 }
 
 // ----------------------------------------------------------------------------
+// dYdt functions without the magic correction factor
+// Necessary to implement more standard integrators, such as Verlet
 
 void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dYdt,
                      int *restrict pins,
