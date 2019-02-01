@@ -13,6 +13,10 @@ cdef extern from "nebm_cartesian_lib.h":
     void project_images_C(double * vector, double * y,
                           int n_images, int n_dofs_image,
                           )
+
+    void project_vector_C(double * vector, double * y,
+                          int n_dofs_image,
+                          )
     
 cdef extern from "nebm_lib.h":
     void normalise(double * a, int n)
@@ -98,6 +102,15 @@ def project_images(double [:]  vector,
 
     project_images_C(&vector[0], &y[0],
                      n_images, n_dofs_image
+                     )
+
+def project_vector(double [:]  vector,
+                   double [:]  y,
+                   n_dofs_image
+                   ):
+
+    project_vector_C(&vector[0], &y[0],
+                     n_dofs_image
                      )
 
 def normalise_images(double [:] y,

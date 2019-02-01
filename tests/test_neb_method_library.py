@@ -7,6 +7,7 @@ Tests for the NEB Method implementation
 """
 
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
+import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
 import fidimag.common.nebm_tools as nebm_tools
 # import fidimag.common.nebm_spherical as nebm_spherical
 import numpy as np
@@ -160,9 +161,92 @@ def test_geodesic_distance():
                                         )
     assert np.abs(d - np.pi * 0.5) < 1e-5
 
+
+# Cartesian NEBM library: common/neb_method/nebm_cartesian_lib.c
+def test_project_vectors_into_image():
+    """
+    Project 3 vectors in array *a into an image made of
+    9 degrees of freedom = 3 vector
+    """
+
+    a = np.arange(9, dtype=np.float)
+    image = np.array([0., 0, 1,
+                      1, 0, 0,
+                      0, 0, 1])
+
+    # Project array of vectors a, which is updated in the C library
+    nebm_cartesian.project_vector(a, image, 9)
+
+    # Here we do the projection manually --------------------------------------
+    # Dot products for every vector
+    a_dot_image = [2., 3., 8.]
+    expected_res = np.zeros(9)
+    # Projections:
+    expected_res[:3] = [0, 1, 2 - a_dot_image[0]]
+    expected_res[3:6] = [3 - a_dot_image[1], 4, 5]
+    expected_res[6:] = [6, 7, 8 - a_dot_image[2]]
+    # print(expected_res)
+    # print(a)
+    # -------------------------------------------------------------------------
+
+    for i in range(9):
+        assert a[i] == expected_res[i]
+
+
+def test_project_images_into_image():
+    """
+
+    Project the vectors from an array of images a, into images
+
+    The C library function does NOT calculate projections of extrema images,
+    i.e. image 0 and N, thus we pad two extra arrays at the end and beginning
+    of the arrays
+
+    We construct array "a" made of 4 images, each having 3 vectors
+    Then we construct array "images" with 4 images
+    Then we project vectors from "a" into "images" and compare results
+
+    """
+
+    a = np.zeros(18 + 18, dtype=np.float)
+    a[9:27] = np.arange(18, dtype=np.float)
+    images = np.array([0., 0, 0, 0, 0, 0, 0, 0, 0,
+                       0., 0, 1, 1, 0, 0, 0, 0, 1,
+                       0., 1, 0, 0, 0, 1, 1, 1, 0,
+                       0., 0, 0, 0, 0, 0, 0, 0, 0,
+                       ])
+
+    # Project array of images a, which is updated in the C library
+    nebm_cartesian.project_images(a, images,
+                                  # num of images and num of dofs per image:
+                                  4, 9)
+
+    # Here we do the projections manually -------------------------------------
+    # Dot products for every vector
+    a_dot_images = [2., 3., 8.,
+                    10., 14., 15. + 16.]
+    expected_res = np.zeros(18 + 18, dtype=np.float)
+    # Projections:
+    expected_res[9:12] = [0, 1, 2 - a_dot_images[0]]
+    expected_res[12:15] = [3 - a_dot_images[1], 4, 5]
+    expected_res[15:18] = [6, 7, 8 - a_dot_images[2]]
+    # Second image
+    expected_res[18:21] = [9, 10 - a_dot_images[3], 11]
+    expected_res[21:24] = [12, 13, 14 - a_dot_images[4]]
+    expected_res[24:27] = [15 - a_dot_images[5], 16 - a_dot_images[5], 17]
+    # print(expected_res)
+    # print(a)
+    # -------------------------------------------------------------------------
+
+    for i in range(36):
+        assert a[i] == expected_res[i]
+
+
 if __name__ == "__main__":
 
     test_cartesian2spherical()
     test_spherical2cartesian()
     test_linearinterpolation()
     test_geodesic_distance()
+    test_project_vectors_into_image()
+    test_project_images_into_image()

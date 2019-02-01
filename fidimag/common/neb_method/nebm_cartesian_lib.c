@@ -65,6 +65,9 @@ void project_images_C(double *restrict vector, double *restrict y,
      * image (similar for y_i, only that vectors are spins). Thus, every image
      * starts at the i * n_dofs_image position of the *vector and *y_i array
      *
+     * IMPORTANT: projections are NOT calculated for the extrema images,
+     *            i.e. for IMAGE_0 and IMAGE_N
+     *
      * - Notice that we could have just computed the projections using the
      *   whole vector array, without separating it into images, but the
      *   approach taken here is clearer if we use the project_vector_C

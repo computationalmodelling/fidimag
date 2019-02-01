@@ -17,3 +17,7 @@ void compute_dYdt_nc_C(double *restrict y, double *restrict G, double *restrict 
 void project_images_C(double *restrict vector, double *restrict y,
                       int n_images, int n_dofs_image
                       );
+
+void project_vector_C(double *restrict vector, double *restrict y,
+                      int n_dofs_image
+                      );
