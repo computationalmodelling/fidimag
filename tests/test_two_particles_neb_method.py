@@ -99,7 +99,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
     neb.relax(max_iterations=2000,
               save_vtks_every=save_every,
               save_npys_every=save_every,
-              stopping_dYdt=1e-3,
+              stopping_dYdt=1e-4,
               dt=1e-6
               )
 
@@ -127,7 +127,7 @@ def test_energy_barrier_2particles():
     # krange = ['1e8']
 
     for coordinates in coord_list:
-        relax_neb(100, 2000,
+        relax_neb(1e4, 2000,
                   'neb_2particles_k1e8_10-10int_{}'.format(coordinates),
                   init_im,
                   interp,
