@@ -154,7 +154,7 @@ class NEBM_Geodesic(NEBMBase):
     def __init__(self, sim,
                  initial_images,
                  interpolations=None,
-                 interpolation_method='linear',
+                 interpolation_method='rotation',
                  spring_constant=1e5,
                  name='unnamed',
                  climbing_image=None,
@@ -319,7 +319,7 @@ class NEBM_Geodesic(NEBMBase):
 
             k = np.copy(self.k)
             f = E_i > E_ref
-            k[1:-1][f] = k[1:-1][f] - self.dk * (E_max - E_i[f] / (E_max - E_ref))
+            k[1:-1][f] = k[1:-1][f] - self.dk * ((E_max - E_i[f]) / (E_max - E_ref))
             f = E_i <= E_ref
             k[1:-1][f] = k[1:-1][f] - self.dk
 
@@ -327,7 +327,7 @@ class NEBM_Geodesic(NEBMBase):
             k = self.k
 
         nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
-                                           self.k, self.n_images,
+                                           k, self.n_images,
                                            self.n_dofs_image,
                                            self._material_int,
                                            self.n_dofs_image_material
@@ -336,6 +336,9 @@ class NEBM_Geodesic(NEBMBase):
     def nebm_step(self, y):
 
         self.compute_effective_field_and_energy(y)
+        # nebm_cartesian.project_images(self.gradientE, y,
+        #                               self.n_images, self.n_dofs_image
+        #                               )
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
@@ -348,6 +351,8 @@ class NEBM_Geodesic(NEBMBase):
                                           self.n_dofs_image
                                           )
 
+        # Should be the same if we project the gradient before, instead
+        # of the total force
         nebm_cartesian.project_images(self.G, y,
                                       self.n_images, self.n_dofs_image
                                       )
