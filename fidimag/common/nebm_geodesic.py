@@ -368,7 +368,7 @@ class NEBM_Geodesic(NEBMBase):
                 A                   B
             [ [image_0]         [ [image_0]
               [image_1]     -     [image_1]
-              ..self.               ...
+              ...                 ...
             ]                     ]
 
         """

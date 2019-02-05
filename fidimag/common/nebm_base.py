@@ -278,6 +278,9 @@ class NEBMBase(object):
         self.energies = np.zeros(self.n_images)
         self.spring_force = np.zeros_like(self.band)
         self.distances = np.zeros(self.n_images - 1)
+        # Total distance starting from image_0
+        # (first element shoud always be zero)
+        self.path_distances = np.zeros(self.n_images)
 
         self.last_Y = np.zeros_like(self.band)
 
@@ -287,6 +290,26 @@ class NEBMBase(object):
         # we need to set this variable
         # This variable only affects the StepIntegrators, NOT Sundials
         self._llg_evolve = False
+
+        # ---------------------------------------------------------------------
+        # Factors for interpolating the energy band
+        # For now we only have a 3rd order polynomial interp, thus we set
+        # 4 factors
+        self.interp_factors = np.zeros((4, self.n_images))
+
+        # Somehow we need to rescale the gradient by the right units. In the
+        # case of micromag, we use mu0 * Ms, and for the atomistic case we
+        # simply use mu_s. This must be related to the way we derive the
+        # effective field to calculate the negative energy gradient, which is
+        # the functional derivative of the energy
+        if self.sim._micromagnetic:
+            self.scale = np.repeat(self.mesh.dx * self.mesh.dy * self.mesh.dz *
+                                   (self.mesh.unit_length ** 3.) *
+                                   const.mu_0 * self.sim.Ms, 3)
+        else:
+            self.scale = np.repeat(self.sim.mu_s, 3)
+
+        # ---------------------------------------------------------------------
 
     @property
     def climbing_image(self):
@@ -632,6 +655,9 @@ class NEBMBase(object):
         self.distances = self.compute_distances(self.band[self.n_dofs_image:],
                                                 self.band[:-self.n_dofs_image]
                                                 )
+        # Compute total distance relative to Y_0
+        self.path_distances[1:] = np.cumsum(self.distances)
+
         self.tablewriter.save()
         self.tablewriter_dm.save()
 
@@ -689,6 +715,7 @@ class NEBMBase(object):
                 self.band[self.n_dofs_image:],
                 self.band[:-self.n_dofs_image]
                 )
+            self.path_distances[1:] = np.cumsum(self.distances)
             self.tablewriter.save()
             self.tablewriter_dm.save()
 
@@ -729,17 +756,64 @@ class NEBMBase(object):
         self.save_npys(coordinates_function=self.files_convert_f)
 
     # -------------------------------------------------------------------------
+    # Interpolations
 
-    def compute_polynomial_approximation(self, n_points):
+    def compute_polynomial_factors(self, compute_fields=True):
+
+        """
+        Compute a smooth approximation for the band, using a third order
+        polynomial approximation. Prefactors are stored in the
+        self.interp_factors array
+
+        This approximation uses the tangents and derivatives from each image of
+        the band as information to estimate the curvatures. The formula can be
+        found in
+
+        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
         """
 
-        Compute a smooth approximation for the band, using a third order
-        polynomial approximation. This approximation uses the tangents and
-        derivatives from each image of the band as information to estimate
-        the curvatures. The formula can be found in
+        # To be sure, update the effective field and tangents when calling
+        # this function (this is necesary if we call the function without
+        # relaxing the band before)
+        if compute_fields:
+            self.compute_effective_field_and_energy(self.band)
+            self.compute_tangents(self.band)
+            self.distances = self.compute_distances(self.band[self.n_dofs_image:],
+                                                    self.band[:-self.n_dofs_image]
+                                                    )
+            self.path_distances[1:] = np.cumsum(self.distances)
 
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
+        deltas = np.zeros(self.n_images)
+        for i in range(self.n_images):
+            deltas[i] = np.dot(self.scale * self.gradientE.reshape(self.n_images, -1)[i],
+                               self.tangents.reshape(self.n_images, -1)[i]
+                               )
+
+        ds = self.path_distances
+        E = self.energies
+
+        # The coefficients for the polynomial approximation
+        self.interp_factors[2][:] = deltas
+        self.interp_factors[3][:] = E
+
+        # Populate the a and b coefficients for every image
+        for i in range(self.n_images - 1):
+            # a factor
+            self.interp_factors[0][i] = (deltas[i + 1] + deltas[i]) / (ds[i + 1] - ds[i]) ** 2.
+            self.interp_factors[0][i] -= 2 * (E[i + 1] - E[i]) / (ds[i + 1] - ds[i]) ** 3.
+
+            # b factor
+            self.interp_factors[1][i] = -(deltas[i + 1] + 2 * deltas[i]) / (ds[i + 1] - ds[i])
+            self.interp_factors[1][i] += 3 * (E[i + 1] - E[i]) / (ds[i + 1] - ds[i]) ** 2.
+
+    def compute_polynomial_approximation_energy(self, n_points):
+
+        """
+
+        Compute a smooth approximation of the energy band, using a third order
+        polynomial approximation. The pre-factors in the polynomial are
+        computed from the self.compute_polynomial_factors function
 
         This function returns a tuple with two elements:
 
@@ -750,71 +824,24 @@ class NEBMBase(object):
 
         ARGUMENTS
 
-        n_points    :: Te number of points for the interpolation
+        n_points    :: The number of points for the interpolation
 
         """
 
-        # To be sure, update the effective field and tangents when calling
-        # this function (this is necesary if we call the function without
-        # relaxing the band before)
-        self.compute_effective_field_and_energy(self.band)
-        self.compute_tangents(self.band)
-        self.distances = self.compute_distances(self.band[self.n_dofs_image:],
-                                                self.band[:-self.n_dofs_image]
-                                                )
-        deltas = np.zeros(self.n_images)
-
-        # Somehow we need to rescale the gradient by the right units. In the
-        # case of micromag, we use mu0 * Ms, and for the atomistic case we
-        # simply use mu_s. This must be related to the way we derive the
-        # effective field to calculate the negative energy gradient, which is
-        # the functional derivative of the energy
-        if self.sim._micromagnetic:
-            scale = np.repeat(self.mesh.dx * self.mesh.dy * self.mesh.dz *
-                              (self.mesh.unit_length ** 3.) *
-                              const.mu_0 * self.sim.Ms, 3)
-        else:
-            scale = np.repeat(self.sim.mu_s, 3)
-
-        for i in range(self.n_images):
-            deltas[i] = np.dot(scale * self.gradientE.reshape(self.n_images, -1)[i],
-                               self.tangents.reshape(self.n_images, -1)[i]
-                               )
-
-        l = [0]
-        for i in range(len(self.distances)):
-            l.append(np.sum(self.distances[:i + 1]))
-        l = np.array(l)
-
-        E = self.energies
-
-        # The coefficients for the polynomial approximation
-        a = np.zeros(self.n_images)
-        b = np.zeros(self.n_images)
-        c = deltas
-        d = E
-
-        # Populate the a and b coefficients for every image
-        for i in range(self.n_images - 1):
-            a[i] = (deltas[i + 1] + deltas[i]) / (l[i + 1] - l[i]) ** 2.
-            a[i] -= 2 * (E[i + 1] - E[i]) / (l[i + 1] - l[i]) ** 3.
-
-            b[i] = -(deltas[i + 1] + 2 * deltas[i]) / (l[i + 1] - l[i])
-            b[i] += 3 * (E[i + 1] - E[i]) / (l[i + 1] - l[i]) ** 2.
-
+        ds = self.path_distances
         # The arrays with the data points and the interpolated energy values
-        x = np.linspace(0, l[-1], n_points)
+        x = np.linspace(0, ds[-1], n_points)
         E_interp = np.zeros(n_points)
 
         i_img = 0
         for i, pos in enumerate(x):
-            if pos > l[i_img + 1]:
+            if pos > ds[i_img + 1]:
                 i_img += 1
 
-            E_interp[i] = (a[i_img] * ((pos - l[i_img]) ** 3.) +
-                           b[i_img] * ((pos - l[i_img]) ** 2.) +
-                           c[i_img] * (pos - l[i_img]) +
-                           d[i_img]
+            E_interp[i] = (self.interp_factors[0][i_img] * ((pos - ds[i_img]) ** 3.) +
+                           self.interp_factors[1][i_img] * ((pos - ds[i_img]) ** 2.) +
+                           self.interp_factors[2][i_img] * (pos - ds[i_img]) +
+                           self.interp_factors[3][i_img]
                            )
 
         return x, E_interp
