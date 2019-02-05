@@ -311,6 +311,8 @@ class NEBMBase(object):
 
         # ---------------------------------------------------------------------
 
+        self.G_log = []
+
     @property
     def climbing_image(self):
         return self._climbing_image
@@ -738,11 +740,15 @@ class NEBMBase(object):
                                                     )
                       )
 
+            self.G_log.append(np.max(G_norms))
+
             # -----------------------------------------------------------------
 
             # Stop criteria:
             if max_dYdt < stopping_dYdt:
                 break
+
+        np.savetxt(self.name + '_G_log.txt', np.array(self.G_log))
 
         log.info("Relaxation finished at time step = {:.4g}, "
                  "t = {:.2g}, call rhs = {:.4g} "
@@ -831,17 +837,31 @@ class NEBMBase(object):
         ds = self.path_distances
         # The arrays with the data points and the interpolated energy values
         x = np.linspace(0, ds[-1], n_points)
-        E_interp = np.zeros(n_points)
-
-        i_img = 0
-        for i, pos in enumerate(x):
-            if pos > ds[i_img + 1]:
-                i_img += 1
-
-            E_interp[i] = (self.interp_factors[0][i_img] * ((pos - ds[i_img]) ** 3.) +
-                           self.interp_factors[1][i_img] * ((pos - ds[i_img]) ** 2.) +
-                           self.interp_factors[2][i_img] * (pos - ds[i_img]) +
-                           self.interp_factors[3][i_img]
-                           )
+        E_interp = np.array([self._compute_polynomial_approximation_energy(i)
+                             for i in x])
 
         return x, E_interp
+
+    def _compute_polynomial_approximation_energy(self, x):
+
+        """
+        Return interpolated energy value for a point x
+        """
+
+        ds = self.path_distances
+        if x < 0.0 or x > ds[-1]:
+            raise Exception('x lies outside the valid interpolation range')
+        # Find index of the ds array for the value that is closest to x
+        ds_idx = np.abs(x - ds).argmin()
+        # If x is smaller than the given ds, use the previous ds value so
+        # that we use ds(i) when x lies in the interval ds(i) < x < ds(i+1)
+        if x < ds[ds_idx]:
+            ds_idx -= 1
+
+        E_interp = (self.interp_factors[0][ds_idx] * ((x - ds[ds_idx]) ** 3.) +
+                    self.interp_factors[1][ds_idx] * ((x - ds[ds_idx]) ** 2.) +
+                    self.interp_factors[2][ds_idx] * ((x - ds[ds_idx])) +
+                    self.interp_factors[3][ds_idx]
+                    )
+
+        return E_interp
