@@ -194,7 +194,9 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
     yi_cross_yf_norm = np.linalg.norm(yi_cross_yf, axis=1)
 
     # The rotation axis is just the normalised cross product defined before
-    rot_axis = yi_cross_yf / yi_cross_yf_norm[:, np.newaxis]
+    rot_axis = np.zeros_like(yi_cross_yf)
+    fltr = yi_cross_yf_norm > 0
+    rot_axis[fltr] = yi_cross_yf[fltr] / yi_cross_yf_norm[fltr][:, np.newaxis]
     rot_axis = np.cross(rot_axis, y_initial)
 
     # The angles between corresponding spins

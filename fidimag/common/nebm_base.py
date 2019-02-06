@@ -627,7 +627,8 @@ class NEBMBase(object):
         return max_dYdt
 
     def relax(self, dt=1e-8, stopping_dYdt=1, max_iterations=1000,
-              save_npys_every=100, save_vtks_every=100
+              save_npys_every=100, save_vtks_every=100,
+              save_initial_state=True
               ):
 
         """
@@ -650,10 +651,11 @@ class NEBMBase(object):
                                                dt,
                                                max_iterations))
 
-        self.save_VTKs(coordinates_function=self.files_convert_f)
-        self.save_npys(coordinates_function=self.files_convert_f)
+        if save_initial_state:
+            self.save_VTKs(coordinates_function=self.files_convert_f)
+            self.save_npys(coordinates_function=self.files_convert_f)
 
-        # Save the initial state i=0
+        # Save the initial state i=0 in the data table
         self.distances = self.compute_distances(self.band[self.n_dofs_image:],
                                                 self.band[:-self.n_dofs_image]
                                                 )

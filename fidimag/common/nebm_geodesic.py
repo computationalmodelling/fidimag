@@ -2,7 +2,6 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 
-import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.extensions.nebm_clib as nebm_clib
 
@@ -297,12 +296,12 @@ class NEBM_Geodesic(NEBMBase):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
                                    self.n_dofs_image, self.n_images
                                    )
-        nebm_cartesian.project_images(self.tangents, y,
-                                      self.n_images, self.n_dofs_image
-                                      )
-        nebm_cartesian.normalise_images(self.tangents,
-                                        self.n_images, self.n_dofs_image
-                                        )
+        nebm_clib.project_images(self.tangents, y,
+                                 self.n_images, self.n_dofs_image
+                                 )
+        nebm_clib.normalise_images(self.tangents,
+                                   self.n_images, self.n_dofs_image
+                                   )
 
     def compute_spring_force(self, y):
         """
@@ -323,6 +322,8 @@ class NEBM_Geodesic(NEBMBase):
             f = E_i <= E_ref
             k[1:-1][f] = k[1:-1][f] - self.dk
 
+            print(k)
+
         else:
             k = self.k
 
@@ -336,9 +337,9 @@ class NEBM_Geodesic(NEBMBase):
     def nebm_step(self, y):
 
         self.compute_effective_field_and_energy(y)
-        # nebm_cartesian.project_images(self.gradientE, y,
-        #                               self.n_images, self.n_dofs_image
-        #                               )
+        # nebm_clib.project_images(self.gradientE, y,
+        #                          self.n_images, self.n_dofs_image
+        #                          )
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
@@ -353,9 +354,9 @@ class NEBM_Geodesic(NEBMBase):
 
         # Should be the same if we project the gradient before, instead
         # of the total force
-        nebm_cartesian.project_images(self.G, y,
-                                      self.n_images, self.n_dofs_image
-                                      )
+        nebm_clib.project_images(self.G, y,
+                                 self.n_images, self.n_dofs_image
+                                 )
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------
@@ -427,9 +428,9 @@ class NEBM_Geodesic(NEBMBase):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D
         # (check the C code in common/)
-        if self._llg_evolve:
-            nebm_cartesian.compute_dYdt_nc(y, self.G, ydot, self.sim._pins,
-                                           self.n_images, self.n_dofs_image)
+        # if self._llg_evolve:
+        #     nebm_clib.compute_dYdt_nc(y, self.G, ydot, self.sim._pins,
+        #                               self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value
@@ -460,7 +461,7 @@ class NEBM_Geodesic(NEBMBase):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D - correction-factor
         # (check the C code in common/)
-        nebm_cartesian.compute_dYdt(
+        nebm_clib.compute_dYdt(
             y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
