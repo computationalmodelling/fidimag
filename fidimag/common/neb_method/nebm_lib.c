@@ -80,6 +80,24 @@ void normalise_images_C(double *restrict y, int n_images, int n_dofs_image){
     }
 }
 
+void normalise_spins_C(double *restrict y, int n_images, int n_dofs_image){
+
+    int i, j;
+
+    // Index where the components of an image start in the *y array,
+    int im_idx;
+
+    for(i = 1; i < n_images - 1; i++){
+        im_idx = i * n_dofs_image;
+
+        // Normalise per spin
+        for(j = 0; j < n_dofs_image; j+=3){
+            double * y_i = &y[im_idx + j];
+            normalise(y_i, 3);
+        }
+    }
+}
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -202,7 +220,7 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
         /* ----------------------------------------------------------------- */
 
         else if((deltaE_plus < 0 && deltaE_minus > 0) ||      // A maximum
-                (deltaE_plus > 0 && deltaE_minus < 0)) {      // A minimum 
+                (deltaE_plus > 0 && deltaE_minus < 0)) {      // A minimum
 
             /* According to the energy of the neighbouring images, the tangent
              * of the i-th image will be a combination of the differences wrt
@@ -437,12 +455,12 @@ void project_images_C(double *restrict vector, double *restrict y,
      * space formed by the spin vectors in the array *y
      *
      * We assume that the *vector array is made of n_images images, i.e.
-     
+
      *      vector = [ vector(0)0_x vector(0)0_y vector(0)0_z vector(0)1_x ... ] IMAGE 0
                        vector(1)0_x vector(1)0_y vector(1)0_z vector(1)1_x ... ] IMAGE 1
-                       ...                                                        ...  
+                       ...                                                        ...
      *                ]
-     
+
      * where vector(i)j_x is the x component of the j-th vector of the i-th
      * image (similar for y_i, only that vectors are spins). Thus, every image
      * starts at the i * n_dofs_image position of the *vector and *y_i array
@@ -513,15 +531,15 @@ double compute_distance_cartesian(double *restrict A, double *restrict B, int n_
  * NEBM in Cartesian coordinates. To preserve the magnitude of the spins we add
  * a correction term. Calling G_eff to the effective force, every image Y of a
  * NEBM band evolves according to the equation:
- 
+
  *      dY                                     2
  *     ---- = - Y x ( Y x G_eff ) + c ( 1 - Y  ) Y
- *      dt      
-               
+ *      dt
+
  *  with
                     _________
  *                  /        2
- *      c = 6 *    / (  dY  ) 
+ *      c = 6 *    / (  dY  )
  *                /  ( ---- )
  *              \/   (  dt  )
  *
@@ -561,7 +579,7 @@ void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
     }
 }
 
-void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYdt, int *restrict pins, 
+void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYdt, int *restrict pins,
                     int n_images, int n_dofs_image) {
     #pragma omp parallel for schedule(static)
 	for(int i = 1; i < n_images - 1; i++){
@@ -602,7 +620,7 @@ void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dY
 }
 
 void compute_dYdt_nc_C(double *restrict y, double *restrict G, double *restrict dYdt,
-                       int *restrict pins, 
+                       int *restrict pins,
                        int n_images, int n_dofs_image) {
     #pragma omp parallel for schedule(static)
 	for(int i = 1; i < n_images - 1; i++){

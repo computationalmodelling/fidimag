@@ -437,7 +437,7 @@ class NEBM_Geodesic(NEBMBase):
         ydot[:self.n_dofs_image] = 0
         ydot[-self.n_dofs_image:] = 0
 
-        return ydot
+        return 0
 
     def Sundials_RHS(self, t, y, ydot):
         """
