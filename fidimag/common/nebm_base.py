@@ -429,7 +429,8 @@ class NEBMBase(object):
             self.integrator.set_options()
             self._llg_evolve = True
         elif integrator == 'verlet':
-            self.integrator = VerletIntegrator(self.band,
+            self.integrator = VerletIntegrator(self.band,    # y
+                                               self.G,       # forces
                                                self.step_RHS,
                                                self.n_images,
                                                mass=1,

@@ -43,7 +43,7 @@ class VerletIntegrator(BaseIntegrator):
     A quick Verlet integration in Cartesian coordinates
     See: J. Chem. Theory Comput., 2017, 13 (7), pp 3250–3259
     """
-    def __init__(self, band, rhs_fun, n_images,
+    def __init__(self, band, forces, rhs_fun, n_images,
                  mass=0.1, stepsize=1e-15):
         super(VerletIntegrator, self).__init__(band, rhs_fun)
 
@@ -54,6 +54,9 @@ class VerletIntegrator(BaseIntegrator):
         self.velocity_new = np.zeros_like(band).reshape(n_images, -1)
         # self.velocity_proj = np.zeros(len(spins) // 3)
         self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
+
+        # self.G :
+        self.forces = forces
 
     def run_until(self, t):
         while abs(self.t - t) > EPSILON:
@@ -73,7 +76,9 @@ class VerletIntegrator(BaseIntegrator):
         Quick-min Velocity Verlet step
         """
 
-        force_images = f(t, y).reshape(self.n_images, -1)
+        f(t, y)
+        force_images = self.forces
+        force_images.shape = (self.n_images, -1)
         # In this case f represents the force: a = dy/dt = f/m
         # * self.m_inv[:, np.newaxis]
         y.shape = (self.n_images, -1)
@@ -113,6 +118,7 @@ class VerletIntegrator(BaseIntegrator):
         self.forces_prev[:] = force_images
 
         y.shape = (-1,)
+        force_images.shape = (-1,)
         normalise_spins(y)
         tp = t + h
         return tp

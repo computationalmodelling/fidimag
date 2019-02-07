@@ -423,19 +423,12 @@ class NEBM_Geodesic(NEBMBase):
 
         # Now set the RHS of the equation as the effective force on the energy
         # band, which is stored on the self.G array
-        ydot = self.G[:]
-
-        # Update the step with the optimisation algorithm, in this
-        # case we use: dY /dt = Y x Y x D
-        # (check the C code in common/)
-        # if self._llg_evolve:
-        #     nebm_clib.compute_dYdt_nc(y, self.G, ydot, self.sim._pins,
-        #                               self.n_images, self.n_dofs_image)
+        # ydot = self.G[:]
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value
-        ydot[:self.n_dofs_image] = 0
-        ydot[-self.n_dofs_image:] = 0
+        self.G[:self.n_dofs_image] = 0
+        self.G[-self.n_dofs_image:] = 0
 
         return 0
 

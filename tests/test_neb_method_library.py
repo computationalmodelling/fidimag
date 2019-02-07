@@ -7,7 +7,6 @@ Tests for the NEB Method implementation
 """
 
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
-import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
 import fidimag.extensions.nebm_clib as nebm_lib
 import fidimag.common.nebm_tools as nebm_tools
 # import fidimag.common.nebm_spherical as nebm_spherical
@@ -163,7 +162,7 @@ def test_geodesic_distance():
     assert np.abs(d - np.pi * 0.5) < 1e-5
 
 
-# Cartesian NEBM library: common/neb_method/nebm_cartesian_lib.c --------------
+# Cartesian NEBM library: common/neb_method/nebm_lib.c --------------
 def test_project_vectors_into_image():
     """
     Project 3 vectors in array *a into an image made of
@@ -176,7 +175,7 @@ def test_project_vectors_into_image():
                       0, 0, 1])
 
     # Project array of vectors a, which is updated in the C library
-    nebm_cartesian.project_vector(a, image, 9)
+    nebm_lib.project_vector(a, image, 9)
 
     # Here we do the projection manually --------------------------------------
     # Dot products for every vector
@@ -218,9 +217,9 @@ def test_project_images_into_image():
                        ])
 
     # Project array of images a, which is updated in the C library
-    nebm_cartesian.project_images(a, images,
-                                  # num of images and num of dofs per image:
-                                  4, 9)
+    nebm_lib.project_images(a, images,
+                            # num of images and num of dofs per image:
+                            4, 9)
 
     # Here we do the projections manually -------------------------------------
     # Dot products for every vector
@@ -253,7 +252,7 @@ def test_normalise_images():
 
     a = np.zeros(18 + 18, dtype=np.float)
     a[9:27] = np.arange(18, dtype=np.float)
-    nebm_cartesian.normalise_images(a, 4, 9)
+    nebm_lib.normalise_images(a, 4, 9)
 
     b = np.zeros(18 + 18, dtype=np.float)
     b[9:27] = np.arange(18, dtype=np.float)
