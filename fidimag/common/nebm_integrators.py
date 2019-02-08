@@ -91,9 +91,13 @@ class VerletIntegrator(BaseIntegrator):
             velocity = self.velocity[i]
             velocity_new = self.velocity_new[i]
 
+            # Update coordinates from Newton eq, which uses the "acceleration"
+            # At step 0 velocity is zero
+            y[i][:] = y[i] + h * (velocity + (h / (2 * self.mass)) * force)
+
             # Update the velocity from a mean with the prev step
             # (Velocity Verlet)
-            velocity[:] = velocity + (h / (2 * self.mass)) * (self.forces_prev[i] + force)
+            velocity[:] = velocity_new[:] + (h / (2 * self.mass)) * (self.forces_prev[i] + force)
 
             # Project the force of the image into the velocity vector: < v | F >
             velocity_proj = np.einsum('i,i', force, velocity)
@@ -108,11 +112,8 @@ class VerletIntegrator(BaseIntegrator):
                 # Set updated velocity: v = v * (<v|F> / |F|^2)
                 velocity_new[:] = factor * force
 
-            # New velocity from Newton equation
-            velocity[:] = velocity_new + (h / self.mass) * force
-
-            # Update coordinates from Newton eq, which uses the "acceleration"
-            y[i][:] = y[i] + h * (velocity + (h / (2 * self.mass)) * force)
+            # New velocity from Newton equation (old Verlet)
+            # velocity[:] = velocity_new + (h / self.mass) * force
 
         # Store the force for the Velocity Verlet algorithm
         self.forces_prev[:] = force_images
