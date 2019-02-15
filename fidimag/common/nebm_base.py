@@ -809,7 +809,7 @@ class NEBMBase(object):
 
         deltas = np.zeros(self.n_images)
         for i in range(self.n_images):
-            deltas[i] = np.dot(self.scale * (-self.gradientE).reshape(self.n_images, -1)[i],
+            deltas[i] = np.dot(self.scale * (self.gradientE).reshape(self.n_images, -1)[i],
                                self.tangents.reshape(self.n_images, -1)[i]
                                )
 
@@ -909,7 +909,7 @@ class NEBMBase(object):
         derivatives = np.zeros(self.n_images)
         for i in range(self.n_images):
             derivatives[i] = np.dot(
-                self.scale * (-self.gradientE).reshape(self.n_images, -1)[i],
+                self.scale * (self.gradientE).reshape(self.n_images, -1)[i],
                 self.tangents.reshape(self.n_images, -1)[i])
 
         E = self.energies

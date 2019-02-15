@@ -285,7 +285,7 @@ class NEBM_Geodesic(NEBMBase):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = self.sim.field
+            self.gradientE[i][:] = -self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
 
