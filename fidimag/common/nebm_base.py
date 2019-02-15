@@ -324,7 +324,11 @@ class NEBMBase(object):
         images = range(self.n_images)[1:-1]
         for ci in np.array([climbing_image_list]).flatten():
             if ci in images:
-                self._climbing_image[ci] = 1
+                if ci > 0:
+                    self._climbing_image[ci] = 1
+                # Falling images are specified with negative index
+                elif ci < 0:
+                    self._climbing_image[abs(ci)] = -1
             else:
                 raise Exception('Cannot set image={} as climbing image'.format(ci))
 

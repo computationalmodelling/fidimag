@@ -394,6 +394,13 @@ void compute_effective_force_C(double *restrict G,
                 G[im_idx + j] = -gradE[j] + gradE_dot_t * t[j] + sf[j];
             }
         }
+        // falling image with spring constant -> 0
+        else if(climbing_image[i] == -1) {
+            for(j = 0; j < n_dofs_image; j++) {
+                G[im_idx + j] = -gradE[j];
+            }
+        }
+        // climbing image
         else {
             for(j = 0; j < n_dofs_image; j++) {
                 G[im_idx + j] = -gradE[j] + 2 * gradE_dot_t * t[j];
