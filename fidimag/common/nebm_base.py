@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 import fidimag.common.constant as const
+import scipy.interpolate as si
 
 
 class NEBMBase(object):
@@ -879,5 +880,93 @@ class NEBMBase(object):
                     self.interp_factors[2][ds_idx] * ((x - ds[ds_idx])) +
                     self.interp_factors[3][ds_idx]
                     )
+
+        return E_interp
+
+    # -------------------------------------------------------------------------
+
+    def compute_Bernstein_polynomials(self, compute_fields=True):
+
+        """
+        Compute Bernstein polynomials to approximate the the energy curve.
+        The functions are stored in the self.Bernstein_polynomials variable
+
+        These polynomials can be used with the
+        self.compute_Bernstein_approximation_energy method
+        """
+
+        # To be sure, update the effective field and tangents when calling
+        # this function (this is necesary if we call the function without
+        # relaxing the band before)
+        if compute_fields:
+            self.compute_effective_field_and_energy(self.band)
+            self.compute_tangents(self.band)
+            self.distances = self.compute_distances(self.band[self.n_dofs_image:],
+                                                    self.band[:-self.n_dofs_image]
+                                                    )
+            self.path_distances[1:] = np.cumsum(self.distances)
+
+        derivatives = np.zeros(self.n_images)
+        for i in range(self.n_images):
+            derivatives[i] = np.dot(
+                self.scale * (-self.gradientE).reshape(self.n_images, -1)[i],
+                self.tangents.reshape(self.n_images, -1)[i])
+
+        E = self.energies
+
+        # The coefficients for the polynomial approximation
+        # self.interp_factors[0][:] = E
+        # self.interp_factors[1][:] = deltas
+
+        # Store the polynomial functions
+        self.Bernstein_polynomials = []
+        for i, ds in enumerate(self.distances):
+            self.Bernstein_polynomials.append(
+                si.BPoly.from_derivatives(
+                    [self.path_distances[i], self.path_distances[i + 1]],
+                    [[E[i], derivatives[i]],
+                     [E[i + 1], derivatives[i + 1]]]
+                )
+            )
+
+    def _compute_Bernstein_approximation_energy(self, x):
+
+        """
+        Return interpolated energy value for a point x
+        """
+
+        ds = self.path_distances
+        if x < 0.0 or x > ds[-1]:
+            raise Exception('x lies outside the valid interpolation range')
+        elif x == 0.0:
+            return self.distances[0]
+        elif x == ds[-1]:
+            return self.distances[-1]
+        # Find index of the ds array for the value that is closest to x
+        ds_idx = np.abs(x - ds).argmin()
+        # If x is smaller than the given ds, use the previous ds value so
+        # that we use ds(i) when x lies in the interval ds(i) < x < ds(i+1)
+        if x < ds[ds_idx]:
+            ds_idx -= 1
+
+        return self.Bernstein_polynomials[ds_idx](x)
+
+    def compute_Bernstein_approximation_energy(self, n_points):
+
+        """
+        Return interpolated energy value for a point x
+        """
+
+        ds = self.path_distances
+        # The arrays with the data points and the interpolated energy values
+        x = np.linspace(0, ds[-1], n_points)
+        E_interp = np.zeros_like(x)
+        E_interp[0] = self.energies[0]
+        E_interp[-1] = self.energies[-1]
+        E_interp[1:-1] = np.array(
+            [self._compute_Bernstein_approximation_energy(i) for i in x[1:-1]]
+            )
+
+        return x, E_interp
 
         return E_interp
