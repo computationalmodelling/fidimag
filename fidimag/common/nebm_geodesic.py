@@ -285,7 +285,7 @@ class NEBM_Geodesic(NEBMBase):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = -self.sim.field
+            self.gradientE[i][:] = self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
 
@@ -322,24 +322,33 @@ class NEBM_Geodesic(NEBMBase):
             f = E_i <= E_ref
             k[1:-1][f] = k[1:-1][f] - self.dk
 
-            print(k)
-
         else:
             k = self.k
 
-        nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
-                                           k, self.n_images,
-                                           self.n_dofs_image,
-                                           self._material_int,
-                                           self.n_dofs_image_material
-                                           )
+        nebm_geodesic.compute_spring_force_GreatCircle(self.spring_force, y,
+                                                       self.tangents,
+                                                       k, self.n_images,
+                                                       self.n_dofs_image,
+                                                       self._material_int,
+                                                       self.n_dofs_image_material
+                                                       )
+
+        # GreatCircle calculation of the geodesic seems to be more stable
+        # in complex landscapes
+        # nebm_geodesic.compute_spring_force_Vincenty(self.spring_force, y,
+        #                                             self.tangents,
+        #                                             k, self.n_images,
+        #                                             self.n_dofs_image,
+        #                                             self._material_int,
+        #                                             self.n_dofs_image_material
+        #                                             )
 
     def nebm_step(self, y):
 
         self.compute_effective_field_and_energy(y)
-        # nebm_clib.project_images(self.gradientE, y,
-        #                          self.n_images, self.n_dofs_image
-        #                          )
+        nebm_clib.project_images(self.gradientE, y,
+                                 self.n_images, self.n_dofs_image
+                                 )
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
@@ -354,9 +363,9 @@ class NEBM_Geodesic(NEBMBase):
 
         # Should be the same if we project the gradient before, instead
         # of the total force
-        nebm_clib.project_images(self.G, y,
-                                 self.n_images, self.n_dofs_image
-                                 )
+        # nebm_clib.project_images(self.G, y,
+        #                          self.n_images, self.n_dofs_image
+        #                          )
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------
@@ -380,11 +389,12 @@ class NEBM_Geodesic(NEBMBase):
         distances = np.zeros(len(A))
 
         for i in range(len(distances)):
-            distances[i] = nebm_geodesic.geodesic_distance(A[i], B[i],
-                                                           self.n_dofs_image,
-                                                           self._material_int,
-                                                           self.n_dofs_image_material
-                                                           )
+            distances[i] = nebm_geodesic.geodesic_distance_GreatCircle(
+                A[i], B[i],
+                self.n_dofs_image,
+                self._material_int,
+                self.n_dofs_image_material
+                )
 
         A.shape = (-1)
         B.shape = (-1)

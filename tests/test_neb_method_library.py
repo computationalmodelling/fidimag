@@ -127,7 +127,7 @@ def test_linearinterpolation():
         assert np.abs(phi - y_initial[5]) < 1e-8
 
 
-def test_geodesic_distance():
+def test_geodesic_distance_Vincenty():
     """
     We will measure the distance between a spin in the +z direction and a spin
     at the -z direction. The great-circle distance (distance on the unit
@@ -135,6 +135,8 @@ def test_geodesic_distance():
 
     The other distance is between a spin in the [0, 1, 0] direction and another
     one in the [-1, 0, 0] direction. The arc length should be PI/2
+
+    This test uses the Vincenty's formula to calculate the geodesic
     """
 
     # Degrees of freedom in Cartesian coordinates
@@ -147,18 +149,20 @@ def test_geodesic_distance():
     material = np.array([1]).astype(np.int32)
     n_dofs_image_material = 3
 
-    d = nebm_geodesic.geodesic_distance(A, B, n_dofs_image,
-                                        material, n_dofs_image_material
-                                        )
+    d = nebm_geodesic.geodesic_distance_Vincenty(A, B, n_dofs_image,
+                                                 material,
+                                                 n_dofs_image_material
+                                                 )
     assert np.abs(d - np.pi) < 1e-5
 
     # The other two spins:
     A = np.array([0, 1, 0.])
     B = np.array([-1, 0, 0.])
 
-    d = nebm_geodesic.geodesic_distance(A, B, n_dofs_image,
-                                        material, n_dofs_image_material
-                                        )
+    d = nebm_geodesic.geodesic_distance_Vincenty(A, B, n_dofs_image,
+                                                 material,
+                                                 n_dofs_image_material
+                                                 )
     assert np.abs(d - np.pi * 0.5) < 1e-5
 
 
@@ -288,7 +292,7 @@ if __name__ == "__main__":
     test_cartesian2spherical()
     test_spherical2cartesian()
     test_linearinterpolation()
-    test_geodesic_distance()
+    test_geodesic_distance_Vincenty()
     test_project_vectors_into_image()
     test_project_images_into_image()
     test_normalise_images()

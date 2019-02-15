@@ -37,6 +37,8 @@ void compute_effective_force_C(double *restrict G,
 
 void normalise_images_C(double *restrict y, int n_images, int n_dofs_image);
 
+void normalise_spins_C(double *restrict y, int n_images, int n_dofs_image);
+
 void project_images_C(double *restrict vector, double *restrict y,
                       int n_images, int n_dofs_image
                       );

@@ -728,17 +728,30 @@ class NEBMBase(object):
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
             G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)
+            gradE_norms = np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)
             # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
             # print(mean_G_norms_per_image)
             Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1)
+            gradE_dot_t = np.einsum('ij,ij->i',
+                                    self.gradientE.reshape(self.n_images, -1),
+                                    self.tangents.reshape(self.n_images, -1))
+            gradE_perp = (self.gradientE.reshape(self.n_images, -1)
+                          - np.einsum('i,ij->ij', gradE_dot_t,
+                                      self.tangents.reshape(self.n_images, -1))
+                          )
+            print(np.max(gradE_perp))
+            # print(np.max(gradE_norms.reshape(self.n_images - 2, -1), axis=1))
+            # print(np.max(Fk_norms.reshape(self.n_images - 2, -1), axis=1))
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
                       "step: {:.3g}, step_size: {:.3g}, "
                       "max dYdt: {:.3g} "
                       "max|G|: {:.3g} "
+                      "max|gradE|: {:.3g} "
                       "and max|F_k|: {:.3g}".format(self.iterations,
                                                     increment_dt,
                                                     max_dYdt,
                                                     np.max(G_norms),
+                                                    np.max(gradE_norms),
                                                     np.max(Fk_norms)
                                                     )
                       )
@@ -795,7 +808,7 @@ class NEBMBase(object):
 
         deltas = np.zeros(self.n_images)
         for i in range(self.n_images):
-            deltas[i] = np.dot(self.scale * self.gradientE.reshape(self.n_images, -1)[i],
+            deltas[i] = np.dot(self.scale * (-self.gradientE).reshape(self.n_images, -1)[i],
                                self.tangents.reshape(self.n_images, -1)[i]
                                )
 

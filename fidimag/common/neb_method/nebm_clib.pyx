@@ -19,6 +19,8 @@ cdef extern from "nebm_lib.h":
 
     void normalise_images_C(double * y, int n_images, int n_dofs_image)
 
+    void normalise_spins_C(double * y, int n_images, int n_dofs_image)
+
     double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
                                       int * material, int n_dofs_image_material
                                       )
@@ -91,6 +93,12 @@ def normalise_images(double [:] y,
                      ):
 
     normalise_images_C(&y[0], n_images, n_dofs_image)
+
+def normalise_spins(double [:] y,
+                    n_images, n_dofs_image
+                    ):
+
+    normalise_spins_C(&y[0], n_images, n_dofs_image)
 
 def compute_dYdt(double [:]  y,
                  double [:]  G,
