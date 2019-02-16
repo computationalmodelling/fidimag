@@ -76,7 +76,7 @@ def apply_field1(mesh):
 
     ts = np.linspace(0, 1e-9, 201)
     for t in ts:
-        sim.run_until(t)
+        sim.driver.run_until(t)
         print('sim t=%g' % t)
 
 
@@ -125,8 +125,8 @@ def deal_plot():
     assert dev_mx < 1.89e-06
     assert dev_my < 1.89e-05
     assert dev_mz < 1.06e-06
-    
-    
+
+
 if __name__ == '__main__':
 
     mesh = CuboidMesh(nx=200, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
