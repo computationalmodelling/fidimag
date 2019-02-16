@@ -30,6 +30,7 @@ typedef struct {
 
 	int total_length;
 
+    //TODO: free tensors after obtaining NXX to save memory?
 	double *tensor_xx;
 	double *tensor_yy;
 	double *tensor_zz;
@@ -37,7 +38,8 @@ typedef struct {
 	double *tensor_xz;
 	double *tensor_yz;
 
-	fftw_complex *Nxx;
+    //TODO: (1)using double, (2)using small size
+	fftw_complex *Nxx; //Nxx, Nxy .. are pure real now.
 	fftw_complex *Nyy;
 	fftw_complex *Nzz;
 	fftw_complex *Nxy;
