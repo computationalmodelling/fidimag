@@ -71,6 +71,17 @@ void compute_dipolar_tensors(fft_demag_plan *plan) {
 		for (j = 0; j < leny; j++) {
 			for (i = 0; i < lenx; i++) {
  				id = k * lenxy + j * lenx + i;
+                
+                if ((lenx%2 == 0 && i == nx) || (leny%2 == 0 && j == ny) || (lenz%2 == 0 && k == nz)) {
+                    plan->tensor_xx[id] = 0.0;
+                    plan->tensor_yy[id] = 0.0;
+                    plan->tensor_zz[id] = 0.0;
+                    plan->tensor_xy[id] = 0.0;
+                    plan->tensor_xz[id] = 0.0;
+                    plan->tensor_yz[id] = 0.0;
+                    continue;
+                }
+                
                 x = (i<nx) ? i*dx : (i-lenx)*dx;
                 y = (j<ny) ? j*dy : (j-leny)*dy;
                 z = (k<nz) ? k*dz : (k-lenz)*dz;
@@ -112,6 +123,16 @@ void compute_demag_tensors(fft_demag_plan *plan) {
 		for (j = 0; j < leny; j++) {
 			for (i = 0; i < lenx; i++) {
  				id = k * lenxy + j * lenx + i;
+                
+                if ((lenx%2 == 0 && i == nx) || (leny%2 == 0 && j == ny) || (lenz%2 == 0 && k == nz)) {
+                    plan->tensor_xx[id] = 0.0;
+                    plan->tensor_yy[id] = 0.0;
+                    plan->tensor_zz[id] = 0.0;
+                    plan->tensor_xy[id] = 0.0;
+                    plan->tensor_xz[id] = 0.0;
+                    plan->tensor_yz[id] = 0.0;
+                    continue;
+                }
 
                 x = (i<nx) ? i*dx : (i-lenx)*dx;
                 y = (j<ny) ? j*dy : (j-leny)*dy;
@@ -186,10 +207,12 @@ void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
 	plan->nx = nx;
 	plan->ny = ny;
 	plan->nz = nz;
+    
+    int critical_n = 8;
 
-	plan->lenx = 2 * nx - 1;
-	plan->leny = 2 * ny - 1;
-	plan->lenz = 2 * nz - 1;
+    plan->lenx = nx > critical_n ? 2 * nx : 2 * nx - 1;
+	plan->leny = ny > critical_n ? 2 * ny : 2 * ny - 1;
+	plan->lenz = nz > critical_n ? 2 * nz : 2 * nz - 1;
 
 	plan->total_length = plan->lenx * plan->leny * plan->lenz;
 
