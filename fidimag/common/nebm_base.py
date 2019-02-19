@@ -320,6 +320,10 @@ class NEBMBase(object):
 
     @climbing_image.setter
     def climbing_image(self, climbing_image_list):
+        """
+        Set climbing images passing a list of image indexes
+        Negative indexes mean a falling image (total force = gradient only)
+        """
         self._climbing_image[:] = 0
         images = range(self.n_images)[1:-1]
         for ci in np.array([climbing_image_list]).flatten():
@@ -737,14 +741,14 @@ class NEBMBase(object):
             # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
             # print(mean_G_norms_per_image)
             Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1)
-            gradE_dot_t = np.einsum('ij,ij->i',
-                                    self.gradientE.reshape(self.n_images, -1),
-                                    self.tangents.reshape(self.n_images, -1))
-            gradE_perp = (self.gradientE.reshape(self.n_images, -1)
-                          - np.einsum('i,ij->ij', gradE_dot_t,
-                                      self.tangents.reshape(self.n_images, -1))
-                          )
-            print(np.max(gradE_perp))
+            # gradE_dot_t = np.einsum('ij,ij->i',
+            #                         self.gradientE.reshape(self.n_images, -1),
+            #                         self.tangents.reshape(self.n_images, -1))
+            # gradE_perp = (self.gradientE.reshape(self.n_images, -1)
+            #               - np.einsum('i,ij->ij', gradE_dot_t,
+            #                           self.tangents.reshape(self.n_images, -1))
+            #               )
+            # print(np.max(gradE_perp))
             # print(np.max(gradE_norms.reshape(self.n_images - 2, -1), axis=1))
             # print(np.max(Fk_norms.reshape(self.n_images - 2, -1), axis=1))
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
@@ -958,7 +962,8 @@ class NEBMBase(object):
     def compute_Bernstein_approximation_energy(self, n_points):
 
         """
-        Return interpolated energy value for a point x
+        Return interpolated energy values of the energy band with n_points
+        resolution
         """
 
         ds = self.path_distances
