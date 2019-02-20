@@ -156,6 +156,16 @@ class SimBase(object):
 
     pins = property(get_pins, set_pins)
 
+    
+
+    def set_alpha(self, alpha):
+        self.driver.alpha = alpha
+
+    def get_alpha(self, alpha):
+        return self.driver.alpha
+
+    alpha = property(get_alpha, set_alpha)
+
     def add(self, interaction, save_field=False):
         """
 
