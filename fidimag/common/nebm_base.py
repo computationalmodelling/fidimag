@@ -666,11 +666,8 @@ class NEBMBase(object):
             self.save_npys(coordinates_function=self.files_convert_f)
 
         # Save the initial state i=0 in the data table
-        self.distances = self.compute_distances(self.band[self.n_dofs_image:],
-                                                self.band[:-self.n_dofs_image]
-                                                )
-        # Compute total distance relative to Y_0
-        self.path_distances[1:] = np.cumsum(self.distances)
+        # Update self.distances and self.path_distances:
+        self.compute_distances()
 
         self.tablewriter.save()
         self.tablewriter_dm.save()
@@ -725,11 +722,7 @@ class NEBMBase(object):
             if self.iterations % save_npys_every == 0:
                 self.save_npys(coordinates_function=self.files_convert_f)
 
-            self.distances = self.compute_distances(
-                self.band[self.n_dofs_image:],
-                self.band[:-self.n_dofs_image]
-                )
-            self.path_distances[1:] = np.cumsum(self.distances)
+            self.compute_distances()
             self.tablewriter.save()
             self.tablewriter_dm.save()
 
@@ -810,10 +803,7 @@ class NEBMBase(object):
         if compute_fields:
             self.compute_effective_field_and_energy(self.band)
             self.compute_tangents(self.band)
-            self.distances = self.compute_distances(self.band[self.n_dofs_image:],
-                                                    self.band[:-self.n_dofs_image]
-                                                    )
-            self.path_distances[1:] = np.cumsum(self.distances)
+            self.compute_distances()
 
         deltas = np.zeros(self.n_images)
         for i in range(self.n_images):
@@ -909,10 +899,7 @@ class NEBMBase(object):
         if compute_fields:
             self.compute_effective_field_and_energy(self.band)
             self.compute_tangents(self.band)
-            self.distances = self.compute_distances(self.band[self.n_dofs_image:],
-                                                    self.band[:-self.n_dofs_image]
-                                                    )
-            self.path_distances[1:] = np.cumsum(self.distances)
+            self.compute_distances()
 
         derivatives = np.zeros(self.n_images)
         for i in range(self.n_images):

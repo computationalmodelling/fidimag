@@ -269,16 +269,25 @@ class NEBM_Spherical(NEBMBase):
                                    )
 
     def compute_spring_force(self, y):
-        nebm_spherical.compute_spring_force(self.spring_force, y,
-                                            self.tangents,
-                                            self.k, self.n_images,
-                                            self.n_dofs_image,
-                                            self._material_int,
-                                            self.n_dofs_image_material
-                                            )
-        nebm_spherical.normalise_images(self.tangents,
-                                        self.n_images, self.n_dofs_image
-                                        )
+
+        nebm_spherical.image_distances_Spherical(self.distances,
+                                                 self.path_distances,
+                                                 y,
+                                                 self.n_images,
+                                                 self.n_dofs_image,
+                                                 self._material_int,
+                                                 self.n_dofs_image_material
+                                                 )
+
+        nebm_clib.compute_spring_force(self.spring_force, y,
+                                       self.tangents,
+                                       self.k, self.n_images,
+                                       self.n_dofs_image,
+                                       self.distances
+                                       )
+        # nebm_spherical.normalise_images(self.tangents,
+        #                                 self.n_images, self.n_dofs_image
+        #                                 )
 
     def nebm_step(self, y):
 
@@ -302,7 +311,7 @@ class NEBM_Spherical(NEBMBase):
     # Methods -----------------------------------------------------------------
     # -------------------------------------------------------------------------
 
-    def compute_distances(self, A, B):
+    def compute_distances(self):
         """
         Compute the distance between corresponding images of the bands A and B
 
@@ -314,21 +323,22 @@ class NEBM_Spherical(NEBMBase):
 
         """
 
-        A_minus_B = A - B
-        redefine_angles(A_minus_B)
+        # TODO: Check this:
+        # redefine_angles(A_minus_B)
+        # OR:
+        # redefine_angles(self.band)
 
-        A_minus_B.shape = (-1, self.n_dofs_image)
-        A_minus_B = np.apply_along_axis(
-            lambda y: compute_norm(y[self._material],
-                                   scale=self.n_dofs_image),
-            axis=1,
-            arr=A_minus_B
-            )
-
-        return A_minus_B.reshape(-1)
-
+        nebm_spherical.image_distances_Spherical(self.distances,
+                                                 self.path_distances,
+                                                 self.band,
+                                                 self.n_images,
+                                                 self.n_dofs_image,
+                                                 self._material_int,
+                                                 self.n_dofs_image_material
+                                                 )
 
 # -----------------------------------------------------------------------------
+
 
 def correct_angles(A):
     """

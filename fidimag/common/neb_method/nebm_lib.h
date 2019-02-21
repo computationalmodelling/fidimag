@@ -21,9 +21,7 @@ void compute_spring_force_C(
         double *restrict k,
         int n_images,
         int n_dofs_image,
-        double (* compute_distance)(double *, double *, int, int *, int),
-        int *restrict  material,
-        int n_dofs_image_material
+        double *restrict distances
         );
 
 void compute_effective_force_C(double *restrict G,
@@ -34,6 +32,20 @@ void compute_effective_force_C(double *restrict G,
                                int n_images,
                                int n_dofs_image
                                );
+
+void compute_image_distances(double *restrict distances,
+                             double *restrict path_distances,
+                             double *restrict y,
+                             int n_images,
+                             int n_dofs_image,
+                             double (* compute_distance)(double *,
+                                                         double *,
+                                                         int,
+                                                         int *,
+                                                         int),
+                             int *restrict  material,
+                             int n_dofs_image_material
+                             );
 
 void normalise_images_C(double *restrict y, int n_images, int n_dofs_image);
 

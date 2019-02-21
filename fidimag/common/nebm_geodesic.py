@@ -325,23 +325,33 @@ class NEBM_Geodesic(NEBMBase):
         else:
             k = self.k
 
-        nebm_geodesic.compute_spring_force_GreatCircle(self.spring_force, y,
-                                                       self.tangents,
-                                                       k, self.n_images,
-                                                       self.n_dofs_image,
-                                                       self._material_int,
-                                                       self.n_dofs_image_material
-                                                       )
+        # Compute the distances
+        nebm_geodesic.image_distances_GreatCircle(self.distances,
+                                                  self.path_distances,
+                                                  y,
+                                                  self.n_images,
+                                                  self.n_dofs_image,
+                                                  self._material_int,
+                                                  self.n_dofs_image_material
+                                                  )
+
+        nebm_clib.compute_spring_force(self.spring_force, y,
+                                       self.tangents,
+                                       k, self.n_images,
+                                       self.n_dofs_image,
+                                       self.distances
+                                       )
 
         # GreatCircle calculation of the geodesic seems to be more stable
-        # in complex landscapes
-        # nebm_geodesic.compute_spring_force_Vincenty(self.spring_force, y,
-        #                                             self.tangents,
-        #                                             k, self.n_images,
-        #                                             self.n_dofs_image,
-        #                                             self._material_int,
-        #                                             self.n_dofs_image_material
-        #                                             )
+        # in complex landscapes than Vincenty's formula
+        # nebm_geodesic.image_distances_Vincenty(self.distances,
+        #                                        self.path_distances,
+        #                                        y,
+        #                                        self.n_images,
+        #                                        self.n_dofs_image,
+        #                                        self._material_int,
+        #                                        self.n_dofs_image_material
+        #                                        )
 
     def nebm_step(self, y):
 
@@ -371,9 +381,9 @@ class NEBM_Geodesic(NEBMBase):
     # Methods -----------------------------------------------------------------
     # -------------------------------------------------------------------------
 
-    def compute_distances(self, A, B):
+    def compute_distances(self):
         """
-        Compute the distance between corresponding images of the bands A and B
+        Compute the distance between corresponding images of self.band
 
                 A                   B
             [ [image_0]         [ [image_0]
@@ -383,23 +393,14 @@ class NEBM_Geodesic(NEBMBase):
 
         """
 
-        A.shape = (-1, self.n_dofs_image)
-        B.shape = (-1, self.n_dofs_image)
-
-        distances = np.zeros(len(A))
-
-        for i in range(len(distances)):
-            distances[i] = nebm_geodesic.geodesic_distance_GreatCircle(
-                A[i], B[i],
-                self.n_dofs_image,
-                self._material_int,
-                self.n_dofs_image_material
-                )
-
-        A.shape = (-1)
-        B.shape = (-1)
-
-        return distances
+        nebm_geodesic.image_distances_GreatCircle(self.distances,
+                                                  self.path_distances,
+                                                  self.band,
+                                                  self.n_images,
+                                                  self.n_dofs_image,
+                                                  self._material_int,
+                                                  self.n_dofs_image_material
+                                                  )
 
     # def compute_maximum_dYdt(self, A, B, dt):
     #     """

@@ -259,7 +259,6 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
 
 /* ------------------------------------------------------------------------- */
 
-
 void compute_spring_force_C(
         double *restrict spring_force,
         double *restrict y,
@@ -267,9 +266,7 @@ void compute_spring_force_C(
         double *restrict k,
         int n_images,
         int n_dofs_image,
-        double (* compute_distance)(double *, double *, int, int *, int),
-        int *restrict material,
-        int n_dofs_image_material
+        double *restrict distances
         ) {
 
     /* Compute the spring force for every image of an energy band, which is
@@ -286,50 +283,31 @@ void compute_spring_force_C(
      * (n_dofs_image). We do not compute the force for the extremal images,
      * i.e. (i=0, (n_images-1))
      *
-     * The norm  | . | between two neighbouring images is calculated as an
-     * distance, which depends on the coordinate system chosen.
+     * The norm  | . | between two neighbouring images is calculated as a
+     * distance, which depends on the chosen coordinate system. Distances
+     * are stored in the *distances array which has the differences
+     *      [ |Y0 - Y1|, |Y1 - Y2|, |Y2 - Y3|, ...]
      *
-     * The function: (* compute_distance)(double *, double *, int, int *, int)
-     * depends on: (Image_1,
-     *              Image_2,
-     *              number of spins per image,
-     *              array indicating dofs (spins) in sites WITH material,
-     *              number of dofs in sites with material
-     *              )
-     *
-     *  - With material we mean Ms > 0 or mu_s > 0
      */
 
     int i, j;
 
     // Index where the components of an image start in the *y array,
     int im_idx;
-    // And also the previous and next images:
-    int next_im_idx, prev_im_idx;
 
     double dY_plus_norm, dY_minus_norm;
 
     for(i = 1; i < n_images - 1; i++){
 
         im_idx = i * (n_dofs_image);
-        next_im_idx = (i + 1) * (n_dofs_image);
-        prev_im_idx = (i - 1) * (n_dofs_image);
 
         double * sf = &spring_force[im_idx];
         double * t = &tangents[im_idx];
 
-        // Compute the distances between the i-th image, Y_i, and its
-        // neighbours, the (i+1)-th and (i-1)-th images. The distance between
-        // two images is just the norm of their difference scaled by the length
-        // of the array (see the compute_norm function)
-        dY_plus_norm  = compute_distance(&y[next_im_idx], &y[im_idx],
-                                         n_dofs_image,
-                                         material, n_dofs_image_material
-                                         );
-        dY_minus_norm = compute_distance(&y[im_idx], &y[prev_im_idx],
-                                         n_dofs_image,
-                                         material, n_dofs_image_material
-                                         );
+        // Get the distances between the i-th image, Y_i, and its
+        // neighbours, the (i+1)-th and (i-1)-th images.
+        dY_plus_norm  = distances[i];
+        dY_minus_norm = distances[i - 1];
 
         // Now compute the spring force
         for(j = 0; j < n_dofs_image; j++) {
@@ -406,6 +384,44 @@ void compute_effective_force_C(double *restrict G,
                 G[im_idx + j] = -gradE[j] + 2 * gradE_dot_t * t[j];
             }
         }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+// Compute the distances between consecutive images in the band, using the compute_distance
+// function that depends on the chosen coordinate system to represent the
+// degrees of freedom. This function updates the *distances and *path_distances
+// arrays. The *distances array saves the distances as:
+//      [ |Y1 - Y0|, |Y2 - Y1|, ... ]
+// Path distances are the total distances relative to the 0-th image 
+void compute_image_distances(double *restrict distances,
+                             double *restrict path_distances,
+                             double *restrict y,
+                             int n_images,
+                             int n_dofs_image,
+                             double (* compute_distance)(double *,
+                                                         double *,
+                                                         int,
+                                                         int *,
+                                                         int),
+                             int *restrict  material,
+                             int n_dofs_image_material
+                             ) {
+
+    int i, im_idx, next_im_idx;
+    path_distances[0] = 0.0;
+    for(i = 0; i < n_images - 1; i++){
+
+        im_idx = i * (n_dofs_image);
+        next_im_idx = (i + 1) * (n_dofs_image);
+
+        distances[i] = compute_distance(&y[next_im_idx], &y[im_idx],
+                                        n_dofs_image,
+                                        material,
+                                        n_dofs_image_material
+                                        );
+        path_distances[i + 1] = path_distances[i] + distances[i];
     }
 }
 

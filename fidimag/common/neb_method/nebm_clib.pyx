@@ -7,6 +7,15 @@ cdef extern from "nebm_lib.h":
                             int n_images
                             )
 
+    void compute_spring_force_C(double *spring_force,
+                                double *y,
+                                double *tangents,
+                                double *k,
+                                int n_images,
+                                int n_dofs_image,
+                                double * distances
+                                )
+
     void compute_effective_force_C(double * G,
                                    double * tangents,
                                    double * gradientE,
@@ -50,6 +59,20 @@ def compute_tangents(double [:] tangents,
     compute_tangents_C(&tangents[0], &y[0], &energies[0],
                        n_dofs_image, n_images
                        )
+
+def compute_spring_force(double [:] spring_force,
+                         double [:] y,
+                         double [:] tangents,
+                         double [:] k,
+                         n_images,
+                         n_dofs_image,
+                         double [:] distances
+                         ):
+
+    compute_spring_force_C(&spring_force[0], &y[0], &tangents[0], &k[0],
+                           n_images, n_dofs_image,
+                           &distances[0],
+                           )
 
 def compute_effective_force(double [:] G,
                             double [:] tangents,
