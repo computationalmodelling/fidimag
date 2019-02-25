@@ -354,7 +354,10 @@ class StringMethod(ChainMethodBase):
 
         # Copy the updated energy band to our local array
         self.band[:] = self.integrator.y[:]
-        self.compute_effective_field_and_energy(self.band)
+
+        # Update fields with the new relocation of images
+        # self.compute_effective_field_and_energy(self.band)
+        self.string_method_step(self.band)
 
         # Compute the maximum change in the integrator step
         max_dYdt = self.compute_maximum_dYdt(self.integrator.y, self.last_Y,
@@ -366,3 +369,18 @@ class StringMethod(ChainMethodBase):
         self.t = t
 
         return max_dYdt
+
+    def compute_tangents(self, y):
+        """
+        Calculation of tangents from the NEBM, so we can use the interpolation
+        methods
+        """
+        nebm_clib.compute_tangents(self.tangents, y, self.energies,
+                                   self.n_dofs_image, self.n_images
+                                   )
+        nebm_clib.project_images(self.tangents, y,
+                                 self.n_images, self.n_dofs_image
+                                 )
+        nebm_clib.normalise_images(self.tangents,
+                                   self.n_images, self.n_dofs_image
+                                   )
