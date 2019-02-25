@@ -112,7 +112,7 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
     mx = m[:, 0][layer*n_layer:(layer+1)*n_layer]
     my = m[:, 1][layer*n_layer:(layer+1)*n_layer]
     mz = m[:, 2][layer*n_layer:(layer+1)*n_layer]
-    mu_s = sim.mu_s.copy()[layer*n_layer:(layer+1)*n_layer]
+    mu_s = sim.Ms.copy()[layer*n_layer:(layer+1)*n_layer]
 
     mx[mu_s == 0.0] = np.nan
     my[mu_s == 0.0] = np.nan
