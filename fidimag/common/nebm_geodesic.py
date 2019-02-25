@@ -5,19 +5,19 @@ import numpy as np
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.extensions.nebm_clib as nebm_clib
 
-from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
-from .nebm_tools import linear_interpolation_spherical
-from .nebm_tools import interpolation_Rodrigues_rotation
-from .nebm_tools import m_to_zero_nomaterial
+from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
+from .chain_method_tools import linear_interpolation_spherical
+from .chain_method_tools import interpolation_Rodrigues_rotation
+from .chain_method_tools import m_to_zero_nomaterial
 
-from .nebm_base import NEBMBase
+from .chain_method_base import ChainMethodBase
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Geodesic(NEBMBase):
+class NEBM_Geodesic(ChainMethodBase):
     """
     ARGUMENTS -----------------------------------------------------------------
 
@@ -420,9 +420,8 @@ class NEBM_Geodesic(NEBMBase):
     def step_RHS(self, t, y):
         """
 
-        This function is called on every iteration of the integrator (CVODE
-        solver). ydot refers to the Right Hand Side of the equation, since
-        we are solving dy/dt = 0
+        This function is called on every iteration of the integrators in
+        chain_method_integrators.py
 
         """
 

@@ -5,25 +5,24 @@ import os
 import time
 
 import fidimag.extensions.cvode as cvode
-from .integrators import ScipyIntegrator, StepIntegrator
-from .nebm_integrators import VerletIntegrator
+from .chain_method_integrators import VerletIntegrator, StepIntegrator
 from fidimag.common.vtk import VTK
-from .nebm_tools import compute_norm
-# from .nebm_tools import linear_interpolation_spherical
+from .chain_method_tools import compute_norm
+# from .chain_method_tools import linear_interpolation_spherical
 from .fileio import DataSaver
+
+import fidimag.common.constant as const
+import scipy.interpolate as si
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
-import fidimag.common.constant as const
-import scipy.interpolate as si
 
-
-class NEBMBase(object):
+class ChainMethodBase(object):
     """
 
-    Base Class for the NEBM codes.
+    Base Class for chain methods, such as NEBM or String Method codes.
 
     Abstract Methods: ---------------------------------------------------------
 
@@ -53,16 +52,6 @@ class NEBMBase(object):
 
     Methods -------------------------------------------------------------------
 
-        compute_spring_force       :: Compute the spring force for every degree
-                                      of freedom of the band (we usually do
-                                      this using the C library)
-        compute_tangents           :: Compute the tangents of the system (use
-                                      the function defined  in
-                                      neb_method/nebm_clib.c). This tangents
-                                      need to be normalised / projected
-                                      according to the variation of the NEB
-                                      method.
-
         compute_maximum_dYdt       :: Compute the maximum distance between the
                                       images (not counting the extremes) of the
                                       last computed band in the evolver
@@ -79,7 +68,7 @@ class NEBMBase(object):
                                       lists to generate the initial band. The
                                       interpolations are linearly made in
                                       spherical coordinates, using the
-                                      nebm_tools.linear_interpolation_spherical
+                                      chain_method_tools.linear_interpolation_spherical
                                       function. We may change this in the
                                       future to generate an inteprolation using
                                       a geodesic path
@@ -120,7 +109,7 @@ class NEBMBase(object):
         self.sim              :: Fidimag atomistic or micromagnetic simulation
                                  object
         self.mesh             :: Fidimag simulation mesh object
-        self.name             :: Name of the NEBM simulation
+        self.name             :: Name of the chain method simulation
         self.n_spins          :: Number of spins per image
         self.k                :: Spring constant
         self.variable_k(TEST) :: Set True to update k values acc to energy.
@@ -237,7 +226,7 @@ class NEBMBase(object):
         # Number of degrees of freedom per image
         self.n_dofs_image = (self.dof * self.n_spins)
 
-        # Total number of degrees of freedom in the NEBM band
+        # Total number of degrees of freedom in the string/band
         self.n_band = self.n_images * self.n_dofs_image
 
         # Spring constant -----------------------------------------------------
@@ -258,7 +247,7 @@ class NEBMBase(object):
         if climbing_image is not None:
             self.climbing_image = climbing_image
 
-        # NEBM Arrays ---------------------------------------------------------
+        # Chain Method Arrays -------------------------------------------------
         # We will initialise every array using the total number of images,
         # but we must have in mind that the images at the extrema of the band
         # are kept fixed, so we do not compute their gradient, tangents, etc.
@@ -353,7 +342,7 @@ class NEBMBase(object):
                                    the band to Cartesian coordinates. For
                                    example, in spherical coordinates we need
                                    the spherical2cartesian function from
-                                   nebm_tools
+                                   chain_method_tools
 
         """
         # Create the directory
@@ -442,6 +431,7 @@ class NEBMBase(object):
                                                self.G,       # forces
                                                self.step_RHS,
                                                self.n_images,
+                                               self.n_dofs_image,
                                                mass=1,
                                                stepsize=1e-3)
             self.integrator.set_options()
@@ -486,11 +476,12 @@ class NEBMBase(object):
     def compute_effective_field_and_energy(self, y):
         pass
 
-    def compute_tangents(self, y):
-        pass
+    # NEBM only:
+    # def compute_tangents(self, y):
+    #     pass
 
-    def compute_spring_force(self, y):
-        pass
+    # def compute_spring_force(self, y):
+    #     pass
 
     def compute_distances(self):
         pass
@@ -521,24 +512,10 @@ class NEBMBase(object):
 
     def step_RHS(self, t, y):
         """
-        The RHS of the ODE to be solved for the NEBM
+        The RHS of the ODE to be solved for the Chain Method
         This function is specified for the Scipy integrator
         """
-
-        self.ode_count += 1
-
-        # Update the effective field, energies, spring forces and tangents
-        # using the *y* array
-        self.nebm_step(y)
-        # Now set the RHS of the equation as the effective force on the energy
-        # band, which is stored on the self.G array
-        ydot = self.G[:]
-        # The effective force at the extreme images should already be zero, but
-        # we will manually remove any value
-        ydot[:self.n_dofs_image] = 0
-        ydot[-self.n_dofs_image:] = 0
-
-        return ydot
+        pass
 
     def Sundials_RHS(self, t, y, ydot):
         """
@@ -549,22 +526,7 @@ class NEBMBase(object):
 
         """
 
-        self.ode_count += 1
-
-        # Update the effective field, energies, spring forces and tangents
-        # using the *y* array
-        self.nebm_step(y)
-
-        # Now set the RHS of the equation as the effective force on the energy
-        # band, which is stored on the self.G array
-        ydot[:] = self.G[:]
-
-        # The effective force at the extreme images should already be zero, but
-        # we will manually remove any value
-        ydot[:self.n_dofs_image] = 0
-        ydot[-self.n_dofs_image:] = 0
-
-        return 0
+        pass
 
     def compute_maximum_dYdt(self, A, B, dt):
         """
@@ -726,7 +688,7 @@ class NEBMBase(object):
             self.tablewriter.save()
             self.tablewriter_dm.save()
 
-            # Print information about the simulation and the NEBM forces.
+            # Print information about the simulation and the forces.
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
             G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)

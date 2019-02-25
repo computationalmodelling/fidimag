@@ -1,3 +1,9 @@
+# # These header calls Necessary for the Verlet integrator step (not working now)
+# cimport numpy as np  # import special compile-time information about numpy
+# # Function Prototype for the C function
+# ctypedef double (*cfunction)(double t, double * y)
+# cdef object f
+
 cdef extern from "nebm_lib.h":
 
     void compute_tangents_C(double *tangents,
@@ -47,6 +53,56 @@ cdef extern from "nebm_lib.h":
     void project_vector_C(double * vector, double * y,
                           int n_dofs_image,
                           )
+
+cdef extern from "nebm_integrators.h":
+
+    double step_Verlet_C(double * forces,
+                         double * forces_prev,
+                         double * velocities,
+                         double * velocities_new,
+                         double * y,
+                         double t,
+                         double h,
+                         double mass,
+                         int n_images,
+                         int n_dofs_image,
+                         double (* update_field) (double, double *)
+                         )
+
+# Not working
+# cdef double cfunction_cb(double t, double [:] y):
+#     global f
+#     result = f(t, y)
+#     return result
+
+# Not working
+# def step_Verlet(double [:] forces,
+#                 double [:] forces_prev,
+#                 double [:] velocities,
+#                 double [:] velocities_new,
+#                 double [:] y,
+#                 double t,
+#                 double h,
+#                 double mass,
+#                 int n_images,
+#                 int n_dofs_image,
+#                 pythonf
+#                 ):
+#     global f
+#     f = pythonf
+# 
+#     step_Verlet_C(&forces[0],
+#                   &forces_prev[0],
+#                   &velocities[0],
+#                   &velocities_new[0],
+#                   &y[0],
+#                   t,
+#                   h,
+#                   mass,
+#                   n_images,
+#                   n_dofs_image,
+#                   <cfunction> cfunction_cb
+#                   )
 
 
 def compute_tangents(double [:] tangents,

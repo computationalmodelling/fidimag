@@ -3,6 +3,8 @@ import warnings
 from .integrators import BaseIntegrator
 from .integrators import euler_step, runge_kutta_step
 
+import fidimag.extensions.nebm_clib as nebm_clib
+
 EPSILON = 1e-16
 
 
@@ -43,18 +45,17 @@ class VerletIntegrator(BaseIntegrator):
     A quick Verlet integration in Cartesian coordinates
     See: J. Chem. Theory Comput., 2017, 13 (7), pp 3250–3259
     """
-    def __init__(self, band, forces, rhs_fun, n_images,
+    def __init__(self, band, forces, rhs_fun, n_images, n_dofs_image,
                  mass=0.1, stepsize=1e-15):
         super(VerletIntegrator, self).__init__(band, rhs_fun)
 
         self.n_images = n_images
+        self.n_dofs_image = n_dofs_image
         self.mass = mass
         self.stepsize = stepsize
         self.velocity = np.zeros_like(band).reshape(n_images, -1)
         self.velocity_new = np.zeros_like(band).reshape(n_images, -1)
-        # self.velocity_proj = np.zeros(len(spins) // 3)
         self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
-
         # self.G :
         self.forces = forces
 
@@ -64,6 +65,22 @@ class VerletIntegrator(BaseIntegrator):
                                 self.stepsize, self.rhs)
 
             self.rhs_evals_nb += 0
+
+            # If we could make the C function to work:
+            # nebm_clib.step_Verlet(
+            #     self.forces,
+            #     self.forces_prev,
+            #     self.velocity,
+            #     self.velocity_new,
+            #     self.y,
+            #     self.t,
+            #     self.stepsize,
+            #     self.mass,
+            #     self.n_images,
+            #     self.n_dofs_image,
+            #     self.rhs
+            #     )
+
             if self.t > t:
                 break
         return 0

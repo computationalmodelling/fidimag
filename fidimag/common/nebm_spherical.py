@@ -4,17 +4,17 @@ import numpy as np
 
 import fidimag.extensions.nebm_spherical_clib as nebm_spherical
 import fidimag.extensions.nebm_clib as nebm_clib
-from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
-from .nebm_tools import linear_interpolation_spherical
+from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
+from .chain_method_tools import linear_interpolation_spherical
 
-from .nebm_base import NEBMBase
+from .chain_method_base import ChainMethodBase
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Spherical(NEBMBase):
+class NEBM_Spherical(ChainMethodBase):
     """
 
     ARGUMENTS -----------------------------------------------------------------
@@ -306,6 +306,53 @@ class NEBM_Spherical(NEBMBase):
                                           self.n_images,
                                           self.n_dofs_image
                                           )
+
+    def Sundials_RHS(self, t, y, ydot):
+        """
+
+        This function is called on every iteration of the integrator (CVODE
+        solver). ydot refers to the Right Hand Side of the equation, since
+        we are solving dy/dt = 0
+
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        ydot[:] = self.G[:]
+
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        ydot[:self.n_dofs_image] = 0
+        ydot[-self.n_dofs_image:] = 0
+
+        return 0
+
+    def step_RHS(self, t, y):
+        """
+        The RHS of the ODE to be solved for the NEBM
+        This function is specified for the Scipy integrator
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        ydot = self.G[:]
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        ydot[:self.n_dofs_image] = 0
+        ydot[-self.n_dofs_image:] = 0
+
+        return ydot
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------
