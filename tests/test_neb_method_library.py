@@ -2,7 +2,7 @@ from __future__ import print_function
 
 """
 
-Tests for the NEB Method implementation
+Tests for the String/NEB Method implementation (mostly the NEBM C libraries)
 
 """
 

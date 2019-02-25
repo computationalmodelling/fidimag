@@ -303,6 +303,8 @@ class ChainMethodBase(object):
 
         self.G_log = []
 
+    # TODO: Move this property to the NEBM classes because they are only
+    # relevant to the NEBM and not the string method
     @property
     def climbing_image(self):
         return self._climbing_image
@@ -433,7 +435,7 @@ class ChainMethodBase(object):
                                                self.n_images,
                                                self.n_dofs_image,
                                                mass=1,
-                                               stepsize=1e-3)
+                                               stepsize=1e-4)
             self.integrator.set_options()
             # In Verlet algorithm we only use the total force G and not YxYxG:
             self._llg_evolve = False
@@ -657,22 +659,10 @@ class ChainMethodBase(object):
             else:
                 increment_dt = dt
 
-            # max_dYdt = self.run_until(self.t + increment_dt)
-
-            if self.t + increment_dt <= self.t:
-                break
-
-            self.integrator.run_until(self.t + increment_dt)
-
-            # Copy the updated energy band to our local array
-            self.band[:] = self.integrator.y[:]
-
-            # Compute the maximum change in the integrator step
-            max_dYdt = self.compute_maximum_dYdt(self.band,
-                                                 self.last_Y,
-                                                 increment_dt)
-
-            self.last_Y[:] = self.band[:]
+            # Integrator steps: ***********************************************
+            # This can be redefined according to the chosen chain method
+            max_dYdt = self.run_until(self.t + increment_dt)
+            # *****************************************************************
 
             # Update the current step
             self.t = self.t + increment_dt
