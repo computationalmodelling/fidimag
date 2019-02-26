@@ -5,3 +5,4 @@ from .citation import citation
 from .cuboid_mesh import CuboidMesh
 #from .neb_cartesian import NEB_Sundials
 from .helper import init_scalar, init_vector
+from .plot import plot, plot_micro
