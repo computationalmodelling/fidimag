@@ -372,8 +372,12 @@ class StringMethod(ChainMethodBase):
 
     def compute_tangents(self, y):
         """
-        Calculation of tangents from the NEBM, so we can use the interpolation
-        methods
+        Calculation of tangents from the Geodesic NEBM, so we can use the
+        interpolation methods for the energy band
+
+        TODO: An alternative approximation of the band can be made with simple
+        spline interpolations although the GNEBM interpolation has more
+        information of the gradients
         """
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
                                    self.n_dofs_image, self.n_images
