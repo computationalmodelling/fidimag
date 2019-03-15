@@ -29,6 +29,7 @@ test-docker: docker
 
 travis: test-docker
 	docker exec fidimag make codecov
+	docker exec fidimag make test-ipynb
 
 codecov:
 	bash <(curl -s https://codecov.io/bash)
