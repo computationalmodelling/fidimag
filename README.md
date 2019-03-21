@@ -73,7 +73,7 @@ The results can be straightforwardly visualised from the outputted VTK files usi
 ### Attributions
 The code is currently developed by Weiwei Wang, David Cortes, Ryan Pepper and Hans Fangohr at Anhui University, University of Southampton and European XFEL. Previous developers who have worked on Fidimag are Marc-Antonio Bisotti, Thomas Kluyver, Mark Vousden, Oliver Laslett and Rebecca Carey.
 
-This is an early experimental version; contributions and pull requests to both the code and documentation are welcome.
+Contributions and pull requests to both the code and documentation are welcome.
 If you use Fidimag, please cite as:
 
 Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. and Fangohr, H., 2018. Fidimag – A Finite Difference Atomistic and Micromagnetic Simulation Package. Journal of Open Research Software, 6(1), p.22. DOI: http://doi.org/10.5334/jors.223
