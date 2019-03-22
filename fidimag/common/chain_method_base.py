@@ -5,22 +5,24 @@ import os
 import time
 
 import fidimag.extensions.cvode as cvode
+from .chain_method_integrators import VerletIntegrator, StepIntegrator
 from fidimag.common.vtk import VTK
-from .nebm_tools import compute_norm
-# from .nebm_tools import linear_interpolation_spherical
+from .chain_method_tools import compute_norm
+# from .chain_method_tools import linear_interpolation_spherical
 from .fileio import DataSaver
+
+import fidimag.common.constant as const
+import scipy.interpolate as si
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
-import fidimag.common.constant as const
 
-
-class NEBMBase(object):
+class ChainMethodBase(object):
     """
 
-    Base Class for the NEBM codes.
+    Base Class for chain methods, such as NEBM or String Method codes.
 
     Abstract Methods: ---------------------------------------------------------
 
@@ -50,16 +52,6 @@ class NEBMBase(object):
 
     Methods -------------------------------------------------------------------
 
-        compute_spring_force       :: Compute the spring force for every degree
-                                      of freedom of the band (we usually do
-                                      this using the C library)
-        compute_tangents           :: Compute the tangents of the system (use
-                                      the function defined  in
-                                      neb_method/nebm_clib.c). This tangents
-                                      need to be normalised / projected
-                                      according to the variation of the NEB
-                                      method.
-
         compute_maximum_dYdt       :: Compute the maximum distance between the
                                       images (not counting the extremes) of the
                                       last computed band in the evolver
@@ -76,7 +68,7 @@ class NEBMBase(object):
                                       lists to generate the initial band. The
                                       interpolations are linearly made in
                                       spherical coordinates, using the
-                                      nebm_tools.linear_interpolation_spherical
+                                      chain_method_tools.linear_interpolation_spherical
                                       function. We may change this in the
                                       future to generate an inteprolation using
                                       a geodesic path
@@ -105,7 +97,7 @@ class NEBMBase(object):
     initial_images      :: A sequence of arrays or functions to set up the
                            magnetisation field profile
 
-    inteprolations      ::
+    interpolations      ::
 
     dof                 :: Degrees of freedom per spin. Spherical coordinates
                            have dof=2 and Cartesian have dof=3
@@ -117,9 +109,12 @@ class NEBMBase(object):
         self.sim              :: Fidimag atomistic or micromagnetic simulation
                                  object
         self.mesh             :: Fidimag simulation mesh object
-        self.name             :: Name of the NEBM simulation
+        self.name             :: Name of the chain method simulation
         self.n_spins          :: Number of spins per image
         self.k                :: Spring constant
+        self.variable_k(TEST) :: Set True to update k values acc to energy.
+                                 Need to specify self.dk var.
+                                 Default value: False
         self.VTK              :: Fidimag VTK object to save VTK files
         self.files_convert_f  :: Function to convert the coordinates from the
                                  band to Cartesian coordinates
@@ -161,6 +156,10 @@ class NEBMBase(object):
                                  scaled norm.
         self.n_dofs_image_material :: Number of dofs where mu_s or Ms > 0
                                       (in a single image)
+        climbing_image        :: Any iterable with the indexes of the climbing
+                                 images. Climbing images are stored in the
+                                 self._climbing_image array, which the
+                                 self.climbing_image decorator populates
 
     """
     def __init__(self, sim,
@@ -183,9 +182,6 @@ class NEBMBase(object):
 
         # Number of spins in the system
         self.n_spins = len(self.mesh.coordinates)
-
-        # Spring constant (we could use an array in the future)
-        self.k = spring_constant
 
         # We will use this filter to know which sites of the system has
         # material, i.e. M_s or mu_s > 0 and norm(m) = 1
@@ -230,20 +226,28 @@ class NEBMBase(object):
         # Number of degrees of freedom per image
         self.n_dofs_image = (self.dof * self.n_spins)
 
-        # Total number of degrees of freedom in the NEBM band
+        # Total number of degrees of freedom in the string/band
         self.n_band = self.n_images * self.n_dofs_image
+
+        # Spring constant -----------------------------------------------------
+
+        # Spring constant (we could use an array in the future)
+        self.k = spring_constant * np.ones(self.n_images)
+
+        # Set to True to update spring constant values relative to the energies
+        # (TESTING)
+        self.variable_k = False
+        self.dk = 1
 
         # Climbing Image ------------------------------------------------------
 
-        if climbing_image is None:
-            self.climbing_image = -1
-        elif climbing_image in range(self.n_images):
+        # Set a list with the images where 1 is for climbing image and 0 for
+        # normal
+        self._climbing_image = np.zeros(self.n_images, dtype=np.int32)
+        if climbing_image is not None:
             self.climbing_image = climbing_image
-        else:
-            raise ValueError('The climbing image must be in the band. '
-                             'Specify a valid integer.')
 
-        # NEBM Arrays ---------------------------------------------------------
+        # Chain Method Arrays -------------------------------------------------
         # We will initialise every array using the total number of images,
         # but we must have in mind that the images at the extrema of the band
         # are kept fixed, so we do not compute their gradient, tangents, etc.
@@ -264,10 +268,68 @@ class NEBMBase(object):
         self.energies = np.zeros(self.n_images)
         self.spring_force = np.zeros_like(self.band)
         self.distances = np.zeros(self.n_images - 1)
+        # Total distance starting from image_0
+        # (first element shoud always be zero)
+        self.path_distances = np.zeros(self.n_images)
 
         self.last_Y = np.zeros_like(self.band)
 
         # ---------------------------------------------------------------------
+
+        # If the integrator uses an LLG-like equation to relax the energy band
+        # we need to set this variable
+        # This variable only affects the StepIntegrators, NOT Sundials
+        self._llg_evolve = False
+
+        # ---------------------------------------------------------------------
+        # Factors for interpolating the energy band
+        # For now we only have a 3rd order polynomial interp, thus we set
+        # 4 factors
+        self.interp_factors = np.zeros((4, self.n_images))
+
+        # Somehow we need to rescale the gradient by the right units. In the
+        # case of micromag, we use mu0 * Ms, and for the atomistic case we
+        # simply use mu_s. This must be related to the way we derive the
+        # effective field to calculate the negative energy gradient, which is
+        # the functional derivative of the energy
+        if self.sim._micromagnetic:
+            self.scale = np.repeat(self.mesh.dx * self.mesh.dy * self.mesh.dz *
+                                   (self.mesh.unit_length ** 3.) *
+                                   const.mu_0 * self.sim.Ms, 3)
+        else:
+            self.scale = np.repeat(self.sim.mu_s, 3)
+
+        # ---------------------------------------------------------------------
+
+        self.G_log = []
+
+    # TODO: Move this property to the NEBM classes because they are only
+    # relevant to the NEBM and not the string method
+    @property
+    def climbing_image(self):
+        return self._climbing_image
+
+    @climbing_image.setter
+    def climbing_image(self, climbing_image_list):
+        """
+        Set climbing images passing a list of image indexes
+        Negative indexes mean a falling image (total force = gradient only)
+        """
+        self._climbing_image[:] = 0
+        images = range(self.n_images)[1:-1]
+        for ci in np.array([climbing_image_list]).flatten():
+            if abs(ci) in images:
+                if ci > 0:
+                    self._climbing_image[ci] = 1
+                # Falling images are specified with negative index
+                elif ci < 0:
+                    self._climbing_image[abs(ci)] = -1
+            else:
+                raise Exception('Cannot set image={} as climbing image'.format(ci))
+
+    @climbing_image.deleter
+    def climbing_image(self):
+        self._climbing_image[:] = 0
 
     def initialise_energies(self):
         pass
@@ -282,7 +344,7 @@ class NEBMBase(object):
                                    the band to Cartesian coordinates. For
                                    example, in spherical coordinates we need
                                    the spherical2cartesian function from
-                                   nebm_tools
+                                   chain_method_tools
 
         """
         # Create the directory
@@ -341,19 +403,45 @@ class NEBMBase(object):
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self, rtol=1e-6, atol=1e-6):
+    def initialise_integrator(self,
+                              integrator='sundials',
+                              rtol=1e-6, atol=1e-6):
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
-        if not self.openmp:
-            self.integrator = cvode.CvodeSolver(self.band,
-                                                self.Sundials_RHS)
-            self.integrator.set_options(rtol, atol)
+        if integrator == 'sundials':
+            if not self.openmp:
+                self.integrator = cvode.CvodeSolver(self.band,
+                                                    self.Sundials_RHS)
+                self.integrator.set_options(rtol, atol)
+            else:
+                self.integrator = cvode.CvodeSolver_OpenMP(self.band,
+                                                           self.Sundials_RHS)
+                self.integrator.set_options(rtol, atol)
+        # elif integrator == 'scipy':
+        #     self.integrator = ScipyIntegrator(self.band, self.step_RHS)
+        #     self.integrator.set_options()
+        elif integrator == 'rk4' or integrator == 'euler':
+            self.integrator = StepIntegrator(self.band, self.step_RHS,
+                                             step=self.integrator,
+                                             stepsize=1e-3)
+            self.integrator.set_options()
+            self._llg_evolve = True
+        elif integrator == 'verlet':
+            self.integrator = VerletIntegrator(self.band,    # y
+                                               self.G,       # forces
+                                               self.step_RHS,
+                                               self.n_images,
+                                               self.n_dofs_image,
+                                               mass=1,
+                                               stepsize=1e-4)
+            self.integrator.set_options()
+            # In Verlet algorithm we only use the total force G and not YxYxG:
+            self._llg_evolve = False
         else:
-            self.integrator = cvode.CvodeSolver_OpenMP(self.band,
-                                                       self.Sundials_RHS)
-            self.integrator.set_options(rtol, atol)
+            raise Exception('No valid integrator specified. Available: '
+                            '"sundials", "scipy"')
 
     def create_tablewriter(self):
         entities_energy = {
@@ -390,11 +478,12 @@ class NEBMBase(object):
     def compute_effective_field_and_energy(self, y):
         pass
 
-    def compute_tangents(self, y):
-        pass
+    # NEBM only:
+    # def compute_tangents(self, y):
+    #     pass
 
-    def compute_spring_force(self, y):
-        pass
+    # def compute_spring_force(self, y):
+    #     pass
 
     def compute_distances(self):
         pass
@@ -423,6 +512,13 @@ class NEBMBase(object):
 
         return A_minus_B.reshape(-1)
 
+    def step_RHS(self, t, y):
+        """
+        The RHS of the ODE to be solved for the Chain Method
+        This function is specified for the Scipy integrator
+        """
+        pass
+
     def Sundials_RHS(self, t, y, ydot):
         """
 
@@ -432,22 +528,7 @@ class NEBMBase(object):
 
         """
 
-        self.ode_count += 1
-
-        # Update the effective field, energies, spring forces and tangents
-        # using the *y* array
-        self.nebm_step(y)
-
-        # Now set the RHS of the equation as the effective force on the energy
-        # band, which is stored on the self.G array
-        ydot[:] = self.G[:]
-
-        # The effective force at the extreme images should already be zero, but
-        # we will manually remove any value
-        ydot[:self.n_dofs_image] = 0
-        ydot[-self.n_dofs_image:] = 0
-
-        return 0
+        pass
 
     def compute_maximum_dYdt(self, A, B, dt):
         """
@@ -483,7 +564,7 @@ class NEBMBase(object):
 
         """
 
-        # We will not consider the images at the extremes to compute dY
+        # We will not consider the images at the extremes to compute dY.
         # Since we removed the extremes, we only have *n_images_inner_band*
         # images
         band_no_extremes = slice(self.n_dofs_image, -self.n_dofs_image)
@@ -520,10 +601,20 @@ class NEBMBase(object):
         return max_dYdt
 
     def relax(self, dt=1e-8, stopping_dYdt=1, max_iterations=1000,
-              save_npys_every=100, save_vtks_every=100
+              save_npys_every=100, save_vtks_every=100,
+              save_initial_state=True
               ):
 
         """
+        Relax the energy band according to the specified integrator
+
+            Sundials:        dt is the initial stepsize which is updated
+                             by CVODE. Number of calls is given by CVODE
+            StepIntegrators: dt is the relaxation stepsize. These integrators
+                             evolve using an internal `stepsize`, thus the
+                             number of evaluations is dt / stepsize.
+                             You can update the integrator evolve step using:
+                                self.integrator.stepsize = 1e-4
 
         """
 
@@ -534,13 +625,14 @@ class NEBMBase(object):
                                                dt,
                                                max_iterations))
 
-        self.save_VTKs(coordinates_function=self.files_convert_f)
-        self.save_npys(coordinates_function=self.files_convert_f)
+        if save_initial_state:
+            self.save_VTKs(coordinates_function=self.files_convert_f)
+            self.save_npys(coordinates_function=self.files_convert_f)
 
-        # Save the initial state i=0
-        self.distances = self.compute_distances(self.band[self.n_dofs_image:],
-                                                self.band[:-self.n_dofs_image]
-                                                )
+        # Save the initial state i=0 in the data table
+        # Update self.distances and self.path_distances:
+        self.compute_distances()
+
         self.tablewriter.save()
         self.tablewriter_dm.save()
 
@@ -553,7 +645,10 @@ class NEBMBase(object):
 
             # Get the current size of the time discretisation from the
             # integrator (variable step size)
-            cvode_dt = self.integrator.get_current_step()
+            try:
+                cvode_dt = self.integrator.get_current_step()
+            except AttributeError:
+                cvode_dt = dt
 
             # If the step size of the integrator is larger than the specified
             # discretisation, use the current integrator step size to
@@ -564,22 +659,10 @@ class NEBMBase(object):
             else:
                 increment_dt = dt
 
-            # max_dYdt = self.run_until(self.t + increment_dt)
-
-            if self.t + increment_dt <= self.t:
-                break
-
-            self.integrator.run_until(self.t + increment_dt)
-
-            # Copy the updated energy band to our local array
-            self.band[:] = self.integrator.y[:]
-
-            # Compute the maximum change in the integrator step
-            max_dYdt = self.compute_maximum_dYdt(self.band,
-                                                 self.last_Y,
-                                                 increment_dt)
-
-            self.last_Y[:] = self.band[:]
+            # Integrator steps: ***********************************************
+            # This can be redefined according to the chosen chain method
+            max_dYdt = self.run_until(self.t + increment_dt)
+            # *****************************************************************
 
             # Update the current step
             self.t = self.t + increment_dt
@@ -591,33 +674,57 @@ class NEBMBase(object):
             if self.iterations % save_npys_every == 0:
                 self.save_npys(coordinates_function=self.files_convert_f)
 
-            self.distances = self.compute_distances(
-                self.band[self.n_dofs_image:],
-                self.band[:-self.n_dofs_image]
-                )
+            self.compute_distances()
             self.tablewriter.save()
             self.tablewriter_dm.save()
 
-            # Print information about the simulation and the NEBM forces.
+            # Print information about the simulation and the forces.
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
+            G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)
+            gradE_norms = np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3),
+                                         axis=1)
+            Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3),
+                                      axis=1)
+
+            # For DEBUGGING purposes: -----------------------------------------
+            # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
+            # print(mean_G_norms_per_image)
+            # gradE_dot_t = np.einsum('ij,ij->i',
+            #                         self.gradientE.reshape(self.n_images, -1),
+            #                         self.tangents.reshape(self.n_images, -1))
+            # gradE_perp = (self.gradientE.reshape(self.n_images, -1)
+            #               - np.einsum('i,ij->ij', gradE_dot_t,
+            #                           self.tangents.reshape(self.n_images, -1))
+            #               )
+            # print(np.max(gradE_perp))
+            # print(np.max(gradE_norms.reshape(self.n_images - 2, -1), axis=1))
+            # print(np.max(Fk_norms.reshape(self.n_images - 2, -1), axis=1))
+            # -----------------------------------------------------------------
+
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      "step: {:.3g}, step_size: {:.3g},"
-                      "max_dYdt: {:.3g} "
-                      "|max_dE|: {:.3g} "
-                      "and |max_F_k|: {:.3g}".format(self.iterations,
-                                                     increment_dt,
-                                                     max_dYdt,
-                                                     np.max(np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)),
-                                                     np.max(np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1))
-                                                     )
+                      "step: {:.3g}, step_size: {:.3g}, "
+                      "max dYdt: {:.3g} "
+                      "max|G|: {:.3g} "
+                      "max|gradE|: {:.3g} "
+                      "and max|F_k|: {:.3g}".format(self.iterations,
+                                                    increment_dt,
+                                                    max_dYdt,
+                                                    np.max(G_norms),
+                                                    np.max(gradE_norms),
+                                                    np.max(Fk_norms)
+                                                    )
                       )
+
+            self.G_log.append(np.max(G_norms))
 
             # -----------------------------------------------------------------
 
             # Stop criteria:
             if max_dYdt < stopping_dYdt:
                 break
+
+        np.savetxt(self.name + '_G_log.txt', np.array(self.G_log))
 
         log.info("Relaxation finished at time step = {:.4g}, "
                  "t = {:.2g}, call rhs = {:.4g} "
@@ -631,17 +738,61 @@ class NEBMBase(object):
         self.save_npys(coordinates_function=self.files_convert_f)
 
     # -------------------------------------------------------------------------
+    # Interpolations
 
-    def compute_polynomial_approximation(self, n_points):
+    def compute_polynomial_factors(self, compute_fields=True):
+
+        """
+        Compute a smooth approximation for the band, using a third order
+        polynomial approximation. Prefactors are stored in the
+        self.interp_factors array
+
+        This approximation uses the tangents and derivatives from each image of
+        the band as information to estimate the curvatures. The formula can be
+        found in
+
+        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
         """
 
-        Compute a smooth approximation for the band, using a third order
-        polynomial approximation. This approximation uses the tangents and
-        derivatives from each image of the band as information to estimate
-        the curvatures. The formula can be found in
+        # To be sure, update the effective field and tangents when calling
+        # this function (this is necesary if we call the function without
+        # relaxing the band before)
+        if compute_fields:
+            self.compute_effective_field_and_energy(self.band)
+            self.compute_tangents(self.band)
+            self.compute_distances()
 
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
+        deltas = np.zeros(self.n_images)
+        for i in range(self.n_images):
+            deltas[i] = np.dot(self.scale * (self.gradientE).reshape(self.n_images, -1)[i],
+                               self.tangents.reshape(self.n_images, -1)[i]
+                               )
+
+        ds = self.path_distances
+        E = self.energies
+
+        # The coefficients for the polynomial approximation
+        self.interp_factors[2][:] = deltas
+        self.interp_factors[3][:] = E
+
+        # Populate the a and b coefficients for every image
+        for i in range(self.n_images - 1):
+            # a factor
+            self.interp_factors[0][i] = (deltas[i + 1] + deltas[i]) / (ds[i + 1] - ds[i]) ** 2.
+            self.interp_factors[0][i] -= 2 * (E[i + 1] - E[i]) / (ds[i + 1] - ds[i]) ** 3.
+
+            # b factor
+            self.interp_factors[1][i] = -(deltas[i + 1] + 2 * deltas[i]) / (ds[i + 1] - ds[i])
+            self.interp_factors[1][i] += 3 * (E[i + 1] - E[i]) / (ds[i + 1] - ds[i]) ** 2.
+
+    def compute_polynomial_approximation_energy(self, n_points):
+
+        """
+
+        Compute a smooth approximation of the energy band, using a third order
+        polynomial approximation. The pre-factors in the polynomial are
+        computed from the self.compute_polynomial_factors function
 
         This function returns a tuple with two elements:
 
@@ -652,71 +803,124 @@ class NEBMBase(object):
 
         ARGUMENTS
 
-        n_points    :: Te number of points for the interpolation
+        n_points    :: The number of points for the interpolation
 
+        """
+
+        ds = self.path_distances
+        # The arrays with the data points and the interpolated energy values
+        x = np.linspace(0, ds[-1], n_points)
+        E_interp = np.array([self._compute_polynomial_approximation_energy(i)
+                             for i in x])
+
+        return x, E_interp
+
+    def _compute_polynomial_approximation_energy(self, x):
+
+        """
+        Return interpolated energy value for a point x
+        """
+
+        ds = self.path_distances
+        if x < 0.0 or x > ds[-1]:
+            raise Exception('x lies outside the valid interpolation range')
+        # Find index of the ds array for the value that is closest to x
+        ds_idx = np.abs(x - ds).argmin()
+        # If x is smaller than the given ds, use the previous ds value so
+        # that we use ds(i) when x lies in the interval ds(i) < x < ds(i+1)
+        if x < ds[ds_idx]:
+            ds_idx -= 1
+
+        E_interp = (self.interp_factors[0][ds_idx] * ((x - ds[ds_idx]) ** 3.) +
+                    self.interp_factors[1][ds_idx] * ((x - ds[ds_idx]) ** 2.) +
+                    self.interp_factors[2][ds_idx] * ((x - ds[ds_idx])) +
+                    self.interp_factors[3][ds_idx]
+                    )
+
+        return E_interp
+
+    # -------------------------------------------------------------------------
+
+    def compute_Bernstein_polynomials(self, compute_fields=True):
+
+        """
+        Compute Bernstein polynomials to approximate the the energy curve.
+        The functions are stored in the self.Bernstein_polynomials variable
+
+        These polynomials can be used with the
+        self.compute_Bernstein_approximation_energy method
         """
 
         # To be sure, update the effective field and tangents when calling
         # this function (this is necesary if we call the function without
         # relaxing the band before)
-        self.compute_effective_field_and_energy(self.band)
-        self.compute_tangents(self.band)
-        self.distances = self.compute_distances(self.band[self.n_dofs_image:],
-                                                self.band[:-self.n_dofs_image]
-                                                )
-        deltas = np.zeros(self.n_images)
+        if compute_fields:
+            self.compute_effective_field_and_energy(self.band)
+            self.compute_tangents(self.band)
+            self.compute_distances()
 
-        # Somehow we need to rescale the gradient by the right units. In the
-        # case of micromag, we use mu0 * Ms, and for the atomistic case we
-        # simply use mu_s. This must be related to the way we derive the
-        # effective field to calculate the negative energy gradient, which is
-        # the functional derivative of the energy
-        if self.sim._micromagnetic:
-            scale = np.repeat(self.mesh.dx * self.mesh.dy * self.mesh.dz *
-                              (self.mesh.unit_length ** 3.) *
-                              const.mu_0 * self.sim.Ms, 3)
-        else:
-            scale = np.repeat(self.sim.mu_s, 3)
-
+        derivatives = np.zeros(self.n_images)
         for i in range(self.n_images):
-            deltas[i] = np.dot(scale * self.gradientE.reshape(self.n_images, -1)[i],
-                               self.tangents.reshape(self.n_images, -1)[i]
-                               )
-
-        l = [0]
-        for i in range(len(self.distances)):
-            l.append(np.sum(self.distances[:i + 1]))
-        l = np.array(l)
+            derivatives[i] = np.dot(
+                self.scale * (self.gradientE).reshape(self.n_images, -1)[i],
+                self.tangents.reshape(self.n_images, -1)[i])
 
         E = self.energies
 
         # The coefficients for the polynomial approximation
-        a = np.zeros(self.n_images)
-        b = np.zeros(self.n_images)
-        c = deltas
-        d = E
+        # self.interp_factors[0][:] = E
+        # self.interp_factors[1][:] = deltas
 
-        # Populate the a and b coefficients for every image
-        for i in range(self.n_images - 1):
-            a[i] = (deltas[i + 1] + deltas[i]) / (l[i + 1] - l[i]) ** 2.
-            a[i] -= 2 * (E[i + 1] - E[i]) / (l[i + 1] - l[i]) ** 3.
+        # Store the polynomial functions
+        self.Bernstein_polynomials = []
+        for i, ds in enumerate(self.distances):
+            self.Bernstein_polynomials.append(
+                si.BPoly.from_derivatives(
+                    [self.path_distances[i], self.path_distances[i + 1]],
+                    [[E[i], derivatives[i]],
+                     [E[i + 1], derivatives[i + 1]]]
+                )
+            )
 
-            b[i] = -(deltas[i + 1] + 2 * deltas[i]) / (l[i + 1] - l[i])
-            b[i] += 3 * (E[i + 1] - E[i]) / (l[i + 1] - l[i]) ** 2.
+    def _compute_Bernstein_approximation_energy(self, x):
 
+        """
+        Return interpolated energy value for a point x
+        """
+
+        ds = self.path_distances
+        if x < 0.0 or x > ds[-1]:
+            raise Exception('x lies outside the valid interpolation range')
+        elif x == 0.0:
+            return self.distances[0]
+        elif x == ds[-1]:
+            return self.distances[-1]
+        # Find index of the ds array for the value that is closest to x
+        ds_idx = np.abs(x - ds).argmin()
+        # If x is smaller than the given ds, use the previous ds value so
+        # that we use ds(i) when x lies in the interval ds(i) < x < ds(i+1)
+        if x < ds[ds_idx]:
+            ds_idx -= 1
+
+        return self.Bernstein_polynomials[ds_idx](x)
+
+    def compute_Bernstein_approximation_energy(self, n_points):
+
+        """
+        Return interpolated energy values of the energy band with n_points
+        resolution
+        """
+
+        ds = self.path_distances
         # The arrays with the data points and the interpolated energy values
-        x = np.linspace(0, l[-1], n_points)
-        E_interp = np.zeros(n_points)
-
-        i_img = 0
-        for i, pos in enumerate(x):
-            if pos > l[i_img + 1]:
-                i_img += 1
-
-            E_interp[i] = (a[i_img] * ((pos - l[i_img]) ** 3.) +
-                           b[i_img] * ((pos - l[i_img]) ** 2.) +
-                           c[i_img] * (pos - l[i_img]) +
-                           d[i_img]
-                           )
+        x = np.linspace(0, ds[-1], n_points)
+        E_interp = np.zeros_like(x)
+        E_interp[0] = self.energies[0]
+        E_interp[-1] = self.energies[-1]
+        E_interp[1:-1] = np.array(
+            [self._compute_Bernstein_approximation_energy(i) for i in x[1:-1]]
+            )
 
         return x, E_interp
+
+        return E_interp
