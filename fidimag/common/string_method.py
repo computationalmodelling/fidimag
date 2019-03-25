@@ -1,8 +1,6 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
-
-import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.extensions.nebm_clib as nebm_clib
 import fidimag.common.constant as const
 
@@ -240,14 +238,14 @@ class StringMethod(ChainMethodBase):
         method uses a Euclidean norm)
         """
 
-        nebm_geodesic.image_distances_GreatCircle(self.distances,
-                                                  self.path_distances,
-                                                  self.band,
-                                                  self.n_images,
-                                                  self.n_dofs_image,
-                                                  self._material_int,
-                                                  self.n_dofs_image_material
-                                                  )
+        nebm_clib.image_distances_GreatCircle(self.distances,
+                                              self.path_distances,
+                                              self.band,
+                                              self.n_images,
+                                              self.n_dofs_image,
+                                              self._material_int,
+                                              self.n_dofs_image_material
+                                              )
 
         self.path_distances[1:] = np.cumsum(self.distances)
         self.distances /= self.path_distances[-1]

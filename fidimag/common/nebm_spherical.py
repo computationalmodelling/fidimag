@@ -1,8 +1,6 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
-
-import fidimag.extensions.nebm_spherical_clib as nebm_spherical
 import fidimag.extensions.nebm_clib as nebm_clib
 from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
 from .chain_method_tools import linear_interpolation_spherical
@@ -270,7 +268,7 @@ class NEBM_Spherical(ChainMethodBase):
 
     def compute_spring_force(self, y):
 
-        nebm_spherical.image_distances_Spherical(self.distances,
+        nebm_clib.image_distances_Spherical(self.distances,
                                                  self.path_distances,
                                                  y,
                                                  self.n_images,
@@ -285,9 +283,9 @@ class NEBM_Spherical(ChainMethodBase):
                                        self.n_dofs_image,
                                        self.distances
                                        )
-        # nebm_spherical.normalise_images(self.tangents,
-        #                                 self.n_images, self.n_dofs_image
-        #                                 )
+        # nebm_clib.normalise_images(self.tangents,
+        #                            self.n_images, self.n_dofs_image
+        #                            )
 
     def nebm_step(self, y):
 
@@ -375,14 +373,14 @@ class NEBM_Spherical(ChainMethodBase):
         # OR:
         # redefine_angles(self.band)
 
-        nebm_spherical.image_distances_Spherical(self.distances,
-                                                 self.path_distances,
-                                                 self.band,
-                                                 self.n_images,
-                                                 self.n_dofs_image,
-                                                 self._material_int,
-                                                 self.n_dofs_image_material
-                                                 )
+        nebm_clib.image_distances_Spherical(self.distances,
+                                            self.path_distances,
+                                            self.band,
+                                            self.n_images,
+                                            self.n_dofs_image,
+                                            self._material_int,
+                                            self.n_dofs_image_material
+                                            )
 
 # -----------------------------------------------------------------------------
 

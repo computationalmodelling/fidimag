@@ -1,8 +1,6 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
-
-import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.extensions.nebm_clib as nebm_clib
 
 from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
@@ -326,7 +324,7 @@ class NEBM_Geodesic(ChainMethodBase):
             k = self.k
 
         # Compute the distances
-        nebm_geodesic.image_distances_GreatCircle(self.distances,
+        nebm_clib.image_distances_GreatCircle(self.distances,
                                                   self.path_distances,
                                                   y,
                                                   self.n_images,
@@ -393,14 +391,14 @@ class NEBM_Geodesic(ChainMethodBase):
 
         """
 
-        nebm_geodesic.image_distances_GreatCircle(self.distances,
-                                                  self.path_distances,
-                                                  self.band,
-                                                  self.n_images,
-                                                  self.n_dofs_image,
-                                                  self._material_int,
-                                                  self.n_dofs_image_material
-                                                  )
+        nebm_clib.image_distances_GreatCircle(self.distances,
+                                              self.path_distances,
+                                              self.band,
+                                              self.n_images,
+                                              self.n_dofs_image,
+                                              self._material_int,
+                                              self.n_dofs_image_material
+                                              )
 
     # def compute_maximum_dYdt(self, A, B, dt):
     #     """

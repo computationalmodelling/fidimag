@@ -5,9 +5,7 @@ from __future__ import print_function
 Tests for the String/NEB Method tools and methods (mostly the NEBM C libraries)
 
 """
-
-import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
-import fidimag.extensions.nebm_clib as nebm_lib
+import fidimag.extensions.nebm_clib as nebm_clib
 import fidimag.common.chain_method_tools as chain_method_tools
 # import fidimag.common.nebm_spherical as nebm_spherical
 import numpy as np
@@ -149,20 +147,20 @@ def test_geodesic_distance_Vincenty():
     material = np.array([1]).astype(np.int32)
     n_dofs_image_material = 3
 
-    d = nebm_geodesic.geodesic_distance_Vincenty(A, B, n_dofs_image,
-                                                 material,
-                                                 n_dofs_image_material
-                                                 )
+    d = nebm_clib.geodesic_distance_Vincenty(A, B, n_dofs_image,
+                                             material,
+                                             n_dofs_image_material
+                                             )
     assert np.abs(d - np.pi) < 1e-5
 
     # The other two spins:
     A = np.array([0, 1, 0.])
     B = np.array([-1, 0, 0.])
 
-    d = nebm_geodesic.geodesic_distance_Vincenty(A, B, n_dofs_image,
-                                                 material,
-                                                 n_dofs_image_material
-                                                 )
+    d = nebm_clib.geodesic_distance_Vincenty(A, B, n_dofs_image,
+                                             material,
+                                             n_dofs_image_material
+                                             )
     assert np.abs(d - np.pi * 0.5) < 1e-5
 
 
@@ -179,7 +177,7 @@ def test_project_vectors_into_image():
                       0, 0, 1])
 
     # Project array of vectors a, which is updated in the C library
-    nebm_lib.project_vector(a, image, 9)
+    nebm_clib.project_vector(a, image, 9)
 
     # Here we do the projection manually --------------------------------------
     # Dot products for every vector
@@ -221,7 +219,7 @@ def test_project_images_into_image():
                        ])
 
     # Project array of images a, which is updated in the C library
-    nebm_lib.project_images(a, images,
+    nebm_clib.project_images(a, images,
                             # num of images and num of dofs per image:
                             4, 9)
 
@@ -256,7 +254,7 @@ def test_normalise_images():
 
     a = np.zeros(18 + 18, dtype=np.float)
     a[9:27] = np.arange(18, dtype=np.float)
-    nebm_lib.normalise_images(a, 4, 9)
+    nebm_clib.normalise_images(a, 4, 9)
 
     b = np.zeros(18 + 18, dtype=np.float)
     b[9:27] = np.arange(18, dtype=np.float)
@@ -279,7 +277,7 @@ def test_normalise():
     """
 
     a = np.array([1, 0, 1.])
-    nebm_lib.normalise_clib(a, 3)
+    nebm_clib.normalise_clib(a, 3)
 
     norm = 1.4142135623730951
     assert a[0] - (1. / norm) < 1e-12

@@ -13,6 +13,7 @@ build:
 clean:
 	rm -rf ${EXTENSIONS_DIR}/*
 	touch ${EXTENSIONS_DIR}/__init__.py
+	rm -rf build
 
 docker:
 	docker build -t fidimag -f ./docker/travis/Dockerfile .
