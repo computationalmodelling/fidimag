@@ -7,7 +7,7 @@ services:
   - docker
 
 script:
-  - make travis
+  - travis_wait 60 make travis
 
 notifications:
   email:
