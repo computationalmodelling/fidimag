@@ -8,6 +8,7 @@ services:
 
 before_install:
   - docker build -t fidimag -f ./docker/travis/Dockerfile .
+  - docker run -ti -d --name fidimag fidimag
 
 script:
   - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
