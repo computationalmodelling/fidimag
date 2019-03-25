@@ -7,7 +7,11 @@ services:
   - docker
 
 script:
-  - travis_wait 60 make travis
+  - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
+  - docker exec fidimag make test-basic
+  - docker exec fidimag make codecov
+  - docker exec fidimag make ipynb
+  - kill %1
 
 notifications:
   email:
