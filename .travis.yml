@@ -6,6 +6,9 @@ group: deprecated-2017Q4
 services:
   - docker
 
+before_install:
+  - docker build -t fidimag -f ./docker/travis/Dockerfile .
+
 script:
   - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
   - docker exec fidimag make test-basic
