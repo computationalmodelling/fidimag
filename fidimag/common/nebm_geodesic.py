@@ -2,23 +2,22 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 
-import fidimag.extensions.nebm_cartesian_clib as nebm_cartesian
 import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
 import fidimag.extensions.nebm_clib as nebm_clib
 
-from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
-from .nebm_tools import linear_interpolation_spherical
-from .nebm_tools import interpolation_Rodrigues_rotation
-from .nebm_tools import m_to_zero_nomaterial
+from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
+from .chain_method_tools import linear_interpolation_spherical
+from .chain_method_tools import interpolation_Rodrigues_rotation
+from .chain_method_tools import m_to_zero_nomaterial
 
-from .nebm_base import NEBMBase
+from .chain_method_base import ChainMethodBase
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Geodesic(NEBMBase):
+class NEBM_Geodesic(ChainMethodBase):
     """
     ARGUMENTS -----------------------------------------------------------------
 
@@ -154,11 +153,12 @@ class NEBM_Geodesic(NEBMBase):
     def __init__(self, sim,
                  initial_images,
                  interpolations=None,
-                 interpolation_method='linear',
+                 interpolation_method='rotation',
                  spring_constant=1e5,
                  name='unnamed',
                  climbing_image=None,
-                 openmp=False
+                 openmp=False,
+                 integrator='sundials'  # or scipy
                  ):
 
         super(NEBM_Geodesic, self).__init__(sim,
@@ -178,7 +178,7 @@ class NEBM_Geodesic(NEBMBase):
 
         self.initialise_energies()
 
-        self.initialise_integrator()
+        self.initialise_integrator(integrator=integrator)
 
         self.create_tablewriter()
 
@@ -296,24 +296,69 @@ class NEBM_Geodesic(NEBMBase):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
                                    self.n_dofs_image, self.n_images
                                    )
-        nebm_cartesian.project_images(self.tangents, y,
-                                      self.n_images, self.n_dofs_image
-                                      )
-        nebm_cartesian.normalise_images(self.tangents,
-                                        self.n_images, self.n_dofs_image
-                                        )
+        nebm_clib.project_images(self.tangents, y,
+                                 self.n_images, self.n_dofs_image
+                                 )
+        nebm_clib.normalise_images(self.tangents,
+                                   self.n_images, self.n_dofs_image
+                                   )
 
     def compute_spring_force(self, y):
-        nebm_geodesic.compute_spring_force(self.spring_force, y, self.tangents,
-                                           self.k, self.n_images,
-                                           self.n_dofs_image,
-                                           self._material_int,
-                                           self.n_dofs_image_material
-                                           )
+        """
+        For variable spring constant (which is more effective if we have
+        a saddle point), see:
+             J. Chem. Phys. 113, 9901 (2000);
+        Seems to work when we only have a single saddle point
+        (TESTING functionality)
+        """
+        if self.variable_k:
+            E_max = np.max(self.energies)
+            E_i = np.maximum(self.energies[1:-1], self.energies[:-2])
+            E_ref = max(self.energies[0], self.energies[-1])
+
+            k = np.copy(self.k)
+            f = E_i > E_ref
+            k[1:-1][f] = k[1:-1][f] - self.dk * ((E_max - E_i[f]) / (E_max - E_ref))
+            f = E_i <= E_ref
+            k[1:-1][f] = k[1:-1][f] - self.dk
+
+        else:
+            k = self.k
+
+        # Compute the distances
+        nebm_geodesic.image_distances_GreatCircle(self.distances,
+                                                  self.path_distances,
+                                                  y,
+                                                  self.n_images,
+                                                  self.n_dofs_image,
+                                                  self._material_int,
+                                                  self.n_dofs_image_material
+                                                  )
+
+        nebm_clib.compute_spring_force(self.spring_force, y,
+                                       self.tangents,
+                                       k, self.n_images,
+                                       self.n_dofs_image,
+                                       self.distances
+                                       )
+
+        # GreatCircle calculation of the geodesic seems to be more stable
+        # in complex landscapes than Vincenty's formula
+        # nebm_geodesic.image_distances_Vincenty(self.distances,
+        #                                        self.path_distances,
+        #                                        y,
+        #                                        self.n_images,
+        #                                        self.n_dofs_image,
+        #                                        self._material_int,
+        #                                        self.n_dofs_image_material
+        #                                        )
 
     def nebm_step(self, y):
 
         self.compute_effective_field_and_energy(y)
+        nebm_clib.project_images(self.gradientE, y,
+                                 self.n_images, self.n_dofs_image
+                                 )
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
@@ -321,47 +366,41 @@ class NEBM_Geodesic(NEBMBase):
                                           self.tangents,
                                           self.gradientE,
                                           self.spring_force,
-                                          self.climbing_image,
+                                          self._climbing_image,
                                           self.n_images,
                                           self.n_dofs_image
                                           )
 
-        nebm_cartesian.project_images(self.G, y,
-                                      self.n_images, self.n_dofs_image
-                                      )
+        # Should be the same if we project the gradient before, instead
+        # of the total force
+        # nebm_clib.project_images(self.G, y,
+        #                          self.n_images, self.n_dofs_image
+        #                          )
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------
     # -------------------------------------------------------------------------
 
-    def compute_distances(self, A, B):
+    def compute_distances(self):
         """
-        Compute the distance between corresponding images of the bands A and B
+        Compute the distance between corresponding images of self.band
 
                 A                   B
             [ [image_0]         [ [image_0]
               [image_1]     -     [image_1]
-              ..self.               ...
+              ...                 ...
             ]                     ]
 
         """
 
-        A.shape = (-1, self.n_dofs_image)
-        B.shape = (-1, self.n_dofs_image)
-
-        distances = np.zeros(len(A))
-
-        for i in range(len(distances)):
-            distances[i] = nebm_geodesic.geodesic_distance(A[i], B[i],
-                                                           self.n_dofs_image,
-                                                           self._material_int,
-                                                           self.n_dofs_image_material
-                                                           )
-
-        A.shape = (-1)
-        B.shape = (-1)
-
-        return distances
+        nebm_geodesic.image_distances_GreatCircle(self.distances,
+                                                  self.path_distances,
+                                                  self.band,
+                                                  self.n_images,
+                                                  self.n_dofs_image,
+                                                  self._material_int,
+                                                  self.n_dofs_image_material
+                                                  )
 
     # def compute_maximum_dYdt(self, A, B, dt):
     #     """
@@ -377,6 +416,31 @@ class NEBM_Geodesic(NEBMBase):
     #         return np.max(dYdt)
     #     else:
     #         return 0
+
+    def step_RHS(self, t, y):
+        """
+
+        This function is called on every iteration of the integrators in
+        chain_method_integrators.py
+
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        # ydot = self.G[:]
+
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        self.G[:self.n_dofs_image] = 0
+        self.G[-self.n_dofs_image:] = 0
+
+        return 0
 
     def Sundials_RHS(self, t, y, ydot):
         """
@@ -400,7 +464,7 @@ class NEBM_Geodesic(NEBMBase):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D - correction-factor
         # (check the C code in common/)
-        nebm_cartesian.compute_dYdt(
+        nebm_clib.compute_dYdt(
             y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but

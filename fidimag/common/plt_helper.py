@@ -1,5 +1,5 @@
 from __future__ import division
-#import matplotlib as mpl
+# import matplotlib as mpl
 # mpl.use("Agg")
 import fidimag.extensions.clib as clib
 import numpy as np
@@ -7,8 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import colorConverter
-from matplotlib.collections import PolyCollection, LineCollection
-from fidimag.extensions.common_clib import normalise, init_scalar, init_vector, init_vector_func_fast
+from matplotlib.collections import PolyCollection
 
 
 def extract_data(mesh, npys, pos, comp='x'):

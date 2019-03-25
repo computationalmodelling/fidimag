@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update -y
 RUN apt-get install -y build-essential cmake cython3 python3-dev python3-pip \
-    python3-matplotlib python3-numpy python3-scipy \
+    python3-matplotlib python3-numpy \
     liblapack-dev libopenblas-dev \
     wget curl git
 
@@ -19,7 +19,7 @@ RUN apt-get install -y build-essential cmake cython3 python3-dev python3-pip \
 RUN pip3 install --upgrade setuptools==20.4
 # ----------
 
-RUN pip3 install ipywidgets nbval pyvtk six psutil pytest pytest-cov pluggy -U
+RUN pip3 install ipywidgets nbval pyvtk six psutil pytest pytest-cov pluggy scipy -U
 
 WORKDIR /fidimag
 ADD . /fidimag

@@ -194,7 +194,9 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
     yi_cross_yf_norm = np.linalg.norm(yi_cross_yf, axis=1)
 
     # The rotation axis is just the normalised cross product defined before
-    rot_axis = yi_cross_yf / yi_cross_yf_norm[:, np.newaxis]
+    rot_axis = np.zeros_like(yi_cross_yf)
+    fltr = yi_cross_yf_norm > 0
+    rot_axis[fltr] = yi_cross_yf[fltr] / yi_cross_yf_norm[fltr][:, np.newaxis]
     rot_axis = np.cross(rot_axis, y_initial)
 
     # The angles between corresponding spins
@@ -214,11 +216,12 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
 
     return interpolations
 
+
 def m_to_zero_nomaterial(image_cartesian, sim):
     """
     For spins in sites with no material, we set its spin
     direction to [0, 0, 0]
-    
+
     Input is an image in Cartesian coordinates:
         [mx_0 my_0 mz_0 mx_1 my_1 ... mz_(P-1)]
 
@@ -226,6 +229,6 @@ def m_to_zero_nomaterial(image_cartesian, sim):
     the Ms or mu_s to filter the spin directions
     """
     image_reshape = np.copy(image_cartesian.reshape(-1, 3))
-    _filter = sim._magnetisation == 0  
+    _filter = sim._magnetisation == 0
     image_reshape[_filter] = np.array([0., 0., 0.])
     return image_reshape.reshape(-1)

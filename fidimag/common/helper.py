@@ -1,5 +1,10 @@
-from fidimag.extensions.common_clib import normalise, init_scalar, init_vector, init_vector_func_fast
-from fidimag.extensions import clib
+from fidimag.extensions.common_clib import normalise
+from fidimag.extensions.common_clib import init_scalar
+from fidimag.extensions.common_clib import init_vector
+from fidimag.extensions.common_clib import init_vector_func_fast
+import fidimag.extensions.clib as clib
+import numpy as np
+
 
 def extract_data(mesh, npys, pos, comp='x'):
     """

@@ -91,10 +91,10 @@ micro_sources += glob_cfiles(MICRO_DIR, excludes=["micro_clib.c"])
 
 # NEB Method ------------------------------------------------------------------
 
-nebm_sources = [os.path.join(NEBM_DIR, i) for i in ["nebm_clib.pyx", 
+nebm_sources = [os.path.join(NEBM_DIR, i) for i in ["nebm_clib.pyx",
                                                     "nebm_lib.c"]]
 
-nebm_spherical_sources = [os.path.join(NEBM_DIR, i) for i in ["nebm_spherical_clib.pyx", 
+nebm_spherical_sources = [os.path.join(NEBM_DIR, i) for i in ["nebm_spherical_clib.pyx",
                                                                "nebm_spherical_lib.c"]]
 
 nebm_geodesic_sources = [os.path.join(NEBM_DIR, i) for i in ["nebm_geodesic_clib.pyx",
@@ -204,14 +204,6 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.nebm_geodesic_clib",
               sources=nebm_geodesic_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-    Extension("fidimag.extensions.nebm_cartesian_clib",
-              sources=nebm_cartesian_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               library_dirs=lib_paths, runtime_library_dirs=lib_paths,
