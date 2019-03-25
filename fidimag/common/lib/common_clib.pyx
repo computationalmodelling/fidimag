@@ -32,12 +32,12 @@ cdef extern from "common_clib.h":
     # From steepest_descent.c
 
     void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
-                         double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                         double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                          int* pins, int n)
 
     void sd_compute_step (double *spin, double *spin_last, double *magnetisation,
                           double *field,
-                          double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                          double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                           int *pins, int n, int counter, double tmin, double tmax)
 
 # -----------------------------------------------------------------------------
@@ -111,12 +111,12 @@ def compute_sd_spin(double [:] spin,
                     double [:] mxH,
                     double [:] mxmxH,
                     double [:] mxmxH_last,
-                    double [:] tau,
+                    double tau,
                     int [:] pins,
                     n):
 
     sd_update_spin(&spin[0], &spin_last[0], &magnetisation[0], &mxH[0],
-                   &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0], n
+                   &mxmxH[0], &mxmxH_last[0], tau, &pins[0], n
                    )
 
 def compute_sd_step(double [:] spin,
@@ -126,13 +126,13 @@ def compute_sd_step(double [:] spin,
                     double [:] mxH,
                     double [:] mxmxH,
                     double [:] mxmxH_last,
-                    double [:] tau,
+                    double tau,
                     int [:] pins,
                     n, counter, tmin, tmax):
 
     sd_compute_step(&spin[0], &spin_last[0], &magnetisation[0],
                     &field[0], &mxH[0],
-                    &mxmxH[0], &mxmxH_last[0], &tau[0], &pins[0],
+                    &mxmxH[0], &mxmxH_last[0], tau, &pins[0],
                     n, counter, tmin, tmax
                     )
 
