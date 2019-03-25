@@ -35,8 +35,10 @@ download_and_install() {
         echo "Configuring "${1}"."
         ./configure --quiet --enable-shared --enable-openmp --enable-sse2 --enable-avx --prefix=${LIBS_DIR}
         echo "Compiling and installing "${1}"."
-        make
-        make install
+        {
+            make
+            make install
+        } > /dev/null
         echo "Done."
         cd ${LIBS_DIR}
     fi;
