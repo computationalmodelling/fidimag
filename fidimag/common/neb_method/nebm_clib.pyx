@@ -1,5 +1,3 @@
-cimport nebm_clib
-
 cdef extern from "nebm_lib.h":
     void compute_tangents_C(double *tangents,
                             double *y,
