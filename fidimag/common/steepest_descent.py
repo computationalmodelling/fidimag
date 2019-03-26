@@ -3,7 +3,7 @@ import numpy as np
 import fidimag.extensions.common_clib as clib
 # Change int he future to common clib:
 import fidimag.extensions.clib as atom_clib
-
+import sys
 from .minimiser_base import MinimiserBase
 
 
@@ -213,9 +213,10 @@ class SteepestDescent(MinimiserBase):
                              self._tmin, self._tmax
                              )
 
-    def minimise(self, stopping_dm=1e-2, max_steps=2000,
+    def minimise(self, stopping_dm=1e-3, max_steps=5000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
-                 log_steps=1000, initial_t_step=1e-2
+                 log_every=1000, printing=True,
+                 initial_t_step=1e-2
                  ):
         """
         Run the minimisation until meeting the stopping_dm criteria
@@ -243,10 +244,12 @@ class SteepestDescent(MinimiserBase):
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
 
-            if self.step % log_steps == 0:
-                print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                    np.max(np.abs(self.tau)),
-                    max_dm, self.step))
+            if printing:
+                if self.step % log_steps == 0:
+                    # print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}
+                    print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
+                            np.max(np.abs(self.tau)),
+                            max_dm))
 
             if max_dm < stopping_dm and self.step > 0:
                 print("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
@@ -269,3 +272,6 @@ class SteepestDescent(MinimiserBase):
                 self.save_m()
 
             self.step += 1
+
+        if self.steps > max_steps:
+            sys.stderr.write("Warning: minimise did not converge in {} steps - maxdm = {}".format(self.step, max_dm))
