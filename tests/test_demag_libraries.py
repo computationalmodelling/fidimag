@@ -4,7 +4,7 @@ field for atomistic simulations (in micromagnetic simulations
 we only use cuboid meshes, so we only have the FFT approach
 for the dipolar field)
 """
-
+import fidimag
 from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
@@ -223,7 +223,7 @@ def test_hexagonal_demags_2D():
 
 
 
-def check_demag_2d_pbc():
+def test_demag_2d_pbc():
     """
     Attempt to check that demag with 2d_pbc option does
     not give a nonsensical answer.
@@ -234,13 +234,22 @@ def check_demag_2d_pbc():
     d = 2.5
     
     mesh = fidimag.common.CuboidMesh(nx=n, ny=n, nz=1, dx=d, dy=d, dz=d, unit_length=1e-9, periodicity=(True, True, False))
-    sim = fidimag.micro.Sim(mesh, name="pbc_2d_bug", driver='steepest_descent')
+    sim = fidimag.micro.Sim(mesh, name="pbc_2d_bug")
     sim.set_Ms(Ms)
     sim.set_m((0, 0, 1.0), normalise=True)
-    demag = fidimag.micro.Demag()
+    demag = fidimag.micro.Demag(pbc_2d=True)
+
     sim.add(demag)
-    sim.compute_effective_field()
-    assert not np.isnan(sim.field).any(), "Nan in demag array"
+    sim.compute_effective_field(0)
+
+    assert not np.isnan(demag.demag.tensor_xx).any()
+    assert not np.isnan(demag.demag.tensor_xy).any()
+    assert not np.isnan(demag.demag.tensor_xz).any()
+    assert not np.isnan(demag.demag.tensor_yy).any()
+    assert not np.isnan(demag.demag.tensor_yz).any()
+    assert not np.isnan(demag.demag.tensor_zz).any()
+    assert not np.isnan(sim.field).any(), "NaN in demag array"
+    assert 2 == 1
 
 if __name__ == '__main__':
     test_hexagonal_demags_1Dchain()
