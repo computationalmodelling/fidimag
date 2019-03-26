@@ -236,29 +236,26 @@ class SteepestDescent(MinimiserBase):
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         self.mxmxH_last[:] = self.mxmxH[:]
         while self.step < max_steps:
-
             self.run_step_CLIB()
             # Vectorised calculation with Numpy:
             # self.run_step()
-
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
 
             if printing:
-                if self.step % log_steps == 0:
+                if self.step % log_every == 0:
                     # print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}
                     print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
                             np.max(np.abs(self.tau)),
                             max_dm))
 
             if max_dm < stopping_dm and self.step > 0:
-                print("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                      np.max(np.abs(self.tau)),
-                      max_dm, self.step))
-
+                print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
+                                                                        np.max(np.abs(self.tau)),
+                                                                        max_dm)
+                      )
                 self.compute_effective_field()
                 self.data_saver.save()
-
                 break
 
             if self.step % save_data_steps == 0:
@@ -273,5 +270,5 @@ class SteepestDescent(MinimiserBase):
 
             self.step += 1
 
-        if self.steps > max_steps:
+        if self.step == max_steps:
             sys.stderr.write("Warning: minimise did not converge in {} steps - maxdm = {}".format(self.step, max_dm))
