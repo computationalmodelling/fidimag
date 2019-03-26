@@ -222,6 +222,26 @@ def test_hexagonal_demags_2D():
     assert (DemagFull_energy - demag_2fft_energy) < 1e-10
 
 
+
+def check_demag_2d_pbc():
+    """
+    Attempt to check that demag with 2d_pbc option does
+    not give a nonsensical answer.
+    """
+    A=1.3e-11
+    Ms=8.6e5
+    n = 40
+    d = 2.5
+    
+    mesh = fidimag.common.CuboidMesh(nx=n, ny=n, nz=1, dx=d, dy=d, dz=d, unit_length=1e-9, periodicity=(True, True, False))
+    sim = fidimag.micro.Sim(mesh, name="pbc_2d_bug", driver='steepest_descent')
+    sim.set_Ms(Ms)
+    sim.set_m((0, 0, 1.0), normalise=True)
+    demag = fidimag.micro.Demag()
+    sim.add(demag)
+    sim.compute_effective_field()
+    assert not np.isnan(sim.field).any(), "Nan in demag array"
+
 if __name__ == '__main__':
     test_hexagonal_demags_1Dchain()
     test_cuboid_demags_1Dchain()
