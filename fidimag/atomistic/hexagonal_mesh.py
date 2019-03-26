@@ -258,12 +258,14 @@ class HexagonalMesh(object):
         vertex_counter = 0
         vertices = []  # list of tuples of coordinates
         hexagons = []  # list of tuples of vertices
+        self.corners = []
         for j in range(self.ny):
             for i in range(self.nx):
                 index = self._index(i, j)
                 x, y = self.coordinates[index][0], self.coordinates[index][1]
                 # self.radius is the inradius while self.h/2  is the circumradius
                 corners = self.hexagon_corners(x, y, self.h * 0.5)
+                self.corners.append(corners)
                 hexagon = []
                 # We'll go through the corners in a counter-clockwise direction.
                 # For each corner, we think about if it's a "new" vertex, or
@@ -328,6 +330,8 @@ class HexagonalMesh(object):
                     hexagon.append(vertex_counter)
                     vertex_counter += 1
                 hexagons.append(hexagon)
+
+        self.corners = np.array(self.corners)
         return np.array(vertices), np.array(hexagons)
 
     def index(self, i, j):
