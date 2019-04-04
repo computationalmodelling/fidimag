@@ -10,11 +10,14 @@ before_install:
   - docker build -t fidimag -f ./docker/travis/Dockerfile .
   - docker run -ti -d --name fidimag fidimag
 
-script:
-  - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
-  - docker exec fidimag make test-basic
-  - docker exec fidimag make test-ipynb
-  - kill %1
+jobs:
+  - stage: Tests
+    script: docker exec fidimag make test-basic
+  - stage: Notebooks
+    script:
+    - while sleep 9m; do echo "===[ $SECONDS seconds still running ]===\n"; done &
+    - docker exec fidimag make test-ipynb
+    - kill %1
 
 notifications:
   email:
