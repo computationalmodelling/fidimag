@@ -41,10 +41,12 @@ class Demag(Energy):
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
-        self.scale = 1e-7 / mesh.unit_length**3
-        # could be wrong, needs carefully tests!!!
-        # David Tue 19 Jun 2018: This variable is updated in the SIM class in
-        # case mu_s changes
+        
+        # Ryan Pepper 04/04/2019
+        # We *do not* need to scale by mesh.unit_length**3 here!
+        # This is because in the base energy class, dx, dy and dz
+        # are scaled.
+        self.scale = 1e-7
         self.mu_s_scale = mu_s * self.scale
 
         self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
