@@ -249,7 +249,6 @@ def test_demag_2d_pbc():
     assert not np.isnan(demag.demag.tensor_yz).any()
     assert not np.isnan(demag.demag.tensor_zz).any()
     assert not np.isnan(sim.field).any(), "NaN in demag array"
-    assert 2 == 1
 
 if __name__ == '__main__':
     test_hexagonal_demags_1Dchain()
