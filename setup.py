@@ -27,6 +27,8 @@ MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
 FMMLIB_DIR = os.path.join(SRC_DIR, "atomistic", "fmmlib")
+BHLIB_DIR = os.path.join(SRC_DIR, "atomistic", "bhlib")
+
 USER_DIR = os.path.join(SRC_DIR, "user")
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
@@ -92,6 +94,11 @@ fmm_sources = []
 fmm_sources.append(os.path.join(FMMLIB_DIR, 'fmm.pyx'))
 fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=["fmm.cpp"], extension="*.cpp")
 fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=[], extension="*.c")
+
+bh_sources = []
+bh_sources.append(os.path.join(BHLIB_DIR, 'bh.pyx'))
+bh_sources += glob_cfiles(BHLIB_DIR, excludes=["bh.cpp"], extension="*.cpp")
+bh_sources += glob_cfiles(BHLIB_DIR, excludes=[], extension="*.c")
 
 
 
@@ -216,6 +223,14 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.fmm",
               sources=fmm_sources,
+              include_dirs=com_inc,
+              libraries=com_libs,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+              extra_compile_args=com_args,
+              extra_link_args=com_link,
+              ),
+    Extension("fidimag.extensions.bh",
+              sources=bh_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               library_dirs=lib_paths, runtime_library_dirs=lib_paths,

@@ -16,15 +16,13 @@ void P2P(double x, double y, double z, double mux, double muy, double muz, doubl
   double R3 = R2*sqrt(R2);
   double R5 = R3*R2;
   double mu_dot_r = mux*x + muy*y + muz*z;
-  F[0] += mu_dot_r / R3;
-  F[1] += (3*mu_dot_r * x / R5 - mux / R3);
-  F[2] += (3*mu_dot_r * y / R5 - muy / R3);
-  F[3] += (3*mu_dot_r * z / R5 - muz / R3);
+  F[0] += (3*mu_dot_r * x / R5 - mux / R3);
+  F[1] += (3*mu_dot_r * y / R5 - muy / R3);
+  F[2] += (3*mu_dot_r * z / R5 - muz / R3);
 }
 
 void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
 		  size_t cell, size_t ncrit, size_t exporder) {
-  std::cout << "P2M(" << cell << ")" << std::endl;
   if (cells[cell].nleaf >= ncrit) {
     for (size_t octant = 0; octant < 8; octant++) {
       if (cells[cell].nchild & (1 << octant)) {
@@ -34,6 +32,7 @@ void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
   }
   else {
     double *M = new double[Nterms(exporder+1)]();
+    #pragma omp parallel for
     for(size_t i = 0; i < (cells[cell].nleaf); i++) {
       int l = cells[cell].leaf[i];
       M[1] = particles[l].mux;
@@ -42,7 +41,10 @@ void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
       double dx = (particles[l].x - cells[cell].x);
       double dy = (particles[l].y - cells[cell].y);
       double dz = (particles[l].z - cells[cell].z);
-      M2M(-dx, -dy, -dz, M, cells[cell].M.data(), exporder);
+      #pragma omp critical
+      {
+	M2M(-dx, -dy, -dz, M, cells[cell].M.data(), exporder);
+      }
     }
     delete[] M;
   }
@@ -59,7 +61,6 @@ void evaluate_M2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
   by iterating backwards through the nodes because
   of the way the tree is constructed.
   */
-
   for (size_t i = cells.size() - 1; i > 0; i--) {
     size_t p = cells[i].parent;
     double dx = cells[p].x - cells[i].x;
@@ -87,7 +88,7 @@ void P2P_Cells(size_t A, size_t B, std::vector<Cell> &cells,
       	double dy = particles[l1].y - particles[l2].y;
       	double dz = particles[l1].z - particles[l2].z;
       	//std::cout << "      P2P("<<l1<<","<< l2 << ")" << std::endl;
-      	P2P(dx, dy, dz, particles[l2].mux, particles[l2].muy, particles[l2].muz, &F[4 * l1]);
+      	P2P(dx, dy, dz, particles[l2].mux, particles[l2].muy, particles[l2].muz, &F[3 * l1]);
       }
     }
   }
@@ -150,6 +151,7 @@ void interact_dehnen(size_t A, size_t B, std::vector<Cell> &cells, std::vector<P
 }
 
 void evaluate_L2L(std::vector<Cell> &cells, size_t exporder) {
+  #pragma omp parallel for
   for (size_t i = 0; i < cells.size(); i++) {
     for (int octant = 0; octant < 8; octant++) {
       if (cells[i].nchild & (1 << octant)) {
@@ -166,7 +168,7 @@ void evaluate_L2L(std::vector<Cell> &cells, size_t exporder) {
 
 void evaluate_L2P(std::vector<Particle> &particles, std::vector<Cell> &cells,
                   double *F, size_t ncrit, size_t exporder) {
-
+  #pragma omp parallel for
   for (size_t i = 0; i < cells.size(); i++) {
     if (cells[i].nleaf < ncrit) {
       // std::cout << "cell " << i << " is a leaf " << std::endl;
@@ -176,12 +178,11 @@ void evaluate_L2P(std::vector<Particle> &particles, std::vector<Cell> &cells,
         double dx = particles[k].x - cells[i].x;
         double dy = particles[k].y - cells[i].y;
         double dz = particles[k].z - cells[i].z;
-	double Fv[4] = {0.0};
+	double Fv[3] = {0.0};
         L2P(dx, dy, dz, cells[i].L.data(), Fv, exporder);
-    	F[4*k+0] -= Fv[0];
-    	F[4*k+1] -= Fv[1];
-    	F[4*k+2] -= Fv[2];
-    	F[4*k+3] -= Fv[3];
+    	F[3*k+0] -= Fv[0];
+    	F[3*k+1] -= Fv[1];
+    	F[3*k+2] -= Fv[2];
       }
     }
   }
@@ -207,7 +208,7 @@ void evaluate_direct(std::vector<Particle> &particles, std::vector<double> &F) {
               double dz = particles[i].z - particles[j].z;
               // calculation of R and R3 will be inlined by compiler
               // so no need to worry about that.
-              P2P(dx, dy, dz, particles[j].mux, particles[j].muy, particles[j].muz, &F[4*i]);
+              P2P(dx, dy, dz, particles[j].mux, particles[j].muy, particles[j].muz, &F[3*i]);
             }
         }
     }
