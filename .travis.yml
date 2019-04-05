@@ -12,12 +12,9 @@ before_install:
 
 jobs:
   - stage: Tests
-    script: docker exec fidimag make test-basic
+    script: make test-docker
   - stage: Notebooks
-    script:
-    - while sleep 9m; do echo "===[ $SECONDS seconds still running ]===\n"; done &
-    - docker exec fidimag make test-ipynb
-    - kill %1
+    script: make ipynb-docker
 
 notifications:
   email:

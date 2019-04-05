@@ -23,12 +23,17 @@ docker:
 # Tests #
 #########
 
-test-docker: docker
+test-docker:
 	docker exec fidimag make test-basic
 	#docker exec fidimag make test-without-run-oommf
 	#docker exec fidimag make test-ipynb
 
-travis: test-docker
+ipynb-docker:
+	while sleep 9m; do echo "===[ Still Running ]===\n"; done &
+	docker exec fidimag make test-ipynb
+	kill %1
+
+travis-test: test-docker
 	docker exec fidimag make codecov
 	docker exec fidimag make test-ipynb
 
