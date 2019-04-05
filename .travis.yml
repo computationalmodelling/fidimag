@@ -11,10 +11,11 @@ before_install:
   - docker run -ti -d --name fidimag fidimag
 
 jobs:
-  - stage: Tests
-    script: make test-docker
-  - stage: Notebooks
-    script: make ipynb-docker
+  include:
+    - stage: Tests
+      script: make test-docker
+    - stage: Notebooks
+      script: make ipynb-docker
 
 notifications:
   email:
