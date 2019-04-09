@@ -2,7 +2,7 @@
 #include "math.h"
 
 void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
-                     double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                     double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                      int* pins, int n) {
 
     // Update the field -------------------------------------------------------
@@ -29,12 +29,12 @@ void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
                 mxH_sq += mxH[spin_idx + j] * mxH[spin_idx + j];
             }
 
-            factor_plus = 4 + tau[i] * tau[i] * mxH_sq;
-            factor_minus = 4 - tau[i] * tau[i] * mxH_sq;
+            factor_plus = 4 + tau * tau * mxH_sq;
+            factor_minus = 4 - tau * tau * mxH_sq;
 
             for (int j = 0; j < 3; j++) {
                 new_spin[j] = factor_minus * spin[spin_idx + j]
-                              - 4 * tau[i] * mxmxH[spin_idx + j];
+                              - 4 * tau * mxmxH[spin_idx + j];
                 new_spin[j] = new_spin[j] / factor_plus;
 
                 spin[spin_idx + j] = new_spin[j];
@@ -45,16 +45,18 @@ void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
 }
 
 void sd_compute_step (double *spin, double *spin_last, double *magnetisation, double *field,
-                      double *mxH, double *mxmxH, double *mxmxH_last, double *tau,
+                      double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                       int *pins, int n, int counter, double tmin, double tmax) {
 
-    #pragma omp parallel for
+    double res;
+    double num = 0;
+    double den = 0;
+    double sign;
+    #pragma omp parallel for reduction(+: num,den)
     for (int i = 0; i < n; i++) {
-
         if (magnetisation[i] > 0.0) {
             int spin_idx;
             double ds[3], dy[3];
-            double num, den, res, sign;
 
             spin_idx = 3 * i;
 
@@ -93,8 +95,6 @@ void sd_compute_step (double *spin, double *spin_last, double *magnetisation, do
                 dy[j] = mxmxH[spin_idx + j] - mxmxH_last[spin_idx + j];
             }
 
-            num = 0;
-            den = 0;
             if (counter % 2 == 0) {
                 for (int j = 0; j < 3; j++) {
                     num += ds[j] * ds[j];
@@ -108,22 +108,23 @@ void sd_compute_step (double *spin, double *spin_last, double *magnetisation, do
                 }
             }
 
-            // Criteria for the evaluation of tau is in line 96 of:
-            //https://github.com/MicroMagnum/MicroMagnum/blob/minimizer/src/magnum/micromagnetics/micro_magnetics_solver.py
-            if (den == 0.0) {
-                res = tmax;
-            }
-            else {
-                res = num / den;
-            }
-
-            sign = (res > 0) ? 1 : ((res < 0) ? -1 : 0);
-            tau[i] = fmax(fmin(fabs(res), tmax), tmin) * sign;
-
-            // In MuMax3 they only define a specific value:
-            // https://github.com/mumax/3/blob/master/engine/minimizer.go
-            // tau[i] = res;
-
         }  // Close if Ms or mu_s > 0
     }  // close for 
+
+    // Criteria for the evaluation of tau is in line 96 of:
+    //https://github.com/MicroMagnum/MicroMagnum/blob/minimizer/src/magnum/micromagnetics/micro_magnetics_solver.py
+    if (den == 0.0) {
+        res = tmax;
+    }
+    else {
+        res = num / den;
+    }
+
+    // Micromagnum criteria:
+    sign = (res > 0) ? 1 : ((res < 0) ? -1 : 0);
+    tau = fmax(fmin(fabs(res), tmax), tmin) * sign;
+
+    // In MuMax3 they only define a specific value:
+    // https://github.com/mumax/3/blob/master/engine/minimizer.go
+    // tau = res;
 }

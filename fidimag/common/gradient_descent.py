@@ -27,14 +27,14 @@ class GradientDescentMinimiser(MinimiserBase):
                  ):
 
         # Inherit from the base minimiser class
-        super(SimpleMinimiser, self).__init__(mesh, spin,
-                                              magnetisation, magnetisation_inv,
-                                              field,
-                                              pins,
-                                              interactions,
-                                              name,
-                                              data_saver
-                                              )
+        super(GradientDescentMinimiser, self).__init__(mesh, spin,
+                                                       magnetisation, magnetisation_inv,
+                                                       field,
+                                                       pins,
+                                                       interactions,
+                                                       name,
+                                                       data_saver
+                                                       )
 
         self.t = 1e-4
         self._alpha = 0.1
@@ -55,7 +55,7 @@ class GradientDescentMinimiser(MinimiserBase):
         """
         """
         self._alpha = value
-        self._alpha_field =  value * np.ones_like(self.spin)
+        self._alpha_field = value * np.ones_like(self.spin)
 
     def run_step(self):
 

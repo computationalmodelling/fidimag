@@ -13,6 +13,7 @@ build:
 clean:
 	rm -rf ${EXTENSIONS_DIR}/*
 	touch ${EXTENSIONS_DIR}/__init__.py
+	rm -rf build
 
 docker:
 	docker build -t fidimag -f ./docker/travis/Dockerfile .
@@ -22,13 +23,19 @@ docker:
 # Tests #
 #########
 
-test-docker: docker
+test-docker:
 	docker exec fidimag make test-basic
 	#docker exec fidimag make test-without-run-oommf
 	#docker exec fidimag make test-ipynb
 
-travis: test-docker
+ipynb-docker:
+	while sleep 9m; do echo "===[ Still Running ]===\n"; done &
+	docker exec fidimag make test-ipynb
+	kill %1
+
+travis-test: test-docker
 	docker exec fidimag make codecov
+	docker exec fidimag make test-ipynb
 
 codecov:
 	bash <(curl -s https://codecov.io/bash)

@@ -3,7 +3,7 @@ import numpy as np
 import fidimag.extensions.common_clib as clib
 # Change int he future to common clib:
 import fidimag.extensions.clib as atom_clib
-
+import sys
 from .minimiser_base import MinimiserBase
 
 
@@ -29,16 +29,15 @@ class SteepestDescent(MinimiserBase):
 
     - We use the simplest criteria for choosing tau. However, it is not exactly
       clear how to deal with the denominators defined in tau when they are
-      zero.  For now we refer to the methods defined in the minimizer branch of
+      zero.
+
+      We are not using these criteria but might be necessary:
+      For now we refer to the methods defined in the minimizer branch of
       https://github.com/MicroMagnum/MicroMagnum.
 
     - The effective field H is defined in Tesla units (it works in the
       atomistic case). This is defined in the MuMax3 code, so we scale the
       field with mu0 when using this class with the micromagnetic classes.
-
-    - This minimiser seems to not work effectively with the micromagnetic
-      simulations, it may require further inspection of the code, since in
-      MuMax3 it works fine.
 
     - Methods for the calculations using Numpy are defined for debugging. In
       this class we use a C library to speed up the evolution step.
@@ -78,12 +77,12 @@ class SteepestDescent(MinimiserBase):
         self.mxmxH_last = np.zeros_like(self.field)
         # time as zero
         self.t = 0
-        self.tau = 1e-4 * np.ones_like(self._magnetisation)
+        self.tau = 1e-4
         # self._n_field = np.zeros_like(self.field)
 
         # Threshold values for the criteria to choose the T factor.
         # They are defined as properties with the corr decoration
-        self._tmax = 1e-2
+        self._tmax = 1e-1
         self._tmin = 1e-16
 
         # Scaling of the field
@@ -96,7 +95,7 @@ class SteepestDescent(MinimiserBase):
     @tmax.setter
     def tmax(self, t):
         self._tmax = t
-        self._tmax_arr = t * np.ones((len(self.tau), 2))
+        # self._tmax_arr = t * np.ones((len(self.tau), 2))
 
     @property
     def tmin(self):
@@ -105,7 +104,7 @@ class SteepestDescent(MinimiserBase):
     @tmin.setter
     def tmin(self, t):
         self._tmin = t
-        self._tmin_arr = t * np.ones((len(self.tau), 2))
+        # self._tmin_arr = t * np.ones((len(self.tau), 2))
 
     # Same as:
     # tmin = property(fget=set_tmin, fset=set_tmin)
@@ -138,7 +137,7 @@ class SteepestDescent(MinimiserBase):
         # Compute: m[i+1] = ((4 - t^2 A^2) * m[i] - 4 * t * m[i] x m[i] x H) / (4 + t^2 A^2)
         # where "t = self.tau" is the time step and "A = m[i] x H"
         new_spin = (factor_minus[:, np.newaxis] * self.spin
-                    - (4 * self.tau)[:, np.newaxis] * self.mxmxH
+                    - 4 * self.tau * self.mxmxH
                     # this term should be zero:
                     # + (2 * (self.tau ** 2) * np.sum(self.mxH * self.spin, axis=1))[:, np.newaxis] * self.mxH
                     )
@@ -157,8 +156,7 @@ class SteepestDescent(MinimiserBase):
 
         # Update the effective field, torques and time step for the next iter
         self.compute_effective_field()
-        # self._n_field[:] = self.field[:]
-        # atom_clib.normalise_spin(self._n_field, self._pins, self.n)
+
         self.mxmxH_last[:] = self.mxmxH[:]
         self.mxH[:] = self.field_cross_product(self.spin, self.scale * self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
@@ -170,23 +168,24 @@ class SteepestDescent(MinimiserBase):
         dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
 
         if self.step % 2 == 0:
-            num = np.sum(ds * ds, axis=1)
-            den = np.sum(ds * dy, axis=1)
+            num = np.sum(ds * ds)
+            den = np.sum(ds * dy)
         else:
-            num = np.sum(ds * dy, axis=1)
-            den = np.sum(dy * dy, axis=1)
+            num = np.sum(ds * dy)
+            den = np.sum(dy * dy)
 
         # The criteria is taken from the Micromagnum code
-        self.tau = self._tmax * np.ones_like(num)
-        self.tau[den != 0] = num[den != 0] / den[den != 0]
+        if den == 0:
+            self.tau = self._tmax
+        else:
+            self.tau = num / den
 
-        tau_signs = np.sign(self.tau)
-
-        self._tmax_arr[:, 0] = np.abs(self.tau)
         # Set the minimum between the abs value of tau and the max tolerance
-        self._tmin_arr[:, 0] = np.min(self._tmax_arr, axis=1)
+        # self.tau = np.sign(self.tau) * np.max(self._tmin_arr, axis=1)
         # Set the maximum between the previous minimum and the min tolerance
-        self.tau = tau_signs * np.max(self._tmin_arr, axis=1)
+        # self.tau = np.sign(self.tau) * max(min(np.abs(self.tau),
+        #                                        self._tmax),
+        #                                    self._tmin)
 
         # ---------------------------------------------------------------------
 
@@ -214,14 +213,14 @@ class SteepestDescent(MinimiserBase):
                              self._tmin, self._tmax
                              )
 
-    def minimise(self, stopping_dm=1e-2, max_steps=2000,
+    def minimise(self, stopping_dm=1e-3, max_steps=5000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
-                 log_steps=1000
+                 log_every=1000, printing=True,
+                 initial_t_step=1e-2
                  ):
         """
         Run the minimisation until meeting the stopping_dm criteria
         """
-
 
         # Rewrite tmax and tmin arrays and variable
         self.tmax = self._tmax
@@ -229,7 +228,7 @@ class SteepestDescent(MinimiserBase):
 
         self.step = 0
         # Initial "time" step: the algorithm seems sensitive to this value
-        self.tau[:] = 1e-4
+        self.tau = initial_t_step
 
         self.spin_last[:] = self.spin[:]
         self.compute_effective_field()
@@ -237,27 +236,26 @@ class SteepestDescent(MinimiserBase):
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         self.mxmxH_last[:] = self.mxmxH[:]
         while self.step < max_steps:
-
             self.run_step_CLIB()
             # Vectorised calculation with Numpy:
             # self.run_step()
-
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
 
-            if self.step % log_steps == 0:
-                print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                    np.max(np.abs(self.tau)),
-                    max_dm, self.step))
+            if printing:
+                if self.step % log_every == 0:
+                    # print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}
+                    print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
+                            np.max(np.abs(self.tau)),
+                            max_dm))
 
             if max_dm < stopping_dm and self.step > 0:
-                print("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                      np.max(np.abs(self.tau)),
-                      max_dm, self.step))
-
+                print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
+                                                                        np.max(np.abs(self.tau)),
+                                                                        max_dm)
+                      )
                 self.compute_effective_field()
                 self.data_saver.save()
-
                 break
 
             if self.step % save_data_steps == 0:
@@ -271,3 +269,6 @@ class SteepestDescent(MinimiserBase):
                 self.save_m()
 
             self.step += 1
+
+        if self.step == max_steps:
+            sys.stderr.write("Warning: minimise did not converge in {} steps - maxdm = {}".format(self.step, max_dm))

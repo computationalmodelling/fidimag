@@ -1,11 +1,13 @@
 import os
 import sys
 import platform
+
 try:
     from . import extensions
     from . import common
     from . import atomistic
     from . import micro
+    citation = common.citation
 except ImportError as e:
     # cwd = os.getcwd()
     FIDIMAG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,20 +49,5 @@ except ImportError as e:
          """
     print(message.format(FIDIMAG_DIR, e, platform.machine(), platform.platform(), platform.processor()))
 
-    # os.system("make build")
-    #print("Building extensions done.")
-    #os.chdir(cwd)
-# try:
-#    from . import extensions
-#    from . import common
-#    from . import atomistic
-#    from . import micro
-#except ImportError as e:
-#    raise ImportError("Loading the FIDIMAG extensions still didn't work."
-#                      "\nTry the steps above!")
-
-
-
-citation = common.citation
 
 __version__ = '0.2'

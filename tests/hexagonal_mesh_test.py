@@ -1,4 +1,5 @@
 from __future__ import print_function
+import pytest
 import numpy as np
 from math import sqrt
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
@@ -338,3 +339,13 @@ def test_iterate_over_cells_and_neighbours():
         print("I am cell #{}.".format(c_i))
         for c_j in mesh.neighbours[c_i]:
             print("\tAnd I am its neighbour, cell #{}!".format(c_j))
+
+
+@pytest.mark.xfail(reason="Skipping because this is not supported")
+def test_hexagonal_mesh_creation_periodic_x():
+    mesh = HexagonalMesh(1, 2, 2, alignment='square', periodicity=(True, False, False))
+
+
+@pytest.mark.xfail(reason="Skipping because this is not supported")
+def test_hexagonal_mesh_creation_periodic_square_y():
+    mesh = HexagonalMesh(1, 2, 2, alignment='square', periodicity=(False, True, False))

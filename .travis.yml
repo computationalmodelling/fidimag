@@ -6,8 +6,16 @@ group: deprecated-2017Q4
 services:
   - docker
 
-script:
-  - make travis
+before_install:
+  - docker build -t fidimag -f ./docker/travis/Dockerfile .
+  - docker run -ti -d --name fidimag fidimag
+
+jobs:
+  include:
+    - stage: Tests
+      script: make test-docker
+    - stage: Notebooks
+      script: make ipynb-docker
 
 notifications:
   email:

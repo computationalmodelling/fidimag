@@ -58,10 +58,11 @@ def get_version():
 version = get_version()
 
 
-def glob_cfiles(path, excludes):
+def glob_cfiles(path, excludes, extension="*.c"):
     cfiles = []
-    for cfile in glob.glob(os.path.join(path, "*.c")):
+    for cfile in glob.glob(os.path.join(path, extension)):
         filename = os.path.basename(cfile)
+        print(filename)
         if not filename in tuple(excludes):
             cfiles.append(cfile)
     return cfiles
@@ -92,28 +93,8 @@ micro_sources += glob_cfiles(MICRO_DIR, excludes=["micro_clib.c"])
 # NEB Method ------------------------------------------------------------------
 
 nebm_sources = []
-nebm_sources.append(os.path.join(NEBM_DIR,
-                                 'nebm_clib.pyx'))
-nebm_sources += glob_cfiles(NEBM_DIR,
-                            excludes=["nebm_clib.c"])
-
-nebm_spherical_sources = []
-nebm_spherical_sources.append(os.path.join(NEBM_DIR,
-                                           'nebm_spherical_clib.pyx'))
-nebm_spherical_sources += glob_cfiles(NEBM_DIR,
-                                      excludes=["nebm_spherical_clib.c"])
-
-nebm_geodesic_sources = []
-nebm_geodesic_sources.append(os.path.join(NEBM_DIR,
-                                          'nebm_geodesic_clib.pyx'))
-nebm_geodesic_sources += glob_cfiles(NEBM_DIR,
-                                     excludes=["nebm_geodesic_clib.c"])
-
-nebm_cartesian_sources = []
-nebm_cartesian_sources.append(os.path.join(NEBM_DIR,
-                                           'nebm_cartesian_clib.pyx'))
-nebm_cartesian_sources += glob_cfiles(NEBM_DIR,
-                                      excludes=["nebm_cartesian_clib.c"])
+nebm_sources.append(os.path.join(NEBM_DIR, "nebm_clib.pyx"))
+nebm_sources += glob_cfiles(NEBM_DIR, excludes=["nebm_clib.c"])
 
 # -----------------------------------------------------------------------------
 
@@ -200,30 +181,6 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.nebm_clib",
               sources=nebm_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-    Extension("fidimag.extensions.nebm_spherical_clib",
-              sources=nebm_spherical_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-    Extension("fidimag.extensions.nebm_geodesic_clib",
-              sources=nebm_geodesic_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-    Extension("fidimag.extensions.nebm_cartesian_clib",
-              sources=nebm_cartesian_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               library_dirs=lib_paths, runtime_library_dirs=lib_paths,
