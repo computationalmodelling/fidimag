@@ -4,3 +4,4 @@ from .batch_task import BatchTasks
 from .citation import citation
 from .cuboid_mesh import CuboidMesh
 #from .neb_cartesian import NEB_Sundials
+from .plot import plot, plot_micro, plot_atom_hex, plot_atom_cub
