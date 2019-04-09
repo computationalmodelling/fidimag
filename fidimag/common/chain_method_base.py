@@ -348,7 +348,7 @@ class ChainMethodBase(object):
 
         """
         # Create the directory
-        directory = 'vtks/%s_%d' % (self.name, self.iterations)
+        directory = "vtks/{}_{:05d}".format(self.name, self.iterations)
         self.VTK.directory = directory
 
         self.band.shape = (self.n_images, -1)
