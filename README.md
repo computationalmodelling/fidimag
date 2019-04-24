@@ -84,30 +84,36 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 ### Publications
 
-The following publications, in reverse chronological order, have used Fidimag:
+The following publications, in reverse chronological order, have used or cited Fidimag:
 
-[1] [Learning Magnetization Dynamics](https://arxiv.org/abs/1903.09499), A. Kovacs, J. Fischbacher, H. Oezelt, M. Gusenbauer, L. Exl, F. Bruckner, D.Suess, T.Schrefl, arXiV (2019)
+[14] [Learning Magnetization Dynamics](https://arxiv.org/abs/1903.09499), A. Kovacs, J. Fischbacher, H. Oezelt, M. Gusenbauer, L. Exl, F. Bruckner, D.Suess, T.Schrefl, arXiV (2019)
 
-[2] [Binding a hopfion in a chiral magnet nanodisk](https://journals.aps.org/prb/pdf/10.1103/PhysRevB.98.174437), Y. Liu, R. K. Lake, and J. Zang, Physical Review B 98, 174437 (2018)
+[13] [Computational micromagnetics with Commics](https://arxiv.org/abs/1812.05931), C.-M. Pfeiler, M. Ruggeri, B. Stiftner, L. Exl, M. Hochsteger, G. Hrkac, J. Schöberl, N. J. Mauser, D. Praetorius, arXiV (2018)
 
-[3] [Proposal for a micromagnetic standard problem for materials with Dzyaloshinskii–Moriya interaction](http://iopscience.iop.org/article/10.1088/1367-2630/aaea1c), D. C-Ortuño, M. Beg2, V. Nehruji3, L. Breth1, R. Pepper, T. Kluyver, G. Downing, T. Hesjedal, P. Hatton3, T. Lancaster, R. Hertel5, O. Hovorka and H. Fangohr, New Journal of Physics, Volume 20 (2018)
+[12] [Micromagnetics and spintronics: Models and numerical methods](https://arxiv.org/abs/1810.12365), C. Abert, arXiV (2018)
 
-[4] [Driving chiral domain walls in antiferromagnets using rotating magnetic fields](https://link.aps.org/doi/10.1103/PhysRevB.97.184418) K.Pan, L.Xing, H.Y.Yuan, and W.Wang,
-Physical Review B 97, 184418 (2018).
+[11] [Binding a hopfion in a chiral magnet nanodisk](https://journals.aps.org/prb/pdf/10.1103/PhysRevB.98.174437), Y. Liu, R. K. Lake, and J. Zang, Physical Review B 98, 174437 (2018)
 
-[5] [Fidimag - A Finite Difference Atomistic and Micromagnetic Simulation Package](http://doi.org/10.5334/jors.223), Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. and Fangohr, H., Journal of Open Research Software, 6(1), p.22. (2018)
+[10] [Proposal for a micromagnetic standard problem for materials with Dzyaloshinskii–Moriya interaction](http://iopscience.iop.org/article/10.1088/1367-2630/aaea1c), D. Cortés-Ortuño, M. Beg, V. Nehruji, L. Breth, R. Pepper, T. Kluyver, G. Downing, T. Hesjedal, P. Hatton, T. Lancaster, R. Hertel, O. Hovorka and H. Fangohr, New Journal of Physics, Volume 20 (2018)
+
+[9] [Driving chiral domain walls in antiferromagnets using rotating magnetic fields](https://link.aps.org/doi/10.1103/PhysRevB.97.184418) K.Pan, L.Xing, H.Y.Yuan, and W.Wang, Physical Review B 97, 184418 (2018)
+
+[8] [Fidimag - A Finite Difference Atomistic and Micromagnetic Simulation Package](http://doi.org/10.5334/jors.223), Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. and Fangohr, H., Journal of Open Research Software, 6(1), p.22. (2018)
+
+[7] [Topological Spintronics in Confined Geometry](https://escholarship.org/uc/item/8wx626mw), Y. Liu, PhD Thesis, University of California Riverside (2017)
 
 [6] [Thermal stability and topological protection of skyrmions in nanotracks](https://www.nature.com/articles/s41598-017-03391-8), D. Cortés-Ortuño, W. Wang, M. Beg, R.A. Pepper, M-A. Bisotti, R. Carey, M. Vousden, T. Kluyver, O. Hovorka & H. Fangohr, Scientific Reports 7, 4060 (2017)
 
-[7] [Current-induced instability of domain walls in cylindrical nanowires](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta), W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)
+[5] [Current-induced instability of domain walls in cylindrical nanowires](http://iopscience.iop.org/article/10.1088/1361-648X/aa9698/meta), W. Wang, Z. Zhang, R.A. Pepper, C. Mu, Y. Zhou & Hans Fangohr, Journal of Physics: Condensed Matter, 30, 1 (2017)
 
-[8] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430), W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96 024430 (2017)
+[4] [Magnonic analog of relativistic Zitterbewegung in an antiferromagnetic spin chain](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.96.024430), W. Wang, C. Gu, Y. Zhou & H. Fangohr, Phys. Rev. B 96 024430 (2017)
 
-[9] [Driving magnetic skyrmions with microwave fields](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.92.020403) W. Wang, M. Beg, B. Zhang, W. Kuch, and H. Fangohr, Phys. Rev. B 92, 020403 (2015).
+[3] [Driving magnetic skyrmions with microwave fields](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.92.020403) W. Wang, M. Beg, B. Zhang, W. Kuch, and H. Fangohr, Phys. Rev. B 92, 020403 (2015).
 
-[10] [Microwave-induced dynamic switching of magnetic skyrmion cores in nanodots](https://aip.scitation.org/doi/10.1063/1.4914496) B. Zhang, W. Wang, M. Beg, H. Fangohr, and W. Kuch, Applied Physics Letters 106, 102401 (2015).
+[2] [Microwave-induced dynamic switching of magnetic skyrmion cores in nanodots](https://aip.scitation.org/doi/10.1063/1.4914496) B. Zhang, W. Wang, M. Beg, H. Fangohr, and W. Kuch, Applied Physics Letters 106, 102401 (2015).
 
-[11] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
+[1] [Magnon-Driven Domain-Wall Motion with the Dzyaloshinskii-Moriya Interaction](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.114.087203) W. Wang, M. Albert, M. Beg, M-A. Bisotti, D. Chernyshenko, D. Cortés-Ortuño, I. Hawke & H. Fangohr, Phys. Rev. Lett. 114, 087203 (2015)
 
 ### Acknowledgements
+
 We acknowledge financial support from EPSRC’s Centre for Doctoral Training in Next Generation Computational Modelling (EP/L015382/1),  EPSRC’s Doctoral Training Centre in Complex System Simulation (EP/G03690X/1), EPSRC Programme grant on Skyrmionics (EP/N032128/1) and OpenDreamKitHorizon 2020 European Research Infrastructure project (676541).
