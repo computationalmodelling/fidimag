@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 import numpy
 cimport numpy as np
 np.import_array()

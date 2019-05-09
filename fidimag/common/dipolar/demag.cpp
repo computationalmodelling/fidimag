@@ -165,7 +165,7 @@ void compute_demag_tensors(fft_demag_plan *plan) {
 
 
 //used for debug
-void print_r(char *str, double *restrict x, int n) {
+void print_r(char *str, double * x, int n) {
 	int i;
 	printf("%s:\n", str);
 	for (i = 0; i < n; i++) {
@@ -175,7 +175,7 @@ void print_r(char *str, double *restrict x, int n) {
 
 }
 
-void print_c(char *str, fftw_complex *restrict x, int n) {
+void print_c(char *str, fftw_complex * x, int n) {
 	int i;
 	printf("%s\n", str);
 	for (i = 0; i < n; i++) {
@@ -192,7 +192,7 @@ fft_demag_plan *create_plan(void) {
 	return plan;
 }
 
-void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
+void init_plan(fft_demag_plan * plan, double dx, double dy,
 		double dz, int nx, int ny, int nz) {
 
 	//plan->mu_s = mu_s;
@@ -217,7 +217,7 @@ void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
 	plan->total_length = plan->lenx * plan->leny * plan->lenz;
 
 	int size1 = plan->total_length * sizeof(double);
-	int size2 = plan->total_length * sizeof(fftw_complex);
+	int size2 = plan->total_length * sizeof(std::complex<double>);
 
 	plan->tensor_xx = (double *) fftw_malloc(size1);
 	plan->tensor_yy = (double *) fftw_malloc(size1);
@@ -234,36 +234,36 @@ void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
 	plan->hy = (double *) fftw_malloc(size1);
 	plan->hz = (double *) fftw_malloc(size1);
 
-	plan->Nxx = (fftw_complex *) fftw_malloc(size2);
-	plan->Nyy = (fftw_complex *) fftw_malloc(size2);
-	plan->Nzz = (fftw_complex *) fftw_malloc(size2);
-	plan->Nxy = (fftw_complex *) fftw_malloc(size2);
-	plan->Nxz = (fftw_complex *) fftw_malloc(size2);
-	plan->Nyz = (fftw_complex *) fftw_malloc(size2);
+	plan->Nxx = (std::complex<double> *) fftw_malloc(size2);
+	plan->Nyy = (std::complex<double> *) fftw_malloc(size2);
+	plan->Nzz = (std::complex<double> *) fftw_malloc(size2);
+	plan->Nxy = (std::complex<double> *) fftw_malloc(size2);
+	plan->Nxz = (std::complex<double> *) fftw_malloc(size2);
+	plan->Nyz = (std::complex<double> *) fftw_malloc(size2);
 
-	plan->Mx = (fftw_complex *) fftw_malloc(size2);
-	plan->My = (fftw_complex *) fftw_malloc(size2);
-	plan->Mz = (fftw_complex *) fftw_malloc(size2);
-	plan->Hx = (fftw_complex *) fftw_malloc(size2);
-	plan->Hy = (fftw_complex *) fftw_malloc(size2);
-	plan->Hz = (fftw_complex *) fftw_malloc(size2);
+	plan->Mx = (std::complex<double> *) fftw_malloc(size2);
+	plan->My = (std::complex<double> *) fftw_malloc(size2);
+	plan->Mz = (std::complex<double> *) fftw_malloc(size2);
+	plan->Hx = (std::complex<double> *) fftw_malloc(size2);
+	plan->Hy = (std::complex<double> *) fftw_malloc(size2);
+	plan->Hz = (std::complex<double> *) fftw_malloc(size2);
 
 }
 
 
-void create_fftw_plan(fft_demag_plan *restrict plan) {
+void create_fftw_plan(fft_demag_plan * plan) {
 
 	
 	plan->tensor_plan = fftw_plan_dft_r2c_3d(plan->lenz, plan->leny,
-			plan->lenx, plan->tensor_xx, plan->Nxx,
-			FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
-
+						 plan->lenx, plan->tensor_xx, reinterpret_cast<fftw_complex*>(plan->Nxx),
+						 FFTW_ESTIMATE | FFTW_PRESERVE_INPUT);
+	
 	plan->m_plan = fftw_plan_dft_r2c_3d(plan->lenz, plan->leny, plan->lenx,
-			plan->mx, plan->Mx, FFTW_MEASURE);
-
+					    plan->mx, reinterpret_cast<fftw_complex*>(plan->Mx), FFTW_MEASURE);
+	
 	plan->h_plan = fftw_plan_dft_c2r_3d(plan->lenz, plan->leny, plan->lenx,
-			plan->Hx, plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
-
+					    reinterpret_cast<fftw_complex*>(plan->Hx), plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
+	
 	for (int i = 0; i < plan->total_length; i++) {
 		plan->Nxx[i] = 0;
 		plan->Nyy[i] = 0;
@@ -282,12 +282,12 @@ void create_fftw_plan(fft_demag_plan *restrict plan) {
 	}
 
 
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, plan->Nxx);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, plan->Nyy);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_zz, plan->Nzz);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xy, plan->Nxy);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xz, plan->Nxz);
-	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yz, plan->Nyz);
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xx, reinterpret_cast<fftw_complex*>(plan->Nxx));
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yy, reinterpret_cast<fftw_complex*>(plan->Nyy));
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_zz, reinterpret_cast<fftw_complex*>(plan->Nzz));
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xy, reinterpret_cast<fftw_complex*>(plan->Nxy));
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_xz, reinterpret_cast<fftw_complex*>(plan->Nxz));
+	fftw_execute_dft_r2c(plan->tensor_plan, plan->tensor_yz, reinterpret_cast<fftw_complex*>(plan->Nyz));
 	fftw_destroy_plan(plan->tensor_plan);
 
 }
@@ -298,7 +298,7 @@ void create_fftw_plan(fft_demag_plan *restrict plan) {
 
 //The computed results doesn't consider the coefficient of \frac{\mu_0}{4 \pi}, the
 //reason is in future we can use the following code directly for continuum case
-void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double *restrict mu_s, double *restrict field) {
+void compute_fields(fft_demag_plan * plan, double * spin, double * mu_s, double * field) {
 
 	int i, j, k, id1, id2;
 
@@ -333,25 +333,24 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
 
 	//print_r("plan->mx", plan->mx, plan->total_length);
 
-	fftw_execute_dft_r2c(plan->m_plan, plan->mx, plan->Mx);
-	fftw_execute_dft_r2c(plan->m_plan, plan->my, plan->My);
-	fftw_execute_dft_r2c(plan->m_plan, plan->mz, plan->Mz);
+	fftw_execute_dft_r2c(plan->m_plan, plan->mx, reinterpret_cast<fftw_complex *>(plan->Mx));
+	fftw_execute_dft_r2c(plan->m_plan, plan->my, reinterpret_cast<fftw_complex *>(plan->My));
+	fftw_execute_dft_r2c(plan->m_plan, plan->mz, reinterpret_cast<fftw_complex *>(plan->Mz));
 
 	//print_c("plan->Mx", plan->Mx, plan->total_length);
+	std::complex<double> *Nxx = plan->Nxx;
+	std::complex<double> *Nyy = plan->Nyy;
+	std::complex<double> *Nzz = plan->Nzz;
+	std::complex<double> *Nxy = plan->Nxy;
+	std::complex<double> *Nxz = plan->Nxz;
+	std::complex<double> *Nyz = plan->Nyz;
 
-	fftw_complex *Nxx = plan->Nxx;
-	fftw_complex *Nyy = plan->Nyy;
-	fftw_complex *Nzz = plan->Nzz;
-	fftw_complex *Nxy = plan->Nxy;
-	fftw_complex *Nxz = plan->Nxz;
-	fftw_complex *Nyz = plan->Nyz;
-
-	fftw_complex *Mx = plan->Mx;
-	fftw_complex *My = plan->My;
-	fftw_complex *Mz = plan->Mz;
-	fftw_complex *Hx = plan->Hx;
-	fftw_complex *Hy = plan->Hy;
-	fftw_complex *Hz = plan->Hz;
+	std::complex<double> *Mx = plan->Mx;
+	std::complex<double> *My = plan->My;
+	std::complex<double> *Mz = plan->Mz;
+	std::complex<double> *Hx = plan->Hx;
+	std::complex<double> *Hy = plan->Hy;
+	std::complex<double> *Hz = plan->Hz;
 
 	//print_c("Mx", Mx, plan->total_length);
 
@@ -363,9 +362,9 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
 
 	//print_c("Hx", Hx, plan->total_length);
 
-	fftw_execute_dft_c2r(plan->h_plan, plan->Hx, plan->hx);
-	fftw_execute_dft_c2r(plan->h_plan, plan->Hy, plan->hy);
-	fftw_execute_dft_c2r(plan->h_plan, plan->Hz, plan->hz);
+	fftw_execute_dft_c2r(plan->h_plan, reinterpret_cast<fftw_complex *>(plan->Hx), plan->hx);
+	fftw_execute_dft_c2r(plan->h_plan, reinterpret_cast<fftw_complex *>(plan->Hy), plan->hy);
+	fftw_execute_dft_c2r(plan->h_plan, reinterpret_cast<fftw_complex *>(plan->Hz), plan->hz);
 	//print_r("hx", plan->hx, plan->total_length);
 	//print_r("hy", plan->hy, plan->total_length);
 	//print_r("hz", plan->hz, plan->total_length);
@@ -388,78 +387,78 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
 }
 
 //only used for debug
-void exact_compute(fft_demag_plan *restrict plan, double *restrict spin,  double *restrict mu_s, double *restrict field) {
-	int i, j, k, index;
-	int ip, jp, kp, idf, ids;
-	int nx = plan->nx;
-	int ny = plan->ny;
-	int nz = plan->nz;
-    int nxy = nx * ny;
-
-	//int lenx = plan->lenx;
-	int lenx = plan->lenx;
-	int leny = plan->leny;
-    int lenz = plan->lenz;
-    int lenxy = lenx * leny;
-
-	double *Nxx = plan->tensor_xx;
-	double *Nyy = plan->tensor_yy;
-	double *Nzz = plan->tensor_zz;
-	double *Nxy = plan->tensor_xy;
-	double *Nxz = plan->tensor_xz;
-	double *Nyz = plan->tensor_yz;
-
+void exact_compute(fft_demag_plan * plan, double * spin,  double * mu_s, double * field) {
+  int i, j, k, index;
+  int ip, jp, kp, idf, ids;
+  int nx = plan->nx;
+  int ny = plan->ny;
+  int nz = plan->nz;
+  int nxy = nx * ny;
+  
+  //int lenx = plan->lenx;
+  int lenx = plan->lenx;
+  int leny = plan->leny;
+  int lenz = plan->lenz;
+  int lenxy = lenx * leny;
+  
+  double *Nxx = plan->tensor_xx;
+  double *Nyy = plan->tensor_yy;
+  double *Nzz = plan->tensor_zz;
+  double *Nxy = plan->tensor_xy;
+  double *Nxz = plan->tensor_xz;
+  double *Nyz = plan->tensor_yz;
+  
+  
+  for (k = 0; k < nz; k++) {
+    for (j = 0; j < ny; j++) {
+      for (i = 0; i < nx; i++) {
+	idf = nxy * k + nx * j + i;
 	
-        for (k = 0; k < nz; k++) {
-		  for (j = 0; j < ny; j++) {
-			for (i = 0; i < nx; i++) {
-				idf = nxy * k + nx * j + i;
-
-				field[3*idf] = 0;
-				field[3*idf+1] = 0;
-				field[3*idf+2] = 0;
-
-				for (kp = 0; kp < nz; kp++) {
-					for (jp = 0; jp < ny; jp++) {
-						for (ip = 0; ip < nx; ip++) {
-							ids = nxy * kp + nx * jp + ip;
-                            
-                            index = ip-i>=0 ? ip - i: ip - i + lenx;
-                            index += jp-j >=0 ? (jp - j)*lenx: (jp - j + leny)*lenx;
-                            index += kp-k >=0 ? (kp - k)*lenxy: (kp - k + lenz)*lenxy;
-                            
-							field[3*idf] += (Nxx[index] * spin[3*ids] + Nxy[index]
-									* spin[3*ids+1] + Nxz[index] * spin[3*ids+2])*mu_s[ids];
-							field[3*idf+1]  += (Nxy[index] * spin[3*ids] + Nyy[index]
-									* spin[3*ids+1] + Nyz[index] * spin[3*ids+2])*mu_s[ids];
-							field[3*idf+2]  += (Nxz[index] * spin[3*ids] + Nyz[index]
-									* spin[3*ids+1] + Nzz[index] * spin[3*ids+2])*mu_s[ids];
-						}
-					}
-				}
-
-				field[3*idf] *= (-1);
-				field[3*idf+1]  *= (-1);
-				field[3*idf+2]  *= (-1);
-			}
-		}
+	field[3*idf] = 0;
+	field[3*idf+1] = 0;
+	field[3*idf+2] = 0;
+	
+	for (kp = 0; kp < nz; kp++) {
+	  for (jp = 0; jp < ny; jp++) {
+	    for (ip = 0; ip < nx; ip++) {
+	      ids = nxy * kp + nx * jp + ip;
+	      
+	      index = ip-i>=0 ? ip - i: ip - i + lenx;
+	      index += jp-j >=0 ? (jp - j)*lenx: (jp - j + leny)*lenx;
+	      index += kp-k >=0 ? (kp - k)*lenxy: (kp - k + lenz)*lenxy;
+              
+	      field[3*idf] += (Nxx[index] * spin[3*ids] + Nxy[index]
+			       * spin[3*ids+1] + Nxz[index] * spin[3*ids+2])*mu_s[ids];
+	      field[3*idf+1]  += (Nxy[index] * spin[3*ids] + Nyy[index]
+				  * spin[3*ids+1] + Nyz[index] * spin[3*ids+2])*mu_s[ids];
+	      field[3*idf+2]  += (Nxz[index] * spin[3*ids] + Nyz[index]
+				  * spin[3*ids+1] + Nzz[index] * spin[3*ids+2])*mu_s[ids];
+	    }
+	  }
 	}
-
+	
+	field[3*idf] *= (-1);
+	field[3*idf+1]  *= (-1);
+	field[3*idf+2]  *= (-1);
+      }
+    }
+  }
+  
 }
 
-double compute_demag_energy(fft_demag_plan *restrict plan,
-                            double *restrict spin,
-                            double *restrict mu_s,
-                            double *restrict field,
-                            double *restrict energy
+double compute_demag_energy(fft_demag_plan * plan,
+                            double * spin,
+                            double * mu_s,
+                            double * field,
+                            double * energy
                             ) {
-
+  
 	int i,j;
-
+	
 	int nxyz = plan->nx * plan->ny * plan->nz;
-
+	
 	double total_energy = 0;
-
+	
 	for (i = 0; i < nxyz; i++) {
 		j = 3*i;
 		energy[i] = -0.5 * mu_s[i] * (spin[j]   * field[j]   + 
@@ -472,7 +471,7 @@ double compute_demag_energy(fft_demag_plan *restrict plan,
 
 }
 
-void finalize_plan(fft_demag_plan *restrict plan) {
+void finalize_plan(fft_demag_plan * plan) {
 
 	fftw_destroy_plan(plan->m_plan);
 	fftw_destroy_plan(plan->h_plan);

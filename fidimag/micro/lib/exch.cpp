@@ -1,8 +1,8 @@
 #include "micro_clib.h"
 
-void compute_exch_field_micro(double *restrict m, double *restrict field, double *restrict energy,
-			      double *restrict Ms_inv, double A, double dx, double dy, double dz,
-                  int n, int *restrict ngbs) {
+void compute_exch_field_micro(double * m, double * field, double * energy,
+			      double * Ms_inv, double A, double dx, double dy, double dz,
+                  int n, int * ngbs) {
 
     /* Compute the micromagnetic exchange field and energy using the
      * matrix of neighbouring spins and a second order approximation

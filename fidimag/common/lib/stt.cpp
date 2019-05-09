@@ -51,8 +51,8 @@
  *  Neighbouring sites where there is no material, has index -1
  *
  */
-void compute_stt_field_c(double *restrict spin, double *restrict field, double *restrict jx, double *restrict jy, double *restrict jz,
-		double dx, double dy, double dz, int *restrict ngbs, int n) {
+void compute_stt_field_c(double * spin, double * field, double * jx, double * jy, double * jz,
+		double dx, double dy, double dz, int * ngbs, int n) {
 
     //#pragma omp parallel for
 	for (int i = 0; i < 3 * n; i++) {
@@ -159,8 +159,8 @@ void compute_stt_field_c(double *restrict spin, double *restrict field, double *
 }
 
 
-void llg_stt_rhs(double *restrict dm_dt, double *restrict m, double *restrict h, double *restrict h_stt,
-		double *restrict alpha, double beta, double u0, double gamma, int n) {
+void llg_stt_rhs(double * dm_dt, double * m, double * h, double * h_stt,
+		double * alpha, double beta, double u0, double gamma, int n) {
 
 	#pragma omp parallel for
 	for (int index = 0; index < n; index++) {
@@ -220,8 +220,8 @@ void llg_stt_rhs(double *restrict dm_dt, double *restrict m, double *restrict h,
 }
 
 
-void llg_stt_cpp(double *restrict dm_dt, double *restrict m, double *restrict h, double *restrict p,
-		double *restrict alpha, int *restrict pins, double *restrict a_J, double beta, double gamma, int n) {
+void llg_stt_cpp(double * dm_dt, double * m, double * h, double * p,
+		double * alpha, int * pins, double * a_J, double beta, double gamma, int n) {
 
 	#pragma omp parallel for
 	for (int index = 0; index < n; index++) {

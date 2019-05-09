@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 import numpy as np
 import numpy
 import ctypes

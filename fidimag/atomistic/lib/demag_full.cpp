@@ -2,8 +2,8 @@
 #include "math.h"
 #include "stdlib.h"
 
-void demag_full(double *restrict spin, double *restrict field, double *restrict energy, double *restrict coords,
-                double *restrict mu_s, double *restrict mu_s_scale, int n) {
+void demag_full(double * spin, double * field, double * energy, double * coords,
+                double * mu_s, double * mu_s_scale, int n) {
 
     /* Full calculation of the Demagnetising field for atomistic systems
      * The main idea is to iterate through every lattice site, and sum

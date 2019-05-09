@@ -266,12 +266,12 @@
  *                 the last 6 terms are set to zero
  *
 */
-void dmi_field(double *restrict m, double *restrict field,
-               double *restrict energy, double *restrict Ms_inv,
-               double *restrict D, int n_dmis, 
+void dmi_field(double * m, double * field,
+               double * energy, double * Ms_inv,
+               double * D, int n_dmis, 
                double *dmi_vector,
                double dx, double dy, double dz,
-               int n, int *restrict ngbs) {
+               int n, int * ngbs) {
 
     /* These are for the DMI prefactor or coefficient */
     double dxs[6] = {dx, dx, dy, dy, dz, dz};

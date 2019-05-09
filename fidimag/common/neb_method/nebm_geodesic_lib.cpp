@@ -2,9 +2,9 @@
 #include "nebm_lib.h"
 #include "math.h"
 
-double compute_geodesic_Vincenty(double *restrict A, double *restrict B,
+double compute_geodesic_Vincenty(double * A, double * B,
                                  int n_dofs_image,
-                                 int *restrict material,
+                                 int * material,
                                  int n_dofs_image_material
                                  ) {
 
@@ -82,9 +82,9 @@ double compute_geodesic_Vincenty(double *restrict A, double *restrict B,
     return distance;
 }
 
-double compute_geodesic_GreatCircle(double *restrict A, double *restrict B,
+double compute_geodesic_GreatCircle(double * A, double * B,
                                  int n_dofs_image,
-                                 int *restrict material,
+                                 int * material,
                                  int n_dofs_image_material
                                  ) {
 

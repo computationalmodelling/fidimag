@@ -10,8 +10,8 @@ inline double volume(double S[3], double Si[3], double Sj[3]) {
   return tx + ty + tz;
 }
 
-double skyrmion_number(double *restrict spin, double *restrict charge, int nx, int ny, int nz,
-                       int *restrict ngbs, int n_ngbs) {
+double skyrmion_number(double * spin, double * charge, int nx, int ny, int nz,
+                       int * ngbs, int n_ngbs) {
 
   /* Calculation of the "Skyrmion number" Q for a two dimensional discrete
    * spin lattice in the x-y plane (also known
@@ -206,7 +206,7 @@ double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
    */
 
   double rho;
-  double complex exp;
+  double _Complex exp;
   double crossp[3];
 
   crossp[0] = s2[1] * s3[2] - s2[2] * s3[1];

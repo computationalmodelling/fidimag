@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 import numpy as np
 import os
 cimport numpy as np  # import special compile-time information about numpy

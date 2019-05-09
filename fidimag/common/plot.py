@@ -228,12 +228,12 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
 
     if cbar is True:
         if component is 'angle':
-            # Some special handling to print \pi
+            # Some special handling to print pi
             # rather than the numbers!
             cbar = ax.cax.colorbar(im,
                                    ticks=np.linspace(0, 2*np.pi, ncbarticks))
 
-            cbarlabels = ['${:.1f} \pi$'.format(x/(np.pi))
+            cbarlabels = [r'${:.1f} \pi$'.format(x/(np.pi))
                           if x != 0.0 else '0.0'
                           for x in np.linspace(0, 2*np.pi, ncbarticks)]
             cbar.ax.set_yticklabels(cbarlabels)
@@ -461,12 +461,12 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
 
     if cbar is True:
         if component is 'angle':
-            # Some special handling to print \pi
+            # Some special handling to print pi
             # rather than the numbers!
             cbar = ax.cax.colorbar(im,
                                    ticks=np.linspace(0, 2*np.pi, ncbarticks))
 
-            cbarlabels = ['${:.1f} \pi$'.format(x/(np.pi))
+            cbarlabels = [r'${:.1f} \pi$'.format(x/(np.pi))
                           if x != 0.0 else '0.0'
                           for x in np.linspace(0, 2*np.pi, ncbarticks)]
             cbar.ax.set_yticklabels(cbarlabels)
@@ -714,7 +714,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
             cbar = ax.cax.colorbar(im,
                                    ticks=np.linspace(0, 2*np.pi, ncbarticks))
 
-            cbarlabels = ['${:.1f} \pi$'.format(x/(np.pi))
+            cbarlabels = [r'${:.1f} \pi$'.format(x/(np.pi))
                           if x != 0.0 else '0.0'
                           for x in np.linspace(0, 2*np.pi, ncbarticks)]
             cbar.ax.set_yticklabels(cbarlabels)

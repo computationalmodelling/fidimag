@@ -58,55 +58,54 @@ def get_version():
 version = get_version()
 
 
-def glob_cfiles(path, excludes, extension="*.c"):
-    cfiles = []
-    for cfile in glob.glob(os.path.join(path, extension)):
-        filename = os.path.basename(cfile)
-        print(filename)
+def glob_files(path, excludes, extension="*.cpp"):
+    files = []
+    for srcfile in glob.glob(os.path.join(path, extension)):
+        filename = os.path.basename(srcfile)
         if not filename in tuple(excludes):
-            cfiles.append(cfile)
-    return cfiles
+            files.append(srcfile)
+    return files
 
 sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
-sources += glob_cfiles(ATOM_DIR, excludes=["clib.c"])
+sources += glob_files(ATOM_DIR, excludes=["clib.cpp"])
 
 
 
 common_sources = []
 common_sources.append(os.path.join(COMMON_DIR, 'common_clib.pyx'))
-common_sources += glob_cfiles(COMMON_DIR, excludes=["common_clib.c"])
+common_sources += glob_files(COMMON_DIR, excludes=["common_clib.cpp"])
 
 cvode_sources = []
 cvode_sources.append(os.path.join(SUNDIALS_DIR, 'cvode.pyx'))
-cvode_sources += glob_cfiles(SUNDIALS_DIR, excludes=["cvode.c"])
+cvode_sources += glob_files(SUNDIALS_DIR, excludes=["cvode.cpp"])
 
 baryakhtar_sources = []
 baryakhtar_sources.append(os.path.join(BARYAKHTAR_DIR, 'baryakhtar_clib.pyx'))
-baryakhtar_sources += glob_cfiles(BARYAKHTAR_DIR,
-                                  excludes=["baryakhtar_clib.c"])
+baryakhtar_sources += glob_files(BARYAKHTAR_DIR,
+                                  excludes=["baryakhtar_clib.cpp"])
 
 micro_sources = []
 micro_sources.append(os.path.join(MICRO_DIR, 'micro_clib.pyx'))
-micro_sources += glob_cfiles(MICRO_DIR, excludes=["micro_clib.c"])
+micro_sources += glob_files(MICRO_DIR, excludes=["micro_clib.cpp"])
 
 # NEB Method ------------------------------------------------------------------
 
 nebm_sources = []
 nebm_sources.append(os.path.join(NEBM_DIR, "nebm_clib.pyx"))
-nebm_sources += glob_cfiles(NEBM_DIR, excludes=["nebm_clib.c"])
+nebm_sources += glob_files(NEBM_DIR, excludes=["nebm_clib.cpp"])
 
 # -----------------------------------------------------------------------------
 
 dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
-dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
+dipolar_sources += glob_files(DEMAG_DIR, excludes=["dipolar.cpp"])
 
 
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
-com_args = ['-std=c99', '-O3', '-Wno-cpp', '-Wno-unused-function']
+com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function']
 # rpath is the path relative to the compiled shared object files (e.g. clib.so, etc)
 # which the dynamic linker looks for the linked libraries (e.g. libsundials_*.so) in.
 # We need to set it relatively in order for it to be preserved if the parent directory is moved
@@ -122,9 +121,6 @@ if 'icc' in os.environ['CC']:
     com_link.append('-openmp')
 else:
     com_args.append('-fopenmp')
-
-
-
     com_link.append('-fopenmp')
 
 
@@ -235,9 +231,9 @@ for folder in glob.glob(os.path.join(USER_DIR, '*/')):
     if filename_string != module_name:
         print(filename_string, module_name)
         raise BuildError("The Cython source file in {} must match the folder name - i.e. it must be {}.pyx".format(module_name, module_name))
-    cfilename = filename_string + '.c'
+    cfilename = filename_string + '.cpp'
     print(cfilename)
-    user_sources += glob_cfiles(folder, excludes=[cfilename])
+    user_sources += glob_files(folder, excludes=[cfilename])
 
     print(user_sources)
 
@@ -264,5 +260,5 @@ setup(
               'fidimag.extensions',
               'fidimag.common',
               ],
-    ext_modules=cythonize(ext_modules, nthreads=nthreads),
+    ext_modules=cythonize(ext_modules, nthreads=nthreads, compiler_directives={'linetrace': True}),
 )

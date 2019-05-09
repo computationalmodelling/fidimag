@@ -1,10 +1,10 @@
 #include "clib.h"
 
 
-void compute_anis(double *restrict spin, double *restrict field,
-                  double *restrict mu_s_inv,
-                  double *restrict energy,
-	              double *restrict Ku, double *restrict axis, int n) {
+void compute_anis(double * spin, double * field,
+                  double * mu_s_inv,
+                  double * energy,
+	              double * Ku, double * axis, int n) {
 
     /* Remember that the magnetisation order is
      *      mx1, my1, mz1, mx2, my2, mz2, mx3,...
@@ -40,10 +40,10 @@ void compute_anis(double *restrict spin, double *restrict field,
 }
 
 
-void compute_anis_cubic(double *restrict spin, double *restrict field,
-                        double *restrict mu_s_inv,
-                        double *restrict energy,
-                        double *restrict Kc, int n) {
+void compute_anis_cubic(double * spin, double * field,
+                        double * mu_s_inv,
+                        double * energy,
+                        double * Kc, int n) {
 
     /* Remember that the magnetisation order is
      *      mx1, my1, mz1, mx2, my2, mz2, mx3,...

@@ -35,11 +35,11 @@ The ngbs array also gives the correct indexes for the spins at periodic
 boundaries
 
  */
-void compute_exch_field(double *restrict spin, double *restrict field,
-                        double *restrict mu_s_inv,
-                        double *restrict energy,
+void compute_exch_field(double * spin, double * field,
+                        double * mu_s_inv,
+                        double * energy,
 						double Jx, double Jy, double Jz,
-                        int *restrict ngbs, int n, int n_ngbs) {
+                        int * ngbs, int n, int n_ngbs) {
 
     #pragma omp parallel for
 	for (int i = 0; i < n; i++) {
@@ -76,7 +76,7 @@ void compute_exch_field(double *restrict spin, double *restrict field,
 
 
 
-double compute_exch_energy(double *restrict spin,
+double compute_exch_energy(double * spin,
                            double Jx,  double Jy, double Jz,
                            int nx, int ny, int nz, int xperiodic, int yperiodic) {
 
@@ -145,10 +145,10 @@ double compute_exch_energy(double *restrict spin,
  Note that the pair <i,j> only run once for each pair.
 
  */
-void compute_exch_field_spatial(double *restrict spin, double *restrict field,
-                                double *restrict mu_s_inv,
-                                double *restrict energy,
-                                double *restrict J, int *restrict ngbs,
+void compute_exch_field_spatial(double * spin, double * field,
+                                double * mu_s_inv,
+                                double * energy,
+                                double * J, int * ngbs,
                                 int n, int n_ngbs) {
 
     #pragma omp parallel for
@@ -203,12 +203,12 @@ void compute_exch_field_spatial(double *restrict spin, double *restrict field,
  *                     Thus, we can locate ngbs from cols 0-5, 6-11, 12, 23, ... etc
  *
  */
-void compute_full_exch_field(double *restrict spin, double *restrict field,
-                             double *restrict mu_s_inv,
-                             double *restrict energy,
+void compute_full_exch_field(double * spin, double * field,
+                             double * mu_s_inv,
+                             double * energy,
 					      	 double J[9], int *ngbs, int n, int n_ngbs,
-                             int n_shells, int *restrict n_ngbs_shell,
-                             int *restrict sum_ngbs_shell
+                             int n_shells, int * n_ngbs_shell,
+                             int * sum_ngbs_shell
                              ) {
 
     #pragma omp parallel for

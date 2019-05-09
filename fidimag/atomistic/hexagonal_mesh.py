@@ -1,5 +1,4 @@
-
-"""
+r"""
 Represent hexagonal 2D mesh.
 
 The hexagons are pointy topped (as against flat topped). We use axial
@@ -38,6 +37,7 @@ For the SQUARE case, it is still not properly defined.
 Coordinates a
 
 """
+
 import numpy as np
 from math import sqrt
 

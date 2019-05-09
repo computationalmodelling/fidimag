@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 from libc.math cimport cos, sin
 
 def fast_sin_init(mesh, double[:] field, *params):

@@ -2,7 +2,7 @@
 #include "nebm_lib.h"
 #include "math.h"
 
-double compute_norm_spherical(double *restrict a, int n, int scale) {
+double compute_norm_spherical(double * a, int n, int scale) {
     /* Compute the norm of an array *a. *a is assumed to have spherical
      * coordinates as:
            
@@ -47,7 +47,7 @@ double compute_norm_spherical(double *restrict a, int n, int scale) {
     return norm;
 }
 
-void normalise_spherical(double *restrict a, int n){
+void normalise_spherical(double * a, int n){
 
     /* Normalise the *a array, whose length is n (3 * number of nodes in
      * cartesian, and 2 * number of nodes in spherical) To do this we compute
@@ -72,7 +72,7 @@ void normalise_spherical(double *restrict a, int n){
 }
 
 
-void normalise_images_spherical_C(double *restrict y, int n_images, int n_dofs_image){
+void normalise_images_spherical_C(double * y, int n_images, int n_dofs_image){
 
     int i;
 
@@ -89,8 +89,8 @@ void normalise_images_spherical_C(double *restrict y, int n_images, int n_dofs_i
 
 /* ------------------------------------------------------------------------- */
 
-double compute_distance_spherical(double *restrict A, double *restrict B, int n,
-                                  int *restrict material, int n_dofs_image_material
+double compute_distance_spherical(double * A, double * B, int n,
+                                  int * material, int n_dofs_image_material
                                   ) {
 
     double A_minus_B[n_dofs_image_material];
