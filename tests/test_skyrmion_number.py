@@ -49,7 +49,7 @@ def init_m_multiple_sks(pos, r, sk_pos):
 
 
 def test_skx_num_atomistic():
-    """
+    r"""
     Test the *finite spin chirality* or skyrmion number for
     a discrete spins simulation in a two dimensional lattice
 

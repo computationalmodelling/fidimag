@@ -86,7 +86,7 @@ class VerletIntegrator(BaseIntegrator):
         return 0
 
     def set_options(self, rtol=1e-8, atol=1e-8):
-        warnings.warn("Tolerances not available for VerletIntegrator")
+        raise NotImplementedError("Tolerances not available for VerletIntegrator")
 
     def _step(self, t, y, h, f):
         """

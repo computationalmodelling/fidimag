@@ -3,7 +3,7 @@ import fidimag.extensions.common_clib as clib
 
 
 def test_sst_field_1d():
-    """
+    r"""
     This is a direct test of the STT C library
     We create a 1-D  4 spins system along the x direction with the
     following components:

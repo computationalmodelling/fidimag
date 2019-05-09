@@ -260,5 +260,11 @@ setup(
               'fidimag.extensions',
               'fidimag.common',
               ],
-    ext_modules=cythonize(ext_modules, nthreads=nthreads, compiler_directives={'linetrace': True}),
+    ext_modules=cythonize(ext_modules,
+                          nthreads=nthreads,
+                          compiler_directives={
+                              'linetrace': True,
+                              'language_level': '3',
+                          }
+    ),
 )

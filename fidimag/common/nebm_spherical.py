@@ -13,7 +13,7 @@ log = logging.getLogger(name="fidimag")
 
 
 class NEBM_Spherical(ChainMethodBase):
-    """
+    r"""
 
     ARGUMENTS -----------------------------------------------------------------
 

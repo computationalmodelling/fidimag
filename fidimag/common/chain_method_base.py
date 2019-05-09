@@ -436,7 +436,9 @@ class ChainMethodBase(object):
                                                self.n_dofs_image,
                                                mass=1,
                                                stepsize=1e-4)
-            self.integrator.set_options()
+            # Note: disabled as at the moment, set_options does not
+            # do anything for the Verlet integrator!
+            # self.integrator.set_options()
             # In Verlet algorithm we only use the total force G and not YxYxG:
             self._llg_evolve = False
         else:
