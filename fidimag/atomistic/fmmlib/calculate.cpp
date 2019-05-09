@@ -5,7 +5,7 @@
 extern "C" {
 #include "operators.h"
 }
-  
+
 #include <iostream>
 #include <stack>
 #include <cmath>
@@ -32,7 +32,6 @@ void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
   }
   else {
     double *M = new double[Nterms(exporder+1)]();
-    #pragma omp parallel for
     for(size_t i = 0; i < (cells[cell].nleaf); i++) {
       int l = cells[cell].leaf[i];
       M[1] = particles[l].mux;
@@ -41,8 +40,6 @@ void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
       double dx = (particles[l].x - cells[cell].x);
       double dy = (particles[l].y - cells[cell].y);
       double dz = (particles[l].z - cells[cell].z);
-      #pragma omp critical
-      {
 	M2M(-dx, -dy, -dz, M, cells[cell].M.data(), exporder);
       }
     }
