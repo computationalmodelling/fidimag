@@ -1,4 +1,4 @@
-#include "baryakhtar_clib.h"
+#include "m_baryakhtar_clib.h"
 
 void compute_laplace_m(double *m, double *field, double *Ms, double dx,
 		double dy, double dz, int nx, int ny, int nz) {

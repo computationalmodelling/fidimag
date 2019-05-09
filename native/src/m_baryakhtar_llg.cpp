@@ -1,4 +1,6 @@
-#include "baryakhtar_clib.h"
+#include "m_clib.h"
+#include "m_baryakhtar_clib.h"
+
 
 void llg_rhs_baryakhtar(double *dm_dt, double *m, double *h, double *delta_h,
 		double *alpha, double beta, int *pins,

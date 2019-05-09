@@ -1,4 +1,4 @@
-#include "micro_clib.h"
+#include "m_clib.h"
 
 void compute_exch_field_micro(double * m, double * field, double * energy,
 			      double * Ms_inv, double A, double dx, double dy, double dz,

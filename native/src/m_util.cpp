@@ -1,4 +1,17 @@
-#include "micro_clib.h"
+#include "m_clib.h"
+
+double cross_x(double a0, double a1, double a2, double b0, double b1, double b2) {
+  return a1*b2 - a2*b1;
+}
+
+double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) {
+  return a2*b0 - a0*b2;
+}
+
+double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) {
+  return a0*b1 - a1*b0;
+}
+
 
 // Compute: S \cdot (S_i \times S_j)
 inline double volume(double S[3], double Si[3], double Sj[3]) {
