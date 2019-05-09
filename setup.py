@@ -1,30 +1,21 @@
 from distutils.core import setup
 from distutils.extension import Extension
 import multiprocessing
-# from Cython.Distutils import build_ext
+from tools import glob_files, BuildError, get_user_module_sources
 from Cython.Build import cythonize
 import numpy
-import os
 import glob
-import re
-import sys
-#if sys.platform == 'darwin':
-#    from distutils import sysconfig
-#    vars = sysconfig.get_config_vars()
-#    vars['LDSHARED'] = vars['LDSHARED'].replace('-bundle', '-dynamiclib')
+import os
 
-class BuildError(Exception):
-    pass
+version = '5.0alpha'
 
-
-if 'CC' in os.environ:
-    print("Using CC={}".format(os.environ['CC']))
-else:
-    os.environ["CC"] = "gcc"
-    print("Using CC={} (set by setup.py)".format(os.environ['CC']))
+#if 'CC' in os.environ:
+#    print("Using CC={}".format(os.environ['CC']))
+#else:
+#    os.environ["CC"] = "gcc"
+#    print("Using CC={} (set by setup.py)".format(os.environ['CC']))
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-print(MODULE_DIR)
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
 NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
@@ -35,42 +26,13 @@ MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
 USER_DIR = os.path.join(SRC_DIR, "user")
-print(USER_DIR)
-
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
-print("LIB_DIR={}".format(LIB_DIR))
-
-
-pkg_init_path = os.path.join(
-    os.path.dirname(__file__), 'fidimag', '__init__.py')
-
-
-def get_version():
-    with open(pkg_init_path) as f:
-        for line in f:
-            m = re.match(r'''__version__\s*=\s*(['"])(.+)\1''', line.strip())
-            if m:
-                return m.group(2)
-    raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
-
-version = get_version()
-
-
-def glob_files(path, excludes, extension="*.cpp"):
-    files = []
-    for srcfile in glob.glob(os.path.join(path, extension)):
-        filename = os.path.basename(srcfile)
-        if not filename in tuple(excludes):
-            files.append(srcfile)
-    return files
 
 sources = []
 sources.append(os.path.join(ATOM_DIR, 'clib.pyx'))
 sources += glob_files(ATOM_DIR, excludes=["clib.cpp"])
-
-
 
 common_sources = []
 common_sources.append(os.path.join(COMMON_DIR, 'common_clib.pyx'))
@@ -217,25 +179,9 @@ ext_modules = [
               ),
 ]
 
-
 for folder in glob.glob(os.path.join(USER_DIR, '*/')):
     module_name = folder.split('/')[-2]
-    print('Found User Module: {}'.format(module_name))
-    user_sources = glob.glob(folder + '/*.pyx')
-    print('\tFound Cython sources: {}'.format(user_sources))
-
-    if len(user_sources) != 1:
-        raise BuildError("User Modules are only allowed one Cython .pyx file")
-
-    filename_string = user_sources[0].split('/')[-1][:-4]
-    if filename_string != module_name:
-        print(filename_string, module_name)
-        raise BuildError("The Cython source file in {} must match the folder name - i.e. it must be {}.pyx".format(module_name, module_name))
-    cfilename = filename_string + '.cpp'
-    print(cfilename)
-    user_sources += glob_files(folder, excludes=[cfilename])
-
-    print(user_sources)
+    user_sources = get_user_module_sources(folder)
 
     ext_modules.append(
        Extension("fidimag.extensions.user.{}".format(module_name),
@@ -248,8 +194,11 @@ for folder in glob.glob(os.path.join(USER_DIR, '*/')):
        ),
     )
 
+
+
+
 nthreads = multiprocessing.cpu_count()
-print('Building with {} threads'.format(nthreads))
+
 setup(
     name='fidimag',
     version=version,
@@ -259,7 +208,7 @@ setup(
               'fidimag.micro',
               'fidimag.extensions',
               'fidimag.common',
-              ],
+    ],
     ext_modules=cythonize(ext_modules,
                           nthreads=nthreads,
                           compiler_directives={

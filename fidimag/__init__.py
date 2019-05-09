@@ -48,6 +48,3 @@ except ImportError as e:
          Processor: {}
          """
     print(message.format(FIDIMAG_DIR, e, platform.machine(), platform.platform(), platform.processor()))
-
-
-__version__ = '0.2'
