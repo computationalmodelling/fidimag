@@ -1,5 +1,5 @@
 #include<math.h>
-#include<complex.h>
+#include<complex>
 #include<fftw3.h>
 //#include<omp.h>
 
@@ -38,7 +38,7 @@ typedef struct {
   double *tensor_xz;
   double *tensor_yz;
 
-    //TODO: (1)using double, (2)using small size
+  //TODO: (1)using double, (2)using small size
   std::complex<double> *Nxx; //Nxx, Nxy .. are pure real now.
   std::complex<double> *Nyy;
   std::complex<double> *Nzz;
