@@ -1,8 +1,7 @@
-#ifndef __CLIB__
-#define __CLIB__
+#pragma once
 
 #include <math.h>
-//#include<omp.h>
+#include<omp.h>
 #define WIDE_PI 3.1415926535897932384626433832795L
 
 // ----------------------------------------------------------------------------
@@ -74,6 +73,3 @@ void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
 void sd_compute_step (double *spin, double *spin_last, double *magnetisation, double *field, 
                       double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                       int *pins, int n, int counter, double tmin, double tmax);
-
-
-#endif

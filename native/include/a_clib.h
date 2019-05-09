@@ -1,12 +1,11 @@
-#ifndef __CLIB__
-#define __CLIB__
+#pragma once
 
 #include <complex.h>
 #include <fftw3.h>
 #include <math.h>
-//#include<omp.h>
+#include<omp.h>
 
-#include "fidimag_random.h"
+#include "a_random.h"
 
 #define WIDE_PI 3.1415926535897932384626433832795L
 
@@ -118,5 +117,3 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
                  int *ngbs, int *nngbs, int n_ngbs, double J, double J1, double D,
                  double D1, double *h, double Kc, int n, double T,
                  int hexagonal_mesh);
-
-#endif

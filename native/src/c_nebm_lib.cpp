@@ -1,4 +1,4 @@
-#include "nebm_lib.h"
+#include "c_nebm_lib.h"
 #include "math.h"
 #include <stdlib.h>
 

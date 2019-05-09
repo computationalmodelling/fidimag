@@ -1,8 +1,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <omp.h>
-#include "dipolar.h"
-#include "demagcoef.h"
+#include "c_dipolar.h"
+#include "c_demagcoef.h"
 
 
 inline double Nxxdipole(double x, double y, double z) {

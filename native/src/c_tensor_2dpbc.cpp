@@ -1,8 +1,8 @@
 #include <math.h>
 #include <stdlib.h>
-#include "dipolar.h"
-#include "demagcoef.h"
-#include "tensor_2dpbc.h"
+#include "c_dipolar.h"
+#include "c_demagcoef.h"
+#include "c_tensor_2dpbc.h"
 
 double DemagTensorNormal(enum Type_Nij comp,double x,double y,double z,double a,double b,double c)
 {

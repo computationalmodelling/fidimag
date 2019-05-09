@@ -1,5 +1,5 @@
 #include "math.h"
-#include "nebm_lib.h"
+#include "c_nebm_lib.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -16,8 +16,6 @@ double step_Verlet_C(double * forces,
                      double (* update_field) (double, double *)
                       
                      ) {
-
-    printf("Hellooooooo\n");
 
     update_field(t, y);
 

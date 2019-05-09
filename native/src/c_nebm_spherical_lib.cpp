@@ -1,5 +1,5 @@
-#include "nebm_spherical_lib.h"
-#include "nebm_lib.h"
+#include "c_nebm_spherical_lib.h"
+#include "c_nebm_lib.h"
 #include "math.h"
 
 double compute_norm_spherical(double * a, int n, int scale) {

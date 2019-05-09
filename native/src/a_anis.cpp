@@ -1,4 +1,4 @@
-#include "clib.h"
+#include "a_clib.h"
 
 
 void compute_anis(double * spin, double * field,

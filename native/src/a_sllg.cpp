@@ -1,4 +1,4 @@
-#include "clib.h"
+#include "a_clib.h"
 
 /*
 * n is the spin number

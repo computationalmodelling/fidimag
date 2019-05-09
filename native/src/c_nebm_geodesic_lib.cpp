@@ -1,5 +1,5 @@
-#include "nebm_geodesic_lib.h"
-#include "nebm_lib.h"
+#include "c_nebm_geodesic_lib.h"
+#include "c_nebm_lib.h"
 #include "math.h"
 
 double compute_geodesic_Vincenty(double * A, double * B,

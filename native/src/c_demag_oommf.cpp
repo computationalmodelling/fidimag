@@ -42,8 +42,8 @@ to copyright protection within the United States.
 
 #include <math.h>
 #include <stdlib.h>
-#include "dipolar.h"
-#include "demagcoef.h"
+#include "c_dipolar.h"
+#include "c_demagcoef.h"
 
 
 /* FILE: demagcoef.cc            -*-Mode: c++-*-

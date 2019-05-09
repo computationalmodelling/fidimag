@@ -1,4 +1,4 @@
-#include "common_clib.h"
+#include "c_clib.h"
 #include "math.h"
 
 void sd_update_spin (double *spin, double *spin_last, double *magnetisation,

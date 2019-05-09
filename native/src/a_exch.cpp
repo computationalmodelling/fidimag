@@ -1,4 +1,4 @@
-#include "clib.h"
+#include "a_clib.h"
 
 /*
  compute the effective exchange field at site i

@@ -1,5 +1,5 @@
-#include "clib.h"
-#include "fidimag_random.h"
+#include "a_clib.h"
+#include "a_random.h"
 
 inline double dot(double a[3], double b[3]) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];

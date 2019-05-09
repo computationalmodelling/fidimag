@@ -1,7 +1,7 @@
 #include <stdlib.h>  // rand(), srand()
 #include <time.h>
 #include <math.h>
-#include "fidimag_random.h"
+#include "a_random.h"
 
 mt19937_state *create_mt19937_state(void) {
     
