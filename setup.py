@@ -180,9 +180,7 @@ ext_modules = [
 ]
 
 for folder in glob.glob(os.path.join(USER_DIR, '*/')):
-    module_name = folder.split('/')[-2]
-    user_sources = get_user_module_sources(folder)
-
+    module_name, user_sources = get_user_module_sources(folder)
     ext_modules.append(
        Extension("fidimag.extensions.user.{}".format(module_name),
           sources=user_sources,

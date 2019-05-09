@@ -16,6 +16,7 @@ class BuildError(Exception):
 
 
 def get_user_module_sources(folder):
+    module_name = folder.split('/')[-2]
     print('Found User Module: {}'.format(folder))
     user_sources = glob.glob(folder + '/*.pyx')
     print('\tFound Cython sources: {}'.format(user_sources))
@@ -31,4 +32,4 @@ def get_user_module_sources(folder):
     print(cfilename)
     user_sources += glob_files(folder, excludes=[cfilename])
     
-    return user_sources
+    return module_name, user_sources
