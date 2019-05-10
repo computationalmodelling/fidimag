@@ -1,9 +1,9 @@
 /* This file demag_oommf.h is taken from the OOMMF project (oommf/app/oxs/ext/demagcoef.h
 downloaded from http://math.nist.gov/oommf/dist/oommf12a5rc_20120928.tar.gz)
-with slightly modifications (change OC_REALWIDE to double) 
+with slightly modifications (change OC_REALWIDE to double)
 and distributed under this license shown below. */
 
-/* License 
+/* License
 
 OOMMF - Object Oriented MicroMagnetic Framework
 
@@ -130,49 +130,10 @@ double DemagNyzAsymptotic(double x, double y, double z,
                             double dx,double dy,double dz);
 
 
-
 ////////////////////////////////////////////////////////////////////////////
 // Routines to do accurate summation
 
-static int AS_Compare(const void* px,const void* py)
-{
-  // Comparison based on absolute values
-  double x=fabs(*((const double *)px));
-  double y=fabs(*((const double *)py));
-  if(x<y) return 1;
-  if(x>y) return -1;
-  return 0;
-}
 
+int AS_Compare(const void* px,const void* py);
 
-static double		       
-AccurateSum(int n,double *arr)
-{
-  // Order by decreasing magnitude
-  qsort(arr,n,sizeof(double),AS_Compare);
-
-  // Add up using doubly compensated summation.  If necessary, mark
-  // variables these "volatile" to protect against problems arising
-  // from extra precision.  Also, don't expect the compiler to respect
-  // order with respect to parentheses at high levels of optimization,
-  // i.e., write "u=x; u-=(y-corr)" as opposed to "u=x-(y-corr)".
-
-  double sum,corr,y,u,t,v,z,x,tmp;
-
-  sum=arr[0]; corr=0;
-  for(int i=1;i<n;i++) {
-    x=arr[i];
-    y=corr+x;
-    tmp=y-corr;
-    u=x-tmp;
-    t=y+sum;
-    tmp=t-sum;
-    v=y-tmp;
-    z=u+v;
-    sum=t+z;
-    tmp=sum-t;
-    corr=z-tmp;
-  }
-  return sum;
-}
-
+double AccurateSum(int n,double *arr);

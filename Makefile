@@ -43,13 +43,13 @@ build: $(LIBRARY)
 	CC=${CC} CXX=${CXX} CPPFLAGS="${CPPFLAGS}" ${PYTHON} setup.py build_ext --inplace
 
 
-
-
 clean:
 	rm -rf ${EXTENSIONS_DIR}/*
 	touch ${EXTENSIONS_DIR}/__init__.py
 	rm -rf build
 	rm -rf $(OBJECTS) $(TARGET) *.dSYM
+	find fidimag/ "*.cpp" -exec echo {} \;
+
 
 docker:
 	docker build -t fidimag -f ./docker/travis/Dockerfile .

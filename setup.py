@@ -21,8 +21,7 @@ com_link = ['-Wl,-rpath,{}'.format(LIB_DIR)]
 lib_paths = [LIB_DIR, os.path.join(MODULE_DIR, 'native')]
 com_inc = [numpy.get_include(), INCLUDE_DIR, os.path.join(MODULE_DIR, 'native', 'include')]
 com_libs = ['fidimag']
-com_args = ['-fopenmp']
-
+com_args = []
 
 if 'SUNDIALS_INC' in os.environ:
      com_inc.append(os.environ['SUNDIALS_INC'])

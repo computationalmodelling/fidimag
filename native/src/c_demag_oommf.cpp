@@ -1,9 +1,9 @@
-/* This file demag_oommf.c is taken from the OOMMF project (oommf/app/oxs/ext/demagcoef.cc 
+/* This file demag_oommf.c is taken from the OOMMF project (oommf/app/oxs/ext/demagcoef.cc
 downloaded from http://math.nist.gov/oommf/dist/oommf12a5rc_20120928.tar.gz)
-with slightly modifications (change OC_REALWIDE to double) 
+with slightly modifications (change OC_REALWIDE to double)
 and distributed under this license shown below. */
 
-/* License 
+/* License
 
 OOMMF - Object Oriented MicroMagnetic Framework
 
@@ -44,6 +44,46 @@ to copyright protection within the United States.
 #include <stdlib.h>
 #include "c_dipolar.h"
 #include "c_demagcoef.h"
+
+
+int AS_Compare(const void* px,const void* py) {
+  // Comparison based on absolute values
+  double x=fabs(*((const double *)px));
+  double y=fabs(*((const double *)py));
+  if(x<y) return 1;
+  if(x>y) return -1;
+  return 0;
+}
+
+
+double AccurateSum(int n,double *arr) {
+  // Order by decreasing magnitude
+  qsort(arr,n,sizeof(double), AS_Compare);
+
+  // Add up using doubly compensated summation.  If necessary, mark
+  // variables these "volatile" to protect against problems arising
+  // from extra precision.  Also, don't expect the compiler to respect
+  // order with respect to parentheses at high levels of optimization,
+  // i.e., write "u=x; u-=(y-corr)" as opposed to "u=x-(y-corr)".
+
+  double sum,corr,y,u,t,v,z,x,tmp;
+
+  sum=arr[0]; corr=0;
+  for(int i=1;i<n;i++) {
+    x=arr[i];
+    y=corr+x;
+    tmp=y-corr;
+    u=x-tmp;
+    t=y+sum;
+    tmp=t-sum;
+    v=y-tmp;
+    z=u+v;
+    sum=t+z;
+    tmp=sum-t;
+    corr=z-tmp;
+  }
+  return sum;
+}
 
 
 /* FILE: demagcoef.cc            -*-Mode: c++-*-
@@ -122,7 +162,7 @@ to copyright protection within the United States.
 
 
 ////////////////////////////////////////////////////////////////////////////
-// Routines to calculate kernel coefficients
+// Routines to calculate kernel coefficientsAS_
 // See Newell et al. for details. The code below follows the
 // naming conventions in that paper.
 
@@ -131,7 +171,7 @@ double SelfDemagNx(double x,double y,double z)
   // Note: egcs-2.91.57 on Linux/x86 with -O1 mangles this
   //  function (produces NaN's) unless we manually group terms.
 
-  if(x<=0.0 || y<=0.0 || z<=0.0) 
+  if(x<=0.0 || y<=0.0 || z<=0.0)
     return 0.0;
   if (x==y && y==z)
     return 1./3.;  // Special case: cube
@@ -285,16 +325,16 @@ Newell_g(double x,double y,double z)
   // handle if t=y/x (for example) as x -> 0.
 
   double result_sign=1.0;
-  if(x<0.0) 
-    result_sign *= -1.0;  
-  if(y<0.0) 
+  if(x<0.0)
+    result_sign *= -1.0;
+  if(y<0.0)
     result_sign *= -1.0;
   x=fabs(x); y=fabs(y); z=fabs(z);  // This function is even in z and
   /// odd in x and y.  The fabs()'s simplify special case handling.
 
   double xsq=x*x,ysq=y*y,zsq=z*z;
   double R=xsq+ysq+zsq;
-  if(R<=0.0) 
+  if(R<=0.0)
     return 0.0;
   else
     R=sqrt(R);
@@ -424,7 +464,7 @@ double DemagNxxAsymptotic(double x, double y, double z,
     term5 *= 0.25;
   }
 
-  double term7 = 0.0;  
+  double term7 = 0.0;
   {
   double b1  =   32*dx4  -  40*dx2dy2  -  40*dx2dz2   +  12*dy4   +  10*dy2dz2   +  12*dz4;
   double b2  = -240*dx4  + 580*dx2dy2  +  20*dx2dz2   - 202*dy4   -  75*dy2dz2   +  22*dz4;
