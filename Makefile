@@ -40,7 +40,7 @@ $(LIBRARY) : $(OBJECTS)
 
 
 build: $(LIBRARY)
-	CC=${CC} CXX=${CXX} ${PYTHON} setup.py build_ext --inplace
+	CC=${CC} CXX=${CXX} CPPFLAGS="${CPPFLAGS}" ${PYTHON} setup.py build_ext --inplace
 
 
 
