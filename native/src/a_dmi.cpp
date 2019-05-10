@@ -1,6 +1,7 @@
 #include "a_clib.h"
 #include "math.h"
 #include "stdlib.h"
+#include "c_vectormath.h"
 
 /* NOTES about the neighbours array in the arguments:
 

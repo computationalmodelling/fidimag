@@ -1,6 +1,9 @@
 #include "a_clib.h"
-#include "complex.h"
-#include "math.h"
+#include "c_vectormath.h"
+#include<complex>
+#include<cmath>
+
+using namespace std::complex_literals;
 
 // compute the S \cdot (S_i \times S_j)
 inline double volume(double S[3], double Si[3], double Sj[3]) {
@@ -31,7 +34,7 @@ double skyrmion_number(double * spin, double * charge, int nx, int ny, int nz,
    * lattice site. The array is like:
    *
    *                                        __ indexes beyond nearest neighbours
-   *                                       | 
+   *                                       |
    *      [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, ... 1-x, 1+x, 1-y, ...  ]
    *        i=0                               i=n_ngbs       ...
    *
@@ -161,20 +164,6 @@ double skyrmion_number(double * spin, double * charge, int nx, int ny, int nz,
   return sum;
 }
 
-double dot(double *a, double *b) {
-  /* Dot product for vectors of 3 components, given by arrays a and b.  If
-   * pointers are passed, it uses the first three components starting from
-   * that place in memory, i.e. if we pass &a[2], where a = {0, 1, 2, 3, 4},
-   * the dot product uses {2, 3, 4} as a vector (same for b)
-   */
-  double dp = 0;
-  int i;
-
-  for (i = 0; i < 3; i++)
-    dp += a[i] * b[i];
-  return dp;
-}
-
 double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
 
   /* Compute the spherical angle given by the neighbouring spin 3-vectors s1,
@@ -182,11 +171,9 @@ double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
    * -dot- function). The spherical angle Omega, defined by the
    *  vectors in a unit sphere, is computed using the imaginary exponential
    *  defined by Berg and Luscher [Nucl Phys B 190, 412 (1981)]:
-
    *   exp (i sigma Omega) = 1 + s1 * s2 + s2 * s3 + s3 * s1 + i s1 * (s2 X s3)
    *                         ------------------------------------------------
    *                            2 (1 + s1 * s2) (1 + s2 * s3) (1 + s3 * s1)
-
    * The denominator is a normalisation factor which we call rho, and i
    * stands for an imaginary number in the numerator. The factor sigma is an
    * orientation given by sign(s1 * s2 X s3), however, we do not use it since
@@ -194,9 +181,7 @@ double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
    * spins, as pointed out by Yin et al. [PRB 93, 174403 (2016)].
    *
    * Therefore we use a complex logarithm:
-
    *      clog( r * exp(i theta) ) = r + i theta
-
    * to calculate the angle Omega, since the clog is well defined in the
    * [-PI, PI] range, giving the correct sign for the topological number (we
    * could also use the arcsin when decomposing the exp).
@@ -206,21 +191,19 @@ double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
    */
 
   double rho;
-  double _Complex exp;
+  std::complex<double> exp;
   double crossp[3];
 
-  crossp[0] = s2[1] * s3[2] - s2[2] * s3[1];
-  crossp[1] = s2[2] * s3[0] - s2[0] * s3[2];
-  crossp[2] = s2[0] * s3[1] - s2[1] * s3[0];
+  cross(crossp, s2, s3);
 
-  rho = sqrt(2 * (1 + dot(&s1[0], &s2[0])) * (1 + dot(&s2[0], &s3[0])) *
-             (1 + dot(&s3[0], &s1[0])));
+  rho = sqrt(2 * (1 + dot(&s1[0], &s2[0], 3)) * (1 + dot(&s2[0], &s3[0], 3)) *
+             (1 + dot(&s3[0], &s1[0], 3)));
 
-  exp = (1 + dot(&s1[0], &s2[0]) + dot(&s2[0], &s3[0]) + dot(&s3[0], &s1[0]) +
-         I * dot(&s1[0], &crossp[0])) /
+  exp = (1 + dot(&s1[0], &s2[0], 3) + dot(&s2[0], &s3[0], 3) + dot(&s3[0], &s1[0], 3) +
+         1i * dot(&s1[0], &crossp[0], 3)) /
         rho;
 
-  return 2 * cimagl(clog(exp)) / (4 * WIDE_PI);
+  return 2 * std::imag(std::log(exp)) / (4 * WIDE_PI);
 }
 
 double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
@@ -240,8 +223,8 @@ double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,
    * site. The first 6 elements are the NEAREST neighbours. For cuboid meshes,
    * the array is like:
    *
-   *                                          __ indexes beyond nearest ngbs  
-   *                                          |  
+   *                                          __ indexes beyond nearest ngbs
+   *                                          |
    *  NN:      j =0  j=1 ...                  |  j=0  j=1  ...
    *         [ 0-x, 0+x, 0-y, 0+y, 0-z, 0+z, ... 1-x, 1+x, 1-y, ...  ]
    *  spin:   i=n_ngbs * 0                       i=n_ngbs * 1

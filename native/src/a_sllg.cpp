@@ -1,4 +1,5 @@
 #include "a_clib.h"
+#include "c_vectormath.h"
 
 /*
 * n is the spin number
@@ -42,21 +43,3 @@ void llg_rhs_dw_c(double * m, double * h, double * dm, double * T, double * alph
 	}
 }
 
-void normalise(double * m, int * pins, int n){
-	int i, j, k;
-	double mm;
-	for (int id = 0; id < n; id++) {
-			i = 3*id;
-			j = i + 1;
-			k = j + 1;
-
-		        if (pins[id]>0) continue;
-	
-
-			mm = 1.0 / sqrt(m[i] * m[i] + m[j] * m[j] + m[k] * m[k]);
-			m[i] *= mm;
-			m[j] *= mm;
-			m[k] *= mm;
-
-	}
-}

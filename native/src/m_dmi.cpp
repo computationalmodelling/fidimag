@@ -1,3 +1,4 @@
+#include "c_vectormath.h"
 #include "m_clib.h"
 #include <stdlib.h>
 #include <stdio.h>

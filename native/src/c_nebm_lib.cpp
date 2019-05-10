@@ -1,68 +1,7 @@
 #include "c_nebm_lib.h"
 #include "math.h"
 #include <stdlib.h>
-
-void cross_product(double * output, double * A, double * B){
-    /* Cross product between arrays A and B, assuming they
-     * have length = 3
-     * Every resulting component is stored in the *output array
-     */
-
-    output[0] = A[1] * B[2] - A[2] * B[1];
-    output[1] = A[2] * B[0] - A[0] * B[2];
-    output[2] = A[0] * B[1] - A[1] * B[0];
-}
-
-double dot_product(double * A, double * B, int n){
-    /* Dot product between arrays A and B , assuming they
-     * have length n */
-
-    double dotp = 0;
-    for(int i = 0; i < n; i++){
-        dotp += A[i] * B[i];
-    }
-
-    return dotp;
-}
-
-double compute_norm(double * a, int n) {
-    /* Compute the norm of an array *a
-     *
-     * ARGUMENTS:
-
-     * n        :: length of a
-
-     */
-
-    double norm = 0;
-    for(int i = 0; i < n; i++){ norm += a[i] * a[i]; }
-    norm = sqrt(norm);
-    return norm;
-}
-
-void normalise(double * a, int n){
-
-    /* Normalise the *a array, whose length is n (3 * number of nodes in
-     * cartesian, and 2 * number of nodes in spherical) To do this we compute
-     * the length of *a :
-     *
-     *      SQRT[ a[0] ** 2 + a[1] ** 2 + ... ]
-     *
-     *  and divide every *a entry by that length
-     */
-
-    double length;
-
-    length = compute_norm(a, n);
-
-    if (length > 0){
-        length = 1.0 / length;
-    }
-
-    for(int i = 0; i < n; i++){
-        a[i] *= length;
-    }
-}
+#include "c_vectormath.h"
 
 
 void normalise_images_C(double * y, int n_images, int n_dofs_image){
@@ -79,6 +18,7 @@ void normalise_images_C(double * y, int n_images, int n_dofs_image){
         normalise(y_i, n_dofs_image);
     }
 }
+
 
 void normalise_spins_C(double * y, int n_images, int n_dofs_image){
 
@@ -365,7 +305,7 @@ void compute_effective_force_C(double * G,
         double * gradE = &gradientE[im_idx];
         double * sf = &spring_force[im_idx];
 
-        gradE_dot_t = dot_product(gradE, t, n_dofs_image);
+        gradE_dot_t = dot(gradE, t, n_dofs_image);
 
         if(climbing_image[i] == 0) {
             for(j = 0; j < n_dofs_image; j++) {
@@ -464,7 +404,7 @@ void project_vector_C(double * vector, double * y_i,
         // dot product of the i-th vector (i.e. using
         //      ( vector[j], vector[j+1], vector[j+2] ) , j=0,3,6, ... )
         // and then compute the projection for the 3 components of the vector
-        if (j % 3 == 0) v_dot_m_i = dot_product(&vector[j], &y_i[j], 3);
+        if (j % 3 == 0) v_dot_m_i = dot(&vector[j], &y_i[j], 3);
         vector[j] = vector[j] - v_dot_m_i * y_i[j];
     }
 }
@@ -584,8 +524,8 @@ void compute_dYdt(double * Y, double * G, double * dYdt,
 		    continue;
 		}
 
-        double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
-       	double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
+        double Y_dot_Y = dot(&Y[j], &Y[j], 3);
+       	double Y_dot_G = dot(&Y[j], &G[j], 3);
         // (Y * Y) G - (Y * G) Y = - Y x (Y x G)
        	dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
        	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
@@ -633,12 +573,13 @@ void compute_dYdt_nc(double * Y, double * G, double * dYdt,
 		    continue;
 		}
 
-        double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
-       	double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
+      double Y_dot_Y = dot(&Y[j], &Y[j], 3);
+      double Y_dot_G = dot(&Y[j], &G[j], 3);
+
         // (Y * Y) G - (Y * G) Y = - Y x (Y x G)
-       	dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
-       	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
-       	dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
+      dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
+      dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
+      dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
     }
 }
 

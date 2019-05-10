@@ -7,6 +7,7 @@ cimport openmp
 np.import_array()  # don't remove or you'll segfault
 from libc.string cimport memcpy
 import sys
+from fidimag.common cimport vectormath
 
 
 cdef extern from "sundials/sundials_types.h":
@@ -16,7 +17,7 @@ cdef extern from "sundials/sundials_types.h":
 cdef extern from "sundials/sundials_nvector.h":
     cdef struct _generic_N_Vector:
         void *content
-        
+
     ctypedef _generic_N_Vector *N_Vector
     N_Vector N_VNew_Serial(long int vec_length)
     N_Vector N_VNew_OpenMP(long int vec_length, int num_threads)
@@ -170,15 +171,9 @@ cdef extern from "sundials/sundials_iterative.h":
     int PREC_LEFT
     int PREC_RIGHT
     int PREC_BOTH
-    
+ 
     int MODIFIED_GS
     int CLASSICAL_GS
-
-
-
-cdef extern from "a_clib.h":
-    void normalise(double * m, int nxyz)
-
 
 cdef struct cv_userdata:
     void * rhs_fun

@@ -1,8 +1,10 @@
 # distutils: language = c++
-
 import numpy
 cimport numpy as np
+cimport fidimag.common.vectormath as vmath
 np.import_array()
+
+
 
 cdef extern from "a_random.h":
     ctypedef struct mt19937_state:
@@ -96,8 +98,6 @@ cdef extern from "a_clib.h":
                             double *energy, double *Kc, int n)
 
     # -------------------------------------------------------------------------
-
-    void normalise(double *m, int *pins, int n)
 
     # used for sllg
     void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha,
@@ -272,7 +272,7 @@ def compute_demag_full(double [:] spin,
 
 def normalise_spin(np.ndarray[double, ndim=1, mode="c"] spin,
               np.ndarray[int, ndim=1, mode="c"] pins, n):
-    normalise(&spin[0], &pins[0], n)
+    vmath.normalise(&spin[0], &pins[0], n)
 
 def compute_llg_rhs_dw(double [:] dm,
                        double [:] spin,

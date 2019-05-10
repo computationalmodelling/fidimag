@@ -1,16 +1,5 @@
 #include "m_clib.h"
-
-double cross_x(double a0, double a1, double a2, double b0, double b1, double b2) {
-  return a1*b2 - a2*b1;
-}
-
-double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) {
-  return a2*b0 - a0*b2;
-}
-
-double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) {
-  return a0*b1 - a1*b0;
-}
+#include "c_vectormath.h"
 
 
 // Compute: S \cdot (S_i \times S_j)
@@ -48,7 +37,7 @@ double skyrmion_number(double * spin, double * charge,
      *
      * The *spin array is the vector field for a two dimensional
      * lattice with dimensions nx * ny
-     * (we can take a slice of a bulk from Python and pass it here, 
+     * (we can take a slice of a bulk from Python and pass it here,
      *  remember to do the ame for the neighbours matrix)
      * The array follows the order:
      *   [Sx0 Sy0 Sz0 Sx1 Sy1 Sz1 ... ]
@@ -76,9 +65,9 @@ double skyrmion_number(double * spin, double * charge,
 
     /* Store the spin directions of the nearest neighbours
      * in the order: [-x +x -y +y]
-     */ 
+     */
     double S_nn[12];
-  
+
         for(i=0;i<12;i++){
           S_nn[i] = 0; //we have to set S_nn to zeros manually
         }
@@ -86,7 +75,7 @@ double skyrmion_number(double * spin, double * charge,
 	for (i = 0; i < nxy; i++) {
         index = 3 * i;
 
-        /* The starting index of the nearest neighbours for the 
+        /* The starting index of the nearest neighbours for the
          * i-th spin */
         int id_nn = 6 * i;
 

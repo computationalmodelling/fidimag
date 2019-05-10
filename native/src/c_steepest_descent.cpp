@@ -1,5 +1,6 @@
 #include "c_clib.h"
 #include "math.h"
+#include "c_vectormath.h"
 
 void sd_update_spin (double *spin, double *spin_last, double *magnetisation,
                      double *mxH, double *mxmxH, double *mxmxH_last, double tau,

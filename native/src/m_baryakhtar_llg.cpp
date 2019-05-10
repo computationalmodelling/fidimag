@@ -1,3 +1,4 @@
+#include "c_vectormath.h"
 #include "m_clib.h"
 #include "m_baryakhtar_clib.h"
 

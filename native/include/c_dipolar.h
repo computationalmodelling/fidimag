@@ -1,13 +1,10 @@
 #include<math.h>
 #include<complex>
 #include<fftw3.h>
+#include "c_vectormath.h"
 //#include<omp.h>
 
 #define WIDE_PI 3.1415926535897932384626433832795L
-
-inline double cross_x(double a0, double a1, double a2, double b0, double b1, double b2) { return a1*b2 - a2*b1; }
-inline double cross_y(double a0, double a1, double a2, double b0, double b1, double b2) { return a2*b0 - a0*b2; }
-inline double cross_z(double a0, double a1, double a2, double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
 
 enum Type_Nij {

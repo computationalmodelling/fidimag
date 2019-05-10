@@ -1,6 +1,8 @@
 #include "c_nebm_geodesic_lib.h"
 #include "c_nebm_lib.h"
 #include "math.h"
+#include "c_vectormath.h"
+
 
 double compute_geodesic_Vincenty(double * A, double * B,
                                  int n_dofs_image,
@@ -68,9 +70,9 @@ double compute_geodesic_Vincenty(double * A, double * B,
         if (material[3 * i] > 0) {
             spin_i = 3 * i;
 
-            cross_product(A_cross_B, &A[spin_i], &B[spin_i]);
+            cross(A_cross_B, &A[spin_i], &B[spin_i]);
             A_cross_B_norm = compute_norm(A_cross_B, 3);
-            A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
+            A_dot_B = dot(&A[spin_i], &B[spin_i], 3);
             geo_dist = atan2(A_cross_B_norm, A_dot_B);
 
             distance += geo_dist * geo_dist;
@@ -131,7 +133,7 @@ double compute_geodesic_GreatCircle(double * A, double * B,
         if (material[3 * i] > 0) {
             spin_i = 3 * i;
 
-            A_dot_B = dot_product(&A[spin_i], &B[spin_i], 3);
+            A_dot_B = dot(&A[spin_i], &B[spin_i], 3);
             // Prevent nans
             A_dot_B = fmax(-1.0, fmin(1.0, A_dot_B));
             geo_dist = acos(A_dot_B);

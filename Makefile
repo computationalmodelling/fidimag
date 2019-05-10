@@ -20,7 +20,8 @@ CPPFLAGS = -fPIC -g -Iinclude/ \
            -lfftw3_omp -lfftw3 \
            -lsundials_cvodes -lsundials_nvecserial -lsundials_nvecopenmp \
            -lblas -llapack \
-           -fopenmp
+           -fopenmp \
+           -std=c++14
 
 LDFLAGS = -shared
 SOURCES = $(shell echo native/src/*.cpp)

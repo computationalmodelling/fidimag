@@ -1,4 +1,5 @@
 #include "c_clib.h"
+#include "c_vectormath.h"
 
 /* Calculation of the STT field using the Zhang Li formalism, which
  * is

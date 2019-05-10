@@ -1,5 +1,7 @@
 # distutils: language = c++
 
+cimport fidimag.common.vectormath as vmath
+
 cdef extern from "c_nebm_lib.h":
     void compute_tangents_C(double *tangents,
                             double *y,
@@ -23,7 +25,7 @@ cdef extern from "c_nebm_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
-    void normalise(double * a, int n)
+
     void normalise_images_C(double * y, int n_images, int n_dofs_image)
     void normalise_spins_C(double * y, int n_images, int n_dofs_image)
     double compute_distance_cartesian(double * A, double * B, int n_dofs_image,
@@ -112,7 +114,7 @@ def compute_effective_force(double [:] G,
                               )
 
 def normalise_clib(double [:] a, n):
-    normalise(&a[0], n)
+    vmath.normalise(&a[0], n)
 
 def project_images(double [:]  vector,
                    double [:]  y,
