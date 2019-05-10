@@ -6,6 +6,11 @@
 *.pdf
 *.tmp
 *.so
+*.o
+*.dSYM
+fidimag/**/*.cpp
+
+
 local/
 *~
 *.bak

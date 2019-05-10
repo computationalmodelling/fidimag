@@ -2,7 +2,7 @@ from __future__ import division
 
 from .micro_driver import MicroDriver
 
-import fidimag.extensions.common_clib as clib
+import fidimag.extensions.c_clib as clib
 import numpy as np
 
 import fidimag.common.helper as helper

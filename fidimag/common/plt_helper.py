@@ -1,11 +1,8 @@
 from __future__ import division
-# import matplotlib as mpl
-# mpl.use("Agg")
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as clib
 import numpy as np
 
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import colorConverter
 from matplotlib.collections import PolyCollection
 

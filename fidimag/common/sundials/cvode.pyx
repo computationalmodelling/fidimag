@@ -176,7 +176,7 @@ cdef extern from "sundials/sundials_iterative.h":
 
 
 
-cdef extern from "../../atomistic/lib/clib.h":
+cdef extern from "a_clib.h":
     void normalise(double * m, int nxyz)
 
 

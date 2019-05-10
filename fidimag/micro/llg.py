@@ -3,7 +3,7 @@ from __future__ import print_function
 
 # We use the common/lib/llg.c file to calculate the LLG equation for
 # the micromagnetic case
-import fidimag.extensions.common_clib as clib
+import fidimag.extensions.c_clib as clib
 
 from .micro_driver import MicroDriver
 

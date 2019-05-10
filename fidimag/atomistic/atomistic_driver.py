@@ -3,7 +3,7 @@ from __future__ import print_function
 
 from fidimag.common.driver_base import DriverBase
 
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as clib
 import fidimag.extensions.cvode as cvode
 from fidimag.common.vtk import VTK
 import fidimag.common.constant as const

@@ -2,7 +2,7 @@ from __future__ import division
 from __future__ import print_function
 import os
 import numpy as np
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as clib
 from fidimag.common.fileio import DataSaver
 import fidimag.common.helper as helper
 import fidimag.common.constant as const

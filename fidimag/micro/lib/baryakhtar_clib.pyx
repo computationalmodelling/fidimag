@@ -3,7 +3,7 @@ import numpy
 cimport numpy as np
 np.import_array()
 
-cdef extern from "baryakhtar_clib.h":
+cdef extern from "m_baryakhtar_clib.h":
     void compute_laplace_m(double *m, double *field, double *Ms, double dx, double dy, double dz,
         int nx, int ny, int nz)
 

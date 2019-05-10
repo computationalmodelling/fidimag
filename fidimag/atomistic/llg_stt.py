@@ -1,6 +1,5 @@
 from __future__ import division
-
-import fidimag.extensions.common_clib as clib
+import fidimag.extensions.c_clib as clib
 import numpy as np
 
 from .atomistic_driver import AtomisticDriver

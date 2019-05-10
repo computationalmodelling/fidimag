@@ -5,7 +5,7 @@ import numpy as np
 
 # -----------------------------------------------------------------------------
 
-cdef extern from "common_clib.h":
+cdef extern from "c_clib.h":
 
     # From: llg.c
     void llg_rhs(double * dm_dt, double * spin,

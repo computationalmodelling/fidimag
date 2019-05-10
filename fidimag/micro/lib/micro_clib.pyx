@@ -2,7 +2,7 @@
 import numpy as np
 cimport numpy as np
 
-cdef extern from "micro_clib.h":
+cdef extern from "m_clib.h":
     void compute_exch_field_micro(double *m, double *field,
                                   double *energy, double *Ms_inv,
                                   double A, double dx, double dy, double dz,

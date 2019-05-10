@@ -7,7 +7,7 @@ from fidimag.common.steepest_descent import SteepestDescent
 
 import fidimag.common.skyrmion_number
 import fidimag.common.helper as helper
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as clib
 import numpy as np
 
 from fidimag.common.sim_base import SimBase

@@ -1,4 +1,4 @@
-import fidimag.extensions.clib
+import fidimag.extensions.a_clib
 import fidimag.extensions.micro_clib
 import numpy as np
 
@@ -69,7 +69,7 @@ def skyrmion_number_slice(sim, at=None, zIndex=None):
                spinSlice, sim._skx_number, sim.mesh.nx, sim.mesh.ny,
                sim.mesh.nz, sim.mesh.neighbours)
     else:
-        return fidimag.extensions.clib.compute_skyrmion_number(\
+        return fidimag.extensions.a_clib.compute_skyrmion_number(\
                spinSlice, sim._skx_number, sim.mesh.nx, sim.mesh.ny,
                sim.mesh.nz, sim.mesh.neighbours)
 
@@ -104,7 +104,7 @@ def skyrmion_number_lee(sim):
                                   sim.mesh.ny, sim.mesh.nz,
                                   sim.mesh.neighbours)
         else:
-            skyrmionNumbers[zI] = fidimag.extensions.clib.compute_skyrmion_number(\
+            skyrmionNumbers[zI] = fidimag.extensions.a_clib.compute_skyrmion_number(\
                                   spinSlice, sim._skx_number, sim.mesh.nx,
                                   sim.mesh.ny, sim.mesh.nz,
                                   sim.mesh.neighbours, 6)

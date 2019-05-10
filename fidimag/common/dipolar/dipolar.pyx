@@ -6,7 +6,7 @@ import ctypes
 cimport numpy as np
 np.import_array()
 
-cdef extern from "dipolar.h":
+cdef extern from "c_dipolar.h":
     # used for demag
     ctypedef struct fft_demag_plan:
         int nx, ny, nz
@@ -186,7 +186,7 @@ cdef class FFTDemag(object):
                                     &field[0], &energy[0])
 
 
-cdef extern from "demagcoef.h":
+cdef extern from "c_demagcoef.h":
     double CalculateSDA00(double x, double y, double z, double dx,double dy,double dz)
     double DemagNxxAsymptotic(double x, double y, double z, double dx,double dy,double dz)
 

@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as a_clib
 # import fidimag.common.constant as const
 
 from .minimiser_base import MinimiserBase

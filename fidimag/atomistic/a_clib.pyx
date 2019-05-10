@@ -4,7 +4,7 @@ import numpy
 cimport numpy as np
 np.import_array()
 
-cdef extern from "fidimag_random.h":
+cdef extern from "a_random.h":
     ctypedef struct mt19937_state:
         pass
 
@@ -20,7 +20,7 @@ cdef extern from "time.h":
     ctypedef int time_t
     time_t time(time_t *timer)
 
-cdef extern from "clib.h":
+cdef extern from "a_clib.h":
     void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
                      int *ngbs, int *nngbs, int n_ngbs,
                      double J, double J1, double D, double D1,

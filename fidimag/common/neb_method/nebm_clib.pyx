@@ -1,6 +1,6 @@
 # distutils: language = c++
 
-cdef extern from "nebm_lib.h":
+cdef extern from "c_nebm_lib.h":
     void compute_tangents_C(double *tangents,
                             double *y,
                             double *energies,
@@ -59,7 +59,7 @@ cdef extern from "nebm_lib.h":
                                    int n_images,
                                    int n_dofs_image)
 
-cdef extern from "nebm_integrators.h":
+cdef extern from "c_nebm_integrators.h":
     double step_Verlet_C(double * forces,
                          double * forces_prev,
                          double * velocities,
@@ -177,7 +177,7 @@ def compute_dYdt_nc(double [:]  y,
 
 
 
-cdef extern from "nebm_geodesic_lib.h":
+cdef extern from "c_nebm_geodesic_lib.h":
     double compute_geodesic_GreatCircle(double * A, double * B,
                                      int n_dofs_image,
                                      int * material,
@@ -230,7 +230,7 @@ def image_distances_GreatCircle(double [:] distances,
                                    )
 
 
-cdef extern from "nebm_spherical_lib.h":
+cdef extern from "c_nebm_spherical_lib.h":
     void normalise_spherical(double * a, int n)
     void normalise_images_spherical_C(double * y, int n_images,
                                       int n_dofs_image)

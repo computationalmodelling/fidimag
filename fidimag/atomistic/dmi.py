@@ -1,4 +1,4 @@
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as clib
 from .energy import Energy
 import numpy as np
 

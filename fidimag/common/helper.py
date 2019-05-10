@@ -1,8 +1,8 @@
-from fidimag.extensions.common_clib import normalise
-from fidimag.extensions.common_clib import init_scalar
-from fidimag.extensions.common_clib import init_vector
-from fidimag.extensions.common_clib import init_vector_func_fast
-import fidimag.extensions.clib as clib
+from fidimag.extensions.c_clib import normalise
+from fidimag.extensions.c_clib import init_scalar
+from fidimag.extensions.c_clib import init_vector
+from fidimag.extensions.c_clib import init_vector_func_fast
+import fidimag.extensions.a_clib as clib
 import numpy as np
 
 

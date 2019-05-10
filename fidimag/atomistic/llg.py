@@ -2,7 +2,7 @@ from __future__ import division
 from __future__ import print_function
 
 # Use the common C library for the LLG equation in the atomistic case
-import fidimag.extensions.common_clib as clib
+import fidimag.extensions.c_clib as clib
 
 from .atomistic_driver import AtomisticDriver
 

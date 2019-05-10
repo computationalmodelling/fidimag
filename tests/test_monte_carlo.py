@@ -2,7 +2,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
 
-import fidimag.extensions.clib as clib
+import fidimag.extensions.a_clib as clib
 import numpy as np
 from fidimag.atomistic import MonteCarlo, HexagonalMesh
 import fidimag.common.constant as const
