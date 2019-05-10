@@ -7,12 +7,12 @@ inline double RR(double x,double y,double z)
 inline double R(double x,double y,double z)
 {return sqrt(x*x+y*y+z*z);}
 
-//------------------------------------------------------------------------------	       
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 //about Nxxinf
 
-inline double 
+inline double
 fxx(double x,double y,double z)
 {
 	double t1,t2,t3,t5;
@@ -49,7 +49,7 @@ inline double fzz(double x,double y,double z){
 }
 
 
-inline double 
+inline double
 Nzzinf(double x,double y,double z,double X0,double Y0)
 {
 	return fzz(x+X0,y+Y0,z)+fzz(x-X0,y-Y0,z)-fzz(x+X0,y-Y0,z)-fzz(x-X0,y+Y0,z);
@@ -97,7 +97,7 @@ inline double Nyzinf(double x,double y,double z,double X0,double Y0){
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //about Nxxdipole
-inline double 
+inline double
 DemagNxxDipolar(double x,double y,double z)
 {
 double  t1 = x*x;
@@ -109,7 +109,7 @@ double  t8 = sqrt(t6);
 return -(2.0 * t1 - t3 - t4) / (t8 * t7);
 }
 
-inline double 
+inline double
 DemagNxyDipolar(double x,double y,double z)
 {
 double  t6 = RR(x,y,z);
@@ -125,4 +125,3 @@ double DemagTensorAsymptotic(enum Type_Nij comp,double x,double y,double z,doubl
 double DemagTensorDipolar(enum Type_Nij comp,double x,double y,double z);
 
 double DemagTensorInfinite(enum Type_Nij comp,double x,double y,double z,double X0,double Y0);
-

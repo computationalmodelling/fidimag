@@ -154,7 +154,7 @@ double skyrmion_number(double * spin, double * charge, int nx, int ny, int nz,
     charge[i] += volume(S, S_i, S_j);
 
     /* Scale the chirality quantity */
-    charge[i] /= (8 * WIDE_PI);
+    charge[i] /= (8 * M_PIl);
 
     /* We use the sum to output the total spin chirality
      * or skyrmion number */
@@ -203,7 +203,7 @@ double compute_BergLuscher_angle(double *s1, double *s2, double *s3) {
          1i * dot(&s1[0], &crossp[0], 3)) /
         rho;
 
-  return 2 * std::imag(std::log(exp)) / (4 * WIDE_PI);
+  return 2 * std::imag(std::log(exp)) / (4 * M_PIl);
 }
 
 double skyrmion_number_BergLuscher(double *spin, double *charge, int nx, int ny,

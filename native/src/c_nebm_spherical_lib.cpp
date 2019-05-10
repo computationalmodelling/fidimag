@@ -5,21 +5,21 @@
 double compute_norm_spherical(double * a, int n, int scale) {
     /* Compute the norm of an array *a. *a is assumed to have spherical
      * coordinates as:
-           
+
      *      a = [ theta_0 phi_0 theta_1 phi_1 ... ]
-     
+
      * This function is necessary to either normalise a vector or compute the
      * distance between two images (see below)
      *
      * To compute the norm, we redefine the angles, so they always lie on the
-     * [-PI, PI] range, rather than [0, 2PI] for phi. 
+     * [-PI, PI] range, rather than [0, 2PI] for phi.
      *
      * ARGUMENTS:
-     
+
      * n        :: length of a
      *
      * scale    :: If scale is zero, we do not scale the norm
-     
+
      * Notice that, when computing the DISTANCE between two images, Y_i, Y_i+1
      * for example, we just do the difference (Y_i - Y_(i+1)) and then compute
      * its norm (using this function) but RESCALING the length by the number
@@ -32,10 +32,10 @@ double compute_norm_spherical(double * a, int n, int scale) {
 
     for(int i = 0; i < n; i++){
 
-        if (a[i] > WIDE_PI){
-            a[i] = 2 * WIDE_PI - a[i];
-        } else if(a[i] < -WIDE_PI){
-            a[i] += 2 * WIDE_PI;
+        if (a[i] > M_PIl){
+            a[i] = 2 * M_PIl - a[i];
+        } else if(a[i] < -M_PIl){
+            a[i] += 2 * M_PIl;
         }
 
         norm += a[i] * a[i];

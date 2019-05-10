@@ -4,13 +4,13 @@
 #include "a_random.h"
 
 mt19937_state *create_mt19937_state(void) {
-    
+
     mt19937_state *state = (mt19937_state*) malloc(sizeof(mt19937_state));
     state->seed = 1;
     state->index_t = 0;
     state->matrix[0] = 0;
     state->matrix[1] = 0x9908b0dfU;
-    
+
     return state;
 }
 
@@ -20,13 +20,13 @@ void finalize_mt19937_state(mt19937_state *state) {
 
 
 void initial_rng_mt19973(mt19937_state *state, int seed) {
-    
+
     if (seed<0){
         state->seed = (unsigned int) time(NULL);
     }else{
         state->seed = seed;
     }
-    
+
     state->MT[0] = state->seed & 0xFFFFFFFFU;
     for (int i = 1; i < 624; i++) {
         state->MT[i] = (state->MT[i - 1] ^ (state->MT[i - 1] >> 30)) + i;
@@ -37,21 +37,21 @@ void initial_rng_mt19973(mt19937_state *state, int seed) {
 
 //return a integer in [0, MT19973_RAND_MAX]
 inline unsigned int rand_int(mt19937_state *state) {
-    
+
     unsigned int x;
     int index_t = state->index_t;
-    
+
     x = (state->MT[index_t] & 0x1U) + (state->MT[(index_t + 1) % 624] & 0xFFFFFFFEU);
     state->MT[index_t] = (state->MT[(index_t + 397) % 624] ^ (x >> 1))^ state->matrix[x & 1];
-    
+
     x = state->MT[index_t];
     x ^= (x >> 11);
     x ^= (x << 7) & 0x9d2c5680U;
     x ^= (x << 15) & 0xefc60000U;
     x ^= (x >> 18);
-    
+
     state->index_t = (index_t + 1) % 624;
-    
+
     return x;
 }
 
@@ -135,7 +135,7 @@ void random_integer_vector(mt19937_state *state, int *ids, int n) {
 void uniform_random_sphere(mt19937_state *state, double *spin, int n){
     for (int i=0;i<n;i++){
         int j=3*i;
-        double phi= random_double(state)*2*WIDE_PI;
+        double phi= random_double(state)*2*M_PIl;
         double ct = 2*random_double(state)-1;
         double st = sqrt(1-ct*ct);
         spin[j] = st*cos(phi); //mx = sin(theta)*cos(phi)

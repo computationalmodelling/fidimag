@@ -29,13 +29,13 @@ double DemagTensorAsymptotic(enum Type_Nij comp,double x,double y,double z,doubl
 		case Tensor_xz:return DemagNxyAsymptotic(x,z,y,a,c,b);
 		case Tensor_yz:return DemagNxyAsymptotic(y,z,x,b,c,a);
 	}
- 
+
   return -1;
 
 }
 
 double  DemagTensorDipolar(enum Type_Nij comp,double x,double y,double z){
-   
+
   switch(comp){
     case Tensor_xx:return DemagNxxDipolar(x,y,z);
     case Tensor_yy:return DemagNxxDipolar(y,x,z);
@@ -66,12 +66,12 @@ double DemagTensorInfinite(enum Type_Nij comp, double x,double y,double z,double
 
 
 double compute_single_tensor(enum Type_Nij comp, int g, double x, double y, double z,
-        double a, double b, double c, int xdim, int ydim, 
+        double a, double b, double c, int xdim, int ydim,
 		double asymptotic_radius_sq, double dipolar_radius_sq){
 
     if ((comp == Tensor_xy || comp == Tensor_xz || comp == Tensor_yz) && x * y == 0) return 0.0;
 
-    double Tx = xdim*a, Ty = ydim*b, cof2 = a * b * c / (4 * WIDE_PI);
+    double Tx = xdim*a, Ty = ydim*b, cof2 = a * b * c / (4 * M_PIl);
     double* tmpx = (double *)malloc(sizeof(double)*(2 * g + 2));
     double* tmpy = (double *)malloc(sizeof(double)*(2 * g + 2));
 
@@ -107,12 +107,12 @@ double compute_single_tensor(enum Type_Nij comp, int g, double x, double y, doub
 }
 
 double compute_single_tensor_finitely(enum Type_Nij comp, int gx, int gy, double x, double y, double z,
-        double a, double b, double c, int xdim, int ydim, 
+        double a, double b, double c, int xdim, int ydim,
 		double asymptotic_radius_sq, double dipolar_radius_sq){
 
     if ((comp == Tensor_xy || comp == Tensor_xz || comp == Tensor_yz) && x * y == 0) return 0.0;
 
-    double Tx = xdim*a, Ty = ydim*b,  cof2 = a * b * c / (4 * WIDE_PI);
+    double Tx = xdim*a, Ty = ydim*b,  cof2 = a * b * c / (4 * M_PIl);
     double* tmpx = (double *)malloc(sizeof(double)*(2 * gx + 1));
     double* tmpy = (double *)malloc(sizeof(double)*(2 * gy + 1));
     double tpx, tpy, radius_sq;
@@ -152,20 +152,20 @@ int FindG(enum Type_Nij comp, double v, double Tx, double Ty, double pbc_2d_erro
         case Tensor_xz:
         case Tensor_yz:
         case Tensor_xx:
-            tmp = v / (4 * WIDE_PI * (Tx * Tx) * sqrt(Tx * Tx + Ty * Ty) * pbc_2d_error);
+            tmp = v / (4 * M_PIl * (Tx * Tx) * sqrt(Tx * Tx + Ty * Ty) * pbc_2d_error);
             return (int) pow(tmp, 1 / 3.0) + 1;
         case Tensor_yy:
-            tmp = v / (4 * WIDE_PI * (Ty * Ty) * sqrt(Tx * Tx + Ty * Ty) * pbc_2d_error);
+            tmp = v / (4 * M_PIl * (Ty * Ty) * sqrt(Tx * Tx + Ty * Ty) * pbc_2d_error);
             return (int) pow(tmp, 1 / 3.0) + 1;
         case Tensor_zz:
-            tmp = v * sqrt(Tx * Tx + Ty * Ty) / (4 * WIDE_PI * (Tx * Ty * Tx * Ty) * pbc_2d_error);
+            tmp = v * sqrt(Tx * Tx + Ty * Ty) / (4 * M_PIl * (Tx * Ty * Tx * Ty) * pbc_2d_error);
             return (int) pow(tmp, 1 / 3.0) + 1;
     }
   return 0;
 }
 
 void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors){
-    
+
 
     int nx = plan->nx;
     int ny = plan->ny;
@@ -179,7 +179,7 @@ void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors){
     int len_xy = lenx * leny;
 
     int x,y,z, id, index;
-                    
+
     for (int k = 0; k < lenz; k++) {
         for (int j = 0; j < leny; j++) {
             for (int i = 0; i < lenx; i++) {
@@ -209,7 +209,7 @@ void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors){
 //compute the demag tensors, i.e, H=-N.M
 void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double *tensors,
       double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, double dipolar_radius){
-   
+
       int gxx = sample_repeat_nx;
       int gyy = sample_repeat_ny;
       int gzz = 0;
@@ -266,7 +266,7 @@ void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double *tensors,
         gyy = FindG(Tensor_yy, dx * dy*dz, nx*dx, ny * dy, pbc_2d_error);
         gzz = FindG(Tensor_zz, dx * dy*dz, nx*dx, ny * dy, pbc_2d_error);
         //printf("gxx=%d  gyy=%d  gzz=%d\n",gxx,gyy,gzz);
-        
+
       for (k = 0; k < nz; k++) {
         for (j = 0; j < ny; j++) {
             for (i = 0; i < nx; i++) {
@@ -282,17 +282,12 @@ void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double *tensors,
 				tensors[id+3*nxyz] = compute_single_tensor(Tensor_xy, gxx, x, y, z, dx, dy, dz, nx, ny, asymptotic_radius_sq, dipolar_radius_sq);
 				tensors[id+4*nxyz] = compute_single_tensor(Tensor_xz, gxx, x, y, z, dx, dy, dz, nx, ny, asymptotic_radius_sq, dipolar_radius_sq);
 				tensors[id+5*nxyz] = compute_single_tensor(Tensor_yz, gxx, x, y, z, dx, dy, dz, nx, ny, asymptotic_radius_sq, dipolar_radius_sq);
-			
+
             //printf("x=%g  y=%g  z=%g nxx=%g  nyy=%g nzz=%g\n",x,y,z,plan->tensor_xx[id],plan->tensor_yy[id],plan->tensor_zz[id]);
             }
 		}
 	  }
 
    }
-	
+
 }
-
-
-
-
-

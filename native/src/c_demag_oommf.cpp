@@ -202,7 +202,7 @@ double SelfDemagNx(double x,double y,double z)
   arr[13] =  12*y*mpxz*log(diag+y);
   arr[14] =  -6*y*mpxz*log(xsq+zsq);
 
-  double Nxx = AccurateSum(15,arr)/(12*WIDE_PI*x*y*z);
+  double Nxx = AccurateSum(15,arr)/(12*M_PIl*x*y*z);
   return Nxx;
 }
 
@@ -311,7 +311,7 @@ CalculateSDA00(double x,double y,double z,
 
     arr[26] =  8*Newell_f(x,y,z);
 
-    result = AccurateSum(27,arr)/(4*WIDE_PI*dx*dy*dz);
+    result = AccurateSum(27,arr)/(4*M_PIl*dx*dy*dz);
   }
   return result;
 }
@@ -409,7 +409,7 @@ double CalculateSDA01(double x,double y,double z,
 
   arr[26] =  8*Newell_g(x,y,z);
 
-  return AccurateSum(27,arr)/(4*WIDE_PI*l*h*e);
+  return AccurateSum(27,arr)/(4*M_PIl*l*h*e);
   /// factor Nxy from Newell's paper.
 }
 
@@ -482,7 +482,7 @@ double DemagNxxAsymptotic(double x, double y, double z,
     term7 *= (1.0/16.0);
   }
 
-  double Nxx = (-dx*dy*dz/(4*WIDE_PI)) * (((term7/R2 + term5)/R2 + term3)/(R2*R));
+  double Nxx = (-dx*dy*dz/(4*M_PIl)) * (((term7/R2 + term5)/R2 + term3)/(R2*R));
   // Error should be of order 1/R^9
 
   return Nxx;
@@ -545,7 +545,7 @@ double DemagNxyAsymptotic(double x, double y, double z,
     term7 *= (7.0/16.0);
   }
 
-  double Nxy = (-dx*dy*dz*x*y/(4*WIDE_PI*R2)) * (((term7/R2 + term5)/R2 + term3)/(R2*R));
+  double Nxy = (-dx*dy*dz*x*y/(4*M_PIl*R2)) * (((term7/R2 + term5)/R2 + term3)/(R2*R));
   // Error should be of order 1/R^9
 
   return Nxy;

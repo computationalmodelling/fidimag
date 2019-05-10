@@ -1,5 +1,4 @@
 #include "math.h"
-#define WIDE_PI 3.1415926535897932384626433832795L
 
 void normalise_spherical(double * a, int n);
 

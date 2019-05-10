@@ -1,11 +1,4 @@
-#ifndef __FIDIMAG_RANDOM__
-#define __FIDIMAG_RANDOM__
-
-
-
-//#include<omp.h>
-
-#define WIDE_PI 3.1415926535897932384626433832795L
+#pragma once
 
 //=================================================
 //random number, mt19937
@@ -14,7 +7,7 @@ typedef struct {
     unsigned int matrix[2];// = { 0, 0x9908b0dfU};
     int index_t;
     int seed;
-    
+
 } mt19937_state;
 
 #define	MT19973_RAND_MAX 4294967295u
@@ -29,5 +22,3 @@ int rand_int_n(mt19937_state *state, int n);
 void gauss_random_vector(mt19937_state *state, double *x, int n);
 
 void uniform_random_sphere(mt19937_state *state, double *spin, int n);
-
-#endif

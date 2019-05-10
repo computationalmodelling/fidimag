@@ -97,7 +97,7 @@ double skyrmion_number(double * spin, double * charge,
                     - volume(S, &S_nn[0], &S_nn[9])
                     - volume(S, &S_nn[3], &S_nn[6]);
 
-        charge[i] /= (16 * WIDE_PI);
+        charge[i] /= (16 * M_PIl);
 
         sum += charge[i];
     }

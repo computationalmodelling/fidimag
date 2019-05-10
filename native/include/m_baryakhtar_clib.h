@@ -1,8 +1,5 @@
 #include<math.h>
 
-//#include<omp.h>
-
-#define WIDE_PI 3.1415926535897932384626433832795L
 #define MU0 1.25663706143591728850e-6
 
 void compute_laplace_m(double *m, double *field, double *Ms, double dx, double dy, double dz,

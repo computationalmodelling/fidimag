@@ -1,3 +1,4 @@
+#pragma once
 /* This file demag_oommf.h is taken from the OOMMF project (oommf/app/oxs/ext/demagcoef.h
 downloaded from http://math.nist.gov/oommf/dist/oommf12a5rc_20120928.tar.gz)
 with slightly modifications (change OC_REALWIDE to double)

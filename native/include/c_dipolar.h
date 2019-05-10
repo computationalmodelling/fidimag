@@ -1,11 +1,8 @@
+#pragma once
 #include<math.h>
 #include<complex>
 #include<fftw3.h>
 #include "c_vectormath.h"
-//#include<omp.h>
-
-#define WIDE_PI 3.1415926535897932384626433832795L
-
 
 enum Type_Nij {
 	Tensor_xx, Tensor_yy, Tensor_zz, Tensor_xy, Tensor_xz, Tensor_yz
@@ -24,9 +21,9 @@ typedef struct {
   int lenx;
   int leny;
   int lenz;
-  
+
   int total_length;
-  
+
   //TODO: free tensors after obtaining NXX to save memory?
   double *tensor_xx;
   double *tensor_yy;
@@ -42,7 +39,7 @@ typedef struct {
   std::complex<double> *Nxy;
   std::complex<double> *Nxz;
   std::complex<double> *Nyz;
-  
+
   std::complex<double> *Mx;
   std::complex<double> *My;
   std::complex<double> *Mz;
@@ -56,7 +53,7 @@ typedef struct {
   double *hx;
   double *hy;
   double *hz;
-  
+
   //we need three plans
   fftw_plan tensor_plan;
   fftw_plan m_plan;
@@ -68,7 +65,7 @@ fft_demag_plan *create_plan(void);
 void finalize_plan(fft_demag_plan * plan);
 void init_plan(fft_demag_plan *plan, double dx, double dy,
 		double dz, int nx, int ny, int nz);
-void compute_dipolar_tensors(fft_demag_plan * plan); 
+void compute_dipolar_tensors(fft_demag_plan * plan);
 void compute_demag_tensors(fft_demag_plan * plan);
 void create_fftw_plan(fft_demag_plan * plan);
 
@@ -111,4 +108,3 @@ void run_step1(ode_solver *s, double *m, double *h, double *m_pred, double *T,
 		double *alpha, double *mu_s_inv, int *pins);
 void run_step2(ode_solver *s, double *m_pred, double *h, double *m, double *T,
 		double *alpha, double *mu_s_inv, int *pins);
-
