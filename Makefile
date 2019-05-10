@@ -3,7 +3,8 @@ EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 PYTHON = python3
 PYTEST = ${PYTHON} -m pytest
 
-CC=g++-8
+CC=gcc-8
+CXX=g++-8
 
 FFTW_INC=local/include
 FFTW_LIB=local/lib
@@ -14,6 +15,7 @@ SUNDIALS_LIB=local/lib
 CPPFLAGS = -fPIC -g -Iinclude/ \
            -I${FFTW_INC} -L${FFTW_LIB} \
            -I${SUNDIALS_INC} -L${SUNDIALS_LIB} \
+           -Inative/include \
            -lm \
            -lfftw3_omp -lfftw3 \
            -lsundials_cvodes -lsundials_nvecserial -lsundials_nvecopenmp \
@@ -25,19 +27,20 @@ SOURCES = $(shell echo native/src/*.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 LIBRARY = local/lib/libfidimag.so
 
+########
+# Build
+########
+
+
 all: $(LIBRARY) build
+
 
 $(LIBRARY) : $(OBJECTS)
 	$(CXX) $(CPPFLAGS) $(OBJECTS) -o $@ $(LDFLAGS)
 
 
-
-#####################
-# Cython Extensions #
-#####################
-
 build: $(LIBRARY)
-	${PYTHON} setup.py build_ext --inplace
+	CC=${CC} CXX=${CXX} ${PYTHON} setup.py build_ext --inplace
 
 
 

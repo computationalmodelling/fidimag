@@ -7,6 +7,8 @@ import numpy
 import glob
 import os
 
+
+print(os.environ['CC'], os.environ['CXX'])
 version = '5.0alpha'
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
