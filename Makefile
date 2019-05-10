@@ -3,8 +3,8 @@ EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 PYTHON = python3
 PYTEST = ${PYTHON} -m pytest
 
-CC=gcc-8
-CXX=g++-8
+CC=gcc
+CXX=g++
 
 FFTW_INC=local/include
 FFTW_LIB=local/lib
