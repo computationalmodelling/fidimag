@@ -2,6 +2,7 @@
 #include <time.h>
 #include <math.h>
 #include "a_random.h"
+#include "c_constants.h"
 
 mt19937_state *create_mt19937_state(void) {
 

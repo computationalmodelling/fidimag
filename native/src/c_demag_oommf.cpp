@@ -44,7 +44,7 @@ to copyright protection within the United States.
 #include <stdlib.h>
 #include "c_dipolar.h"
 #include "c_demagcoef.h"
-
+#include "c_constants.h"
 
 int AS_Compare(const void* px,const void* py) {
   // Comparison based on absolute values

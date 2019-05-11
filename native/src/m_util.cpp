@@ -1,6 +1,6 @@
 #include "m_clib.h"
 #include "c_vectormath.h"
-
+#include "c_constants.h"
 
 // Compute: S \cdot (S_i \times S_j)
 inline double volume(double S[3], double Si[3], double Sj[3]) {

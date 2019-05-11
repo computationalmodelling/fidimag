@@ -1,6 +1,7 @@
 #include "c_nebm_spherical_lib.h"
 #include "c_nebm_lib.h"
 #include "math.h"
+#include "c_constants.h"
 
 double compute_norm_spherical(double * a, int n, int scale) {
     /* Compute the norm of an array *a. *a is assumed to have spherical

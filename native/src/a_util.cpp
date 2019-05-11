@@ -2,6 +2,7 @@
 #include "c_vectormath.h"
 #include<complex>
 #include<cmath>
+#include "c_constants.h"
 
 using namespace std::complex_literals;
 

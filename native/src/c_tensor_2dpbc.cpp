@@ -3,6 +3,7 @@
 #include "c_dipolar.h"
 #include "c_demagcoef.h"
 #include "c_tensor_2dpbc.h"
+#include "c_constants.h"
 
 double DemagTensorNormal(enum Type_Nij comp,double x,double y,double z,double a,double b,double c)
 {
