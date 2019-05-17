@@ -703,7 +703,7 @@ class ChainMethodBase(object):
             # -----------------------------------------------------------------
 
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      "step: {:.3g}, step_size: {:.3g}, "
+                      "step: {:.6g}, step_size: {:.3g}, "
                       "max dYdt: {:.3g} "
                       "max|G|: {:.3g} "
                       "max|gradE|: {:.3g} "
