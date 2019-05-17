@@ -3,6 +3,9 @@
 cimport numpy as np
 import numpy as np
 
+# C++ modules
+from libcpp cimport bool
+
 # -----------------------------------------------------------------------------
 
 cdef extern from "c_clib.h":
@@ -198,17 +201,15 @@ def init_vector(m0, mesh, dim=3, norm=False, *args):
 
 def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
     """
-    An unsafe method of setting the field. Depends on
-    the setter code being memory safe.
 
-    m0 must be a Python function that takes the mesh
-    and field as arguments. Within that, the user
-    must handle evaluating the function at different
-    coordinate points. It needs to be able to handle
-    the spatial dependence itself, and write the
-    field valuse into the field array. This can
-    be written with Cython which will give much
-    better performance. For example:
+    An unsafe method of setting the field. Depends on the setter code being
+    memory safe.
+
+    m0 must be a Python function that takes the mesh and field as arguments.
+    Within that, the user must handle evaluating the function at different
+    coordinate points. It needs to be able to handle the spatial dependence
+    itself, and write the field valuse into the field array. This can be
+    written with Cython which will give much better performance. For example:
 
     from libc.math cimport sin
 
@@ -224,3 +225,83 @@ def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
     if norm:
         normalise(field)
     return field
+
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# CLASSES
+
+# -----------------------------------------------------------------------------
+# C++ definitions
+
+# See:
+# https://cython.readthedocs.io/en/latest/src/userguide/wrapping_CPlusPlus.html
+#
+# - Methods that are redefined in inherited classes are only specified in the
+# base class
+# - These can be declared in a .pxd file: 
+
+cdef extern from "c_energy.h":
+
+    cdef cppclass Energy:
+        # except +: Without this declaration, C++ exceptions originating from
+        # the constructor will not be handled by Cython.
+        Energy() except +
+
+        void compute_field(double t)
+        double compute_energy()
+        void setup(int nx, int ny, int nz, double dx, double dy, double dz,
+                   double unit_length, double *spin,
+                   double *Ms, double *Ms_inv)
+
+        bool set_up
+        int nx, ny, nz, n
+        double dx, dy, dz
+        double unit_length
+        double *spin
+        double *Ms
+        double *Ms_inv
+        double *field
+        double *energy
+        double *coordinates
+        int *ngbs
+
+    cdef cppclass ExchangeEnergy(Energy):
+        ExchangeEnergy() except +
+
+        void init(double *A)
+
+        double *A
+
+# -----------------------------------------------------------------------------
+# Python definitions
+
+# Cython initializes C++ class attributes of a cdef class using the nullary
+# constructor. If the class you’re wrapping does not have a nullary
+# constructor, you must store a pointer to the wrapped class and manually
+# allocate and deallocate it. A convenient and safe place to do so is in the
+# __cinit__ and __dealloc__ methods which are guaranteed to be called exactly
+# once upon creation and deletion of the Python instance.
+
+cdef class PyExchangeEnergy:
+    cdef ExchangeEnergy thisptr
+    # Try cinit:
+    def __init__(self, double [:] A):
+        self.thisptr.init(&A[0])
+    # cdef ExchangeEnergy *thisptr
+    # We could use another constructor if we use this method:
+    # def __cinit__(self):
+    #     if type(self) is PyEnergy:
+    #         self.thisptr = new Energy()
+    # def __dealloc__(self):
+    #     if type(self) is PyEnergy:
+    #         del self.thisptr
+    # Necessary?
+    def compute_field(self, t):
+        self.thisptr.compute_field(t)
+    def compute_energy(self, time):
+        return self.thisptr.compute_energy()
+    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
+              double [:] spin, double [:] Ms, double [:] Ms_inv):
+        return self.thisptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
+                                  &spin[0], &Ms[0], &Ms_inv[0])
+

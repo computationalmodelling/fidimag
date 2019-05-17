@@ -1,4 +1,5 @@
 #include "c_energy.h"
+#include "c_constants.h"
 
 double Energy::compute_energy() {
     double sum = 0;
@@ -27,7 +28,7 @@ void Energy::setup(int nx, int ny, int nz,
     set_up = true;
 }
 
-void Exchange::compute_field(double t) {
+void ExchangeEnergy::compute_field(double t) {
     /* Compute the micromagnetic exchange field and energy using the
      * matrix of neighbouring spins and a second order approximation
      * for the derivative
@@ -179,8 +180,8 @@ void Exchange::compute_field(double t) {
                             + fz * spin[3 * i + 2]);
 
         /* Update the field H_ex which has the same structure than *m */
-        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
-        field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
-        field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
+        field[3 * i]     = fx * Ms_inv[i] * MU_0_INV;
+        field[3 * i + 1] = fy * Ms_inv[i] * MU_0_INV;
+        field[3 * i + 2] = fz * Ms_inv[i] * MU_0_INV;
     }
 }

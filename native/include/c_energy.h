@@ -2,8 +2,8 @@
 
 class Energy {
 public:
-    bool set_up;
     Energy();
+    bool set_up;
     int nx, ny, nz, n;
     double dx, dy, dz;
     double unit_length;
@@ -14,15 +14,17 @@ public:
     double *energy;
     double *coordinates;
     int *ngbs;
-    virtual void compute_field(double t) = 0;
     double compute_energy();
     void setup(int nx, int ny, int nz, double dx, double dy, double dz, double unit_length, double *spin, double *Ms, double *Ms_inv);
+    virtual void compute_field(double t) = 0;
 };
 
-class Exchange : public Energy {
+class ExchangeEnergy : public Energy {
 public:
-    Exchange(double *A) : A(A) {
+    ExchangeEnergy() {};
+    void init(double *A) {
         set_up = false;
+        this->A = A;
     }
     double *A;
     void compute_field(double t);
