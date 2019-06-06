@@ -1,4 +1,5 @@
 #include<cmath>
+#include<iostream>
 
 class Energy {
 public:
@@ -23,8 +24,9 @@ class ExchangeEnergy : public Energy {
 public:
     ExchangeEnergy() {};
     void init(double *A) {
-        set_up = false;
-        this->A = A;
+        std::cout << "Here A[0] = " << A[0] << "\n";
+        this->set_up = false;
+        // this->A = A;
     }
     double *A;
     void compute_field(double t);

@@ -272,6 +272,9 @@ cdef extern from "c_energy.h":
 
         double *A
 
+# cdef extern from "c_energy.cpp":
+#     pass
+
 # -----------------------------------------------------------------------------
 # Python definitions
 
@@ -283,17 +286,18 @@ cdef extern from "c_energy.h":
 # once upon creation and deletion of the Python instance.
 
 cdef class PyExchangeEnergy:
-    cdef ExchangeEnergy thisptr
+    cdef ExchangeEnergy *thisptr
     # Try cinit:
-    def __init__(self, double [:] A):
+    def __cinit__(self, double [:] A):
+        # self.thisptr = new ExchangeEnergy()
         self.thisptr.init(&A[0])
-    # cdef ExchangeEnergy *thisptr
+
     # We could use another constructor if we use this method:
     # def __cinit__(self):
-    #     if type(self) is PyEnergy:
-    #         self.thisptr = new Energy()
+    #     if type(self) is PyExchangeEnergy:
+    #         self.thisptr = new ExchangeEnergy()
     # def __dealloc__(self):
-    #     if type(self) is PyEnergy:
+    #     if type(self) is PyExchangeEnergy:
     #         del self.thisptr
     # Necessary?
     def compute_field(self, t):
