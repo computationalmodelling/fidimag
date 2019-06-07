@@ -285,12 +285,35 @@ cdef extern from "c_energy.h":
 # __cinit__ and __dealloc__ methods which are guaranteed to be called exactly
 # once upon creation and deletion of the Python instance.
 
-cdef class PyExchangeEnergy:
-    cdef ExchangeEnergy *thisptr
+cdef class PyEnergy:
+    cdef Energy *thisptr
+    # Try cinit:
+    def __cinit__(self):
+        # Should we allocate?
+        # self.thisptr = new ExchangeEnergy()
+        print("In Python A")
+
+# We need to inherit from a cdef-ined base class to make the inheritance to
+# work. This way the constructors are called properly
+cdef class PyExchangeEnergy(PyEnergy):
+    cdef ExchangeEnergy *derivedptr
     # Try cinit:
     def __cinit__(self, double [:] A):
-        # self.thisptr = new ExchangeEnergy()
-        self.thisptr.init(&A[0])
+        print("In Python B")
+
+        self.derivedptr = new ExchangeEnergy()
+        self.derivedptr.init(&A[0])
+
+        if self.thisptr:
+            print("in B: deallocating old A")
+            del self.thisptr
+
+    # DEBUG: check contents of the A array
+    # def printA(self):
+    #     lst = []
+    #     for i in range(4):
+    #         lst.append(self.derivedptr.A[i])
+    #     print(lst)
 
     # We could use another constructor if we use this method:
     # def __cinit__(self):
@@ -299,13 +322,14 @@ cdef class PyExchangeEnergy:
     # def __dealloc__(self):
     #     if type(self) is PyExchangeEnergy:
     #         del self.thisptr
-    # Necessary?
+
+    # Necessary?:
     def compute_field(self, t):
-        self.thisptr.compute_field(t)
+        self.derivedptr.compute_field(t)
     def compute_energy(self, time):
-        return self.thisptr.compute_energy()
+        return self.derivedptr.compute_energy()
     def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
               double [:] spin, double [:] Ms, double [:] Ms_inv):
-        return self.thisptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
-                                  &spin[0], &Ms[0], &Ms_inv[0])
+        return self.derivedptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
+                                     &spin[0], &Ms[0], &Ms_inv[0])
 

@@ -10,11 +10,11 @@ double Energy::compute_energy() {
 }
 
 
-void Energy::setup(int nx, int ny, int nz,
-                   double dx, double dy, double dz,
-                   double unit_length,
-                   double *spin, double *Ms,
-                   double *Ms_inv) {
+void Energy::setup(int nx, int ny, int nz, double dx, double dy, double dz,
+                   double unit_length, double *spin, double *Ms, double *Ms_inv,
+                   double *coordinates, double *ngbs, 
+                   double *energy, double *field
+                   ); {
     this->nx = nx;
     this->ny = ny;
     this->nz = nz;
@@ -22,9 +22,16 @@ void Energy::setup(int nx, int ny, int nz,
     this->dy = dy;
     this->dz = dz;
     this->unit_length = unit_length;
+
+    // Arrays
     this->spin = spin;
     this->Ms = Ms;
     this->Ms_inv = Ms_inv;
+    this->coordinates = coordinates;
+    this->ngbs = ngbs;
+    this ->energy->energy;
+    this->field = field;
+
     set_up = true;
 }
 
