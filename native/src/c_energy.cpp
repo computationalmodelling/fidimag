@@ -12,12 +12,14 @@ double Energy::compute_energy() {
 
 void Energy::setup(int nx, int ny, int nz, double dx, double dy, double dz,
                    double unit_length, double *spin, double *Ms, double *Ms_inv,
-                   double *coordinates, double *ngbs, 
+                   double *coordinates, int *ngbs, 
                    double *energy, double *field
-                   ); {
+                   ) {
+
     this->nx = nx;
     this->ny = ny;
     this->nz = nz;
+    this->n = nx * ny * nz;
     this->dx = dx;
     this->dy = dy;
     this->dz = dz;
@@ -29,7 +31,7 @@ void Energy::setup(int nx, int ny, int nz, double dx, double dy, double dz,
     this->Ms_inv = Ms_inv;
     this->coordinates = coordinates;
     this->ngbs = ngbs;
-    this ->energy->energy;
+    this->energy = energy;
     this->field = field;
 
     set_up = true;
@@ -190,5 +192,6 @@ void ExchangeEnergy::compute_field(double t) {
         field[3 * i]     = fx * Ms_inv[i] * MU_0_INV;
         field[3 * i + 1] = fy * Ms_inv[i] * MU_0_INV;
         field[3 * i + 2] = fz * Ms_inv[i] * MU_0_INV;
+
     }
 }

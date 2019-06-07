@@ -238,7 +238,7 @@ def init_vector_func_fast(m0, mesh, double[:] field, norm=False, *args):
 #
 # - Methods that are redefined in inherited classes are only specified in the
 # base class
-# - These can be declared in a .pxd file: 
+# - These can be declared in a .pxd file:
 
 cdef extern from "c_energy.h":
 
@@ -250,27 +250,29 @@ cdef extern from "c_energy.h":
         void compute_field(double t)
         double compute_energy()
         void setup(int nx, int ny, int nz, double dx, double dy, double dz,
-                   double unit_length, double *spin,
-                   double *Ms, double *Ms_inv)
+                   double unit_length, double *spin, double *Ms, double *Ms_inv,
+                   double *coordinates, int *ngbs,
+                   double *energy, double *field
+                   )
 
-        bool set_up
-        int nx, ny, nz, n
-        double dx, dy, dz
-        double unit_length
-        double *spin
-        double *Ms
-        double *Ms_inv
-        double *field
-        double *energy
-        double *coordinates
-        int *ngbs
+        # bool set_up
+        # int nx, ny, nz, n
+        # double dx, dy, dz
+        # double unit_length
+        # double *spin
+        # double *Ms
+        # double *Ms_inv
+        # double *field
+        # double *energy
+        # double *coordinates
+        # int *ngbs
 
     cdef cppclass ExchangeEnergy(Energy):
         ExchangeEnergy() except +
 
         void init(double *A)
 
-        double *A
+        # double *A
 
 # cdef extern from "c_energy.cpp":
 #     pass
@@ -285,17 +287,17 @@ cdef extern from "c_energy.h":
 # __cinit__ and __dealloc__ methods which are guaranteed to be called exactly
 # once upon creation and deletion of the Python instance.
 
-cdef class PyEnergy:
-    cdef Energy *thisptr
-    # Try cinit:
-    def __cinit__(self):
-        # Should we allocate?
-        # self.thisptr = new ExchangeEnergy()
-        print("In Python A")
+#cdef class PyEnergy:
+#    cdef Energy *thisptr
+#    # Try cinit:
+#    def __cinit__(self):
+#        # Should we allocate?
+#        # self.thisptr = new Energy()
+#        print("In Python A")
 
-# We need to inherit from a cdef-ined base class to make the inheritance to
-# work. This way the constructors are called properly
-cdef class PyExchangeEnergy(PyEnergy):
+# No need to replicate C++ class structure; we make the ExchangeEnergy a
+# base class in Python (which we know inherits from Energy in C++)
+cdef class PyExchangeEnergy(object):
     cdef ExchangeEnergy *derivedptr
     # Try cinit:
     def __cinit__(self, double [:] A):
@@ -304,9 +306,8 @@ cdef class PyExchangeEnergy(PyEnergy):
         self.derivedptr = new ExchangeEnergy()
         self.derivedptr.init(&A[0])
 
-        if self.thisptr:
-            print("in B: deallocating old A")
-            del self.thisptr
+    def __dealloc__(self):
+        del self.derivedptr
 
     # DEBUG: check contents of the A array
     # def printA(self):
@@ -315,21 +316,20 @@ cdef class PyExchangeEnergy(PyEnergy):
     #         lst.append(self.derivedptr.A[i])
     #     print(lst)
 
-    # We could use another constructor if we use this method:
-    # def __cinit__(self):
-    #     if type(self) is PyExchangeEnergy:
-    #         self.thisptr = new ExchangeEnergy()
-    # def __dealloc__(self):
-    #     if type(self) is PyExchangeEnergy:
-    #         del self.thisptr
-
     # Necessary?:
     def compute_field(self, t):
         self.derivedptr.compute_field(t)
+
     def compute_energy(self, time):
         return self.derivedptr.compute_energy()
-    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
-              double [:] spin, double [:] Ms, double [:] Ms_inv):
-        return self.derivedptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
-                                     &spin[0], &Ms[0], &Ms_inv[0])
 
+    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
+              double [:] spin, double [:] Ms, double [:] Ms_inv,
+              double [:, :] coordinates, int [:, :] neighbours,
+              double [:] energy, double [:] field):
+
+        return self.derivedptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
+                                     &spin[0], &Ms[0], &Ms_inv[0],
+                                     &coordinates[0, 0], &neighbours[0, 0],
+                                     &energy[0], &field[0]
+                                     )
