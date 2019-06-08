@@ -86,6 +86,8 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
+[15] [Nanoscale magnetic skyrmions and target states in confined geometries](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.214408), D. Cortés-Ortuño, N. Romming, M. Beg, K. von Bergmann, A. Kubetzka, O. Hovorka, H. Fangohr, R. Wiesendanger, Physical Review B 99, 214408 (2019) 
+
 [14] [Learning Magnetization Dynamics](https://arxiv.org/abs/1903.09499), A. Kovacs, J. Fischbacher, H. Oezelt, M. Gusenbauer, L. Exl, F. Bruckner, D.Suess, T.Schrefl, arXiV (2019)
 
 [13] [Computational micromagnetics with Commics](https://arxiv.org/abs/1812.05931), C.-M. Pfeiler, M. Ruggeri, B. Stiftner, L. Exl, M. Hochsteger, G. Hrkac, J. Schöberl, N. J. Mauser, D. Praetorius, arXiV (2018)
