@@ -40,3 +40,11 @@ public:
     void add_interaction(void * interaction);
 
 };
+
+enum EnergyTermIDs {
+  NONE = 0,
+  EXCHANGE,
+  DMI,
+  ZEEMAN,
+  UNIAXIAL_ANISOTROPY
+};
