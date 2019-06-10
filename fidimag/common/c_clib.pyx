@@ -255,6 +255,7 @@ cdef extern from "c_energy.h":
                    double *energy, double *field
                    )
 
+        # # Not using these variables from Cython:
         # bool set_up
         # int nx, ny, nz, n
         # double dx, dy, dz
@@ -271,7 +272,6 @@ cdef extern from "c_energy.h":
         ExchangeEnergy() except +
 
         void init(double *A)
-
         # double *A
 
 # cdef extern from "c_energy.cpp":
@@ -287,27 +287,45 @@ cdef extern from "c_energy.h":
 # __cinit__ and __dealloc__ methods which are guaranteed to be called exactly
 # once upon creation and deletion of the Python instance.
 
-#cdef class PyEnergy:
-#    cdef Energy *thisptr
-#    # Try cinit:
-#    def __cinit__(self):
-#        # Should we allocate?
-#        # self.thisptr = new Energy()
-#        print("In Python A")
+cdef class PyEnergy:
+    cdef Energy *thisptr
+    def __cinit__(self):
+        # No need to allocate memory, we are not using the C++ base class
+        # self.thisptr = new Energy()
+        if type(self) != PyEnergy:
+            return
+        print("In Python A")
 
-# No need to replicate C++ class structure; we make the ExchangeEnergy a
-# base class in Python (which we know inherits from Energy in C++)
-cdef class PyExchangeEnergy(object):
-    cdef ExchangeEnergy *derivedptr
+    # Necessary?:
+    def compute_field(self, t):
+        self.thisptr.compute_field(t)
+
+    def compute_energy(self, time):
+        return self.thisptr.compute_energy()
+
+    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
+              double [:] spin, double [:] Ms, double [:] Ms_inv,
+              double [:, :] coordinates, int [:, :] neighbours,
+              double [:] energy, double [:] field):
+
+        return self.thisptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
+                                  &spin[0], &Ms[0], &Ms_inv[0],
+                                  &coordinates[0, 0], &neighbours[0, 0],
+                                  &energy[0], &field[0]
+                                  )
+
+
+cdef class PyExchangeEnergy(PyEnergy):
+    cdef ExchangeEnergy *_thisptr
     # Try cinit:
     def __cinit__(self, double [:] A):
         print("In Python B")
 
-        self.derivedptr = new ExchangeEnergy()
-        self.derivedptr.init(&A[0])
+        self._thisptr = self.thisptr = new ExchangeEnergy()
+        self._thisptr.init(&A[0])
 
     def __dealloc__(self):
-        del self.derivedptr
+        del self.thisptr
 
     # DEBUG: check contents of the A array
     # def printA(self):
@@ -315,21 +333,3 @@ cdef class PyExchangeEnergy(object):
     #     for i in range(4):
     #         lst.append(self.derivedptr.A[i])
     #     print(lst)
-
-    # Necessary?:
-    def compute_field(self, t):
-        self.derivedptr.compute_field(t)
-
-    def compute_energy(self, time):
-        return self.derivedptr.compute_energy()
-
-    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
-              double [:] spin, double [:] Ms, double [:] Ms_inv,
-              double [:, :] coordinates, int [:, :] neighbours,
-              double [:] energy, double [:] field):
-
-        return self.derivedptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
-                                     &spin[0], &Ms[0], &Ms_inv[0],
-                                     &coordinates[0, 0], &neighbours[0, 0],
-                                     &energy[0], &field[0]
-                                     )

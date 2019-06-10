@@ -1,6 +1,5 @@
 import fidimag.extensions.micro_clib as micro_clib
 from .energy import Energy
-#from constant import mu_0
 
 
 class UniformExchange(Energy):
@@ -9,12 +8,12 @@ class UniformExchange(Energy):
     UniformExchange(A, name='UniformExchange')
 
     Compute the exchange field in micromagnetics.
-    
+
     Inputs:
         A: float
-            A is the exchange stiffness constant measured in 
+            A is the exchange stiffness constant measured in
             Joules / Meter (J / M)
-    
+
     """
 
     def __init__(self, A, name='UniformExchange'):
