@@ -267,6 +267,7 @@ cdef extern from "c_energy.h":
         # double *energy
         # double *coordinates
         # int *ngbs
+        int interaction_id
 
     cdef cppclass ExchangeEnergy(Energy):
         ExchangeEnergy() except +
@@ -314,6 +315,13 @@ cdef class PyEnergy:
                                   &energy[0], &field[0]
                                   )
 
+    def add_interaction_to_sim(self, PyMicroSim sim):
+        sim.thisptr.add_interaction(<void *> self.thisptr,
+                                    self.thisptr.interaction_id)
+
+    def get_interaction_id(self):
+        return self._thisptr.interaction_id
+
 
 cdef class PyExchangeEnergy(PyEnergy):
     cdef ExchangeEnergy *_thisptr
@@ -325,11 +333,51 @@ cdef class PyExchangeEnergy(PyEnergy):
         self._thisptr.init(&A[0])
 
     def __dealloc__(self):
+        del self._thisptr
+
+
+# Simulation class ------------------------------------------------------------
+
+cdef extern from "c_micro_sim.h":
+
+    cdef cppclass MicroSim:
+        # except +: Without this declaration, C++ exceptions originating from
+        # the constructor will not be handled by Cython.
+        MicroSim() except +
+
+        void setup(int nx, int ny, int nz, double dx, double dy, double dz,
+                   double unit_length, double *coordinates, int *ngbs, 
+                   double *spin, double *Ms, double *Ms_inv, 
+                   double *energy, double *field, int *pins
+                   )
+
+        void add_interaction(void * interaction, int int_id)
+        void print_interactions_id()
+
+
+cdef class PyMicroSim(object):
+    cdef MicroSim *thisptr
+    # Try cinit:
+    def __cinit__(self):
+
+        self.thisptr = new MicroSim()
+
+    def __dealloc__(self):
         del self.thisptr
 
-    # DEBUG: check contents of the A array
-    # def printA(self):
-    #     lst = []
-    #     for i in range(4):
-    #         lst.append(self.derivedptr.A[i])
-    #     print(lst)
+    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
+              double [:, :] coordinates, int [:, :] neighbours,
+              double [:] spin, double [:] Ms, double [:] Ms_inv,
+              double [:] energy, double [:] field, int [:] pins
+              ):
+
+        return self.thisptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
+                                  &coordinates[0, 0], &neighbours[0, 0],
+                                  &spin[0], &Ms[0], &Ms_inv[0],
+                                  &energy[0], &field[0], &pins[0]
+                                  )
+
+    def add_interaction(self, Interaction):
+        Interaction.add_interaction_to_sim(self)
+        self.thisptr.print_interactions_id()
+

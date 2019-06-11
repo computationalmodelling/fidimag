@@ -3,8 +3,9 @@
 
 class Energy {
 public:
-    Energy() {std::cout << "In A; at " << this << "\n";};
+    Energy() {};
     virtual ~Energy() {std::cout << "Killing A\n";};
+    int interaction_id;
     bool set_up;
     int nx, ny, nz, n;
     double dx, dy, dz;
@@ -27,7 +28,10 @@ public:
 
 class ExchangeEnergy : public Energy {
 public:
-    ExchangeEnergy() {std::cout << "In B; at " << this << "\n";};
+    ExchangeEnergy() {
+        std::cout << "Instatiating ExchangeEnergy class; at " << this << "\n";
+        this->interaction_id = 1;
+    };
     ~ExchangeEnergy() {std::cout << "Killing B\n";};
     void init(double *A) {
         this->set_up = false;

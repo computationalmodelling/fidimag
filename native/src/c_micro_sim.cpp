@@ -5,7 +5,7 @@
 void MicroSim::setup(int nx, int ny, int nz, double dx, double dy, double dz,
                      double unit_length, double *coordinates, int *ngbs, 
                      double *spin, double *Ms, double *Ms_inv, 
-                     double *energy, double *field, double *pins
+                     double *energy, double *field, int *pins
                      ) {
 
     this->nx = nx;

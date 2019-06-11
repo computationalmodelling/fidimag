@@ -22,7 +22,7 @@ public:
     double *Ms_inv;
     double *energy;
     double *field;
-    double *pins;
+    int *pins;
 
     // Array with interactions
     // void * interactions;
@@ -34,11 +34,15 @@ public:
     void setup(int nx, int ny, int nz, double dx, double dy, double dz,
                double unit_length, double *coordinates, int *ngbs, 
                double *spin, double *Ms, double *Ms_inv, 
-               double *energy, double *field, double *pins
+               double *energy, double *field, int *pins
                );
 
-    void add_interaction(void * interaction);
+    void add_interaction(void * interaction, int int_id);
 
+    void print_interactions_id() {
+        for(int i : interactions_id) std::cout << i << "\n";
+        for(auto i : interactions) std::cout << i << "\n";
+    }
 };
 
 enum EnergyTermIDs {

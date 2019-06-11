@@ -1,4 +1,5 @@
 from fidimag.extensions.c_clib import PyExchangeEnergy
+from fidimag.extensions.c_clib import PyMicroSim
 from fidimag.common import CuboidMesh
 
 import time
@@ -37,5 +38,8 @@ Exch.setup(mesh.nx, mesh.ny, mesh.nz, mesh.dx, mesh.dy, mesh.dz,
 Exch.compute_field(0)
 print(field)
 print(energy)
+
+sim_C = PyMicroSim()
+sim_C.add_interaction(Exch)
 
 # time.sleep(5)
