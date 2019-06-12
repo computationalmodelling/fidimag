@@ -249,11 +249,6 @@ cdef extern from "c_energy.h":
 
         void compute_field(double t)
         double compute_energy()
-        void setup(int nx, int ny, int nz, double dx, double dy, double dz,
-                   double unit_length, double *spin, double *Ms, double *Ms_inv,
-                   double *coordinates, int *ngbs,
-                   double *energy, double *field
-                   )
 
         # # Not using these variables from Cython:
         # bool set_up
@@ -272,7 +267,7 @@ cdef extern from "c_energy.h":
     cdef cppclass ExchangeEnergy(Energy):
         ExchangeEnergy() except +
 
-        void init(double *A)
+        void setup(double * A, MicroSim * sim)
         # double *A
 
 # cdef extern from "c_energy.cpp":
@@ -304,17 +299,6 @@ cdef class PyEnergy:
     def compute_energy(self, time):
         return self.thisptr.compute_energy()
 
-    def setup(self, nx, ny, nz, dx, dy, dz, unit_length,
-              double [:] spin, double [:] Ms, double [:] Ms_inv,
-              double [:, :] coordinates, int [:, :] neighbours,
-              double [:] energy, double [:] field):
-
-        return self.thisptr.setup(nx, ny, nz, dx, dy, dz, unit_length,
-                                  &spin[0], &Ms[0], &Ms_inv[0],
-                                  &coordinates[0, 0], &neighbours[0, 0],
-                                  &energy[0], &field[0]
-                                  )
-
     def add_interaction_to_sim(self, PyMicroSim sim):
         sim.thisptr.add_interaction(<void *> self.thisptr,
                                     self.thisptr.interaction_id)
@@ -326,11 +310,14 @@ cdef class PyEnergy:
 cdef class PyExchangeEnergy(PyEnergy):
     cdef ExchangeEnergy *_thisptr
     # Try cinit:
-    def __cinit__(self, double [:] A):
+    def __cinit__(self, double [:] A, PyMicroSim sim):
         print("In Python B")
 
         self._thisptr = self.thisptr = new ExchangeEnergy()
-        self._thisptr.init(&A[0])
+        self._thisptr.setup(&A[0], sim.thisptr)
+
+    def setup(self, double [:] A, PyMicroSim sim):
+        self._thisptr.setup(&A[0], sim.thisptr)
 
     def __dealloc__(self):
         del self._thisptr
@@ -356,6 +343,9 @@ cdef extern from "c_micro_sim.h":
 
 
 cdef class PyMicroSim(object):
+    """
+    Wrapper for the C++ MicroSim simulation class
+    """
     cdef MicroSim *thisptr
     # Try cinit:
     def __cinit__(self):

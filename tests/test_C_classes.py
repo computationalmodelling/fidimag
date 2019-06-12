@@ -5,12 +5,6 @@ from fidimag.common import CuboidMesh
 import time
 import numpy as np
 
-A = np.ones(9, dtype=np.double)
-print(A)
-Exch = PyExchangeEnergy(A)
-# A[2] = 4
-# Exch.printA()
-
 nx, ny, nz = 3, 3, 1
 n = nx * ny * nz
 dx, dy, dz = 1, 1, 1
@@ -27,19 +21,26 @@ Ms_inv = 1 / Ms
 
 field = np.zeros(3 * n, dtype=np.double)
 energy = np.zeros(n, dtype=np.double)
+pins = np.zeros(n, dtype=np.int32)
 
-Exch.setup(mesh.nx, mesh.ny, mesh.nz, mesh.dx, mesh.dy, mesh.dz,
-           mesh.unit_length,
-           spin, Ms, Ms_inv,
-           mesh.coordinates, mesh.neighbours,
-           energy, field
-           )
+sim_C = PyMicroSim()
+
+sim_C.setup(mesh.nx, mesh.ny, mesh.nz, mesh.dx, mesh.dy, mesh.dz,
+            mesh.unit_length, mesh.coordinates, mesh.neighbours,
+            spin, Ms, Ms_inv, energy, field, pins)
+
+A = np.ones(9, dtype=np.double)
+print(A)
+# A[2] = 4
+# Exch.printA()
+
+Exch = PyExchangeEnergy(A, sim_C)
+# Exch.setup(sim_C)
 
 Exch.compute_field(0)
 print(field)
 print(energy)
 
-sim_C = PyMicroSim()
 sim_C.add_interaction(Exch)
 
 # time.sleep(5)
