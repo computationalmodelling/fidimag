@@ -307,8 +307,7 @@ cdef class PyEnergy:
         return self.thisptr.compute_energy()
 
     def add_interaction_to_sim(self, PyMicroSim sim):
-        sim.thisptr.add_interaction(<void *> self.thisptr,
-                                    self.thisptr.interaction_id)
+        sim.thisptr.add_interaction(<Energy *> self.thisptr)
 
     def get_interaction_id(self):
         return self._thisptr.interaction_id
@@ -375,8 +374,7 @@ cdef extern from "c_micro_sim.h":
                    double *energy, double *field, int *pins
                    )
 
-        void add_interaction(void * interaction, int int_id)
-        void print_interactions_id()
+        void add_interaction(Energy * interaction)
 
 
 cdef class PyMicroSim(object):
@@ -406,5 +404,3 @@ cdef class PyMicroSim(object):
 
     def add_interaction(self, Interaction):
         Interaction.add_interaction_to_sim(self)
-        self.thisptr.print_interactions_id()
-

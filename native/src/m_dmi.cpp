@@ -373,6 +373,7 @@ void dmi_field(double * m, double * field,
 
 void DMIEnergy::compute_field(double t) {
 
+    // Should use: std::unique_ptr<int[]> dxs ??
     /* These are for the DMI prefactor or coefficient */
     double dxs[6] = {dx, dx, dy, dy, dz, dz};
 

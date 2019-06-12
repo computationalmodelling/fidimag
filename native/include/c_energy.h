@@ -46,7 +46,7 @@ class AnisotropyEnergy : public Energy {
 public:
     AnisotropyEnergy() {
         std::cout << "Instatiating AnisotropyEnergy class; at " << this << "\n";
-        this->interaction_id = 1;
+        this->interaction_id = UNIAXIAL_ANISOTROPY;
     };
     ~AnisotropyEnergy() {std::cout << "Killing Anisotropy\n";};
     double *Ku;
@@ -64,7 +64,7 @@ class DMIEnergy : public Energy {
 public:
     DMIEnergy() {
         std::cout << "Instatiating DMIEnergy class; at " << this << "\n";
-        this->interaction_id = 1;
+        this->interaction_id = DMI;
     };
     ~DMIEnergy() {std::cout << "Killing DMI\n";};
     double *D;
