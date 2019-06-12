@@ -266,9 +266,16 @@ cdef extern from "c_energy.h":
 
     cdef cppclass ExchangeEnergy(Energy):
         ExchangeEnergy() except +
-
         void setup(double * A, MicroSim * sim)
         # double *A
+
+    cdef cppclass AnisotropyEnergy(Energy):
+        AnisotropyEnergy() except +
+        void setup(double * Ku, double * axis, MicroSim * sim)
+
+    cdef cppclass DMIEnergy(Energy):
+        ExchangeEnergy() except +
+        void setup(double * D, double * dmi_vector, int n_dmis, MicroSim * sim)
 
 # cdef extern from "c_energy.cpp":
 #     pass
@@ -311,13 +318,43 @@ cdef class PyExchangeEnergy(PyEnergy):
     cdef ExchangeEnergy *_thisptr
     # Try cinit:
     def __cinit__(self, double [:] A, PyMicroSim sim):
-        print("In Python B")
 
         self._thisptr = self.thisptr = new ExchangeEnergy()
         self._thisptr.setup(&A[0], sim.thisptr)
 
     def setup(self, double [:] A, PyMicroSim sim):
         self._thisptr.setup(&A[0], sim.thisptr)
+
+    def __dealloc__(self):
+        del self._thisptr
+
+
+cdef class PyAnisotropyEnergy(PyEnergy):
+    cdef AnisotropyEnergy *_thisptr
+    # Try cinit:
+    def __cinit__(self, double [:] Ku, double [:] axis, PyMicroSim sim):
+
+        self._thisptr = self.thisptr = new AnisotropyEnergy()
+        self._thisptr.setup(&Ku[0], &axis[0], sim.thisptr)
+
+    def setup(self, double [:] Ku, double [:] axis, PyMicroSim sim):
+        self._thisptr.setup(&Ku[0], &axis[0], sim.thisptr)
+
+    def __dealloc__(self):
+        del self._thisptr
+
+
+cdef class PyDMIEnergy(PyEnergy):
+    cdef DMIEnergy *_thisptr
+    # Try cinit:
+    def __cinit__(self, double [:] D, double [:] dmi_vector, n_dmis,
+                  PyMicroSim sim):
+
+        self._thisptr = self.thisptr = new DMIEnergy()
+        self._thisptr.setup(&D[0], &dmi_vector[0], n_dmis, sim.thisptr)
+
+    def setup(self, double [:] D, double [:] dmi_vector, n_dmis, PyMicroSim sim):
+        self._thisptr.setup(&D[0], &dmi_vector[0], n_dmis, sim.thisptr)
 
     def __dealloc__(self):
         del self._thisptr

@@ -33,26 +33,48 @@ public:
         this->interaction_id = 1;
     };
     ~ExchangeEnergy() {std::cout << "Killing Exchange\n";};
+    double *A;
     void setup(double *A, MicroSim * sim) {
         _setup(sim);
         this->A = A;
     }
-    double *A;
     void compute_field(double t);
 };
 
 
-// class AnisotropyEnergy : public Energy {
-// public:
-//     AnisotropyEnergy() {
-//         std::cout << "Instatiating AnisotropyEnergy class; at " << this << "\n";
-//         this->interaction_id = 1;
-//     };
-//     ~AnisotropyEnergy() {std::cout << "Killing Anisotropy\n";};
-//     void init(double *Ku) {
-//         this->set_up = false;
-//         this->Ku = Ku;
-//     }
-//     double *A;
-//     void compute_field(double t);
-// };
+class AnisotropyEnergy : public Energy {
+public:
+    AnisotropyEnergy() {
+        std::cout << "Instatiating AnisotropyEnergy class; at " << this << "\n";
+        this->interaction_id = 1;
+    };
+    ~AnisotropyEnergy() {std::cout << "Killing Anisotropy\n";};
+    double *Ku;
+    double *axis;
+    void setup(double *Ku, double *axis, MicroSim * sim) {
+        _setup(sim);
+        this->Ku = Ku;
+        this->axis = axis;
+    }
+    void compute_field(double t);
+};
+
+
+class DMIEnergy : public Energy {
+public:
+    DMIEnergy() {
+        std::cout << "Instatiating DMIEnergy class; at " << this << "\n";
+        this->interaction_id = 1;
+    };
+    ~DMIEnergy() {std::cout << "Killing DMI\n";};
+    double *D;
+    double *dmi_vector;
+    int n_dmis;
+    void setup(double * D, double *dmi_vector, int n_dmis, MicroSim * sim) {
+        _setup(sim);
+        this->D = D;
+        this->dmi_vector = dmi_vector;
+        this->n_dmis = n_dmis;
+    }
+    void compute_field(double t);
+};
