@@ -104,8 +104,11 @@ class Exchange(Energy):
             n = self.mesh.n
             for i in range(n):
                 value = self.J(self.coordinates[i])
-                if len(value) == 6:
-                    self._J[i, :] = value[:]
+                if isinstance(value, (float, int)):
+                    self._J[i, :] = float(value)
+                elif isinstance(value, (list, np.ndarray, tuple)):
+                    if len(value) == 6:
+                        self._J[i, :] = value[:]
                 else:
                     raise Exception('The given spatial function for J is not acceptable!')
             pass

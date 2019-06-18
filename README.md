@@ -86,11 +86,13 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
-[14] [Learning Magnetization Dynamics](https://arxiv.org/abs/1903.09499), A. Kovacs, J. Fischbacher, H. Oezelt, M. Gusenbauer, L. Exl, F. Bruckner, D.Suess, T.Schrefl, arXiV (2019)
+[15] [Micromagnetics and spintronics: models and numerical methods](https://link.springer.com/article/10.1140%2Fepjb%2Fe2019-90599-6) C. Abert, Eur. Phys. J. B (2019) 92: 120
 
-[13] [Computational micromagnetics with Commics](https://arxiv.org/abs/1812.05931), C.-M. Pfeiler, M. Ruggeri, B. Stiftner, L. Exl, M. Hochsteger, G. Hrkac, J. Schöberl, N. J. Mauser, D. Praetorius, arXiV (2018)
+[14] [Nanoscale magnetic skyrmions and target states in confined geometries](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.214408), D. Cortés-Ortuño, N. Romming, M. Beg, K. von Bergmann, A. Kubetzka, O. Hovorka, H. Fangohr, R. Wiesendanger, Physical Review B 99, 214408 (2019) 
 
-[12] [Micromagnetics and spintronics: Models and numerical methods](https://arxiv.org/abs/1810.12365), C. Abert, arXiV (2018)
+[13] [Learning Magnetization Dynamics](https://arxiv.org/abs/1903.09499), A. Kovacs, J. Fischbacher, H. Oezelt, M. Gusenbauer, L. Exl, F. Bruckner, D.Suess, T.Schrefl, arXiV (2019)
+
+[12] [Computational micromagnetics with Commics](https://arxiv.org/abs/1812.05931), C.-M. Pfeiler, M. Ruggeri, B. Stiftner, L. Exl, M. Hochsteger, G. Hrkac, J. Schöberl, N. J. Mauser, D. Praetorius, arXiV (2018)
 
 [11] [Binding a hopfion in a chiral magnet nanodisk](https://journals.aps.org/prb/pdf/10.1103/PhysRevB.98.174437), Y. Liu, R. K. Lake, and J. Zang, Physical Review B 98, 174437 (2018)
 
