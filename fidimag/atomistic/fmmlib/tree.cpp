@@ -1,8 +1,20 @@
+#include<tree.hpp>
 #include<cmath>
 #include<vector>
 #include<array>
 #include "utils.hpp"
-#include "tree.hpp"
+
+
+
+
+Particle::Particle(): r(nullptr), mu(nullptr) {}
+
+
+
+Cell::Cell(){}
+
+
+
 
 /*!
 * \brief Constructor for Cell class
@@ -29,25 +41,28 @@ Cell::Cell(double x, double y, double z, double r, size_t parent, size_t order, 
     this->parent = parent;
     this->level = level;
     this->child.resize(8, 0);
-    this->M.resize(Nterms(order), 0.0);
-    this->L.resize(Nterms(order), 0.0);
+    // std::cout << "Nterms(order) = " << Nterms(order) << std::endl;
+    // std::cout << "Nterms(0) = " << Nterms(0) << std::endl;
+    // std::cout << "M.size() = " << Nterms(order) - Nterms(0) << std::endl;
+    // this->M.resize(Nterms(order) - Nterms(0), 0.0);
+    // this->L.resize(Nterms(order - 1), 0.0);
     this->leaf.resize(ncrit, 0);
     this->nleaf = 0;
     this->nchild = 0;
 }
 
 
-/* Clear expansion array */
-void Cell::clear() {
-  std::fill(M.begin(), M.end(), 0.0);
-  std::fill(L.begin(), L.end(), 0.0);
-}
-
-
-void Cell::resize(size_t order) {
-  this->M.resize(Nterms(order), 0.0);
-  this->L.resize(Nterms(order), 0.0);
-}
+// /* Clear expansion array */
+// void Cell::clear() {
+//   std::fill(M.begin(), M.end(), 0.0);
+//   std::fill(L.begin(), L.end(), 0.0);
+// }
+//
+//
+// void Cell::resize(size_t order) {
+//   this->M.resize(Nterms(order), 0.0);
+//   this->L.resize(Nterms(order), 0.0);
+// }
 
 
 /*! \brief Destructor for the Cell class */
@@ -67,8 +82,8 @@ Cell::Cell(const Cell& other) {
     this->parent = other.parent;
     this->level = other.level;
     this->child = other.child;
-    std::copy(other.M.begin(), other.M.end(), std::back_inserter(this->M));
-    std::copy(other.L.begin(), other.L.end(), std::back_inserter(this->L));
+    // std::copy(other.M.begin(), other.M.end(), std::back_inserter(this->M));
+    // std::copy(other.L.begin(), other.L.end(), std::back_inserter(this->L));
     std::copy(other.leaf.begin(), other.leaf.end(), std::back_inserter(this->leaf));
     std::copy(other.child.begin(), other.child.end(), std::back_inserter(this->child));
     this->nleaf = other.nleaf;
@@ -92,14 +107,16 @@ Cell::Cell(Cell&& other) {
   this->parent = other.parent;
   this->level = other.level;
   this->child = other.child;
-  this->M = std::move(other.M);
-  this->L = std::move(other.L);
+  //this->M = std::move(other.M);
+  //this->L = std::move(other.L);
+  this->M = other.M;
+  this->L = other.L;
   this->leaf = other.leaf;
   this->nleaf = other.nleaf;
   this->nchild = other.nchild;
 
-  other.M.clear();
-  other.L.clear();
+  // other.M.clear();
+  // other.L.clear();
   other.leaf.clear();
   other.child.clear();
 }
@@ -166,7 +183,7 @@ void add_child(std::vector<Cell> &cells, int octant, size_t p, size_t ncrit, siz
     cells[p].nchild = (cells[p].nchild | (1 << octant));
 }
 
-/*! \brief Splits a cells
+/*! \brief Splits a cell
 * When a cell holds more than ncrit particles, the cell must be split.
 * Children are added to thec cells list if they have not already been created,
 * and particles are reassigned to these child cells.
@@ -186,9 +203,9 @@ void split_cell(std::vector<Cell> &cells, std::vector<Particle> &particles, size
   int octant;
   for(size_t i = 0; i < cells[p].leaf.size(); i++) {
     l = cells[p].leaf[i];
-    octant = (particles[l].x > cells[p].x) +
-      ((particles[l].y > cells[p].y) << 1) +
-      ((particles[l].z > cells[p].z) << 2);
+    octant = (particles[l].r[0] > cells[p].x) +
+      ((particles[l].r[1] > cells[p].y) << 1) +
+      ((particles[l].r[2] > cells[p].z) << 2);
 
     if (!((cells[p].nchild) & (1 << octant))) {
       add_child(cells, octant, p, ncrit, order);
@@ -218,7 +235,7 @@ std::vector<Cell> build_tree(std::vector<Particle> &particles, Cell &root, size_
     curr = 0;
     while (cells[curr].nleaf >= ncrit) {
       cells[curr].nleaf += 1;
-      octant = (particles[i].x > cells[curr].x) + ((particles[i].y > cells[curr].y) << 1) + ((particles[i].z > cells[curr].z) << 2);
+      octant = (particles[i].r[0] > cells[curr].x) + ((particles[i].r[1] > cells[curr].y) << 1) + ((particles[i].r[2] > cells[curr].z) << 2);
       if (!(cells[curr].nchild & (1 << octant))) {
         add_child(cells, octant, curr, ncrit, order);
       }
@@ -237,9 +254,9 @@ std::vector<Cell> build_tree(std::vector<Particle> &particles, Cell &root, size_
 /*! \brief Sets multipole expansions to zero.
 * \param cells Reference to std::vector containing all cells in a tree.
 */
-void clear_expansions(std::vector<Cell> cells) {
-  for(size_t c = 0; c < cells.size(); c++) {
-    std::fill(cells[c].M.begin(), cells[c].M.end(), 0.0);
-    std::fill(cells[c].L.begin(), cells[c].L.end(), 0.0);
-  }
-}
+// void clear_expansions(std::vector<Cell> cells) {
+//   for(size_t c = 0; c < cells.size(); c++) {
+//     std::fill(cells[c].M.begin(), cells[c].M.end(), 0.0);
+//     std::fill(cells[c].L.begin(), cells[c].L.end(), 0.0);
+//   }
+// }
