@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stack>
 #include <cmath>
+#include<cstdio>
 
 void P2P(double x, double y, double z, double mux, double muy, double muz, double *F) {
   double R2 = x*x + y*y + z*z;
@@ -31,8 +32,9 @@ void P2P_noatomic(double x, double y, double z, double mux, double muy, double m
 
 void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
 		          size_t cell, size_t ncrit, size_t exporder) {
+  std::cout << "Nparticles = " << particles.size() << std::endl;
   double *M = new double[Nterms(exporder+1)]();
-  #pragma omp for
+  //#pragma omp for
   for(size_t c = 0; c < cells.size(); c++) {
     if (cells[c].nleaf < ncrit) {
     for(size_t i = 0; i < cells[c].nleaf; i++) {
@@ -63,13 +65,16 @@ void evaluate_M2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
   of the way the tree is constructed.
   */
   #pragma omp for
-  for (size_t c = 1; c < cells.size(); c++) {
+  for (size_t c = cells.size() - 1; c > 0; c--) {
     size_t p = cells[c].parent;
+    std::cout << "M2M: " << c << " to " << p << std::endl;
     double dx = cells[p].x - cells[c].x;
     double dy = cells[p].y - cells[c].y;
     double dz = cells[p].z - cells[c].z;
     M2M(dx, dy, dz, cells[c].M, cells[p].M, exporder);
   }
+
+  std::cout << "evalm2m_cpp: " << cells[0].M[0] << "," << cells[0].M[1] << "," << cells[0].M[2] << "," << cells[0].M[3] << std::endl;
 }
 
 
@@ -253,7 +258,7 @@ void evaluate_L2P(std::vector<Particle> &particles, std::vector<Cell> &cells,
   }
 }
 
-void evaluate_direct(std::vector<Particle> &particles, std::vector<double> &F, size_t n) {
+void evaluate_direct(std::vector<Particle> &particles, double *F, size_t n) {
  #pragma omp parallel for schedule(runtime)
   for (size_t i = 0; i < n; i++) {
     for (size_t j = 0; j < n; j++) {

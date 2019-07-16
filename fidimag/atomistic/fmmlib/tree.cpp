@@ -1,9 +1,8 @@
-#include<tree.hpp>
 #include<cmath>
 #include<vector>
 #include<array>
 #include "utils.hpp"
-
+#include "tree.hpp"
 
 
 
@@ -227,6 +226,7 @@ void split_cell(std::vector<Cell> &cells, std::vector<Particle> &particles, size
 * \returns std::vector of Cells that together are the octree.
 */
 std::vector<Cell> build_tree(std::vector<Particle> &particles, Cell &root, size_t ncrit, size_t order) {
+  std::cout << "Building tree" << std::endl;
   std::vector<Cell> cells;
   size_t curr;
   int octant;
@@ -247,6 +247,7 @@ std::vector<Cell> build_tree(std::vector<Particle> &particles, Cell &root, size_
       split_cell(cells, particles, curr, ncrit, order);
     }
   }
+  std::cout << "Ncells = " << cells.size() << std::endl;
   return cells;
 }
 

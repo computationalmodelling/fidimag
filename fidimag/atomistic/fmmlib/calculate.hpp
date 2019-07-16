@@ -28,7 +28,7 @@ void evaluate_L2L(std::vector<Cell> &cells, size_t exporder);
 void evaluate_L2P(std::vector<Particle> &particles, std::vector<Cell> &cells,
                   double *F, size_t ncrit, size_t exporder);
 
-void evaluate_direct(std::vector<Particle> &particles, std::vector<double> &F, size_t Nparticles);
+void evaluate_direct(std::vector<Particle> &particles, double *F, size_t Nparticles);
 // void evaluate_direct(std::vector<Particle> &particles, std::vector<double>
 // &Bx, std::vector<double> &By, std::vector<double> &Bz);
 
