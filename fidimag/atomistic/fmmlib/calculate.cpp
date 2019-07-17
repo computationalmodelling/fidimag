@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stack>
 #include <cmath>
+#include <algorithm>
 #include<cstdio>
 
 void P2P(double x, double y, double z, double mux, double muy, double muz, double *F) {
@@ -30,9 +31,10 @@ void P2P_noatomic(double x, double y, double z, double mux, double muy, double m
   F[2] += (3*mu_dot_r * z / R5 - muz / R3);
 }
 
+
 void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
 		          size_t cell, size_t ncrit, size_t exporder) {
-  std::cout << "Nparticles = " << particles.size() << std::endl;
+  // std::cout << "Nparticles = " << particles.size() << std::endl;
   double *M = new double[Nterms(exporder+1)]();
   //#pragma omp for
   for(size_t c = 0; c < cells.size(); c++) {
@@ -67,14 +69,14 @@ void evaluate_M2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
   #pragma omp for
   for (size_t c = cells.size() - 1; c > 0; c--) {
     size_t p = cells[c].parent;
-    std::cout << "M2M: " << c << " to " << p << std::endl;
+    // std::cout << "M2M: " << c << " to " << p << std::endl;
     double dx = cells[p].x - cells[c].x;
     double dy = cells[p].y - cells[c].y;
     double dz = cells[p].z - cells[c].z;
     M2M(dx, dy, dz, cells[c].M, cells[p].M, exporder);
   }
 
-  std::cout << "evalm2m_cpp: " << cells[0].M[0] << "," << cells[0].M[1] << "," << cells[0].M[2] << "," << cells[0].M[3] << std::endl;
+  // std::cout << "evalm2m_cpp: " << cells[0].M[0] << "," << cells[0].M[1] << "," << cells[0].M[2] << "," << cells[0].M[3] << std::endl;
 }
 
 
@@ -210,12 +212,12 @@ void evaluate_M2L_lazy(std::vector<Cell> &cells,
 }
 
 void evaluate_P2P_lazy(std::vector<Cell> &cells, std::vector<Particle> &particles,
-                       std::vector<std::pair<size_t, size_t>> &P2P_list, std::vector<double> &F) {
+                       std::vector<std::pair<size_t, size_t>> &P2P_list, double *F) {
    #pragma omp for
    for(size_t i = 0; i < P2P_list.size(); i++) {
        size_t A = P2P_list[i].first;
        size_t B = P2P_list[i].second;
-       P2P_Cells(A, B, cells, particles, F.data());
+       P2P_Cells(A, B, cells, particles, F);
    }
 }
 
@@ -273,4 +275,55 @@ void evaluate_direct(std::vector<Particle> &particles, double *F, size_t n) {
         }
       }
   }
+}
+
+
+void evaluate_approx(std::vector<Particle> &particles, std::vector<Cell> &cells,
+                     size_t ncrit, double theta, size_t order, double *F) {
+    evaluate_P2M(particles, cells, 0, ncrit, order);
+    evaluate_M2M(particles, cells, order);
+    interact_dehnen(0, 0, cells, particles, theta, order, ncrit, F);
+    evaluate_L2L(cells, order);
+    evaluate_L2P(particles, cells, F, ncrit, order);
+}
+
+void evaluate_approx_lazy(std::vector<Particle> &particles, std::vector<Cell> &cells,
+                          size_t ncrit, size_t order, double *F,
+                          std::vector<std::pair<size_t, size_t>> &M2L_list,
+                          std::vector<std::pair<size_t, size_t>> &P2P_list) {
+    #pragma omp parallel
+    evaluate_P2M(particles, cells, 0, ncrit, order);
+
+    evaluate_M2M(particles, cells, order);
+    #pragma omp barrier
+    #pragma omp parallel
+    {
+      evaluate_M2L_lazy(cells,M2L_list,order);
+      evaluate_P2P_lazy(cells, particles, P2P_list, F);
+      #pragma omp barrier
+      evaluate_L2L(cells, order);
+      #pragma omp barrier
+      evaluate_L2P(particles, cells, F, ncrit, order);
+    }
+
+}
+
+
+void build_interaction_lists(std::vector<std::pair<size_t, size_t>> &M2L_list,
+                             std::vector<std::pair<size_t, size_t>> &P2P_list,
+                             std::vector<Cell> &cells,
+                             std::vector<Particle> &particles,
+                             double theta,
+                             size_t order,
+                             size_t ncrit
+    ) {
+
+    std::sort(M2L_list.begin(), M2L_list.end(),
+           [](std::pair<size_t, size_t> &left, std::pair<size_t, size_t> &right) {
+                return left.first < right.first;
+               }
+           );
+
+    std::cout << "M2L_list size = " << M2L_list.size() << std::endl;
+    std::cout << "P2P_list size = " << P2P_list.size() << std::endl;
 }

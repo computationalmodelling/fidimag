@@ -16,6 +16,14 @@
 
 void P2P(double x, double y, double z, double mux, double muy, double muz, double *F);
 
+void evaluate_approx(std::vector<Particle> &particles, std::vector<Cell> &cells,
+                     size_t ncrit, double theta, size_t order, double *F);
+
+void evaluate_approx_lazy(std::vector<Particle> &particles, std::vector<Cell> &cells,
+                          size_t ncrit, size_t order, double *F,
+                          std::vector<std::pair<size_t, size_t>> &M2L_list,
+                          std::vector<std::pair<size_t, size_t>> &P2P_list);
+
 void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
 		  size_t cell, size_t ncrit, size_t exporder);
 
@@ -42,8 +50,6 @@ void interact_dehnen_lazy(const size_t A, const size_t B, const std::vector<Cell
 void P2P_Cells(size_t A, size_t B, std::vector<Cell> &cells,
 	 			       std::vector<Particle> &particles, double *F);
 
-void evaluate_P2P_lazy(std::vector<Cell> &cells,
-                      std::vector<std::pair<size_t, size_t>> &P2P_list);
 
 void evaluate_M2L_lazy(std::vector<Cell> &cells,
                      std::vector<std::pair<size_t, size_t>> &M2L_list,
@@ -53,4 +59,13 @@ void evaluate_M2L_lazy(std::vector<Cell> &cells,
                     std::vector<std::pair<size_t, size_t>> &M2L_list, size_t order);
 
 void evaluate_P2P_lazy(std::vector<Cell> &cells, std::vector<Particle> &particles,
-                    std::vector<std::pair<size_t, size_t>> &P2P_list, std::vector<double> &F);
+                       std::vector<std::pair<size_t, size_t>> &P2P_list, double *F);
+
+void build_interaction_lists(std::vector<std::pair<size_t, size_t>> &M2L_list,
+                             std::vector<std::pair<size_t, size_t>> &P2P_list,
+                             std::vector<Cell> &cells,
+                             std::vector<Particle> &particles,
+                             double theta,
+                             size_t order,
+                             size_t ncrit
+    );
