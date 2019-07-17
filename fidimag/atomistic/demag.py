@@ -106,6 +106,7 @@ class DemagFMM(Energy):
     def __init__(self, order, ncrit, theta, name="DemagFMM"):
         self.name = name
         assert order > 0, "Order must be 1 or higher"
+        assert order < 11, "Order bust be < 11"
         self.order = order
         assert ncrit >= 2, "ncrit must be greater than 1."
         self.ncrit = ncrit

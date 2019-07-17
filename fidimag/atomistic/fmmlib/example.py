@@ -1,6 +1,6 @@
 import fmmgen
 
-order = 10
+order = 11
 source_order = 1
 cse = True
 atomic = True
