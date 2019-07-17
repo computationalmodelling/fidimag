@@ -96,16 +96,10 @@ fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=["fmm.cpp"], extension="*.cpp")
 fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=[], extension="*.c")
 
 
-bh_sources = []
-bh_sources.append(os.path.join(BHLIB_DIR, 'bh.pyx'))
-bh_sources += glob_cfiles(BHLIB_DIR, excludes=["bh.cpp"], extension="*.cpp")
-bh_sources += glob_cfiles(BHLIB_DIR, excludes=[], extension="*.c")
-
-
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
-com_args = ['-std=c99', '-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall']
+com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall']
 
 
 
@@ -221,15 +215,6 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.fmm",
               sources=fmm_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
-
-    Extension("fidimag.extensions.bh",
-              sources=bh_sources,
               include_dirs=com_inc,
               libraries=com_libs,
               library_dirs=lib_paths, runtime_library_dirs=lib_paths,
