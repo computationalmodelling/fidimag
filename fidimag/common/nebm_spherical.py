@@ -1,20 +1,18 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
-
-import fidimag.extensions.nebm_spherical_clib as nebm_spherical
 import fidimag.extensions.nebm_clib as nebm_clib
-from .nebm_tools import spherical2cartesian, cartesian2spherical, compute_norm
-from .nebm_tools import linear_interpolation_spherical
+from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
+from .chain_method_tools import linear_interpolation_spherical
 
-from .nebm_base import NEBMBase
+from .chain_method_base import ChainMethodBase
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Spherical(NEBMBase):
+class NEBM_Spherical(ChainMethodBase):
     """
 
     ARGUMENTS -----------------------------------------------------------------
@@ -269,16 +267,25 @@ class NEBM_Spherical(NEBMBase):
                                    )
 
     def compute_spring_force(self, y):
-        nebm_spherical.compute_spring_force(self.spring_force, y,
-                                            self.tangents,
-                                            self.k, self.n_images,
-                                            self.n_dofs_image,
-                                            self._material_int,
-                                            self.n_dofs_image_material
-                                            )
-        nebm_spherical.normalise_images(self.tangents,
-                                        self.n_images, self.n_dofs_image
-                                        )
+
+        nebm_clib.image_distances_Spherical(self.distances,
+                                                 self.path_distances,
+                                                 y,
+                                                 self.n_images,
+                                                 self.n_dofs_image,
+                                                 self._material_int,
+                                                 self.n_dofs_image_material
+                                                 )
+
+        nebm_clib.compute_spring_force(self.spring_force, y,
+                                       self.tangents,
+                                       self.k, self.n_images,
+                                       self.n_dofs_image,
+                                       self.distances
+                                       )
+        # nebm_clib.normalise_images(self.tangents,
+        #                            self.n_images, self.n_dofs_image
+        #                            )
 
     def nebm_step(self, y):
 
@@ -293,16 +300,63 @@ class NEBM_Spherical(NEBMBase):
                                           self.tangents,
                                           self.gradientE,
                                           self.spring_force,
-                                          self.climbing_image,
+                                          self._climbing_image,
                                           self.n_images,
                                           self.n_dofs_image
                                           )
+
+    def Sundials_RHS(self, t, y, ydot):
+        """
+
+        This function is called on every iteration of the integrator (CVODE
+        solver). ydot refers to the Right Hand Side of the equation, since
+        we are solving dy/dt = 0
+
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        ydot[:] = self.G[:]
+
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        ydot[:self.n_dofs_image] = 0
+        ydot[-self.n_dofs_image:] = 0
+
+        return 0
+
+    def step_RHS(self, t, y):
+        """
+        The RHS of the ODE to be solved for the NEBM
+        This function is specified for the Scipy integrator
+        """
+
+        self.ode_count += 1
+
+        # Update the effective field, energies, spring forces and tangents
+        # using the *y* array
+        self.nebm_step(y)
+        # Now set the RHS of the equation as the effective force on the energy
+        # band, which is stored on the self.G array
+        ydot = self.G[:]
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        ydot[:self.n_dofs_image] = 0
+        ydot[-self.n_dofs_image:] = 0
+
+        return ydot
 
     # -------------------------------------------------------------------------
     # Methods -----------------------------------------------------------------
     # -------------------------------------------------------------------------
 
-    def compute_distances(self, A, B):
+    def compute_distances(self):
         """
         Compute the distance between corresponding images of the bands A and B
 
@@ -314,21 +368,22 @@ class NEBM_Spherical(NEBMBase):
 
         """
 
-        A_minus_B = A - B
-        redefine_angles(A_minus_B)
+        # TODO: Check this:
+        # redefine_angles(A_minus_B)
+        # OR:
+        # redefine_angles(self.band)
 
-        A_minus_B.shape = (-1, self.n_dofs_image)
-        A_minus_B = np.apply_along_axis(
-            lambda y: compute_norm(y[self._material],
-                                   scale=self.n_dofs_image),
-            axis=1,
-            arr=A_minus_B
-            )
-
-        return A_minus_B.reshape(-1)
-
+        nebm_clib.image_distances_Spherical(self.distances,
+                                            self.path_distances,
+                                            self.band,
+                                            self.n_images,
+                                            self.n_dofs_image,
+                                            self._material_int,
+                                            self.n_dofs_image_material
+                                            )
 
 # -----------------------------------------------------------------------------
+
 
 def correct_angles(A):
     """

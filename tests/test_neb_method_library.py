@@ -2,12 +2,11 @@ from __future__ import print_function
 
 """
 
-Tests for the NEB Method implementation
+Tests for the String/NEB Method tools and methods (mostly the NEBM C libraries)
 
 """
-
-import fidimag.extensions.nebm_geodesic_clib as nebm_geodesic
-import fidimag.common.nebm_tools as nebm_tools
+import fidimag.extensions.nebm_clib as nebm_clib
+import fidimag.common.chain_method_tools as chain_method_tools
 # import fidimag.common.nebm_spherical as nebm_spherical
 import numpy as np
 
@@ -18,7 +17,7 @@ def test_cartesian2spherical():
                             0, 1, 1,
                             1, 0, 0
                             ])
-    y_spherical = nebm_tools.cartesian2spherical(y_cartesian)
+    y_spherical = chain_method_tools.cartesian2spherical(y_cartesian)
     theta, phi = y_spherical[::2], y_spherical[1::2]
 
     assert np.abs(theta[0]) < 1e-8
@@ -42,7 +41,7 @@ def test_spherical2cartesian():
                             np.pi * 0.5, 3 * np.pi * 0.5,   # (0, -1, 0)
                             ])
 
-    A_cartesian = nebm_tools.spherical2cartesian(A_spherical)
+    A_cartesian = chain_method_tools.spherical2cartesian(A_spherical)
     A_x, A_y, A_z = A_cartesian[::3], A_cartesian[1::3], A_cartesian[2::3]
 
     print('A_x', A_x)
@@ -100,8 +99,8 @@ def test_linearinterpolation():
     pins = np.array([0, 0, 1])
 
     # Interpolate the coordinates
-    interps = nebm_tools.linear_interpolation_spherical(y_initial, y_final,
-                                                        3, pins=pins)
+    interps = chain_method_tools.linear_interpolation_spherical(y_initial, y_final,
+                                                                3, pins=pins)
 
     # Expected angles:
     expected_theta_0 = np.array([np.pi * 0.5 + np.pi * 0.125,
@@ -126,7 +125,7 @@ def test_linearinterpolation():
         assert np.abs(phi - y_initial[5]) < 1e-8
 
 
-def test_geodesic_distance():
+def test_geodesic_distance_Vincenty():
     """
     We will measure the distance between a spin in the +z direction and a spin
     at the -z direction. The great-circle distance (distance on the unit
@@ -134,6 +133,8 @@ def test_geodesic_distance():
 
     The other distance is between a spin in the [0, 1, 0] direction and another
     one in the [-1, 0, 0] direction. The arc length should be PI/2
+
+    This test uses the Vincenty's formula to calculate the geodesic
     """
 
     # Degrees of freedom in Cartesian coordinates
@@ -146,23 +147,152 @@ def test_geodesic_distance():
     material = np.array([1]).astype(np.int32)
     n_dofs_image_material = 3
 
-    d = nebm_geodesic.geodesic_distance(A, B, n_dofs_image,
-                                        material, n_dofs_image_material
-                                        )
+    d = nebm_clib.geodesic_distance_Vincenty(A, B, n_dofs_image,
+                                             material,
+                                             n_dofs_image_material
+                                             )
     assert np.abs(d - np.pi) < 1e-5
 
     # The other two spins:
     A = np.array([0, 1, 0.])
     B = np.array([-1, 0, 0.])
 
-    d = nebm_geodesic.geodesic_distance(A, B, n_dofs_image,
-                                        material, n_dofs_image_material
-                                        )
+    d = nebm_clib.geodesic_distance_Vincenty(A, B, n_dofs_image,
+                                             material,
+                                             n_dofs_image_material
+                                             )
     assert np.abs(d - np.pi * 0.5) < 1e-5
+
+
+# Cartesian NEBM library: common/neb_method/nebm_lib.c --------------
+def test_project_vectors_into_image():
+    """
+    Project 3 vectors in array *a into an image made of
+    9 degrees of freedom = 3 vector
+    """
+
+    a = np.arange(9, dtype=np.float)
+    image = np.array([0., 0, 1,
+                      1, 0, 0,
+                      0, 0, 1])
+
+    # Project array of vectors a, which is updated in the C library
+    nebm_clib.project_vector(a, image, 9)
+
+    # Here we do the projection manually --------------------------------------
+    # Dot products for every vector
+    a_dot_image = [2., 3., 8.]
+    expected_res = np.zeros(9)
+    # Projections:
+    expected_res[:3] = [0, 1, 2 - a_dot_image[0]]
+    expected_res[3:6] = [3 - a_dot_image[1], 4, 5]
+    expected_res[6:] = [6, 7, 8 - a_dot_image[2]]
+    # print(expected_res)
+    # print(a)
+    # -------------------------------------------------------------------------
+
+    for i in range(9):
+        assert a[i] == expected_res[i]
+
+
+def test_project_images_into_image():
+    """
+
+    Project the vectors from an array of images a, into images
+
+    The C library function does NOT calculate projections of extrema images,
+    i.e. image 0 and N, thus we pad two extra arrays at the end and beginning
+    of the arrays
+
+    We construct array "a" made of 4 images, each having 3 vectors
+    Then we construct array "images" with 4 images
+    Then we project vectors from "a" into "images" and compare results
+
+    """
+
+    a = np.zeros(18 + 18, dtype=np.float)
+    a[9:27] = np.arange(18, dtype=np.float)
+    images = np.array([0., 0, 0, 0, 0, 0, 0, 0, 0,
+                       0., 0, 1, 1, 0, 0, 0, 0, 1,
+                       0., 1, 0, 0, 0, 1, 1, 1, 0,
+                       0., 0, 0, 0, 0, 0, 0, 0, 0,
+                       ])
+
+    # Project array of images a, which is updated in the C library
+    nebm_clib.project_images(a, images,
+                            # num of images and num of dofs per image:
+                            4, 9)
+
+    # Here we do the projections manually -------------------------------------
+    # Dot products for every vector
+    a_dot_images = [2., 3., 8.,
+                    10., 14., 15. + 16.]
+    expected_res = np.zeros(18 + 18, dtype=np.float)
+    # Projections:
+    expected_res[9:12] = [0, 1, 2 - a_dot_images[0]]
+    expected_res[12:15] = [3 - a_dot_images[1], 4, 5]
+    expected_res[15:18] = [6, 7, 8 - a_dot_images[2]]
+    # Second image
+    expected_res[18:21] = [9, 10 - a_dot_images[3], 11]
+    expected_res[21:24] = [12, 13, 14 - a_dot_images[4]]
+    expected_res[24:27] = [15 - a_dot_images[5], 16 - a_dot_images[5], 17]
+    # print(expected_res)
+    # print(a)
+    # -------------------------------------------------------------------------
+
+    for i in range(36):
+        assert a[i] == expected_res[i]
+
+
+def test_normalise_images():
+    """
+    Normalise an array of image-like arrays
+    We initialise the array "a" with 4 images. Extrema images
+    are set to zero. Then we normalise images 1 and 2 and compare
+    the normalisation with Numpy calculations
+    """
+
+    a = np.zeros(18 + 18, dtype=np.float)
+    a[9:27] = np.arange(18, dtype=np.float)
+    nebm_clib.normalise_images(a, 4, 9)
+
+    b = np.zeros(18 + 18, dtype=np.float)
+    b[9:27] = np.arange(18, dtype=np.float)
+    norms = [np.sqrt(np.sum(b[9:18] ** 2)),
+             np.sqrt(np.sum(b[18:27] ** 2))]
+
+    # print(a)
+    # print(b)
+    # print(norms)
+
+    for i in range(9):
+        assert np.abs(a[9 + i] - b[9 + i] / norms[0]) < 1e-12
+        assert np.abs(a[18 + i] - b[18 + i] / norms[1]) < 1e-12
+
+
+# From common/neb_method/nebm_lib.c -------------------------------------------
+def test_normalise():
+    """
+    Check normalise function in nebm lib
+    """
+
+    a = np.array([1, 0, 1.])
+    nebm_clib.normalise_clib(a, 3)
+
+    norm = 1.4142135623730951
+    assert a[0] - (1. / norm) < 1e-12
+    assert a[1] < 1e-12
+    assert a[2] - (1. / norm) < 1e-12
+
 
 if __name__ == "__main__":
 
     test_cartesian2spherical()
     test_spherical2cartesian()
     test_linearinterpolation()
-    test_geodesic_distance()
+    test_geodesic_distance_Vincenty()
+    test_project_vectors_into_image()
+    test_project_images_into_image()
+    test_normalise_images()
+    #
+    test_normalise()

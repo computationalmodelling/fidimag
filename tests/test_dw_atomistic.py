@@ -30,6 +30,7 @@ def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
     mz = 1.0 / np.cosh(xs / delta) * np.sin(phi)
     return mx, my, mz
 
+
 def test_dw_dmi_atomistic(do_plot=False):
 
     mesh = CuboidMesh(nx=300, ny=1, nz=1)
@@ -51,7 +52,7 @@ def test_dw_dmi_atomistic(do_plot=False):
     sim.add(dmi)
 
     K = 0.005 * J
-    anis = Anisotropy(K, axis=[1,0,0])
+    anis = Anisotropy(K, axis=[1, 0, 0])
     sim.add(anis)
 
     ONE_DEGREE_PER_NS = 17453292.52

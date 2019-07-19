@@ -17,11 +17,11 @@ class UniaxialAnisotropy(Energy):
         self.jac = True
         self.axis = axis
 
-    def setup(self, mesh, spin, Ms):
-        super(UniaxialAnisotropy, self).setup(mesh, spin, Ms)
+    def setup(self, mesh, spin, Ms, Ms_inv):
+        super(UniaxialAnisotropy, self).setup(mesh, spin, Ms, Ms_inv)
 
         self._Ku = helper.init_scalar(self.Ku, self.mesh)
-        self._axis = helper.init_vector(self.axis, self.mesh, True)
+        self._axis = helper.init_vector(self.axis, self.mesh, 3, norm=True)
 
     def compute_field(self, t=0, spin=None):
         if spin is not None:

@@ -51,7 +51,7 @@ class DemagHexagonal(object):
         self.name = name
         self.jac = True
 
-    def setup(self, mesh, spin, mu_s):
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
 
         if mesh.mesh_type != 'hexagonal':
             raise Exception('This interaction is only defined'
@@ -81,6 +81,9 @@ class DemagHexagonal(object):
         self.field = np.zeros(3 * self.n, dtype=np.float)
         self.field_c = np.zeros(3 * self.n_c, dtype=np.float)
 
+        self.energy = np.zeros(self.n, dtype=np.float)
+        self.energy_c = np.zeros(self.n_c, dtype=np.float)
+
         unit_length = mesh.unit_length
         self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
         self.mu_s_scale_c = np.zeros(2 * self.n, dtype=np.float)
@@ -89,6 +92,8 @@ class DemagHexagonal(object):
         self.scale = 1e-7 / unit_length ** 3
 
         # could be wrong, needs carefully tests!!!
+        # David Tue 19 Jun 2018: this variable is upated in the sim class
+        # in case mu_s changes
         self.mu_s_scale = mu_s * self.scale
 
         # This seems not to be necessary
@@ -142,7 +147,10 @@ class DemagHexagonal(object):
         self.vector2cuboid(self.spin, self.spin_c)
 
         energy = self.demag.compute_energy(
-            self.spin_c, self.mu_s_scale_c, self.field_c)
+            self.spin_c, self.mu_s_scale_c, self.field_c, self.energy_c)
+
+        self.scalar2cuboid(self.energy, self.energy_c, invert=True)
+        self.energy /= self.scale
 
         return energy / self.scale
 

@@ -11,6 +11,7 @@ class SimBase(object):
     atomistic simulations
 
     """
+
     def __init__(self, mesh, name):
 
         self.name = name
@@ -20,6 +21,9 @@ class SimBase(object):
         self.unit_length = mesh.unit_length
 
         self._magnetisation = np.zeros(self.n, dtype=np.float)
+        # Inverse magnetisation
+        self._magnetisation_inv = np.zeros(self.n, dtype=np.float)
+
         self.spin = np.ones(3 * self.n, dtype=np.float)
         self._pins = np.zeros(self.n, dtype=np.int32)
         self.field = np.zeros(3 * self.n, dtype=np.float)
@@ -87,7 +91,7 @@ class SimBase(object):
 
         """
 
-        self.spin[:] = helper.init_vector(m0, self.mesh, normalise)
+        self.spin[:] = helper.init_vector(m0, self.mesh, 3, normalise)
 
         # TODO: carefully checking and requires to call set_mu first
 
@@ -102,7 +106,11 @@ class SimBase(object):
 
         # Set the initial state for the Sundials integrator using the
         # spins array
-        self.driver.integrator.set_initial_value(self.spin, self.driver.t)
+        # Minimiser methods do not have integrator
+        try:
+            self.driver.integrator.set_initial_value(self.spin, self.driver.t)
+        except AttributeError:
+            pass
 
     def get_pins(self):
         """
@@ -148,6 +156,16 @@ class SimBase(object):
 
     pins = property(get_pins, set_pins)
 
+    
+
+    def set_alpha(self, alpha):
+        self.driver.alpha = alpha
+
+    def get_alpha(self, alpha):
+        return self.driver.alpha
+
+    alpha = property(get_alpha, set_alpha)
+
     def add(self, interaction, save_field=False):
         """
 
@@ -165,7 +183,8 @@ class SimBase(object):
         # magnetisation is Ms for the micromagnetic Sim class, and it is
         # mu_s for the atomistic Sim class
         interaction.setup(self.mesh, self.spin,
-                          self._magnetisation
+                          self._magnetisation,
+                          self._magnetisation_inv
                           )
 
         # TODO: FIX  --> ??
@@ -210,6 +229,44 @@ class SimBase(object):
             raise ValueError("Failed to find the interaction with name '{0}', "
                              "available interactions: {1}.".format(
                                  name, [x.name for x in self.interactions]))
+
+    def remove(self, name):
+        """
+        Removes an interaction from a simulation.
+
+        This is useful because it reduces the run-time
+        if the interaction calculation time is substantial.
+        """
+
+        interaction = None
+        # First we remove it from the list of interactions
+        print(self.interactions)
+        for i, intn in enumerate(self.interactions):
+            print(intn.name)
+            if intn.name == name:
+                interaction = self.interactions.pop(i)
+                break
+
+        if not interaction:
+            raise ValueError("Could not find the "
+                             "interaction with name {}".format(name))
+
+        # Next, we need to change the data saver entities.
+        # We don't want to remove the relevant interaction
+        # completely because if this is done, the table
+        # would be incorrect. What we need to do is therefore
+        # replace the lambda functions with dummy ones which
+        # just return zeros; for example.if no Zeeman intn then
+        # the Zeeman energy and field are zero anyway.
+        self.data_saver.entities['E_{}'.format(name)]['get'] = lambda sim: 0
+        # We don't save field by default, so need to check if
+        # save field is selected. Easiest just to use a try/except
+        # block here; not a performance critical function.
+        try:
+            self.data_saver.entities[name]['get'] = \
+                lambda sim: np.array([0.0, 0.0, 0.0])
+        except:
+            pass
 
     def skyrmion_number(self):
         pass

@@ -29,17 +29,20 @@ inline double cross_z(double a0, double a1, double a2, double b0, double b1,
 // ----------------------------------------------------------------------------
 // From exch.c
 
-void compute_exch_field(double *restrict spin, double *restrict field, double *restrict energy, double Jx,
+void compute_exch_field(double *restrict spin, double *restrict field, double *restrict mu_s_inv,
+                        double *restrict energy, double Jx,
                         double Jy, double Jz, int *restrict ngbs, int n, int n_ngbs);
 
-void compute_exch_field_spatial(double *restrict spin, double *restrict field, double *restrict energy,
+void compute_exch_field_spatial(double *restrict spin, double *restrict field, double *restrict mu_s_inv,
+                                double *restrict energy,
                                 double *restrict J, int *restrict ngbs, int n, int n_ngbs);
 
 double compute_exch_energy(double *restrict spin, double Jx, double Jy, double Jz,
                            int nx, int ny, int nz, int xperiodic,
                            int yperiodic);
 
-void compute_full_exch_field(double *restrict spin, double *restrict field, double *restrict energy,
+void compute_full_exch_field(double *restrict spin, double *restrict field, double *restrict mu_s_inv,
+                             double *restrict energy,
 					      	 double *restrict J, int *restrict ngbs, int n, int n_ngbs,
                              int n_shells, int *restrict n_ngbs_shell, int *restrict sum_ngbs_shell
                              );
@@ -47,18 +50,26 @@ void compute_full_exch_field(double *restrict spin, double *restrict field, doub
 // -----------------------------------------------------------------------------
 // From anis.c
 
-void compute_anis(double *restrict spin, double *restrict field, double *restrict energy, double *restrict Ku,
+void compute_anis(double *restrict spin, double *restrict field,
+                  double *restrict mu_s_inv,
+                  double *restrict energy, double *restrict Ku,
                   double *restrict axis, int n);
-void compute_anis_cubic(double *restrict spin, double *restrict field, double *restrict energy,
-	          double *Kc, int n); 
+
+void compute_anis_cubic(double *restrict spin, double *restrict field,
+                        double *restrict mu_s_inv,
+                        double *restrict energy,
+                        double *Kc, int n);
 
 // ----------------------------------------------------------------------------
 // From dmi.c
 
-void dmi_field_bulk(double *restrict spin, double *restrict field, double *restrict energy, double *D,
+void dmi_field_bulk(double *restrict spin, double *restrict field,
+                    double *restrict mu_s_inv,
+                    double *restrict energy, double *D,
                     int *restrict ngbs, int n, int n_ngbs);
 
 void dmi_field_interfacial_atomistic(double *spin, double *field,
+                                     double *mu_s_inv,
                                      double *energy, double D, int *ngbs, int n,
                                      int n_ngbs, int n_ngbs_dmi, double *DMI_vec);
 

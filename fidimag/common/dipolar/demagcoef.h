@@ -129,6 +129,8 @@ double DemagNxzAsymptotic(double x, double y, double z,
 double DemagNyzAsymptotic(double x, double y, double z,
                             double dx,double dy,double dz);
 
+
+
 ////////////////////////////////////////////////////////////////////////////
 // Routines to do accurate summation
 
@@ -143,7 +145,7 @@ static int AS_Compare(const void* px,const void* py)
 }
 
 
-static double
+static double		       
 AccurateSum(int n,double *arr)
 {
   // Order by decreasing magnitude

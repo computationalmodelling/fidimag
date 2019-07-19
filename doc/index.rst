@@ -12,7 +12,6 @@ The code for Fidimag is available under an open source license on `GitHub
 <https://github.com/computationalmodelling/fidimag>`_.
 
 Contents:
-
 .. toctree::
    :maxdepth: 2
    :caption: Installation Instructions
@@ -31,6 +30,8 @@ Contents:
    ipynb/isolated_skyrmion
    ipynb/spin-polarised-current-driven-skyrmion
    ipynb/spin-waves-in-periodic-system
+   ipynb/FMR-stdprob
+   ipynb/steepest_descent_atomistic
 
 .. toctree::
    :maxdepth: 2
@@ -46,4 +47,3 @@ Contents:
 
    nebm
 
-.. _GitHub

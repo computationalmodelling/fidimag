@@ -16,15 +16,16 @@ inline double cross_z(double a0, double a1, double a2,
 void compute_exch_field_micro(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
                          double A, double dx, double dy, double dz, int n, int *ngbs);
 
-void dmi_field(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
-               double *restrict D, double dmi_vector[18], int n_dmi_ngbs,
-	       double dx, double dy, double dz,
-	       int n, int *ngbs);
+void dmi_field(double *restrict m, double *restrict field,
+               double *restrict energy, double *restrict Ms_inv,
+               double *restrict D, int n_DMIs,
+               double *dmi_vector,
+               double dx, double dy, double dz, int n, int *ngbs);
 
 void compute_exch_field_rkky_micro(double *m, double *field, double *energy, double *Ms_inv,
                          double sigma, int nx, double ny, double nz, int z_bottom, int z_top);
 
-void compute_uniaxial_anis(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv, 
+void compute_uniaxial_anis(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
 	double *restrict Ku, double *restrict axis, int nx, int ny, int nz);
 
 double skyrmion_number(double *restrict spin, double *restrict charge,

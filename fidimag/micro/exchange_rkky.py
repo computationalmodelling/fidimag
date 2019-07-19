@@ -34,8 +34,8 @@ class ExchangeRKKY(Energy):
         self.z_top = z_top
         self.jac = True
 
-    def setup(self, mesh, spin, Ms):
-        super(ExchangeRKKY, self).setup(mesh, spin, Ms)
+    def setup(self, mesh, spin, Ms, Ms_inv):
+        super(ExchangeRKKY, self).setup(mesh, spin, Ms, Ms_inv)
         if self.z_top<0:
             self.z_top+= self.nz
  

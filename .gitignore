@@ -5,16 +5,22 @@
 *.swp
 *.pdf
 *.tmp
-/local/
-
+*.so
+local/
+*~
+*.bak
+.DS_Store
+.pytest_cache/
 # ignore automatically generated cython files
 fidimag/atomistic/lib/clib.c
+fidimag/common/lib/common_clib.c
 fidimag/common/dipolar/dipolar.c
 fidimag/common/neb/neb_clib.c
 fidimag/common/neb_method/*clib.c
 fidimag/common/sundials/cvode.c
 fidimag/micro/lib/baryakhtar/baryakhtar_clib.c
 fidimag/micro/lib/micro_clib.c
+fidimag/user/example/example.c
 
 # ignore .cache from pytest
 .cache

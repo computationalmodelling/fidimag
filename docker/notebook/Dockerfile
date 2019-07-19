@@ -1,14 +1,17 @@
 FROM jupyter/scipy-notebook
-
 # where to install source
-ENV FIDIMAG_DIR $HOME/work/fidimag
-
-RUN git clone https://github.com/computationalmodelling/fidimag.git
-WORKDIR $FIDIMAG_DIR
-
+USER root
+RUN mkdir -p /io
+RUN chown $NB_USER /io
+RUN apt update && apt install -y cmake
+USER $NB_USER
+ENV FIDIMAG_DIR /io
+WORKDIR /io
+RUN git clone https://github.com/rpep/fidimag.git
+WORKDIR /io/fidimag
 # install third party libraries from source
 RUN bash bin/install-fftw.sh
-RUN bash bin/install-sundials-2.5.sh
+RUN bash bin/install-sundials.sh
 
 # install pyvtk
 RUN pip install pyvtk
@@ -17,6 +20,7 @@ RUN pip install cython --upgrade
 
 # compile fidimag
 RUN python3 setup.py build_ext --inplace
+RUN pip install psutil
 ENV PYTHONPATH=$FIDIMAG_DIR
 ENV LD_LIBRARY_PATH=$FIDIMAG_DIR/local/lib
 WORKDIR $FIDIMAG_DIR/tests
@@ -26,12 +30,7 @@ RUN conda install --quiet --yes icu
 
 # check that tests run okay
 RUN conda install --quiet --yes pytest
-RUN py.test -v
 
 # /io will be mounted from the host system
-USER root
-RUN mkdir /io
-RUN chown -R $NB_USER /io
-USER $NB_USER
-
 WORKDIR /io
+

@@ -1,0 +1,74 @@
+# MIF 2.1 ---------------------------------------------------------------------
+
+# Generate an isolated skyrmion with bulk (T) DMI
+#
+# Authors: D. Cortes, M. Beg, H.Fangohr (2018)
+
+set PI [expr {4 * atan(1.)}]
+set MU0 [expr {4 * $PI * 1e-7}]
+
+# -----------------------------------------------------------------------------
+# PdFe on Ir(111) [PRL, 114(17):1-5, 2015]
+set Ms [expr {1.1e6}]
+set A  [expr {2e-12}]
+set D  [expr {-3.9e-3}]
+set KU [expr {2.5e6}]
+set BZ [expr {1.0}]
+
+set XL [expr {15e-9}]
+set YL [expr {$XL}]
+set ZL [expr {$XL}]
+
+set xcell [expr {$XL / 2}]
+set ycell [expr {$YL / 2}]
+set zcell [expr {$XL / 2}]
+
+# -----------------------------------------------------------------------------
+
+# BoxAtlas
+Specify Oxs_BoxAtlas:atlas [subst {
+  xrange {0 $XL}
+  yrange {0 $YL}
+  zrange {0 $ZL}
+  name atlas
+}]
+
+# RectangularMesh
+Specify Oxs_RectangularMesh:mesh [subst {
+  cellsize {$xcell $ycell $zcell}
+  atlas Oxs_BoxAtlas:atlas
+}]
+
+# T DMI
+Specify Oxs_DMI_T [subst {
+  default_D $D
+  atlas :atlas
+  D {
+    atlas atlas $D
+  }
+}]
+
+
+# CGEvolver
+Specify Oxs_CGEvolve {}
+
+# MinDriver
+Specify Oxs_MinDriver [subst {
+  evolver Oxs_CGEvolve
+  stopping_mxHxm 0.01
+  mesh :mesh
+  Ms $Ms
+  m0 { 0 0 1 }
+  basename isolated_sk_T
+  scalar_field_output_format {text %\#.15g}
+  vector_field_output_format {text %\#.15g}
+}]
+
+Destination table mmArchive
+Destination mags mmArchive
+Schedule DataTable table Stage 1
+Schedule Oxs_MinDriver::Magnetization mags Stage 1
+
+
+# =============================================================================
+

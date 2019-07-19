@@ -131,8 +131,10 @@ double SelfDemagNx(double x,double y,double z)
   // Note: egcs-2.91.57 on Linux/x86 with -O1 mangles this
   //  function (produces NaN's) unless we manually group terms.
 
-  if(x<=0.0 || y<=0.0 || z<=0.0) return 0.0;
-  if(x==y && y==z) return 1./3.;  // Special case: cube
+  if(x<=0.0 || y<=0.0 || z<=0.0) 
+    return 0.0;
+  if (x==y && y==z)
+    return 1./3.;  // Special case: cube
 
   double xsq=x*x,ysq=y*y,zsq=z*z;
   double diag=sqrt(xsq+ysq+zsq);
@@ -283,14 +285,19 @@ Newell_g(double x,double y,double z)
   // handle if t=y/x (for example) as x -> 0.
 
   double result_sign=1.0;
-  if(x<0.0) result_sign *= -1.0;  if(y<0.0) result_sign *= -1.0;
+  if(x<0.0) 
+    result_sign *= -1.0;  
+  if(y<0.0) 
+    result_sign *= -1.0;
   x=fabs(x); y=fabs(y); z=fabs(z);  // This function is even in z and
   /// odd in x and y.  The fabs()'s simplify special case handling.
 
   double xsq=x*x,ysq=y*y,zsq=z*z;
   double R=xsq+ysq+zsq;
-  if(R<=0.0) return 0.0;
-  else       R=sqrt(R);
+  if(R<=0.0) 
+    return 0.0;
+  else
+    R=sqrt(R);
 
   // g(x,y,z)
   double piece[7];
@@ -320,8 +327,7 @@ Newell_g(double x,double y,double z)
   return result_sign*AccurateSum(piececount,piece)/6.;
 }
 
-double
-CalculateSDA01(double x,double y,double z,
+double CalculateSDA01(double x,double y,double z,
 	       double l,double h,double e)
 { // This is Nxy*(4*PI*tau) in Newell's paper.
 

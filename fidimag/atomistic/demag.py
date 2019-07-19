@@ -1,8 +1,15 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
+from .energy import Energy
+import numpy as np
+import fidimag
+from fidimag.atomistic.energy import Energy
+import fidimag.extensions.fmm as fmm
+import time
+import sys
 
 
-class Demag(object):
+class Demag(Energy):
     """
 
     Energy class for the demagnetising field (a.k.a. dipolar interactions,
@@ -33,35 +40,31 @@ class Demag(object):
 
     """
 
-    def __init__(self, name='Demag'):
+    def __init__(self, calc_every=0, name='Demag'):
+        self.calc_every = calc_every
         self.name = name
         self.jac = True
 
-    def setup(self, mesh, spin, mu_s):
-        self.mesh = mesh
-        self.dx = mesh.dx
-        self.dy = mesh.dy
-        self.dz = mesh.dz
-        self.nx = mesh.nx
-        self.ny = mesh.ny
-        self.nz = mesh.nz
-        self.spin = spin
-        self.n = mesh.n
-        self.field = np.zeros(3 * self.n, dtype=np.float)
-        unit_length = mesh.unit_length
-        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
+        super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
 
-        # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
-        self.scale = 1e-7 / unit_length**3
-
-        # could be wrong, needs carefully tests!!!
+        # Ryan Pepper 04/04/2019
+        # We *do not* need to scale by mesh.unit_length**3 here!
+        # This is because in the base energy class, dx, dy and dz
+        # are scaled.
+        self.scale = 1e-7
         self.mu_s_scale = mu_s * self.scale
 
         self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                    self.nx, self.ny, self.nz,
                                    tensor_type='dipolar')
+        if not self.calc_every:
+            self.compute_field = self.compute_field_every
+        else:
+            self.count = 0
+            self.compute_field = self.compute_field_periodically
 
-    def compute_field(self, t=0, spin=None):
+    def compute_field_every(self, t=0, spin=None):
         if spin is not None:
             m = spin
         else:
@@ -69,14 +72,70 @@ class Demag(object):
         self.demag.compute_field(m, self.mu_s_scale, self.field)
         return self.field
 
+    def compute_field_periodically(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+
+        if not (self.count % self.calc_every == 0):
+            self.count += 1
+            return self.field
+        else:
+            print(self.count)
+            self.count += 1
+            self.demag.compute_field(m, self.mu_s_scale, self.field)
+            return self.field
+
+
     def compute_exact(self):
         field = np.zeros(3 * self.n)
         self.demag.compute_exact(self.spin, self.mu_s_scale, field)
         return field
 
     def compute_energy(self):
-
         energy = self.demag.compute_energy(
-            self.spin, self.mu_s_scale, self.field)
+            self.spin, self.mu_s_scale, self.field, self.energy)
+
+        self.energy /= self.scale
 
         return energy / self.scale
+
+
+class DemagFMM(Energy):
+    def __init__(self, order, ncrit, theta, name="DemagFMM"):
+        self.name = name
+        assert order > 0, "Order must be 1 or higher"
+        assert order < 11, "Order bust be < 11"
+        self.order = order
+        assert ncrit >= 2, "ncrit must be greater than 1."
+        self.ncrit = ncrit
+        assert theta >= 0.0, "theta must be >= 0.0"
+        self.theta = theta
+
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
+        super(DemagFMM, self).setup(mesh, spin, mu_s, mu_s_inv)
+        self.n = mesh.n
+        self.m_temp = spin.copy()
+        self.m_temp[0::3] *= self.mu_s
+        self.m_temp[1::3] *= self.mu_s
+        self.m_temp[2::3] *= self.mu_s
+        self.coords = mesh.coordinates * mesh.unit_length
+        print(np.min(self.coords[:, 0]))
+        print(np.max(self.coords[:, 0]))
+        self.fmm = fmm.FMM(self.n, self.ncrit, self.theta,
+                           self.order,
+                           self.coords,
+                           self.m_temp)
+
+    def compute_field(self, t=0, spin=None):
+        self.m_temp[:] = spin if spin is not None else self.spin
+        self.m_temp[0::3] *= self.mu_s
+        self.m_temp[1::3] *= self.mu_s
+        self.m_temp[2::3] *= self.mu_s
+
+        self.field[:] = 0.0
+        #self.fmm.set(self.m_temp)
+        self.fmm.compute_field(self.field)
+        self.field *= 1e-7
+        return self.field

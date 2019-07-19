@@ -1,7 +1,7 @@
 import numpy as np
-
 from fidimag.common.constant import mu_0
 import fidimag.common.helper as helper
+import inspect
 
 
 class Zeeman(object):
@@ -64,29 +64,23 @@ class Zeeman(object):
         self.name = name
         self.jac = False
 
-    def setup(self, mesh, spin, Ms):
+    def setup(self, mesh, spin, Ms, Ms_inv):
         self.mesh = mesh
         self.spin = spin
         self.n = mesh.n
 
         self.Ms = Ms
-        self.Ms_long = np.zeros(3 * mesh.n)
 
         # TODO: Check if it is necessary to define a 3D matrix for
         # the Ms vectors. Maybe there is a way that uses less memory
         # (see the calculation in the *compute_energy* function)
-        self.Ms_long.shape = (3, -1)
-        for i in range(mesh.n):
-            self.Ms_long[:, i] = Ms[i]
-
-        self.Ms_long.shape = (-1,)
         self.field = np.zeros(3 * self.n)
-        self.field[:] = helper.init_vector(self.H0, self.mesh)
+        self.field[:] = helper.init_vector(self.H0, self.mesh, 3)
         # print self.field
 
     def update_field(self, H0):
         self.H0 = H0
-        self.field[:] = helper.init_vector(self.H0, self.mesh)
+        self.field[:] = helper.init_vector(self.H0, self.mesh, 3)
 
     def compute_field(self, t=0, spin=None):
         return self.field
@@ -101,14 +95,14 @@ class Zeeman(object):
 
     def compute_energy(self):
 
-        sf = self.field * self.spin * self.Ms_long * mu_0
+        sf = self.field * self.spin * mu_0
 
-        energy = -np.sum(sf)
+        energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.Ms
 
-        return energy * (self.mesh.dx *
-                         self.mesh.dy *
-                         self.mesh.dz *
-                         self.mesh.unit_length ** 3.)
+        return np.sum(energy_density) * (self.mesh.dx *
+                                         self.mesh.dy *
+                                         self.mesh.dz *
+                                         self.mesh.unit_length ** 3.)
 
 
 class TimeZeeman(Zeeman):
@@ -117,16 +111,17 @@ class TimeZeeman(Zeeman):
     The time dependent external field, also can vary with space
     """
 
-    def __init__(self, H0, time_fun, name='TimeZeeman'):
+    def __init__(self, H0, time_fun, extra_args=[], name='TimeZeeman'):
         self.H0 = H0
         self.time_fun = time_fun
         self.name = name
         self.jac = True
+        self.extra_args = extra_args
 
-    def setup(self, mesh, spin, Ms):
-        super(TimeZeeman, self).setup(mesh, spin, Ms)
+    def setup(self, mesh, spin, Ms, Ms_inv):
+        super(TimeZeeman, self).setup(mesh, spin, Ms, Ms_inv)
         self.H_init = self.field.copy()
 
     def compute_field(self, t=0, spin=None):
-        self.field[:] = self.H_init[:] * self.time_fun(t)
+        self.field[:] = self.H_init[:] * self.time_fun(t, *self.extra_args)
         return self.field

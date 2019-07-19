@@ -170,7 +170,7 @@ def excite_system(mesh):
     ts = np.linspace(0, 5e-9, 501)
 
     for t in ts:
-        print 'time', t
+        print('time', t)
         sim.driver.run_until(t)
         sim.save_vtk()
         sim.save_m()

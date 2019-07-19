@@ -161,10 +161,10 @@ import matplotlib
 if args.preview:
     if run_from_ipython():
         matplotlib.use('nbagg')
-        print 'Using Backend: NBAgg'
+        print('Using Backend: NBAgg')
     else:
         matplotlib.use('TkAgg')
-        print 'Using Backend: TkAgg'
+        print('Using Backend: TkAgg')
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -266,7 +266,7 @@ if not args.PBC_2D:
                   unit_length=1e-9,
                   )
 else:
-    print 'Using Periodic Boundary Conditions!'
+    print('Using Periodic Boundary Conditions!')
     mesh = CuboidMesh(nx=nx,
                   ny=ny,
                   nz=nz,
@@ -307,7 +307,7 @@ if args.k_u:
     sim.add(UniaxialAnisotropy(args.k_u, axis=(0, 0, 1)))
 
 if args.Demag:
-    print 'Using Demag!'
+    print('Using Demag!')
     sim.add(Demag())
 
 # -------------------------------------------------------------------------
@@ -344,20 +344,20 @@ else:
 
 
 # Debug Information -------------------------------------------------------
-print 'Simulating a {} x {} x {} box'.format(args.box_length,
+print(('Simulating a {} x {} x {} box'.format(args.box_length,
                                              args.box_width,
-                                             args.box_thickness)
-print 'Number of elements in x-y-z directions: ', nx, ny, nz
-print 'Finite differences size in x-y-z directions: ', dx, dy, dz
+                                             args.box_thickness)))
+print(('Number of elements in x-y-z directions: ', nx, ny, nz))
+print(('Finite differences size in x-y-z directions: ', dx, dy, dz))
 
-print 'Saturation Magnetisation: {} A / m'.format(args.Ms)
-print 'Exchange constant: {}  J m**-1'.format(args.A)
-print 'DMI constant: {} * 1e-3  J m**-2'.format(args.D)
+print(('Saturation Magnetisation: {} A / m'.format(args.Ms)))
+print(('Exchange constant: {}  J m**-1'.format(args.A)))
+print(('DMI constant: {} * 1e-3  J m**-2'.format(args.D)))
 if args.k_u:
-    print 'Anisotropy constant: {}  J m**-3'.format(args.k_u)
+    print(('Anisotropy constant: {}  J m**-3'.format(args.k_u)))
 if args.B:
-    print 'Zeeman field: (0, 0, {})  A / m'.format(args.B / mu0)
-print '--------------------------------------'
+    print(('Zeeman field: (0, 0, {})  A / m'.format(args.B / mu0)))
+print('--------------------------------------')
 
 # -------------------------------------------------------------------------
 
@@ -439,9 +439,9 @@ if args.preview:
     # Now run the simulation printing the energy
     for time in times:
         if not run_from_ipython():
-            print 'Time: ', time, ' s'
-            print 'Total energy: ', sim.compute_energy(), ' J'
-            print '\n'
+            print('Time: ', time, ' s')
+            print('Total energy: ', sim.compute_energy(), ' J')
+            print('\n')
         sim.run_until(time)
 
         # Update the vector data for the plot (the spins do not move

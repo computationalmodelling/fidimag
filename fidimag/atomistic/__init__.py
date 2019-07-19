@@ -2,7 +2,7 @@ from .sim import Sim
 from .exchange import UniformExchange, Exchange
 from .anisotropy import Anisotropy, CubicAnisotropy
 from .zeeman import Zeeman, TimeZeeman
-from .demag import Demag
+from .demag import Demag, DemagFMM
 from .demag_hexagonal import DemagHexagonal
 from .hexagonal_mesh import HexagonalMesh
 from .demag_full import DemagFull
