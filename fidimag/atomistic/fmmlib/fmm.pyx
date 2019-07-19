@@ -6,6 +6,7 @@ from libcpp.utility cimport pair
 from libcpp.algorithm cimport sort
 cimport numpy as np
 import numpy as np
+import sys
 
 cdef extern from "utils.hpp":
     size_t Nterms(size_t p)
@@ -98,11 +99,12 @@ cdef class FMM:
     cdef Cell root
     cdef vector[double] M
     cdef vector[double] L
-    cdef vector[pair[size_t, size_t]] M2L_list
-    cdef vector[pair[size_t, size_t]] P2P_list
+    cdef public vector[pair[size_t, size_t]] M2L_list
+    cdef public vector[pair[size_t, size_t]] P2P_list
     cdef size_t Msize
     cdef size_t Lsize
     cdef public double [:, :] coords
+    cdef public double [:] mu
     cdef double theta
 
     def __cinit__(self, size_t n, size_t ncrit, double theta, size_t order, double [:, :] coords, double [:] mu):
@@ -110,8 +112,10 @@ cdef class FMM:
             raise ValueError("Order needs to be < 12")
         # self.particles = vector[Particle]
         self.theta = theta
-        # Don't remove this line, or the memory goes out of scope!
+        # Don't remove these two line, or the memory goes out of scope!
         self.coords = coords
+        self.mu = mu
+
         self.ncrit = ncrit
         self.order = order
         # print('FMM Order = {}'.format(order))
@@ -123,10 +127,16 @@ cdef class FMM:
         cdef double rooty = np.mean(ys)
         cdef double rootz = np.mean(zs)
 
+        print(f"Rootx = {rootx}")
+        print(f"Rooty = {rooty}")
+        print(f"Rootz = {rootz}")
+
         maxs = np.array([np.abs(xs - rootx),
                         np.abs(ys - rooty),
                         np.abs(zs - rootz)])
         cdef double rmax = np.max(maxs)
+
+        print(f"rmax = {rmax}")
 
         self.root = Cell(rootx, rooty, rootz, rmax, 0, order, 0, ncrit)
         self.n = n
@@ -152,6 +162,8 @@ cdef class FMM:
         print("Setting up interaction list")
         # interact_dehnen_lazy(0, 0, self.cells, self.particles, theta, order, ncrit, self.M2L_list, self.P2P_list)
         build_interaction_lists(self.M2L_list, self.P2P_list, self.cells, self.particles, self.theta, order, ncrit)
+        print(f'M2L_list.size() = {self.M2L_list.size()}')
+        print(f'P2P_list.size() = {self.P2P_list.size()}')
         print("Done")
 
     def P2M(self):
@@ -161,7 +173,7 @@ cdef class FMM:
         evaluate_M2M(self.particles, self.cells, self.order)
 
 
-    def compute_field(self, double theta, double [:] F):
+    def compute_field(self, double [:] F):
         #print("Computing field...")
         for i in range(self.Msize * self.cells.size()):
             self.M[i] = 0.0
@@ -211,3 +223,10 @@ cdef class FMM:
     def part(self, i):
         return (np.array([self.particles[i].r[0], self.particles[i].r[1], self.particles[2].r[2]]),
                 np.array([self.particles[i].mu[0], self.particles[i].mu[1], self.particles[2].mu[2]]))
+
+
+    def cell_info(self, i):
+        if i < self.cells.size():
+            return np.array([self.cells[i].x, self.cells[i].y, self.cells[i].z])
+        else:
+            raise ValueError("Out of bounds")

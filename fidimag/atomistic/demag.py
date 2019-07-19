@@ -6,7 +6,7 @@ import fidimag
 from fidimag.atomistic.energy import Energy
 import fidimag.extensions.fmm as fmm
 import time
-
+import sys
 
 
 class Demag(Energy):
@@ -47,7 +47,7 @@ class Demag(Energy):
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
-        
+
         # Ryan Pepper 04/04/2019
         # We *do not* need to scale by mesh.unit_length**3 here!
         # This is because in the base energy class, dx, dy and dz
@@ -102,7 +102,7 @@ class Demag(Energy):
         return energy / self.scale
 
 
-class DemagFMM(Energy): 
+class DemagFMM(Energy):
     def __init__(self, order, ncrit, theta, name="DemagFMM"):
         self.name = name
         assert order > 0, "Order must be 1 or higher"
@@ -116,14 +116,16 @@ class DemagFMM(Energy):
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(DemagFMM, self).setup(mesh, spin, mu_s, mu_s_inv)
         self.n = mesh.n
-        print(mesh.coordinates)
         self.m_temp = spin.copy()
         self.m_temp[0::3] *= self.mu_s
         self.m_temp[1::3] *= self.mu_s
         self.m_temp[2::3] *= self.mu_s
+        self.coords = mesh.coordinates * mesh.unit_length
+        print(np.min(self.coords[:, 0]))
+        print(np.max(self.coords[:, 0]))
         self.fmm = fmm.FMM(self.n, self.ncrit, self.theta,
                            self.order,
-                           mesh.coordinates * mesh.unit_length,
+                           self.coords,
                            self.m_temp)
 
     def compute_field(self, t=0, spin=None):
@@ -134,6 +136,6 @@ class DemagFMM(Energy):
 
         self.field[:] = 0.0
         #self.fmm.set(self.m_temp)
-        self.fmm.compute_field(self.theta, self.field)
+        self.fmm.compute_field(self.field)
         self.field *= 1e-7
         return self.field

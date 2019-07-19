@@ -144,6 +144,7 @@ void interact_dehnen(size_t A, size_t B, std::vector<Cell> &cells, std::vector<P
   }
 }
 
+
 void interact_dehnen_lazy(const size_t A, const size_t B,
                           const std::vector<Cell> &cells,
                           const std::vector<Particle> &particles,
@@ -155,6 +156,7 @@ void interact_dehnen_lazy(const size_t A, const size_t B,
   const double dy = cells[A].y - cells[B].y;
   const double dz = cells[A].z - cells[B].z;
   const double R = sqrt(dx*dx + dy*dy + dz*dz);
+  // std::cout << "cells["<<A<<"].rmax = " << cells[A].rmax << "cells["<<B<<"].rmax = " << cells[B].rmax << std::endl;
 
   if (R*theta > (cells[A].rmax + cells[B].rmax)) {
     //if (cells[A].nleaf < ncrit && cells[B].nleaf < ncrit) {
@@ -305,7 +307,6 @@ void evaluate_approx_lazy(std::vector<Particle> &particles, std::vector<Cell> &c
       #pragma omp barrier
       evaluate_L2P(particles, cells, F, ncrit, order);
     }
-
 }
 
 
@@ -315,15 +316,17 @@ void build_interaction_lists(std::vector<std::pair<size_t, size_t>> &M2L_list,
                              std::vector<Particle> &particles,
                              double theta,
                              size_t order,
-                             size_t ncrit
-    ) {
+                             size_t ncrit) {
+
+
+    interact_dehnen_lazy(0, 0, cells, particles, theta, order, ncrit, M2L_list, P2P_list);
+
+    std::cout << "M2L_list.size() = " << M2L_list.size() << std::endl;
+    std::cout << "P2P_list.size() = " << P2P_list.size() << std::endl;
 
     std::sort(M2L_list.begin(), M2L_list.end(),
            [](std::pair<size_t, size_t> &left, std::pair<size_t, size_t> &right) {
                 return left.first < right.first;
                }
            );
-
-    std::cout << "M2L_list size = " << M2L_list.size() << std::endl;
-    std::cout << "P2P_list size = " << P2P_list.size() << std::endl;
 }

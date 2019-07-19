@@ -36,7 +36,7 @@ Cell::Cell(double x, double y, double z, double r, size_t parent, size_t order, 
     this->y = y;
     this->z = z;
     this->r = r;
-    this->rmax = sqrt(3*r);
+    this->rmax = sqrt(3*r*r);
     this->parent = parent;
     this->level = level;
     this->child.resize(8, 0);
