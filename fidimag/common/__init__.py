@@ -6,4 +6,4 @@ from .cuboid_mesh import CuboidMesh
 # Init scalar is defined in fidimag.extensions.common_clib and imported in
 # the helper library
 from .helper import init_scalar, init_vector
-from .plot import plot, plot_micro
+from .plot import plot, plot_micro, plot_atom_cub, plot_atom_hex
