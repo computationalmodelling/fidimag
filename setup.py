@@ -10,12 +10,13 @@ import sys
 class BuildError(Exception):
     pass
 
+
 if 'CC' in os.environ:
     print("Using CC={}".format(os.environ['CC']))
 else:
     os.environ["CC"] = "gcc"
     print("Using CC={} (set by setup.py)".format(os.environ['CC']))
-    
+
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
@@ -26,10 +27,10 @@ COMMON_DIR = os.path.join(SRC_DIR, "common", "lib")
 MICRO_DIR = os.path.join(SRC_DIR, "micro", "lib")
 BARYAKHTAR_DIR = os.path.join(MICRO_DIR, "baryakhtar")
 DEMAG_DIR = os.path.join(SRC_DIR, "common", "dipolar")
-FMMLIB_DIR = os.path.join(SRC_DIR, "atomistic", "fmmlib")
 
-BHLIB_DIR = os.path.join(SRC_DIR, "atomistic", "bhlib")
+FMMLIB_DIR = os.path.join(SRC_DIR, "atomistic", "fmmlib")
 USER_DIR = os.path.join(SRC_DIR, "user")
+
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
@@ -47,6 +48,7 @@ def get_version():
                 return m.group(2)
     raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
 
+
 version = get_version()
 
 
@@ -57,8 +59,6 @@ def glob_cfiles(path, excludes, extension="*.c"):
         if not filename in tuple(excludes):
             cfiles.append(cfile)
     return cfiles
-
-
 
 
 sources = []
@@ -96,12 +96,12 @@ fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=["fmm.cpp"], extension="*.cpp")
 fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=[], extension="*.c")
 
 
+
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes',
             'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 
+
 com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall']
-
-
 
 
 
@@ -132,12 +132,21 @@ if 'FFTW_DIR' in os.environ:
     lib_paths.append(os.environ['FFTW_DIR'])
     com_inc.append(os.environ['FFTW_INC'])
 
+com_args_cpp = com_args.copy()
+com_args_cpp.append('-std=c++14')
+
+com_args.append('-std=c99')
+com_inc_cpp = com_inc.copy()
+com_link_cpp = com_link.copy()
+com_libs_cpp = com_libs.copy()
+lib_paths_cpp = lib_paths.copy()
+
 ext_modules = [
     Extension("fidimag.extensions.clib",
               sources=sources,
               include_dirs=com_inc,
               libraries=com_libs,
-	          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -145,7 +154,7 @@ ext_modules = [
               sources=common_sources,
               include_dirs=com_inc,
               libraries=com_libs,
-	          library_dirs=lib_paths, runtime_library_dirs=lib_paths,
+              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
               extra_compile_args=com_args,
               extra_link_args=com_link,
               ),
@@ -215,12 +224,13 @@ ext_modules = [
               ),
     Extension("fidimag.extensions.fmm",
               sources=fmm_sources,
-              include_dirs=com_inc,
-              libraries=com_libs,
-              library_dirs=lib_paths, runtime_library_dirs=lib_paths,
-              extra_compile_args=com_args,
-              extra_link_args=com_link,
-              ),
+              include_dirs=com_inc_cpp,
+              libraries=com_libs_cpp,
+              library_dirs=lib_paths_cpp, runtime_library_dirs=lib_paths_cpp,
+              extra_compile_args=com_args_cpp,
+              extra_link_args=com_link_cpp,
+              language="c++",
+              )
 ]
 
 

@@ -5,8 +5,6 @@
 #include <iostream>
 #include <stack>
 #include <cmath>
-#include <algorithm>
-#include<cstdio>
 
 void P2P(double x, double y, double z, double mux, double muy, double muz, double *F) {
   double R2 = x*x + y*y + z*z;
@@ -29,54 +27,6 @@ void P2P_noatomic(double x, double y, double z, double mux, double muy, double m
   F[0] += (3*mu_dot_r * x / R5 - mux / R3);
   F[1] += (3*mu_dot_r * y / R5 - muy / R3);
   F[2] += (3*mu_dot_r * z / R5 - muz / R3);
-}
-
-
-void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
-		          size_t cell, size_t ncrit, size_t exporder) {
-  // std::cout << "Nparticles = " << particles.size() << std::endl;
-  double *M = new double[Nterms(exporder+1)]();
-  //#pragma omp for
-  for(size_t c = 0; c < cells.size(); c++) {
-    if (cells[c].nleaf < ncrit) {
-    for(size_t i = 0; i < cells[c].nleaf; i++) {
-      size_t l = cells[c].leaf[i];
-      M[0] = particles[l].mu[0];
-      M[1] = particles[l].mu[1];
-      M[2] = particles[l].mu[2];
-      // std::cout << "mu[" << l << "] = " << particles[l].mu[0] << std::endl;
-      double dx = (particles[l].r[0] - cells[c].x);
-      double dy = (particles[l].r[1] - cells[c].y);
-      double dz = (particles[l].r[2] - cells[c].z);
-      M2M(-dx, -dy, -dz, M, cells[c].M, exporder);
-    }
-   }
-  }
-  delete[] M;
-}
-
-void evaluate_M2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
-                  size_t exporder) {
-  /*
-  evaluate_M2M(particles, cells)
-
-  This function evaluates the multipole to
-  multipole kernel. It does this by working up the
-  tree from the leaf nodes, which is possible
-  by iterating backwards through the nodes because
-  of the way the tree is constructed.
-  */
-  #pragma omp for
-  for (size_t c = cells.size() - 1; c > 0; c--) {
-    size_t p = cells[c].parent;
-    // std::cout << "M2M: " << c << " to " << p << std::endl;
-    double dx = cells[p].x - cells[c].x;
-    double dy = cells[p].y - cells[c].y;
-    double dz = cells[p].z - cells[c].z;
-    M2M(dx, dy, dz, cells[c].M, cells[p].M, exporder);
-  }
-
-  // std::cout << "evalm2m_cpp: " << cells[0].M[0] << "," << cells[0].M[1] << "," << cells[0].M[2] << "," << cells[0].M[3] << std::endl;
 }
 
 
@@ -144,7 +94,6 @@ void interact_dehnen(size_t A, size_t B, std::vector<Cell> &cells, std::vector<P
   }
 }
 
-
 void interact_dehnen_lazy(const size_t A, const size_t B,
                           const std::vector<Cell> &cells,
                           const std::vector<Particle> &particles,
@@ -156,7 +105,6 @@ void interact_dehnen_lazy(const size_t A, const size_t B,
   const double dy = cells[A].y - cells[B].y;
   const double dz = cells[A].z - cells[B].z;
   const double R = sqrt(dx*dx + dy*dy + dz*dz);
-  // std::cout << "cells["<<A<<"].rmax = " << cells[A].rmax << "cells["<<B<<"].rmax = " << cells[B].rmax << std::endl;
 
   if (R*theta > (cells[A].rmax + cells[B].rmax)) {
     //if (cells[A].nleaf < ncrit && cells[B].nleaf < ncrit) {
@@ -199,6 +147,58 @@ void interact_dehnen_lazy(const size_t A, const size_t B,
     }
   }
 }
+
+void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
+              size_t cell, size_t ncrit, size_t exporder) {
+  // if (cells[cell].nleaf >= ncrit) {
+  //   for (size_t octant = 0; octant < 8; octant++) {
+  //     if (cells[cell].nchild & (1 << octant)) {
+  //     evaluate_P2M(particles, cells, cells[cell].child[octant], ncrit, exporder);
+  //     }
+  //   }
+  // }
+  // else {
+  double *M = new double[Nterms(exporder+1)]();
+  #pragma omp for
+  for(size_t c = 0; c < cells.size(); c++) {
+    if (cells[c].nleaf < ncrit) {
+    for(size_t i = 0; i < cells[c].nleaf; i++) {
+      size_t l = cells[c].leaf[i];
+      M[0] = particles[l].mu[0];
+      M[1] = particles[l].mu[1];
+      M[2] = particles[l].mu[2];
+      // std::cout << "mu[" << l << "] = " << particles[l].mu[0] << std::endl;
+      double dx = (particles[l].r[0] - cells[c].x);
+      double dy = (particles[l].r[1] - cells[c].y);
+      double dz = (particles[l].r[2] - cells[c].z);
+      M2M(-dx, -dy, -dz, M, cells[c].M, exporder);
+    }
+   }
+  }
+  delete[] M;
+}
+
+void evaluate_M2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
+                  size_t exporder) {
+  /*
+  evaluate_M2M(particles, cells)
+
+  This function evaluates the multipole to
+  multipole kernel. It does this by working up the
+  tree from the leaf nodes, which is possible
+  by iterating backwards through the nodes because
+  of the way the tree is constructed.
+  */
+  #pragma omp for
+  for (size_t c = 1; c < cells.size(); c++) {
+    size_t p = cells[c].parent;
+    double dx = cells[p].x - cells[c].x;
+    double dy = cells[p].y - cells[c].y;
+    double dz = cells[p].z - cells[c].z;
+    M2M(dx, dy, dz, cells[c].M, cells[p].M, exporder);
+  }
+}
+
 
 void evaluate_M2L_lazy(std::vector<Cell> &cells,
                        std::vector<std::pair<size_t, size_t>> &M2L_list, size_t order) {
@@ -277,56 +277,4 @@ void evaluate_direct(std::vector<Particle> &particles, double *F, size_t n) {
         }
       }
   }
-}
-
-
-void evaluate_approx(std::vector<Particle> &particles, std::vector<Cell> &cells,
-                     size_t ncrit, double theta, size_t order, double *F) {
-    evaluate_P2M(particles, cells, 0, ncrit, order);
-    evaluate_M2M(particles, cells, order);
-    interact_dehnen(0, 0, cells, particles, theta, order, ncrit, F);
-    evaluate_L2L(cells, order);
-    evaluate_L2P(particles, cells, F, ncrit, order);
-}
-
-void evaluate_approx_lazy(std::vector<Particle> &particles, std::vector<Cell> &cells,
-                          size_t ncrit, size_t order, double *F,
-                          std::vector<std::pair<size_t, size_t>> &M2L_list,
-                          std::vector<std::pair<size_t, size_t>> &P2P_list) {
-    #pragma omp parallel
-    evaluate_P2M(particles, cells, 0, ncrit, order);
-
-    evaluate_M2M(particles, cells, order);
-    #pragma omp barrier
-    #pragma omp parallel
-    {
-      evaluate_M2L_lazy(cells,M2L_list,order);
-      evaluate_P2P_lazy(cells, particles, P2P_list, F);
-      #pragma omp barrier
-      evaluate_L2L(cells, order);
-      #pragma omp barrier
-      evaluate_L2P(particles, cells, F, ncrit, order);
-    }
-}
-
-
-void build_interaction_lists(std::vector<std::pair<size_t, size_t>> &M2L_list,
-                             std::vector<std::pair<size_t, size_t>> &P2P_list,
-                             std::vector<Cell> &cells,
-                             std::vector<Particle> &particles,
-                             double theta,
-                             size_t order,
-                             size_t ncrit) {
-
-
-    interact_dehnen_lazy(0, 0, cells, particles, theta, order, ncrit, M2L_list, P2P_list);
-
-    std::cout << "M2L_list.size() = " << M2L_list.size() << std::endl;
-    std::cout << "P2P_list.size() = " << P2P_list.size() << std::endl;
-
-    std::sort(M2L_list.begin(), M2L_list.end(),
-           [](std::pair<size_t, size_t> &left, std::pair<size_t, size_t> &right) {
-                return left.first < right.first;
-               }
-           );
 }

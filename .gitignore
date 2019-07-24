@@ -6,6 +6,8 @@
 *.pdf
 *.tmp
 *.so
+*.o
+
 local/
 *~
 *.bak
