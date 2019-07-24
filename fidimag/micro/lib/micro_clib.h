@@ -28,5 +28,8 @@ void compute_exch_field_rkky_micro(double *m, double *field, double *energy, dou
 void compute_uniaxial_anis(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
 	double *restrict Ku, double *restrict axis, int nx, int ny, int nz);
 
+void compute_uniaxial4_anis(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv, 
+    double *restrict K1, double *restrict K2, double *restrict axis, int nx, int ny, int nz);
+
 double skyrmion_number(double *restrict spin, double *restrict charge,
                        int nx, int ny, int nz, int *restrict ngbs);

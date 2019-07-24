@@ -21,8 +21,18 @@ cdef extern from "micro_clib.h":
                                double *Ku, double *axis,
                                int nx, int ny, int nz)
 
+
+    void compute_uniaxial4_anis(double *m, double *field,
+                               double *energy, double *Ms_inv,
+                               double *K1, double *K2,
+                               double *axis,
+                               int nx, int ny, int nz)
+
+
     double skyrmion_number(double *m, double *charge,
                            int nx, int ny, int nz, int *ngbs)
+
+
 
 
 def compute_exchange_field_micro(double [:] m,
@@ -73,6 +83,20 @@ def compute_anisotropy_micro(double [:] m,
 
     compute_uniaxial_anis(&m[0], &field[0], &energy[0], &Ms_inv[0],
                           &Ku[0], &axis[0], nx, ny, nz)
+
+
+def compute_anisotropy4_micro(double [:] m,
+                             double [:] field,
+                             double [:] energy,
+                             double [:] Ms_inv,
+                             double [:] K1,
+                             double [:] K2,
+                             double [:] axis,
+                             nx, ny, nz):
+
+    compute_uniaxial4_anis(&m[0], &field[0], &energy[0], &Ms_inv[0],
+                          &K1[0], &K2[0], &axis[0], nx, ny, nz)
+
 
 def compute_skyrmion_number(double [:] m,
                             double [:] charge,
