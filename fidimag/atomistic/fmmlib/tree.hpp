@@ -11,8 +11,6 @@ class Particle {
 public:
   double *r; // Address of 3-vector position of the particle
   double *mu; // Address of 3-vector spin direction
-  Particle(double *r, double *mu) : r(r), mu(mu) {};
-  Particle();
 };
 
 class Cell {
@@ -53,7 +51,6 @@ public:
   double rmax;
   size_t parent; /*!< \brief Index of parent cell of this cell. */
   Cell(double x, double y, double z, double r, size_t parent, size_t order, size_t level, size_t ncrit);
-  Cell();
   ~Cell();
   Cell(const Cell& other);
   Cell(Cell&& other);
@@ -78,6 +75,24 @@ public:
   }
 };
 
+
+class Tree {
+public:
+  size_t order;
+  size_t ncrit;
+  double theta;
+  std::vector<Particle> particles;
+  std::vector<Cell> cells;
+  std::vector<double> M;
+  std::vector<double> L;
+  std::vector<std::pair<size_t, size_t>> M2L_list;
+  std::vector<std::pair<size_t, size_t>> P2P_list;
+  void compute_field(double *F);
+  void compute_field_exact(double *F);
+private:
+  void clear_expansions();
+};
+
 void printTreeParticles(std::vector<Cell> &cells, size_t cell, size_t depth);
 
 void add_child(std::vector<Cell> &cells, int octant, size_t p, size_t ncrit, size_t order);
@@ -85,4 +100,4 @@ void add_child(std::vector<Cell> &cells, int octant, size_t p, size_t ncrit, siz
 
 void split_cell(std::vector<Cell> &cells, std::vector<Particle> &particles, size_t p, size_t ncrit, size_t order);
 
-std::vector<Cell> build_tree(std::vector<Particle> &particles, Cell &root, size_t ncrit, size_t order);
+Tree build_tree(double *pos, double *mu, size_t nparticles, size_t ncrit, size_t order, double theta);

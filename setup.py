@@ -90,7 +90,7 @@ dipolar_sources = []
 dipolar_sources.append(os.path.join(DEMAG_DIR, 'dipolar.pyx'))
 dipolar_sources += glob_cfiles(DEMAG_DIR, excludes=["dipolar.c"])
 
-
+fmm_sources = []
 fmm_sources.append(os.path.join(FMMLIB_DIR, 'fmm.pyx'))
 fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=["fmm.cpp"], extension="*.cpp")
 fmm_sources += glob_cfiles(FMMLIB_DIR, excludes=[], extension="*.c")

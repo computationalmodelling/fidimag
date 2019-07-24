@@ -115,27 +115,17 @@ class DemagFMM(Energy):
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(DemagFMM, self).setup(mesh, spin, mu_s, mu_s_inv)
-        self.n = mesh.n
-        self.m_temp = spin.copy()
-        self.m_temp[0::3] *= self.mu_s
-        self.m_temp[1::3] *= self.mu_s
-        self.m_temp[2::3] *= self.mu_s
         self.coords = mesh.coordinates * mesh.unit_length
-        print(np.min(self.coords[:, 0]))
-        print(np.max(self.coords[:, 0]))
+        self.m_temp = np.zeros_like(spin)
         self.fmm = fmm.FMM(self.n, self.ncrit, self.theta,
                            self.order,
                            self.coords,
-                           self.m_temp)
+                           self.m_temp,
+                           self.mu_s,
+                           )
 
     def compute_field(self, t=0, spin=None):
         self.m_temp[:] = spin if spin is not None else self.spin
-        self.m_temp[0::3] *= self.mu_s
-        self.m_temp[1::3] *= self.mu_s
-        self.m_temp[2::3] *= self.mu_s
-
-        self.field[:] = 0.0
-        #self.fmm.set(self.m_temp)
         self.fmm.compute_field(self.field)
         self.field *= 1e-7
         return self.field
