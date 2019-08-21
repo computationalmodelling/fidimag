@@ -7,7 +7,7 @@ services:
   - docker
 
 before_install:
-  - travis_wait 90 ocker build -t fidimag -f ./docker/travis/Dockerfile .
+  - travis_wait 90 docker build -t fidimag -f ./docker/travis/Dockerfile .
   - docker run -ti -d --name fidimag fidimag
 
 jobs:
