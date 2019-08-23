@@ -86,9 +86,11 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
-[16] [Diameter-independent skyrmion Hall angle in the plastic flow regime observed in chiral magnetic
+[17] [Diameter-independent skyrmion Hall angle in the plastic flow regime observed in chiral magnetic
 multilayers](https://arxiv.org/pdf/1908.04239.pdf)
 K. Zeissler, S. Finizio, C. Barton, A. Huxtable, J. Massey, J. Raabe, A. V. Sadovnikov, S. A. Nikitov, R. Brearton, T. Hesjedal, G. van der Laan, M. C. Rosamond, E. H. Linfield, G. Burnell, C. H. Marrows, arXiv:1908.04239 (2019)
+
+[16] [Efficient computation of demagnetising fields for magnetic multilayers using multilayered convolution](https://arxiv.org/abs/1906.00813) S. Lepadatu, arXiv:1906.00813 (2019)
 
 [15] [Micromagnetics and spintronics: models and numerical methods](https://link.springer.com/article/10.1140%2Fepjb%2Fe2019-90599-6) C. Abert, Eur. Phys. J. B (2019) 92: 120
 
