@@ -8,7 +8,7 @@ PYTEST = ${PYTHON} -m pytest
 #####################
 
 build:
-	${PYTHON} setup.py build_ext --inplace
+	${PYTHON} setup.py build_ext --inplace -j2
 
 clean:
 	rm -rf ${EXTENSIONS_DIR}/*

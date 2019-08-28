@@ -39,7 +39,7 @@ download_and_cmake_install() {
 
         echo "Compiling and installing "${1}"."
         {
-            make
+            make -j2
             make install
         } > /dev/null
 

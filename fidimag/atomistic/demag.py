@@ -1,6 +1,12 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
 from .energy import Energy
+import numpy as np
+import fidimag
+from fidimag.atomistic.energy import Energy
+import fidimag.extensions.fmm as fmm
+import time
+import sys
 
 
 class Demag(Energy):
@@ -41,7 +47,7 @@ class Demag(Energy):
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
-        
+
         # Ryan Pepper 04/04/2019
         # We *do not* need to scale by mesh.unit_length**3 here!
         # This is because in the base energy class, dx, dy and dz
@@ -94,3 +100,39 @@ class Demag(Energy):
         self.energy /= self.scale
 
         return energy / self.scale
+
+
+class DemagFMM(Energy):
+    def __init__(self, order, ncrit, theta, name="DemagFMM", type='fmm'):
+        self.type = type
+        if self.type == 'fmm':
+            self._type = 0
+        elif self.type == 'bh':
+            self._type = 1
+
+        self.name = name
+        assert order > 0, "Order must be 1 or higher"
+        assert order < 11, "Order bust be < 11"
+        self.order = order
+        assert ncrit >= 2, "ncrit must be greater than 1."
+        self.ncrit = ncrit
+        assert theta >= 0.0, "theta must be >= 0.0"
+        self.theta = theta
+
+    def setup(self, mesh, spin, mu_s, mu_s_inv):
+        super(DemagFMM, self).setup(mesh, spin, mu_s, mu_s_inv)
+        self.coords = mesh.coordinates * mesh.unit_length
+        self.m_temp = np.zeros_like(spin)
+        self.fmm = fmm.FMM(self.n, self.ncrit, self.theta,
+                           self.order,
+                           self.coords,
+                           self.m_temp,
+                           self.mu_s, self._type
+                           )
+
+    def compute_field(self, t=0, spin=None):
+        print('computing field')
+        self.m_temp[:] = spin if spin is not None else self.spin
+        self.fmm.compute_field(self.field)
+        self.field *= -1e-7
+        return self.field

@@ -36,7 +36,7 @@ download_and_install() {
         ./configure --quiet --enable-shared --enable-openmp --enable-sse2 --enable-avx --prefix=${LIBS_DIR}
         echo "Compiling and installing "${1}"."
         {
-            make
+            make -j2
             make install
         } > /dev/null
         echo "Done."

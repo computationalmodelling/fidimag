@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # To build this image `docker build -t fidimag .`
 # Then you can drop into a live bash shell with `docker run -it fidimag`.
