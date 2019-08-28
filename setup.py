@@ -114,12 +114,9 @@ RPATH = '../../local/lib'
 com_link = ['-Wl,-rpath,{}'.format(LIB_DIR)]
 lib_paths = [LIB_DIR]
 
-if 'icc' in os.environ['CC']:
-    com_args.append('-openmp')
-    com_link.append('-openmp')
-else:
-    com_args.append('-fopenmp')
-    com_link.append('-fopenmp')
+
+com_args.append('-fopenmp')
+com_link.append('-fopenmp')
 
 
 com_inc = [numpy.get_include(), INCLUDE_DIR]

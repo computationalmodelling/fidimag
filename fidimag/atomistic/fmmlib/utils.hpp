@@ -4,6 +4,8 @@
 
 size_t TriangleNumbers(size_t n);
 size_t Nterms(size_t p);
+size_t Msize(size_t order, size_t source_order);
+size_t Lsize(size_t order, size_t source_order);
 
 class Timer {
 private:

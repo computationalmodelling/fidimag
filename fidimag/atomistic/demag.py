@@ -103,7 +103,13 @@ class Demag(Energy):
 
 
 class DemagFMM(Energy):
-    def __init__(self, order, ncrit, theta, name="DemagFMM"):
+    def __init__(self, order, ncrit, theta, name="DemagFMM", type='fmm'):
+        self.type = type
+        if self.type == 'fmm':
+            self._type = 0
+        elif self.type == 'bh':
+            self._type = 1
+
         self.name = name
         assert order > 0, "Order must be 1 or higher"
         assert order < 11, "Order bust be < 11"
@@ -121,11 +127,12 @@ class DemagFMM(Energy):
                            self.order,
                            self.coords,
                            self.m_temp,
-                           self.mu_s,
+                           self.mu_s, self._type
                            )
 
     def compute_field(self, t=0, spin=None):
+        print('computing field')
         self.m_temp[:] = spin if spin is not None else self.spin
         self.fmm.compute_field(self.field)
-        self.field *= 1e-7
+        self.field *= -1e-7
         return self.field

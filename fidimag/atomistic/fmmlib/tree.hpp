@@ -6,19 +6,18 @@
 #include "utils.hpp"
 
 
-/*! \brief Particle class used to store position and dipole moment strength. */
+/*! \brief Particle class used to store position and source strength. */
 class Particle {
 public:
   double *r; // Address of 3-vector position of the particle
-  double *mu; // Address of 3-vector spin direction
+  double *S; // Address of q
 };
 
 class Cell {
 public:
   size_t nleaf; /*!< \brief Number of particles held in cell.
-
-                           This counter is
-                           incremented every time a particle is added to it in the
+                           This counter is incremented every time a particle is
+                           added to it in the
                            \ref build_tree function. This continues to be the case
                            even when the cell has been split, as we use it to keep
                            track of whether a cell has been split or not to
@@ -87,16 +86,17 @@ public:
   std::vector<double> L;
   std::vector<std::pair<size_t, size_t>> M2L_list;
   std::vector<std::pair<size_t, size_t>> P2P_list;
-  void compute_field(double *F);
+  void compute_field_fmm(double *F);
+  void compute_field_bh(double *F);
   void compute_field_exact(double *F);
 private:
-  void clear_expansions();
+  void clear_M();
+  void clear_L();
 };
 
 void printTreeParticles(std::vector<Cell> &cells, size_t cell, size_t depth);
 
 void add_child(std::vector<Cell> &cells, int octant, size_t p, size_t ncrit, size_t order);
-
 
 void split_cell(std::vector<Cell> &cells, std::vector<Particle> &particles, size_t p, size_t ncrit, size_t order);
 

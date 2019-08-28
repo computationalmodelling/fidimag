@@ -14,7 +14,7 @@
 #include <iostream>
 #include<omp.h>
 
-void P2P(double x, double y, double z, double mux, double muy, double muz, double *F);
+void M_sanity_check(const std::vector<Cell> &cells);
 
 void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
 		  size_t cell, size_t ncrit, size_t exporder);
@@ -52,3 +52,7 @@ void evaluate_M2L_lazy(std::vector<Cell> &cells,
 
 void evaluate_P2P_lazy(std::vector<Cell> &cells, std::vector<Particle> &particles,
                     std::vector<std::pair<size_t, size_t>> &P2P_list, double *F);
+
+void evaluate_M2P_and_P2P(std::vector<Particle> &particles, unsigned int p, unsigned int i,
+   std::vector<Cell> &cells, double *F, unsigned int n_crit, double theta,
+   unsigned int exporder);
