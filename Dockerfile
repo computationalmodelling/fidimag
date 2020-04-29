@@ -1,5 +1,8 @@
 FROM ubuntu:18.04
 
+# Avoid user interaction dialog
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt -y update 
 RUN apt install -y git python3 python3-pip gcc psutils cmake wget make
 RUN apt install -y gfortran libblas-dev liblapack-dev python3-tk sudo fonts-lato
