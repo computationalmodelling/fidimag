@@ -17,7 +17,7 @@ WORKDIR /usr/local
 RUN git clone https://github.com/computationalmodelling/fidimag.git
 WORKDIR /usr/local/fidimag
 # Work with stable release
-RUN git checkout tags/v2.9
+RUN git checkout tags/v3.0a2
 # Install CVODE and FFTW libraries
 WORKDIR /usr/local/fidimag/bin
 RUN bash install-fftw.sh
