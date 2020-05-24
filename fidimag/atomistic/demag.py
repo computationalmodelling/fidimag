@@ -1,6 +1,12 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
 from .energy import Energy
+import numpy as np
+import fidimag
+from fidimag.atomistic.energy import Energy
+import fidimag.extensions.fmm as fmm
+import time
+import sys
 
 
 class Demag(Energy):
@@ -41,7 +47,7 @@ class Demag(Energy):
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
-        
+
         # Ryan Pepper 04/04/2019
         # We *do not* need to scale by mesh.unit_length**3 here!
         # This is because in the base energy class, dx, dy and dz

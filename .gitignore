@@ -6,6 +6,8 @@
 *.pdf
 *.tmp
 *.so
+*.o
+
 local/
 *~
 *.bak
@@ -51,3 +53,4 @@ test-reports
 
 *.npz
 *.npy
+fmm.cpp

@@ -1,9 +1,14 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
-RUN apt -y update 
-RUN apt install -y git python3 python3-pip gcc psutils cmake wget make
+# Avoid user interaction dialog
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt -y update
+# Binder fails with Cython from pip -> use apt cython3
+RUN apt install -y git python3 python3-pip gcc psutils cmake wget make cython3
 RUN apt install -y gfortran libblas-dev liblapack-dev python3-tk sudo fonts-lato
-RUN pip3 install cython matplotlib pytest scipy psutil pyvtk ipywidgets -U
+RUN pip3 install pip -U
+RUN pip3 install matplotlib pytest scipy psutil pyvtk ipywidgets -U
 RUN pip3 install --no-cache-dir notebook
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
@@ -12,7 +17,7 @@ WORKDIR /usr/local
 RUN git clone https://github.com/computationalmodelling/fidimag.git
 WORKDIR /usr/local/fidimag
 # Work with stable release
-RUN git checkout tags/v2.9
+RUN git checkout tags/v3.0a2
 # Install CVODE and FFTW libraries
 WORKDIR /usr/local/fidimag/bin
 RUN bash install-fftw.sh
