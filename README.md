@@ -86,9 +86,13 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
-[20] [Hybrid FFT algorithm for fast demagnetization field calculations on non-equidistant magnetic layers](https://doi.org/10.1016/j.jmmm.2020.166592)
+[21] [Hybrid FFT algorithm for fast demagnetization field calculations on non-equidistant magnetic layers](https://doi.org/10.1016/j.jmmm.2020.166592)
 P. Heistracher, F. Bruckner, C. Abert, C. Vogler, D. Suess, Journal of Magnetism and Magnetic Materials
 Volume 503, 166592 (2020)
+
+[20] [Review – Micromagnetic Simulation Using OOMMF and Experimental Investigations on Nano Composite Magnets](https://doi.org/10.1088/1742-6596/1172/1/012070)
+Review – Micromagnetic Simulation Using OOMMF and Experimental Investigations on Nano Composite Magnets
+S Sundara Mahalingam, B V Manikandan, S Arockiaraj, J. Phys.: Conf. Ser. 1172 012070
 
 [19] [Spin waves in thin films and magnonic crystals with Dzyaloshinskii-Moriya interactions](https://arxiv.org/abs/1903.04288)
 R. A. Gallardo, D. Cortés-Ortuño, R. E. Troncoso, P. Landeros, arxiv:1903.04288 (2019)
