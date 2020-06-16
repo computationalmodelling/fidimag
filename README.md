@@ -86,6 +86,10 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
+[22] [Field-free spin–orbit torque perpendicular magnetization switching in ultrathin nanostructures](https://doi.org/10.1038/s41524-020-0347-0)
+Minyi Dai, Jia-Mian Hu, npj Computational Materials volume
+6, 78 (2020)
+
 [21] [Hybrid FFT algorithm for fast demagnetization field calculations on non-equidistant magnetic layers](https://doi.org/10.1016/j.jmmm.2020.166592)
 P. Heistracher, F. Bruckner, C. Abert, C. Vogler, D. Suess, Journal of Magnetism and Magnetic Materials
 Volume 503, 166592 (2020)
