@@ -50,4 +50,4 @@ except ImportError as e:
     print(message.format(FIDIMAG_DIR, e, platform.machine(), platform.platform(), platform.processor()))
 
 
-__version__ = '0.2'
+__version__ = '3.Xa'
