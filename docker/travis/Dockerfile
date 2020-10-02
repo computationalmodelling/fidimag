@@ -5,6 +5,8 @@ FROM ubuntu:20.04
 ENTRYPOINT ["/bin/bash"]  
 SHELL ["/bin/bash", "-c"] 
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update -y -qq
 RUN apt-get install -y -qq  build-essential cmake cython3 python3-dev python3-pip \
     liblapack-dev libopenblas-dev \
