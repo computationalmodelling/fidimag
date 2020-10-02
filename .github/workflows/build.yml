@@ -4,17 +4,21 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: "Unit Tests"
+      - name: "Checkout"
         uses: actions/checkout@v2
+      - name: "Docker Build"
         run: docker build -t fidimag -f ./docker/travis/Dockerfile 
+      - name: "Run Unit Tests" 
         run: make test-docker
 
   notebook-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: "Notebooks"
+      - name: "Checkout"
         uses: actions/checkout@v2
+      - name: "Docker Build"
         run: docker build -t fidimag -f ./docker/travis/Dockerfile
+      - name "Run Unit Tests"
         run: make ipynb-docker
   
     
