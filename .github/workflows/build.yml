@@ -15,6 +15,7 @@ jobs:
   notebook-tests:
     container:
       image: fidimag
+    steps:
       - run: make ipynb-docker
   
     
