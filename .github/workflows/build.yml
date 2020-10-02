@@ -1,16 +1,20 @@
 name: Fidimag
 on: [push]
 jobs:
-  build:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: "Build"
-      - run: docker build -t fidimag -f ./docker/travis/Dockerfile .
-      
       - name: "Unit Tests"
+      - run: docker build -t fidimag -f ./docker/travis/Dockerfile 
       - run: make test-docker
 
+  notebook-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Notebooks"
+      - run: docker build -t fidimag -f ./docker/travis/Dockerfile
       - name: "Notebook Tests"
       - run: make ipynb-docker
   
