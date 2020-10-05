@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
       - name: "Docker Build"
         run: docker build -t fidimag -f ./docker/travis/Dockerfile
-      - name "Run Unit Tests"
+      - name: "Run Unit Tests"
         run: make ipynb-docker
   
     
