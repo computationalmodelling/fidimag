@@ -6,6 +6,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
+      - name: "Check Docker version"
+        run: docker -v
       - name: "Docker Build"
         run: docker build -t fidimag -f ./docker/travis/Dockerfile 
       - name: "Run Unit Tests" 
