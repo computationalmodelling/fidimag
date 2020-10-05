@@ -9,7 +9,7 @@ jobs:
       - name: "Check Docker version"
         run: docker -v
       - name: "Docker Build"
-        run: docker build -t fidimag -f ./docker/travis/Dockerfile 
+        run: docker build -t fidimag -f . ./docker/travis/Dockerfile 
       - name: "Run Unit Tests" 
         run: make test-docker
 
@@ -19,7 +19,7 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
       - name: "Docker Build"
-        run: docker build -t fidimag -f ./docker/travis/Dockerfile
+        run: docker build -t fidimag -f . ./docker/travis/Dockerfile
       - name: "Run Unit Tests"
         run: make ipynb-docker
   
