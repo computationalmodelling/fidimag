@@ -30,4 +30,4 @@ Contents:
    :maxdepth: 2
    :caption: Physics
 
-   theory/index
+   physics/index
