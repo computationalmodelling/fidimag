@@ -2,7 +2,6 @@
 Magnetism and Numerical Methods
 ===============================
 
-
 .. toctree::
    :maxdepth: 2
    :caption: Micromagnetics and Discrete Spin Model
