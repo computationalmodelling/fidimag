@@ -30,4 +30,4 @@ Contents:
    :maxdepth: 2
    :caption: Physics
 
-   physics/index
+   physics_num_methods/index
