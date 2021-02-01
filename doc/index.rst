@@ -13,8 +13,15 @@ The code for Fidimag is available under an open source license on `GitHub
 <https://github.com/computationalmodelling/fidimag>`_.
 
 Contents:
+
 .. toctree::
    :maxdepth: 2
    :caption: Installation Instructions
 
    install
+
+.. toctree::
+   :caption: User Guide
+   :maxdepth: 2
+
+   user_guide/index
