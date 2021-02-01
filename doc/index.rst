@@ -25,3 +25,9 @@ Contents:
    :maxdepth: 2
 
    user_guide/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Physics
+
+   theory/index
