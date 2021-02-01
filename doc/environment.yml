@@ -10,3 +10,4 @@ dependencies:
   - nbformat
   - pip:
       - nbsphinx
+      - git+https://github.com/pandas-dev/pydata-sphinx-theme.git@master
