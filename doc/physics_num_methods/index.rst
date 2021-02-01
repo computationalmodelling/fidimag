@@ -1,10 +1,11 @@
-=======
-Physics
-=======
+===============================
+Magnetism and Numerical Methods
+===============================
+
 
 .. toctree::
    :maxdepth: 2
-   :caption: Magnetism and Numerical Methods
+   :caption: Micromagnetics and Discrete Spin Model
 
     core_eqs
     extended_eqs
