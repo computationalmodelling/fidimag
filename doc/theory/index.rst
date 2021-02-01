@@ -4,7 +4,7 @@ Physics
 
 .. toctree::
    :maxdepth: 2
-   :caption: theory
+   :caption: physics
 
     core_eqs
     extended_eqs
