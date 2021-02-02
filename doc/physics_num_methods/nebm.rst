@@ -70,7 +70,7 @@ For a thorough explanation of the method see references [3,4].
 NEBM relaxation
 ---------------
 
-.. image:: images/nebm.png
+.. image:: ../images/nebm.png
 
 Cartesian
 ^^^^^^^^^
@@ -306,7 +306,7 @@ We have implemented three classes in Fidimag for the NEBM:
 
 The following diagram shows how the code is structured:
 
-.. image:: images/nebm_classes.png
+.. image:: ../images/nebm_classes.png
    :scale: 60 %
 
 There is a ``fidimag.common.nebm_tools`` module with common functions for the

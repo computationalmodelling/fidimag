@@ -76,6 +76,13 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'fidimagdoc'
 
+html_theme_options = {
+    "github_url": "https://github.com/computationalmodelling/fidimag",
+    "use_edit_page_button": True,
+    "show_toc_level": 1,
+    # "navbar_align": "right",  # For testing that the navbar items align properly
+}
+
 
 # -- Options for LaTeX output --------------------------------------------
 
