@@ -1,13 +1,10 @@
 # name of the conda environment
 name: fidimag_docs
 
-# add channel for pandoc
-channels:
-  - ccordoba12
-
 dependencies:
   - pandoc
   - nbformat
   - pip:
+      - ipython
       - nbsphinx
       - pydata-sphinx-theme
