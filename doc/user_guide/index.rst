@@ -8,11 +8,14 @@ User Guide
 
    ipynb/tutorial-docker-container
    ipynb/tutorial-basics
-   ipynb/standard_problem_4
    ipynb/1d_domain_wall
+   ipynb/anisotropic-grain-structure
    ipynb/current-driven-domain-wall
+   ipynb/ferromagnetic-resonance-stdprob
    ipynb/isolated_skyrmion
+   ipynb/Simulating an Anisotropic Grain Structure
+   ipynb/skyrmions-applied-field-gradient
    ipynb/spin-polarised-current-driven-skyrmion
    ipynb/spin-waves-in-periodic-system
-   ipynb/FMR-stdprob
+   ipynb/standard_problem_4
    ipynb/steepest_descent_atomistic
