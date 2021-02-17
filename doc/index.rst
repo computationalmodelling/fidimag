@@ -6,6 +6,8 @@
 Welcome to Fidimag's documentation!
 ===================================
 
+.. image:: ./images/bobber_toron_vis.png
+
 Fidimag is a micromagnetic and atomistic simulation package, which can be used
 to simulate the magnetisation of nanoscale samples of materials. 
 
