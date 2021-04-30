@@ -21,6 +21,13 @@ RUN ./bin/install-sundials.sh
 RUN ./bin/install-fftw.sh
 RUN make build
 
+RUN make test
+RUN make nb-test
+
 ENV PYTHONPATH=/fidimag \
     LD_LIBRARY_PATH=/fidimag/local/lib LD_RUN_PATH=/fidimag/local/lib \
     OMP_NUM_THREADS=1 MPLBACKEND=Agg QT_API=pyqt
+
+
+RUN make test-docker
+RUN make ipynb-docker

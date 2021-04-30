@@ -7,7 +7,9 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
       - name: "Build and test"
+        uses: docker/travis/Dockerfile
         run: |
-          docker build -t fidimag -f ./docker/travis/Dockerfile . && make test-docker && make ipynb-docker
+          make test-docker
+          make ipynb-docker
   
     
