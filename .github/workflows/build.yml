@@ -6,17 +6,13 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
-      - name: "Docker Build and run tests"
+      - name: "Docker Build"
         run: |
           docker build -t fidimag -f ./docker/travis/Dockerfile .
+      - name: "Unit tests"
+        run: |
           make test-docker
-
-  notebook-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@v2
-      - name: "Docker Build and run nb tests"
+      - name: "Notebook tests"
         run: |
           docker build -t fidimag -f ./docker/travis/Dockerfile .
           make ipynb-docker
