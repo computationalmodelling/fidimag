@@ -85,6 +85,7 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 ### Publications
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
+[23] [Stray Field Calculation for Micromagnetic Simulations Using True Periodic Boundary Conditions](https://doi.org/10.1038/s41598-021-88541-9) Florian Bruckner, Amil Ducevic, Paul Heistracher, Claas Abert & Dieter Suess, Scientific Reports  11, 9202 (2021)
 
 [22] [Field-free spin–orbit torque perpendicular magnetization switching in ultrathin nanostructures](https://doi.org/10.1038/s41524-020-0347-0)
 Minyi Dai, Jia-Mian Hu, npj Computational Materials volume
