@@ -9,7 +9,5 @@ jobs:
       - name: "Build and test"
         uses: docker/travis/Dockerfile
         run: |
-          make test-docker
-          make ipynb-docker
-  
+          docker build -t fidimag -f ./docker/testing/Dockerfile .
     
