@@ -134,7 +134,7 @@ class DMI(Energy):
                                                self.field,
                                                self.mu_s_inv,
                                                self.energy,
-                                               self.D,
+                                               self._D,
                                                self.neighbours,
                                                self.n,
                                                self.n_ngbs,
