@@ -43,6 +43,12 @@ class DMI(Energy):
                                  Bulk systems will ignore the interfacial DMI
                                  along the z-direction.
 
+                                 * Note: the interfacial DMI vector can be
+                                 manually changed by modifying the
+                                 self.DMI_vector array (this might change in
+                                 the future). Currently not possible to change
+                                 the DMI vector in a spatial dependent fashion.
+
     For further details about the DMI calculations, take a look
     to the C library documentation (dmi.c)
 
