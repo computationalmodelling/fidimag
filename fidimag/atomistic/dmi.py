@@ -6,7 +6,6 @@ import numpy as np
 class DMI(Energy):
 
     """
-
     This class provides the Dzyaloshinskii-Moriya Interaction (DMI) energy
     term, defined as
 
@@ -41,6 +40,8 @@ class DMI(Energy):
                                  material with larger SOC (e.g. a metal).
                                  Thus, this DMI is defined in 2D, for
                                  interfaces or thin films.
+                                 Bulk systems will ignore the interfacial DMI
+                                 along the z-direction.
 
     For further details about the DMI calculations, take a look
     to the C library documentation (dmi.c)
@@ -71,9 +72,28 @@ class DMI(Energy):
         # Add DMI to Simulation object
         Sim.add(DMI(my_DMI))
 
+    NOTES:
+    * The space dependence of the DMI strength is set in the self._D array,
+      which is a N x 6 array, with N as the number of spins or lattice sites.
+      This means self._D is the same shape as the mesh.neighbours array.
+
+    * The strength of the DMI interaction in this way is set in a site-by-site
+      basis, thus a function setting D must specify the D value for every
+      neighbour at every site. This allows a more fine grained set up of the
+      DMI at boundaries with different DMI although there is not a standard
+      method to achieve this [TO Be UPDATED: check for references]
+
+    * The neighbours are dependent on the lattice type so, for example,
+      - In a cubic lattice the 6 columns per lattice site refer to the lattice
+        sites in the -x,+x,-y,+y,-z,+z direction.
+        If the DMI is interfacial the last two columns of self._D are ignored
+      - In a 2D hexagonal lattice: east, west, north-east, south-west,
+                          north-west, south-east
     """
 
     def __init__(self, D, name='DMI', dmi_type='bulk'):
+
+        # TODO: we can make self.D a property
         self.D = D
 
         self.name = name
@@ -96,7 +116,7 @@ class DMI(Energy):
         # to the lattice, for the Interfacial DMI
         self.DMI_vector = self.compute_DMI_vectors(self.n_ngbs_dmi)
 
-        if self.dmi_type == 'bulk':
+        if self.dmi_type == 'bulk' or self.dmi_type == 'interfacial':
             self._D = np.zeros(self.neighbours.shape)
             if isinstance(self.D, (int, float)):
                 self._D[:, :] = self.D
@@ -108,7 +128,7 @@ class DMI(Energy):
                         self._D[i, :] = value[:]
                     else:
                         raise Exception('The given spatial function for D is not acceptable!')
-
+            print(self._D.shape)
 
     def compute_field(self, t=0, spin=None):
 

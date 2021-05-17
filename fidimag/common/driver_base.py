@@ -23,11 +23,11 @@ class DriverBase(object):
         """
         Common variables for both micro and atomistic drivers
         """
-        self._alpha = np.zeros(n_spins, dtype=np.float)
+        self._alpha = np.zeros(n_spins, dtype=np.float64)
 
         self.t = 0
-        self.spin_last = np.ones(3 * n_spins, dtype=np.float)
-        self.dm_dt = np.zeros(3 * n_spins, dtype=np.float)
+        self.spin_last = np.ones(3 * n_spins, dtype=np.float64)
+        self.dm_dt = np.zeros(3 * n_spins, dtype=np.float64)
         self.integrator_tolerances_set = False
         self.step = 0
 

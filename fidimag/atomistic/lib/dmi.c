@@ -122,7 +122,8 @@ void dmi_field_bulk(double *restrict spin, double *restrict field,
 void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict field,
                                      double *restrict mu_s_inv,
                                      double *restrict energy,
-                                     double D, int *restrict ngbs, int n,
+                                     double *restrict _D, 
+                                     int *restrict ngbs, int n,
                                      int n_ngbs, int n_ngbs_dmi,
                                      double *restrict DMI_vec) {
     
@@ -181,6 +182,7 @@ void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict fie
 		int idnm = 0;         // index for the magnetisation components of the NNs
 
 		double fx = 0, fy = 0, fz = 0;
+        double D=0;
 
         /* Now we compute the field contribution from every NEAREST neighbour in the plane */
         for(int j = 0; j < n_ngbs_dmi; j++){
@@ -190,6 +192,7 @@ void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict fie
                 /* Now we add the field contribution of the j-th
                  * neighbour for the i-th spin: D_ij X S_j */
                 idnm = 3 * ngbs[idn + j];  // Magnetisation component index of the j-th NN
+                D = _D[idnm + j];
                 fx += D * cross_x(DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2],
                                   spin[idnm], spin[idnm + 1], spin[idnm + 2]);
                 fy += D * cross_y(DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2],
