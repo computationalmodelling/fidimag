@@ -20,15 +20,29 @@ public:
     virtual void run_until(double t) {};
 };
 
+class MicroLLGDriver: public Driver {
+public:
+    MicroLLGDriver() {};
+}
+
+// ----------------------------------------------------------------------------
 
 // Abstract class
 class Integrator {
 public:
     Integrator() {};
-    virtual void _setup(int N) {};
-    // Allow magnetisation to update (via LLG + effective field) 
-    // TODO: figure out how to set the update function in Driver class
-    virtual void compute_RHS(void (* f) (double * m, double t)) {};
+    virtual void _setup(unsigned int N,
+                        double dt,
+                        void (*f) (std::vector<int>::iterator begin,
+                                   std::vector<int>::iterator end,
+                                   double * m, double t),
+                        double * init_m) {};
+    // Allow magnetisation to update (via LLG + effective field)
+    // Here we store a pointer to the RHS calculation function set up by the
+    // driver
+    void (*compute_RHS) (std::vector<int>::iterator begin,
+                         std::vector<int>::iterator end,
+                         double * m, double t) {};
 }
 
 // Integrators should be independent of any driver/sim class
@@ -38,13 +52,17 @@ public:
     virtual ~Integrator_RK4() {std::cout << "Killing RK4 integrator\n";};
     // Will get the parameters from a simulation class
     // void _setup(MicroSim * sim, Driver * driver);
-    std::vector<double> rk1;  // N array
-    std::vector<double> rk2;  // N array
-    std::vector<double> rk3;  // N array
-    std::vector<double> rk4;  // N array
-    void integration_step(double (*f)(double t, double m));  // compute_RHS ??
-    void _setup(int N);
-    int N;
+    std::vector<double> rksteps;  // N array
+    void integration_step(double * m);  // compute_RHS ??
+    // Accepts N variables (e.g. 3 * n_spins) and a pointer to a function
+    void _setup(unsigned int N,
+                double dt,
+                void (*f) (std::vector<int>::iterator begin,
+                           std::vector<int>::iterator end,
+                           double * m, double t),
+                double * init_m);
+    unsigned int step_n;
+    unsigned int N;
     double t;
     double dt;
 };
