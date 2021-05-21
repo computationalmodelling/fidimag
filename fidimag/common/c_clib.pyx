@@ -369,8 +369,8 @@ cdef extern from "c_micro_sim.h":
         MicroSim() except +
 
         void setup(int nx, int ny, int nz, double dx, double dy, double dz,
-                   double unit_length, double *coordinates, int *ngbs, 
-                   double *spin, double *Ms, double *Ms_inv, 
+                   double unit_length, double *coordinates, int *ngbs,
+                   double *spin, double *Ms, double *Ms_inv,
                    double *energy, double *field, int *pins
                    )
 
@@ -404,3 +404,58 @@ cdef class PyMicroSim(object):
 
     def add_interaction(self, Interaction):
         Interaction.add_interaction_to_sim(self)
+
+# Drivers ---------------------------------------------------------------------
+
+cdef extern from "m_driver.h":
+
+    cdef cppclass Integrator:
+        # except +: Without this declaration, C++ exceptions originating from
+        # the constructor will not be handled by Cython.
+        Integrator() except +
+
+        void _setup(unsigned int N,
+                    double dt,
+                    void (*f) (double * m, unsigned int n, double t),
+                    double * init_m)
+        void (*compute_RHS) (double * m, unsigned int n, double t)
+
+    cdef cppclass Integrator_RK4:
+        Integrator_RK4() except +
+
+    cdef cppclass MicroLLGDriver:
+        # except +: Without this declaration, C++ exceptions originating from
+        # the constructor will not be handled by Cython.
+        MicroLLGDriver() except +
+
+        void _setup(MicroSim * sim, double * alpha, double gamma, double t, double dt)
+        void add_integrator(Integrator * integrator)
+
+        unsigned int step_n
+        unsigned int N
+        double t
+        double dt
+
+
+cdef class PyMicroLLGDriver(object):
+    """
+    Wrapper for the C++ Micro LLG Driver simulation class
+    """
+    cdef MicroLLGDriver *thisptr
+    # Try cinit:
+    def __cinit__(self):
+
+        self.thisptr = new MicroLLGDriver()
+
+    def __dealloc__(self):
+        del self.thisptr
+
+    def setup(self, PyMicroSim sim, double [:] alpha, gamma, t):
+
+        return self.thisptr._setup(<MicroSim *> sim.thisptr, 
+                                   &alpha[0], gamma, t, dt);
+
+    def add_integrator(self, PyIntegrator sim, double [:] alpha, gamma, t):
+
+        return self.thisptr._setup(<MicroSim *> sim.thisptr, 
+                                   &alpha[0], gamma, t, dt);
