@@ -1,11 +1,18 @@
 #include "m_driver.h"
 
+
+void MicroLLGDriver::_setup(MicroSim * Sim) {
+
+    this->sim = sim;
+
+}
+
+// ----------------------------------------------------------------------------
+
 void Integrator_RK4::_setup(unsigned int N,  // Change to unsigned long??
                             double dt,
                             // check these limits:
-                            void (*f) (std::vector<int>::iterator begin,
-                                       std::vector<int>::iterator end,
-                                       double * m, double t),
+                            void (*f) (double * m, unsigned int len, double t),
                             double * init_m  // Might not be necessary!
                             ) {
     // Initial values
@@ -43,12 +50,10 @@ void Integrator_RK4::integration_step(double * m) {
 
         }
         // Update the corresponding values of the RK step vector
-        this->compute_RHS(rk_steps.begin() + RKSTEP * N, 
-                          rk_steps.begin() + (RKSTEP + 1) * N, 
-                          rk_steps, 
-                          t + t_factor[RKSTEP] * dt);
+        this->compute_RHS(&rk_steps[RKSTEP * N], N, t + t_factor[RKSTEP] * dt);
     }
 
+    // Update time and array
     this->t += this->dt;
     for (unsigned int i = 0; i < this->N; ++i) {
         m[i] += (1 / 6) * this->dt * (    rk_steps[i] + 

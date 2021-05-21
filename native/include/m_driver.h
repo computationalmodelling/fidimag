@@ -3,13 +3,11 @@
 #include "c_micro_sim.h"
 
 class Integrator;  // forward declaration
-// Base class for the drivers
-class Driver {
+// Base class for the drivers -> just declare LLG driver for now
+class MicroLLGDriver {
 public:
-    Driver() {};
-    virtual ~Driver() {std::cout << "Killing base Driver\n";};
-    // Will get the parameters from a simulation class
-    void _setup(MicroSim * sim);
+    MicroLLGDriver() {};
+    virtual ~MicroLLGDriver() {std::cout << "Killing LLG Driver\n";};
 
     double * alpha;
     double gamma;
@@ -17,13 +15,19 @@ public:
     MicroSim * sim;
     Integrator * integrator;
 
-    virtual void run_until(double t) {};
+    // Will get the parameters from a simulation class
+    void _setup(MicroSim * sim, double * alpha, double gamma, double t);
+    void add_integrator(Integrator * integrator);
+    void run_until(double t);
 };
 
-class MicroLLGDriver: public Driver {
-public:
-    MicroLLGDriver() {};
-}
+// class MicroLLGDriver: public Driver {
+// public:
+//     MicroLLGDriver() {};
+//     // ~MicroLLGDriver() {std::cout << "Killing base Driver\n";};
+// 
+// 
+// }
 
 // ----------------------------------------------------------------------------
 
@@ -33,16 +37,12 @@ public:
     Integrator() {};
     virtual void _setup(unsigned int N,
                         double dt,
-                        void (*f) (std::vector<int>::iterator begin,
-                                   std::vector<int>::iterator end,
-                                   double * m, double t),
+                        void (*f) (double * m, unsigned int len, double t),
                         double * init_m) {};
     // Allow magnetisation to update (via LLG + effective field)
     // Here we store a pointer to the RHS calculation function set up by the
     // driver
-    void (*compute_RHS) (std::vector<int>::iterator begin,
-                         std::vector<int>::iterator end,
-                         double * m, double t) {};
+    void (*compute_RHS) (double * m, unsigned int len, double t) {};
 }
 
 // Integrators should be independent of any driver/sim class
@@ -52,14 +52,12 @@ public:
     virtual ~Integrator_RK4() {std::cout << "Killing RK4 integrator\n";};
     // Will get the parameters from a simulation class
     // void _setup(MicroSim * sim, Driver * driver);
-    std::vector<double> rksteps;  // N array
+    std::vector<double> rksteps;  // N len vector, we could also use an array
     void integration_step(double * m);  // compute_RHS ??
     // Accepts N variables (e.g. 3 * n_spins) and a pointer to a function
     void _setup(unsigned int N,
                 double dt,
-                void (*f) (std::vector<int>::iterator begin,
-                           std::vector<int>::iterator end,
-                           double * m, double t),
+                void (*f) (double * m, unsigned int len, double t),
                 double * init_m);
     unsigned int step_n;
     unsigned int N;
