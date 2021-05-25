@@ -40,8 +40,8 @@ public:
     // std::function<void (double * m, unsigned int n, double t)> generate_RHS_function(void);
 
     // TODO: declare all remaining values from the full form LLG eq
-    double * alpha;
-    double gamma;
+    static double * alpha;
+    static double gamma;
     double t;
     double dt;
     MicroSim * sim;
@@ -55,7 +55,7 @@ public:
                 double t, double dt);
     void add_integrator(IntegratorID integrator_id);
     void run_until(double t);
-    void compute_RHS(double * m, unsigned int n, double t);
+    static void compute_RHS(double * m, unsigned int n, double t);
 };
 
 // class MicroLLGDriver: public Driver {
