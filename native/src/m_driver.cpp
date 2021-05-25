@@ -1,5 +1,9 @@
 #include "m_driver.h"
 
+void LLG_RHS(double * m, unsigned int n, double t, double * alpha, double gamma) {
+    // Compute LLG RHS in m
+}
+
 void MicroLLGDriver::_setup(MicroSim * sim,
                             double * alpha, double gamma, double t, double dt) {
 
@@ -9,11 +13,11 @@ void MicroLLGDriver::_setup(MicroSim * sim,
     this->t = t;
     this->dt = dt;
 
-
 }
+
 // TODO: Set up LLG equation function: compute_RHS
 void MicroLLGDriver::compute_RHS(double * m, unsigned int n, double t) {
-
+ 
 }
 
 void MicroLLGDriver::add_integrator(IntegratorID integrator_id) {
@@ -23,8 +27,22 @@ void MicroLLGDriver::add_integrator(IntegratorID integrator_id) {
             this->integrator = new Integrator_RK4();
     }
 
+    // Cannot use a capuring lambda (to use parameters) to make a function pointer
+    // We can use a static function and create a capture-less lambda
+    // See: https://deviorel.wordpress.com/2015/01/27/obtaining-function-pointers-from-lambdas-in-c/
+    // Here it is ok as we do not need more than one RHS function
+    // TODO: a functional approach might be better, check integrators in ANSI C
+    auto _compute_RHS = [this](double * m, unsigned int n, double t) { 
+        return LLG_RHS(m, n, t, this->alpha, this->gamma); 
+    };
+    static auto static_rhs_fun = _compute_RHS;
+    void (*fptr)(double * m, 
+                 unsigned int n,
+                 double t) = [] (double * m, 
+                                 unsigned int n,
+                                 double t) {return static_rhs_fun(m, n, t);};
     this->integrator->_setup(this->sim->n, this->dt, 
-                             this->compute_RHS
+                             fptr
                              // this->
                              );
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include<iostream>
+#include<functional>
 #include "c_micro_sim.h"
 
 enum IntegratorID {
@@ -14,12 +15,6 @@ enum IntegratorID {
 //     STT_SLONCZEWSKI,
 //     STT_FIELDLIKE
 // };
-
-class RHS_function {
-public:
-    void compute_RHS(double * m, unsigned int n, double t);
-};
-
 
 class Integrator;  // forward declaration
 // Base class for the drivers -> just declare LLG driver for now
@@ -38,9 +33,11 @@ public:
         dt = dt;
     }
 
+    // How to pass MEMBER FUNCTION pointer to the integrator ???
     // void compute_RHS(double * m, unsigned int n, double t);
     //
-    void generate_RHS_function(double * alpha ...);
+    
+    // std::function<void (double * m, unsigned int n, double t)> generate_RHS_function(void);
 
     // TODO: declare all remaining values from the full form LLG eq
     double * alpha;
@@ -58,6 +55,7 @@ public:
                 double t, double dt);
     void add_integrator(IntegratorID integrator_id);
     void run_until(double t);
+    void compute_RHS(double * m, unsigned int n, double t);
 };
 
 // class MicroLLGDriver: public Driver {
