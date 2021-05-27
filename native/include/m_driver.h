@@ -31,7 +31,7 @@ class Integrator;  // forward declaration
 // Base class for the drivers -> just declare LLG driver for now
 class MicroLLGDriver {
 public:
-    MicroLLGDriver() {};
+    MicroLLGDriver() {std::cout << "Instatiating LLG Driver" << std::endl;};
     ~MicroLLGDriver() {std::cout << "Killing LLG Driver\n";};
 
     // Testing constructor
@@ -54,8 +54,8 @@ public:
     // single instance of the MicroLLGDriver per simulation
     // Alternatively, we could try making the compute_RHS dependant on a struct
     // containing all the LLG parameters
-    double * alpha;
-    double gamma;
+    // double * alpha;
+    // double gamma;
     double t;
     double dt;
     MicroSim * sim;

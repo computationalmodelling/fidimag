@@ -420,8 +420,15 @@ cdef extern from "m_driver.h":
                     double * init_m)
         void (*compute_RHS) (double * m, unsigned int n, double t)
 
-    cdef cppclass Integrator_RK4:
-        Integrator_RK4() except +
+    ctypedef struct LLG_params:
+        double gamma
+        double * alpha
+        double * field
+        int * pins
+
+
+    ctypedef enum IntegratorID:
+        RK4
 
     cdef cppclass MicroLLGDriver:
         # except +: Without this declaration, C++ exceptions originating from
@@ -429,12 +436,15 @@ cdef extern from "m_driver.h":
         MicroLLGDriver() except +
 
         void _setup(MicroSim * sim, double * alpha, double gamma, double t, double dt)
-        void add_integrator(Integrator * integrator)
+        void add_integrator(IntegratorID integrator_id)
 
         unsigned int step_n
         unsigned int N
         double t
         double dt
+
+        # LLG_params struct?
+        LLG_params llg_params
 
 
 cdef class PyMicroLLGDriver(object):
@@ -450,12 +460,11 @@ cdef class PyMicroLLGDriver(object):
     def __dealloc__(self):
         del self.thisptr
 
-    def setup(self, PyMicroSim sim, double [:] alpha, gamma, t):
+    def setup(self, PyMicroSim sim, double [:] alpha, gamma, t, dt):
 
         return self.thisptr._setup(<MicroSim *> sim.thisptr, 
-                                   &alpha[0], gamma, t, dt);
+                                   &alpha[0], gamma, t, dt)
 
-    def add_integrator(self, PyIntegrator sim, double [:] alpha, gamma, t):
+    def add_integrator(self, integrator_id):
 
-        return self.thisptr._setup(<MicroSim *> sim.thisptr, 
-                                   &alpha[0], gamma, t, dt);
+        return self.thisptr.add_integrator(integrator_id)

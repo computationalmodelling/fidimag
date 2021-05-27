@@ -110,6 +110,10 @@ void MicroLLGDriver::_setup(MicroSim * sim,
     this->t = t;
     this->dt = dt;
     this->dmdt = new double[this->sim->n];
+
+    // DEBUG
+    std::cout << "[driver] Gamma:" << this->llg_params->gamma << std::endl;
+    std::cout << "[driver] Sim n:" << this->sim->n << std::endl;
 }
 
 
