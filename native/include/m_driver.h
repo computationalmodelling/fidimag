@@ -7,11 +7,13 @@ enum IntegratorID {
     RK4
 };
 
+// We will set the extra parameters for the integrator as a struct
+// The integrator allows m, dmdt, time, dt and extra parameters
 struct LLG_params {
     double gamma;
     double * alpha;
     double * field;
-    double * pins;
+    int * pins;
 };
 
 // In case we want to use conditional statements for LLG eq:
@@ -23,7 +25,9 @@ struct LLG_params {
 //     STT_FIELDLIKE
 // };
 
+template <class T>
 class Integrator;  // forward declaration
+
 // Base class for the drivers -> just declare LLG driver for now
 class MicroLLGDriver {
 public:
@@ -55,7 +59,8 @@ public:
     double t;
     double dt;
     MicroSim * sim;
-    Integrator * integrator;
+    // Use integrator with the LLG_params struct
+    Integrator<LLG_params> * integrator;
     LLG_params * llg_params;
     double * dmdt;  // N len vector, we could also use an array
 
@@ -72,46 +77,42 @@ public:
 
 // ----------------------------------------------------------------------------
 
-// Abstract class
+// Abstract class for the integrator
+// The template refers to the type of the pointer to pass extra parameters to
+// the integrator, e.g. the LLG Driver uses a pointer to the LLG_params struct
+template <class T>
 class Integrator {
 public:
     Integrator() {};
 
-    // We probably should better use a constructor:
+    // We should probably better use a constructor:
     // Accepts N variables (e.g. 3 * n_spins) and a pointer to a function
     virtual void _setup(unsigned int N,
                         double dt
-                        // void (*f) (double * m, double * dmdt, unsigned int n, double t)
-                        // double * init_m
                         ) {};
     // Allow magnetisation to update (via LLG + effective field)
-    // Here we store a pointer to the RHS calculation function set up by the
-    // driver
+    // Should we store a pointer to the update function??
     // void (*compute_RHS) (double * m, double * dmdt, unsigned int n, double t) {};
-    // void pointer for parameters: eff field, alpha, etc
+
+    // Templated pointer for parameters, e.g. for LLG we need eff field, alpha, etc
     virtual void integration_step(void (*f) (double * m, double * dmdt, unsigned int n, double t, void * params),
-                                  double * m, double * dmdt, void * params) {};
+                                  double * m, double * dmdt, T * params) {};
 
     IntegratorID integrator_id;
 };
 
 // Integrators should be independent of any driver/sim class
-class Integrator_RK4: public Integrator {
+template <class T>
+class Integrator_RK4: public Integrator<T> {
 public:
     Integrator_RK4() {};
     virtual ~Integrator_RK4() {std::cout << "Killing RK4 integrator\n";};
 
-    // Will get the parameters from a simulation class
-    // void _setup(MicroSim * sim, Driver * driver);
     std::vector<double> rksteps;  // N len vector, we could also use an array
 
-    void _setup(unsigned int N,
-                double dt
-                // void (*f) (double * m, double * dmdt, unsigned int n, double t)
-                // double * init_m
-                );
-    void integration_step(void (*f) (double * m, double * dmdt, unsigned int n, double t, void * params),
-                          double * m, double * dmdt, void * params);
+    void _setup(unsigned int N, double dt);
+    void integration_step(void (*f) (double * m, double * dmdt, unsigned int n, double t, T * params),
+                          double * m, double * dmdt, T * params);
 
     unsigned int step_n;
     unsigned int N;
