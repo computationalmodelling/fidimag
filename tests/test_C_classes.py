@@ -1,6 +1,7 @@
 from fidimag.extensions.c_clib import PyExchangeEnergy
 from fidimag.extensions.c_clib import PyMicroSim
 from fidimag.extensions.c_clib import PyMicroLLGDriver
+from fidimag.extensions.c_clib import INTEGRATOR_RK4
 from fidimag.common import CuboidMesh
 
 import time
@@ -50,3 +51,4 @@ alpha = np.ones(n)
 gamma = 1.
 driver = PyMicroLLGDriver()
 driver.setup(sim_C, alpha, gamma, t=0.0, dt=0.1)
+driver.add_integrator(INTEGRATOR_RK4)

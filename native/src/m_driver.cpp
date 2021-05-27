@@ -122,6 +122,9 @@ void MicroLLGDriver::add_integrator(IntegratorID integrator_id) {
     switch(integrator_id) {
         case RK4:
             this->integrator = new Integrator_RK4<LLG_params>();
+            this->integrator->_setup(this->sim->n, this->dt);
+
+            std::cout << "Setup integrator" << std::endl;
 
             // We can now call the integrator as:
             // this->integrator->integration_step(LLG_RHS,

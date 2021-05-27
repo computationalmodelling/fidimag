@@ -446,6 +446,8 @@ cdef extern from "m_driver.h":
         # LLG_params struct?
         LLG_params llg_params
 
+cpdef enum:
+    INTEGRATOR_RK4 = 0
 
 cdef class PyMicroLLGDriver(object):
     """
