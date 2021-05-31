@@ -49,7 +49,6 @@ clean:
 	touch ${EXTENSIONS_DIR}/__init__.py
 	rm -rf build
 	rm -rf $(OBJECTS) $(TARGET) *.dSYM
-	-find fidimag/ "*.cpp" -exec echo {}; 
 
 
 docker:
