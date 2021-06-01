@@ -10,7 +10,7 @@ void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
 
     // Only if using void pointer for parameters:
     // LLG_params * llg_params = static_cast<LLG_params*>(parameters);
-    
+
     // Compute LLG RHS in m
     unsigned int i, j, k;
     double coeff, mm, mh, c;
@@ -37,10 +37,10 @@ void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
         // Dot products
         mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
         mh = m[i] * llg_params->field[i] +
-             m[j] * llg_params->field[j] + 
+             m[j] * llg_params->field[j] +
              m[k] * llg_params->field[k];
 
-        // Usually, m is normalised, i.e., mm=1; 
+        // Usually, m is normalised, i.e., mm=1;
         // so hp = mm.h - mh.m = -m x (m x h)
         // We set here the perpendicular componenet of the field
         // but using the (m * m) product
@@ -48,14 +48,14 @@ void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
         hpj = mm * llg_params->field[j] - mh * m[j];
         hpk = mm * llg_params->field[k] - mh * m[k];
 
-        // IMPORTANT: do not ignore mm !!
+        // IMPORTAthis->NT: do not ignore mm !!
         // What we've found is that if we igonre mm, i.e. using
         //    hpi = h[i] - mh * m[i];
         //    hpj = h[j] - mh * m[j];
         //    hpk = h[k] - mh * m[k];
         // the micromagnetic standard problem 4 failed to converge (?)
         //
-        // NOTE (Fri 08 Jul 2016 13:58): In fact, the problem converges but with 2 less
+        // this->NOTE (Fri 08 Jul 2016 13:58): In fact, the problem converges but with 2 less
         // decimals of accuracy, compared with the OOMMF calculation
         double mth0 = 0, mth1 = 0, mth2 = 0;
 
@@ -80,7 +80,7 @@ void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
 
         // if (default_c < 0){
         //     c = 6 * sqrt(dm_dt[i] * dm_dt[i] +
-        //                  dm_dt[j] * dm_dt[j] + 
+        //                  dm_dt[j] * dm_dt[j] +
         //                  dm_dt[k] * dm_dt[k]
         //                  );
         // } else {
@@ -102,14 +102,15 @@ void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
 void MicroLLGDriver::_setup(MicroSim * sim,
                             double * alpha, double gamma, double t, double dt) {
 
+    this->llg_params = new LLG_params;  // initialize struct
     this->sim = sim;
-    this->llg_params->alpha = alpha;
     this->llg_params->gamma = gamma;
+    this->llg_params->alpha = alpha;
     this->llg_params->field = sim->field;
     this->llg_params->pins = sim->pins;
-    this->t = t;
-    this->dt = dt;
-    this->dmdt.resize(this->sim->n);
+    this->t = t;    // Should be handled by integrator
+    this->dt = dt;  // should be handled by integrator
+    this->dmdt.resize(3 * this->sim->n);
 
     // DEBUG
     std::cout << "[driver] Gamma:" << this->llg_params->gamma << std::endl;
@@ -121,90 +122,66 @@ void MicroLLGDriver::add_integrator(IntegratorID integrator_id) {
 
     switch(integrator_id) {
         case RK4:
-            this->integrator = new Integrator_RK4<LLG_params>();
+            // How to call Derived class integrator if the pointer is to the Base class?
+            this->integrator = new IntegratorRK4<LLG_params>(this->sim->n);
+            // Best create a set_integrator_parameters function
             this->integrator->_setup(this->sim->n, this->dt);
+            // TODO: separate function to set time?
+            this->integrator->t = 0.0;
+            this->integrator->step_n = 0;
 
             std::cout << "Setup integrator" << std::endl;
 
-            // We can now call the integrator as:
-            // this->integrator->integration_step(LLG_RHS,
-            //                                    this->sim->spin, 
-            //                                    this->dmdt,
-            //                                    this->llg_params);
-
-
     }
 
-    // Cannot use a capuring lambda (to use parameters) to make a function pointer
-    // We can use a static function and create a capture-less lambda
-    // See: https://deviorel.wordpress.com/2015/01/27/obtaining-function-pointers-from-lambdas-in-c/
-    // Here it is ok as we do not need more than one RHS function
-    // TODO: a functional approach might be better, check integrators in ANSI C
-    // auto _compute_RHS = [this](double * m, unsigned int n, double t) { 
-    //     return LLG_RHS(m, n, t, this->alpha, this->gamma); 
-    // };
-    // static auto static_rhs_fun = _compute_RHS;
-    // void (*fptr)(double * m, 
-    //              unsigned int n,
-    //              double t) = [] (double * m, 
-    //                              unsigned int n,
-    //                              double t) {return static_rhs_fun(m, n, t);};
-    // this->integrator->_setup(this->sim->n, this->dt, 
-    //                          fptr
-    //                          // this->
-    //                          );
+}
 
-    // Alternative 2: if compute_RHS is static we can pass it but we cannot
-    //                call this-> within the compute_RHS function
-    // this->integrator->_setup(this->sim->n, this->dt, 
-    //                          this->compute_RHS
-    //                          // this->
-    //                          );
+void MicroLLGDriver::run_until(double t_final){
 
-    // Alternative 3: Use std::bind (replace with lambdas?)
-    // using namespace std::placeholders;
-    // auto _compute_rhs = std::bind(&MicroLLGDriver::compute_RHS, this, _1, _2, _3, _4);
-    // this->integrator->_setup(this->sim->n, this->dt, 
-    //                          _compute_rhs
-    //                          // this->
-    //                          );
+    while(this->integrator->t <= t_final) {
+        this->integrator->integration_step(LLG_RHS,
+                                           this->sim->spin,
+                                           this->dmdt,
+                                           this->llg_params);
+    }
+
 }
 
 // ----------------------------------------------------------------------------
 
 template <class T>
-void Integrator_RK4<T>::_setup(unsigned int N, double dt) {
+void IntegratorRK4<T>::_setup(unsigned int N, double dt) {
     // Initial values
-    this->rksteps.resize(N * 4, 0.0);
     this->step_n = 0;
     this->t = 0.0;
-
     this->dt = dt;
+    this->N = N;
     // this->compute_RHS = f;
 
     // Initial values??
-    // for (unsigned int i = 0; i < N; ++i ) {
+    // for (unsigned int i = 0; i < this->N; ++i ) {
     //     rksteps[i] = init_m[i];
     // }
 }
 
 template <class T>
-void Integrator_RK4<T>::integration_step(void (*f) (double * m,
-                                                    std::vector<double>& dmdt,
-                                                    unsigned int n,
-                                                    double t,
-                                                    T * params),
-                                         double * m, 
+void IntegratorRK4<T>::integration_step(void (*f) (double * m,
+                                                   std::vector<double>& dmdt,
+                                                   unsigned int n,
+                                                   double t,
+                                                   T * params),
+                                         double * m,
                                          std::vector<double>& dmdt,
                                          T * params) {
 
     double t_factor[4] = {0.0, 0.5, 0.5, 1.0};
     double m_factor[4] = {0.0, 0.5, 0.5, 1.0};
+    std::vector<double>& rksteps = this->integratorData;
 
     for (unsigned int RKSTEP = 0; RKSTEP < 4; ++RKSTEP) {
 
         // Re-use the rk_steps vector to apply the RK step
-        // For RKSTEP = 0 we initialise the first N elements of rk_steps vector with m[i]
+        // For RKSTEP = 0 we initialise the first this->N elements of rk_steps vector with m[i]
         // Should we separate the step calculation for every i value??
         for (unsigned int i = 0; i < this->N; ++i ) {
             unsigned int RKSTEP_idx = i + (RKSTEP) * this->N;
@@ -217,42 +194,42 @@ void Integrator_RK4<T>::integration_step(void (*f) (double * m,
 
         }
         // Update the corresponding values of the RK step vector
-        f(&rksteps[RKSTEP * N], dmdt, N, t + t_factor[RKSTEP] * dt, params);
+        f(&rksteps[RKSTEP * this->N], dmdt, this->N, this->t + t_factor[RKSTEP] * this->dt, params);
         // Copy RHS values to the corresponding RK step array section
-        for (unsigned int i = 0; i < this->N; ++i ) rksteps[i + RKSTEP * N] = dmdt[i];
+        for (unsigned int i = 0; i < this->N; ++i ) rksteps[i + RKSTEP * this->N] = dmdt[i];
     }
 
     // Update time and array
     this->t += this->dt;
     for (unsigned int i = 0; i < this->N; ++i) {
         m[i] += (1 / 6) * this->dt * (    rksteps[i] +
-                                      2 * rksteps[i + N] +
-                                      2 * rksteps[i + 2 * N] +
-                                          rksteps[i + 3 * N]);
+                                      2 * rksteps[i + this->N] +
+                                      2 * rksteps[i + 2 * this->N] +
+                                          rksteps[i + 3 * this->N]);
     }
 
     // // RK4 step 1
-    // this->compute_RHS(rk_steps.begin(), rk_steps.begin() + N, rk_steps, t);
+    // this->compute_RHS(rk_steps.begin(), rk_steps.begin() + this->N, rk_steps, t);
 
     // // RK4 step 2
-    // for (unsigned int i = 0; i < N; ++i ) {
-    //     rk_steps[i + N] = m[i] + 0.5 * this->dt * rk_steps[i];
+    // for (unsigned int i = 0; i < this->N; ++i ) {
+    //     rk_steps[i + this->N] = m[i] + 0.5 * this->dt * rk_steps[i];
     // }
-    // this->compute_RHS(rk_steps.begin() + N, rk_steps.begin() + 2 * N,
+    // this->compute_RHS(rk_steps.begin() + this->N, rk_steps.begin() + 2 * this->N,
     //                   rk_steps, t + 0.5 * dt);
 
     // // RK4 step 3
-    // for (unsigned int i = 0; i < N; ++i ) {
-    //     rk_steps[i + 2 * N] = m[i] + 0.5 * this->dt * rk_steps[N + i];
+    // for (unsigned int i = 0; i < this->N; ++i ) {
+    //     rk_steps[i + 2 * this->N] = m[i] + 0.5 * this->dt * rk_steps[this->N + i];
     // }
-    // this->compute_RHS(rk_steps.begin() + 2 * N, rk_steps.begin() + 3 * N,
+    // this->compute_RHS(rk_steps.begin() + 2 * this->N, rk_steps.begin() + 3 * this->N,
     //                   rk_steps, t + 0.5 * dt);
 
     // // RK4 step 4
-    // for (unsigned int i = 0; i < N; ++i ) {
-    //     rk_steps[i + 2 * N] = m[i] + 0.5 * this->dt * rk_steps[2 * N + i];
+    // for (unsigned int i = 0; i < this->N; ++i ) {
+    //     rk_steps[i + 2 * this->N] = m[i] + 0.5 * this->dt * rk_steps[2 * this->N + i];
     // }
-    // this->compute_RHS(rk_steps.begin() + 3 * N, rk_steps.begin() + 4 * N,
+    // this->compute_RHS(rk_steps.begin() + 3 * this->N, rk_steps.begin() + 4 * this->N,
     //                   rk_steps, t + 1.0 * dt);
 
 }

@@ -409,17 +409,6 @@ cdef class PyMicroSim(object):
 
 cdef extern from "m_driver.h":
 
-    cdef cppclass Integrator:
-        # except +: Without this declaration, C++ exceptions originating from
-        # the constructor will not be handled by Cython.
-        Integrator() except +
-
-        void _setup(unsigned int N,
-                    double dt,
-                    void (*f) (double * m, unsigned int n, double t),
-                    double * init_m)
-        void (*compute_RHS) (double * m, unsigned int n, double t)
-
     ctypedef struct LLG_params:
         double gamma
         double * alpha
@@ -438,8 +427,6 @@ cdef extern from "m_driver.h":
         void _setup(MicroSim * sim, double * alpha, double gamma, double t, double dt)
         void add_integrator(IntegratorID integrator_id)
 
-        unsigned int step_n
-        unsigned int N
         double t
         double dt
 
@@ -468,5 +455,4 @@ cdef class PyMicroLLGDriver(object):
                                    &alpha[0], gamma, t, dt)
 
     def add_integrator(self, integrator_id):
-
         return self.thisptr.add_integrator(integrator_id)
