@@ -5,7 +5,7 @@
 
 // The RHS function to integrate the LLG equation
 // Extra parameters are passed to the integrator in a struct
-void LLG_RHS(double * m, double *dmdt, unsigned int n, double t,
+void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
              LLG_params * llg_params) {
 
     // Only if using void pointer for parameters:
@@ -109,7 +109,7 @@ void MicroLLGDriver::_setup(MicroSim * sim,
     this->llg_params->pins = sim->pins;
     this->t = t;
     this->dt = dt;
-    this->dmdt = new double[this->sim->n];
+    this->dmdt.resize(this->sim->n);
 
     // DEBUG
     std::cout << "[driver] Gamma:" << this->llg_params->gamma << std::endl;
@@ -190,12 +190,12 @@ void Integrator_RK4<T>::_setup(unsigned int N, double dt) {
 
 template <class T>
 void Integrator_RK4<T>::integration_step(void (*f) (double * m,
-                                                    double * dmdt,
+                                                    std::vector<double>& dmdt,
                                                     unsigned int n,
                                                     double t,
                                                     T * params),
                                          double * m, 
-                                         double * dmdt,
+                                         std::vector<double>& dmdt,
                                          T * params) {
 
     double t_factor[4] = {0.0, 0.5, 0.5, 1.0};
