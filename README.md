@@ -86,10 +86,14 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
-[23] [Stray Field Calculation for Micromagnetic Simulations Using True Periodic Boundary Conditions](https://doi.org/10.1038/s41598-021-88541-9) Florian Bruckner, Amil Ducevic, Paul Heistracher, Claas Abert & Dieter Suess, Scientific Reports  11, 9202 (2021)
+[25] [A Review of Modelling in Ferrimagnetic Spintronics](https://journals.jps.jp/doi/full/10.7566/JPSJ.90.081001) Joseph Barker, Unai Atxitia, J. Phys. Soc. Jpn. 90, 081001 (2021)
+
+[24] [Topological defect-mediated skyrmion annihilation in three dimensions](https://www.nature.com/articles/s42005-021-00675-4) M. T. Birch, D. Cortés-Ortuño, N. D. Khanh, S. Seki, A. Štefančič, G. Balakrishnan, Y. Tokura & P. D. Hatton, Communications Physics 4, 175 (2021)
+
+[23] [Stray Field Calculation for Micromagnetic Simulations Using True Periodic Boundary Conditions](https://doi.org/10.1038/s41598-021-88541-9) F. Bruckner, A. Ducevic, P. Heistracher, C. Abert & D. Suess, Scientific Reports  11, 9202 (2021)
 
 [22] [Field-free spin–orbit torque perpendicular magnetization switching in ultrathin nanostructures](https://doi.org/10.1038/s41524-020-0347-0)
-Minyi Dai, Jia-Mian Hu, npj Computational Materials volume
+M. Dai, J-M. Hu, npj Computational Materials volume
 6, 78 (2020)
 
 [21] [Hybrid FFT algorithm for fast demagnetization field calculations on non-equidistant magnetic layers](https://doi.org/10.1016/j.jmmm.2020.166592)
@@ -98,7 +102,7 @@ Volume 503, 166592 (2020)
 
 [20] [Review – Micromagnetic Simulation Using OOMMF and Experimental Investigations on Nano Composite Magnets](https://doi.org/10.1088/1742-6596/1172/1/012070)
 Review – Micromagnetic Simulation Using OOMMF and Experimental Investigations on Nano Composite Magnets
-S Sundara Mahalingam, B V Manikandan, S Arockiaraj, J. Phys.: Conf. Ser. 1172 012070
+S. Sundara Mahalingam, B. V. Manikandan, S. Arockiaraj, J. Phys.: Conf. Ser. 1172 012070
 
 [19] [Spin waves in thin films and magnonic crystals with Dzyaloshinskii-Moriya interactions](https://arxiv.org/abs/1903.04288)
 R. A. Gallardo, D. Cortés-Ortuño, R. E. Troncoso, P. Landeros, arxiv:1903.04288 (2019)
