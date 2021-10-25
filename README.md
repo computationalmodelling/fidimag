@@ -86,6 +86,12 @@ Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. 
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
+[28] [L-shaped electrode design for high-density spin–orbit torque magnetic random access memory with perpendicular shape anisotropy](https://iopscience.iop.org/article/10.1088/1361-6463/abf61d/) K. Chi, Y. Shi, Z. Li, W. Zhang, Y. Xing, X. Feng, Y. Ma, H. Meng, B. Liu, J. Phys. D: Appl. Phys. 54 285002 (2021)
+
+[27] [Periodically modulated skyrmion strings in Cu2OSeO3](https://doi.org/10.1038/s41535-021-00373-y) D. M. Burn, R. Brearton, K. J. Ran, S. L. Zhang, G. van der Laan, T. Hesjedal, npj Quantum Materials volume 6, Article number: 73 (2021)
+
+[26] [Speeding up explicit numerical evaluation methods for micromagnetic simulations using demagnetizing field polynomial extrapolation](https://arxiv.org/abs/2107.06729) S. Lepadatu,  arXiv:2107.06729 (2021)
+
 [25] [A Review of Modelling in Ferrimagnetic Spintronics](https://journals.jps.jp/doi/full/10.7566/JPSJ.90.081001) Joseph Barker, Unai Atxitia, J. Phys. Soc. Jpn. 90, 081001 (2021)
 
 [24] [Topological defect-mediated skyrmion annihilation in three dimensions](https://www.nature.com/articles/s42005-021-00675-4) M. T. Birch, D. Cortés-Ortuño, N. D. Khanh, S. Seki, A. Štefančič, G. Balakrishnan, Y. Tokura & P. D. Hatton, Communications Physics 4, 175 (2021)
