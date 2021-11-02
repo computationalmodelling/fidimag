@@ -14,7 +14,11 @@ inline double cross_z(double a0, double a1, double a2,
                       double b0, double b1, double b2) { return a0*b1 - a1*b0; }
 
 void compute_exch_field_micro(double *restrict m, double *restrict field, double *restrict energy, double *restrict Ms_inv,
-                         double A, double dx, double dy, double dz, int n, int *ngbs);
+                              double A, double dx, double dy, double dz, int n, int *ngbs);
+
+void compute_exch_field_aniso_micro(double *restrict m, double *restrict field, 
+                                    double *restrict energy, double *restrict Ms_inv,
+                                    double gam, double dx, double dy, double dz, int n, int *ngbs);
 
 void dmi_field(double *restrict m, double *restrict field,
                double *restrict energy, double *restrict Ms_inv,

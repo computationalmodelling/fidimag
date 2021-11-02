@@ -9,6 +9,10 @@ cdef extern from "micro_clib.h":
     void compute_exch_field_rkky_micro(double *m, double *field, double *energy,
                                   double *Ms_inv, double sigma, int nx, double ny,
                                   double nz, int z_bottom, int z_top)
+    void compute_exch_field_aniso_micro(double *m, double *field,
+                                        double *energy, double *Ms_inv,
+                                        double gam, double dx, double dy, double dz,
+                                        int n, int *ngbs)
 
     void dmi_field(double *m, double *field, double *energy, double *Ms_inv,
                    double *D, int n_dmis,
@@ -55,6 +59,15 @@ def compute_exchange_field_micro_rkky(double [:] m,
     compute_exch_field_rkky_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], sigma,
                              nx, ny, nz, z_bottom, z_top)
 
+def compute_exchange_field_anisotropic_micro(double [:] m,
+                                             double [:] field,
+                                             double [:] energy,
+                                             double [:] Ms_inv,
+                                             gam, dx, dy, dz, n,
+                                             int [:, :] ngbs):
+
+    compute_exch_field_aniso_micro(&m[0], &field[0], &energy[0], &Ms_inv[0], gam,
+                                   dx, dy, dz, n, &ngbs[0, 0])
 
 def compute_dmi_field(double [:] m,
                       double [:] field,
