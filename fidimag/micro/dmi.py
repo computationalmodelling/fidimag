@@ -260,7 +260,7 @@ class DMI(Energy):
         if self.dmi_type == 'C_n' or self.dmi_type == 'D_n':
             self.Ds = helper.init_vector(self.D, self.mesh, dim=2)
             self.n_dmis = 2
-        else:
+        elif self.dmi_type != 'custom':
             self.Ds = helper.init_scalar(self.D, self.mesh)
             self.n_dmis = 1
 
