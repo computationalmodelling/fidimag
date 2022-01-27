@@ -424,7 +424,7 @@ cdef extern from "m_driver.h":
         # the constructor will not be handled by Cython.
         MicroLLGDriver() except +
 
-        void _setup(MicroSim * sim, double * alpha, double gamma, double t, double dt)
+        void setup(MicroSim * sim, double * alpha, double gamma, double t, double dt)
         void add_integrator(IntegratorID integrator_id)
 
         double t
@@ -451,8 +451,19 @@ cdef class PyMicroLLGDriver(object):
 
     def setup(self, PyMicroSim sim, double [:] alpha, gamma, t, dt):
 
-        return self.thisptr._setup(<MicroSim *> sim.thisptr, 
-                                   &alpha[0], gamma, t, dt)
+        return self.thisptr.setup(<MicroSim *> sim.thisptr, 
+                                  &alpha[0], gamma, t, dt)
 
     def add_integrator(self, integrator_id):
         return self.thisptr.add_integrator(integrator_id)
+
+# Test ------------------------------------------------------------------------
+
+cdef extern from "m_driver_test.h":
+
+    void test_integrator_RK4()
+
+
+def C_test_integrator_RK4():
+
+    test_integrator_RK4()

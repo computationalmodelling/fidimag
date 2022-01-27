@@ -1,3 +1,4 @@
+# See: fidimag/common/c_clib.pyx for Python wrappers
 from fidimag.extensions.c_clib import PyExchangeEnergy
 from fidimag.extensions.c_clib import PyMicroSim
 from fidimag.extensions.c_clib import PyMicroLLGDriver

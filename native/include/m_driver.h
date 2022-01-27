@@ -3,6 +3,11 @@
 #include<functional>
 #include "c_micro_sim.h"
 
+// TODO: We should move this to a separate file containing all the structs
+struct TestParams {
+    double foo;
+};
+
 enum IntegratorID {
     RK4
 };
@@ -57,11 +62,11 @@ public:
     std::vector<double> dmdt;  // N len vector, we could also use an array
 
     // Will get the parameters from a simulation class
-    void _setup(MicroSim * sim,
-                double * alpha, double gamma, 
-                // double * zl_jx, double * zl_jy, double * zl_jz, double zl_p, double zl_beta, double zl_u0,
-                // double * cpp_p, double * cpp_aJ, double * cpp_beta,
-                double t, double dt);
+    void setup(MicroSim * sim,
+               double * alpha, double gamma, 
+               // double * zl_jx, double * zl_jy, double * zl_jz, double zl_p, double zl_beta, double zl_u0,
+               // double * cpp_p, double * cpp_aJ, double * cpp_beta,
+               double t, double dt);
     void add_integrator(IntegratorID integrator_id);
     void run_until(double t_final);
     void single_integrator_step();
@@ -71,7 +76,8 @@ public:
 };
 
 // ----------------------------------------------------------------------------
-
+// TODO: Integrators should be moved to a separate file
+//
 // Abstract class for the integrator
 // The template refers to the type of the pointer to pass extra parameters to
 // the integrator, e.g. the LLG Driver uses a pointer to the LLG_params struct
@@ -81,7 +87,7 @@ public:
     // Integrator() = {};
     // We should probably better use a constructor:
     // Accepts N variables (e.g. 3 * n_spins) and a pointer to a function
-    virtual void _setup(unsigned int N, double dt) = 0;
+    virtual void setup(unsigned int N, double dt) = 0;
 
     // Templated pointer for parameters, e.g. for LLG we need eff field, alpha, etc
     virtual void integration_step(void (*f) (double * m, std::vector<double>& dmdt, 
@@ -113,7 +119,7 @@ public:
 
     // std::vector<double> rksteps;  // N len vector, we could also use an array
 
-    void _setup(unsigned int N, double dt);
+    void setup(unsigned int N, double dt);
     void integration_step(void (*f) (double * m, std::vector<double>& dmdt, 
                                      unsigned int N, double t, T * params),
                           double * m, std::vector<double>& dmdt, T * params);

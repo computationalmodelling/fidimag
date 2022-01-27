@@ -99,8 +99,8 @@ void LLG_RHS(double * m, std::vector<double>& dmdt, unsigned int n, double t,
 }
 
 // Passes the required parameters for the integrator to the LLG_params struct
-void MicroLLGDriver::_setup(MicroSim * sim,
-                            double * alpha, double gamma, double t, double dt) {
+void MicroLLGDriver::setup(MicroSim * sim,
+                           double * alpha, double gamma, double t, double dt) {
 
     this->llg_params = new LLG_params;  // initialize struct
     this->sim = sim;
@@ -125,7 +125,7 @@ void MicroLLGDriver::add_integrator(IntegratorID integrator_id) {
             // How to call Derived class integrator if the pointer is to the Base class?
             this->integrator = new IntegratorRK4<LLG_params>(this->sim->n);
             // Best create a set_integrator_parameters function
-            this->integrator->_setup(this->sim->n, this->dt);
+            this->integrator->setup(this->sim->n, this->dt);
             // TODO: separate function to set time?
             this->integrator->t = 0.0;
             this->integrator->step_n = 0;
@@ -150,7 +150,7 @@ void MicroLLGDriver::run_until(double t_final){
 // ----------------------------------------------------------------------------
 
 template <class T>
-void IntegratorRK4<T>::_setup(unsigned int N, double dt) {
+void IntegratorRK4<T>::setup(unsigned int N, double dt) {
     // Initial values
     this->step_n = 0;
     this->t = 0.0;
@@ -170,10 +170,11 @@ void IntegratorRK4<T>::integration_step(void (*f) (double * m,
                                                    unsigned int n,
                                                    double t,
                                                    T * params),
-                                         double * m,
-                                         std::vector<double>& dmdt,
-                                         T * params) {
+                                        double * m,
+                                        std::vector<double>& dmdt,
+                                        T * params) {
 
+    // To be defined in constructor/setup:
     double t_factor[4] = {0.0, 0.5, 0.5, 1.0};
     double m_factor[4] = {0.0, 0.5, 0.5, 1.0};
     std::vector<double>& rksteps = this->integratorData;
@@ -233,3 +234,11 @@ void IntegratorRK4<T>::integration_step(void (*f) (double * m,
     //                   rk_steps, t + 1.0 * dt);
 
 }
+
+// For testing: ---------------------------------------------------------------
+
+template class IntegratorRK4<TestParams>;
+
+// TODO: If we move the integrator to a separate file, we should declare all
+// the templates used by Fidimag here, e.g.
+// template class IntegratorRK4<LLG_params>;
