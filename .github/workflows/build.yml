@@ -41,18 +41,18 @@ jobs:
           python -m pip install --user scipy numpy pytest matplotlib
           python -m pip install --user setuptools pyvtk cython
 
-        -name: "Install FIDIMAG"
-          run: |
-            python3 setup.py build_ext --inplace
-            PWD=$(pwd)
-            export PYTHONPATH=$PWD:$PYTHONPATH
-            echo "PYTHONPATH=$PYTHONPATH"
-            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-            echo "LD_LIBRARY_PATH=$PWD/local/lib" >> $GITHUB_ENV
+      - name: "Install FIDIMAG"
+        run: |
+          python3 setup.py build_ext --inplace
+          PWD=$(pwd)
+          export PYTHONPATH=$PWD:$PYTHONPATH
+          echo "PYTHONPATH=$PYTHONPATH"
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$PWD/local/lib" >> $GITHUB_ENV
 
-        -name: "Run test"
-         working-directory: ./tests
-         run: |
-           python -m pytest -v
+      - name: "Run test"
+        working-directory: ./tests
+        run: |
+          python -m pytest -v
 # env:
 # PYTHONPATH: $PWD
