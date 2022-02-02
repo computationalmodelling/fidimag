@@ -25,7 +25,7 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get install -y cmake
-          sudo apt-get install -y libatlas-base-dev libatlas3-base libatlas3gf-base
+          sudo apt-get install -y libatlas-base-dev libatlas3-base
 
       - name: "Install sundials and fftw"
         working-directory: ./bin
