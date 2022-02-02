@@ -158,7 +158,7 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
         # than a Cartesian axis, and so below we have to set
         # origin = 'lower' everywhere.
 
-        if component is 'angle':
+        if component == 'angle':
             theta = np.arctan2(my, mx)
             with np.testing.suppress_warnings() as sup:
                 sup.filter(RuntimeWarning)
@@ -193,7 +193,7 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
             else:
                 ax.set_title('$m_{}$'.format(component))
 
-    elif component is 'all':
+    elif component == 'all':
         fig = plt.figure(figsize=figsize)
         grid = ImageGrid(fig, 111,
                          nrows_ncols=(1, 3),
@@ -227,7 +227,7 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
         raise ValueError("Component is not valid")
 
     if cbar is True:
-        if component is 'angle':
+        if component == 'angle':
             # Some special handling to print \pi
             # rather than the numbers!
             cbar = ax.cax.colorbar(im,
@@ -391,7 +391,7 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
         # than a Cartesian axis, and so below we have to set
         # origin = 'lower' everywhere.
 
-        if component is 'angle':
+        if component == 'angle':
             theta = np.arctan2(my, mx)
             with np.testing.suppress_warnings() as sup:
                 sup.filter(RuntimeWarning)
@@ -426,7 +426,7 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
             else:
                 ax.set_title('$m_{}$'.format(component))
 
-    elif component is 'all':
+    elif component == 'all':
         fig = plt.figure(figsize=figsize)
         grid = ImageGrid(fig, 111,
                          nrows_ncols=(1, 3),
@@ -460,7 +460,7 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
         raise ValueError("Component is not valid")
 
     if cbar is True:
-        if component is 'angle':
+        if component == 'angle':
             # Some special handling to print \pi
             # rather than the numbers!
             cbar = ax.cax.colorbar(im,
@@ -605,7 +605,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
         # than a Cartesian axis, and so below we have to set
         # origin = 'lower' everywhere.
 
-        if component is 'angle':
+        if component == 'angle':
             theta = np.arctan2(my, mx)
             with np.testing.suppress_warnings() as sup:
                 sup.filter(RuntimeWarning)
@@ -659,7 +659,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
             else:
                 ax.set_title('$m_{}$'.format(component))
 
-    elif component is 'all':
+    elif component == 'all':
         
         cmap_edited = plt.get_cmap(cmap)
         # Edit the colormap and set bad values to bgcolor
@@ -707,7 +707,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
         raise ValueError("Component is not valid")
 
     if cbar is True:
-        if component is 'angle':
+        if component == 'angle':
             # Some special handling to print \pi
             # rather than the numbers!
             coll.set_clim(0, 2*np.pi)

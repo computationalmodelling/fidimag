@@ -4,4 +4,4 @@ conda:
 
 # python version info
 python:
-  version: 2
+  version: 3

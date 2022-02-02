@@ -1,5 +1,5 @@
-Installation Instructions
-=========================
+Installation
+============
 
 
 Please use these instructions to build and run Fidimag on Linux or

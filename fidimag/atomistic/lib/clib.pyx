@@ -70,7 +70,7 @@ cdef extern from "clib.h":
 
     void dmi_field_interfacial_atomistic(double *spin, double *field,
                                          double *mu_s_inv,
-                                         double *energy, double D, int *ngbs,
+                                         double *energy, double *D, int *ngbs,
                                          int n, int n_ngbs, int n_ngbs_dmi,
                                          double *DMI_vec)
 
@@ -227,7 +227,7 @@ def compute_dmi_field(double [:] spin,
                       int [:, :] ngbs,
                       n, n_ngbs):
     dmi_field_bulk(&spin[0], &field[0],
-                   &mu_s_inv[0], &energy[0], &D[0,0],
+                   &mu_s_inv[0], &energy[0], &D[0, 0],
                    &ngbs[0, 0], n, n_ngbs)
 
 
@@ -235,7 +235,7 @@ def compute_dmi_field_interfacial(double [:] spin,
                                   double [:] field,
                                   double [:] mu_s_inv,
                                   double [:] energy,
-                                  D,
+                                  double [:, :] D,
                                   int [:, :] ngbs,
                                   n, n_ngbs, n_ngbs_dmi,
                                   double [:] DMI_vec,
@@ -243,7 +243,7 @@ def compute_dmi_field_interfacial(double [:] spin,
     dmi_field_interfacial_atomistic(&spin[0], &field[0],
                                     &mu_s_inv[0],
                                     &energy[0],
-                                    D, &ngbs[0, 0], n,
+                                    &D[0, 0], &ngbs[0, 0], n,
                                     n_ngbs, n_ngbs_dmi,
                                     &DMI_vec[0]
                                     )

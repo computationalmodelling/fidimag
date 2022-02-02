@@ -29,10 +29,11 @@ def analytical(xs, A=1.3e-11, D=4e-4, K=8e4):
     mz = 1.0 / np.cosh(xs / delta) * np.sin(phi)
     return mx, my, mz
 
+
 def relax_system(mesh):
 
     sim = Sim(mesh, name='relax')
-    sim.set_default_options(gamma=constant.gamma)
+    sim.driver.gamma = constant.gamma
     sim.driver.alpha = 0.5
     sim.mu_s = constant.mu_s_1
     sim.do_precession = False
@@ -44,11 +45,11 @@ def relax_system(mesh):
     sim.add(exch)
 
     D = 0.1 * J
-    dmi = DMI(D, dmi_type = 'interfacial')
+    dmi = DMI(D, dmi_type='interfacial')
     sim.add(dmi)
 
     K = 0.02 * J
-    anis = Anisotropy(K, axis=[0,0,1])
+    anis = Anisotropy(K, axis=[0, 0, 1])
     sim.add(anis)
 
     ONE_DEGREE_PER_NS = 17453292.52
@@ -58,7 +59,7 @@ def relax_system(mesh):
 
     np.save('m0.npy', sim.spin)
 
-    xs = np.array([p[0] for p in mesh.pos]) - 150
+    xs = np.array([p[0] for p in mesh.coordinates]) - 150
 
     mx, my, mz = analytical(xs, A=J/2.0, D=-D, K=K)
     mxyz = sim.spin.copy()

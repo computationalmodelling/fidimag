@@ -65,12 +65,13 @@ void compute_anis_cubic(double *restrict spin, double *restrict field,
 
 void dmi_field_bulk(double *restrict spin, double *restrict field,
                     double *restrict mu_s_inv,
-                    double *restrict energy, double *D,
+                    double *restrict energy, double *restrict D,
                     int *restrict ngbs, int n, int n_ngbs);
 
 void dmi_field_interfacial_atomistic(double *spin, double *field,
                                      double *mu_s_inv,
-                                     double *energy, double D, int *ngbs, int n,
+                                     double *energy, double *restrict D,
+                                     int *ngbs, int n,
                                      int n_ngbs, int n_ngbs_dmi, double *DMI_vec);
 
 double dmi_energy(double *restrict spin, double D, int nx, int ny, int nz, int xperiodic,

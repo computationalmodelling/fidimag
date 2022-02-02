@@ -20,14 +20,14 @@ class SimBase(object):
         self.n_nonzero = mesh.n
         self.unit_length = mesh.unit_length
 
-        self._magnetisation = np.zeros(self.n, dtype=np.float)
+        self._magnetisation = np.zeros(self.n, dtype=np.float64)
         # Inverse magnetisation
-        self._magnetisation_inv = np.zeros(self.n, dtype=np.float)
+        self._magnetisation_inv = np.zeros(self.n, dtype=np.float64)
 
-        self.spin = np.ones(3 * self.n, dtype=np.float)
+        self.spin = np.ones(3 * self.n, dtype=np.float64)
         self._pins = np.zeros(self.n, dtype=np.int32)
-        self.field = np.zeros(3 * self.n, dtype=np.float)
-        self._skx_number = np.zeros(self.n, dtype=np.float)
+        self.field = np.zeros(3 * self.n, dtype=np.float64)
+        self._skx_number = np.zeros(self.n, dtype=np.float64)
         self.interactions = []
 
         # This is for old C files codes using the xperiodic variables
