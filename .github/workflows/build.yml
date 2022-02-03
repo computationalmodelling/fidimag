@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8]
+        python-version: [3.9, 3.10]
 
     runs-on: ubuntu-latest
 
@@ -36,10 +36,10 @@ jobs:
       - name: "Install pip and packages"
         working-directory: ./
         run: |
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install --user scipy numpy pytest matplotlib
-          python -m pip install --user setuptools pyvtk cython psutil
+          python3 -m ensurepip
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user scipy numpy pytest matplotlib
+          python3 -m pip install --user setuptools pyvtk cython psutil
 
       - name: "Install FIDIMAG"
         run: |
@@ -53,6 +53,6 @@ jobs:
       - name: "Run test"
         working-directory: ./tests
         run: |
-          python -m pytest -v
+          python3 -m pytest -v
 # env:
 # PYTHONPATH: $PWD
