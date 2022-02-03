@@ -9,7 +9,7 @@
 
 | Tests Type | Status |
 |:-:|:-:|
-![GHA Unit Tests](https://github.com/computationalmodelling/fidimag/actions/workflows/build.yml/badge.svg?)
+| GHA Unit Tests | ![Build](https://github.com/computationalmodelling/fidimag/actions/workflows/build.yml/badge.svg?)
 | Notebooks | ![Notebooks](https://travis-matrix-badges.herokuapp.com/repos/computationalmodelling/fidimag/branches/master/2)
 
 <img src="http://computationalmodelling.github.io/fidimag/figs/skyrmion.jpg" alt="Fidimag Image" width="400" align="right">
