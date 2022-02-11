@@ -1,0 +1,73 @@
+# Some refs: https://github.com/flathub/org.octave.Octave/blob/master/org.octave.Octave.yaml
+app-id: io.github.computationalmodelling.Fidimag
+runtime: org.freedesktop.Platform
+runtime-version: '21.08'
+sdk: org.freedesktop.Sdk
+modules:
+
+  - name: openblas
+    no-autogen: true
+    make-args:
+      - DYNAMIC_ARCH=1
+      - DYNAMIC_OLDER=1
+      - FC=gfortran
+      - NO_LAPACKE=1
+      - TARGET=GENERIC
+      - USE_OPENMP=1   ## OpenMP off by default, this hack skips 'test_fork' which crashes on i386
+    make-install-args:
+      - PREFIX=/app
+    sources:
+      - type: archive
+        url: https://github.com/xianyi/OpenBLAS/archive/v0.3.19.tar.gz
+        sha256: 947f51bfe50c2a0749304fbe373e00e7637600b0a47b78a51382aeb30ca08562
+        x-checker-data:
+          type: anitya
+          project-id: 2540
+          url-template: https://github.com/xianyi/OpenBLAS/archive/v$version.tar.gz
+  
+  - name: sundials
+    buildsystem: cmake
+    builddir: true
+    sources:
+      - type: archive
+        path: "sundials-2.6.2.tar.gz"
+    config-opts:
+      - -DBUILD_STATIC_LIBS=OFF
+      - -DBUILD_SHARED_LIBS=ON
+      - -DEXAMPLES_ENABLE=OFF
+      - -DLAPACK_ENABLE=ON
+      - -DOPENMP_ENABLE=ON
+  
+  - name: fftw
+    buildsystem: autotools
+    builddir: true
+    sources:
+      - type: archive
+        path: "fftw-3.3.8.tar.gz"
+    config-opts:
+      - --quiet
+      - --enable-shared
+      - --enable-openmp
+
+  - name: python_deps
+    buildsystem: simple
+    build-commands:
+      - python3 -m pip install --prefix=/app --no-deps cython numpy scipy
+    build-options:
+      build-args:
+        - --share=network
+
+  - name: fidimag_install
+    buildsystem: simple
+    build-commands:
+      - python3 -m ../setup.py build_ext --inplace -j2
+    build-options:
+      build-args:
+        - --share=network
+    sources:
+      - type: git
+        url: https://github.com/computationalmodelling/fidimag
+        tag: v3.0
+
+finish-args:
+  - --filesystem=home:rw

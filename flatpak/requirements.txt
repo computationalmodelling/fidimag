@@ -1,0 +1,4 @@
+setuptools_scm
+numpy
+scipy
+cython
