@@ -3,6 +3,10 @@ app-id: io.github.computationalmodelling.Fidimag
 runtime: org.freedesktop.Platform
 runtime-version: '21.08'
 sdk: org.freedesktop.Sdk
+build-options:
+  env:
+    PATH: /app/bin:/usr/bin
+    PYTHON: python3
 modules:
 
   - name: openblas
@@ -60,7 +64,7 @@ modules:
   - name: fidimag_install
     buildsystem: simple
     build-commands:
-      - python3 -m ../setup.py build_ext --inplace -j2
+      - python3 -m setup.py build_ext --inplace -j2
     build-options:
       build-args:
         - --share=network
@@ -71,3 +75,5 @@ modules:
 
 finish-args:
   - --filesystem=home:rw
+  - --env=LD_LIBRARY_PATH=/app/lib
+#  - --env=PYTHONPATH=/app/lib
