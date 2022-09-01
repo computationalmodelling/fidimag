@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 import numpy as np
 import fidimag.extensions.nebm_clib as nebm_clib
 
@@ -7,15 +5,16 @@ from .chain_method_tools import spherical2cartesian, cartesian2spherical, comput
 from .chain_method_tools import linear_interpolation_spherical
 from .chain_method_tools import interpolation_Rodrigues_rotation
 from .chain_method_tools import m_to_zero_nomaterial
-
 from .chain_method_base import ChainMethodBase
+
+import scipy.integrate as spi
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class NEBM_Geodesic(ChainMethodBase):
+class NEBM_FS(ChainMethodBase):
     """
     ARGUMENTS -----------------------------------------------------------------
 
@@ -95,56 +94,11 @@ class NEBM_Geodesic(ChainMethodBase):
 
     where Y_0 and Y_N are the stable states.
 
-    The NEBM evolves an energy band [Y_0, Y_1, ... , Y_N]  according to the
-    equation
-                                     _______
-                                    /     2
-        dY                         /( dY )           2
-        --- =  -Y x Y x G + c *   / ( -- )   * (1 - Y ) Y
-        dt                      \/  ( dt )
-
-    for every image Y of the energy band, which is the same equation than the
-    Cartesian NEBM code (since we describe the spin field in the same fashion).
-    The G vector is the effective force on the image, which is defined in terms
-    of tangent vectors (tangent along the band) in the energy landscape, whose
-    perpendicular components follow directions of largest energy changes to
-    find the minimum energy transition.  Additionally, the effective force
-    includes a spring force that keeps images equally spaced along the band to
-    avoid clustering around minima or saddle points. The Geodesic NEBM requires
-    to project firstly the spring force, and then the total effective force, on
-    the tangent space defined by the spin/magnetisation field (see references
-    below).
-
-    The spacing between images needs a definition of DISTANCE. In this code we
-    use an Geodesic distance, normalised by the number of degrees of freedom,
-    which is the sum of all spin components, so if we have P spins in the
-    system, the number of dofs is 3 * P, i.e. the 3 directions per spin.  The
-    distance is defined as:
-
-                                      ___________________
-                                     / P
-                                    /  __             2
-        distance(Y_i, Y_j) =       /  \   ( L(i,j)_a )
-                               \  /   /__
-                                \/    a=1
-
-    where
-                                 ->       ->        ->       ->
-         L(i,j)_a  =  arctan2( | m(i)_a x m(j)_a |, m(i)_a o m(j)_a )
-
-    where m(i)_a is the a-th spin of the image Y_i. This is known as Vincenty's
-    formula.
-
-    The second term in the minimisation equation is to correct the
-    magnetisation/spin vectors length, since at 0 K this length is fixed. For
-    now, we use the *c* factor as 6.
-
     For more details about the definition of the forces involved in the NEBM,
     see the following papers:
 
         - Suess et al., Physical Review B 75, 174430 (2007)
         - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
     """
 
@@ -159,15 +113,18 @@ class NEBM_Geodesic(ChainMethodBase):
                  integrator='sundials'  # or scipy
                  ):
 
-        super(NEBM_Geodesic, self).__init__(sim,
-                                            initial_images,
-                                            interpolations=interpolations,
-                                            spring_constant=spring_constant,
-                                            name=name,
-                                            climbing_image=climbing_image,
-                                            dof=3,
-                                            openmp=openmp
-                                            )
+        super(NEBM_FS, self).__init__(sim,
+                                      initial_images,
+                                      interpolations=interpolations,
+                                      spring_constant=spring_constant,
+                                      name=name,
+                                      climbing_image=climbing_image,
+                                      dof=3,
+                                      openmp=openmp
+                                      )
+
+        # We need the gradient norm to calculate the action
+        self.gradientENorm = np.zeros_like(self.n_images)
 
         # Initialisation ------------------------------------------------------
         # See the NEBMBase class for details
@@ -259,22 +216,20 @@ class NEBM_Geodesic(ChainMethodBase):
 
     def compute_effective_field_and_energy(self, y):
         """
-
         Compute the effective field and the energy of every image in the band,
-        using the array *y* as the degrees of freedom of the system (i.e. the
+        using the array `y` as the degrees of freedom of the system (i.e. the
         one that contains all the spin directions of the images in the band).
 
-        The local copy of the *y* array for this NEBM class is the self.band
+        The local copy of the `y` array for this NEBM class is the self.band
         array, which we update at the end of every call to the integrator in
         the relaxation function
-
         """
 
         self.gradientE = self.gradientE.reshape(self.n_images, -1)
 
         y = y.reshape(self.n_images, -1)
 
-        # Only update the extreme images
+        # Do not update the extreme images
         for i in range(1, len(y) - 1):
 
             self.sim.set_m(y[i])
@@ -286,6 +241,9 @@ class NEBM_Geodesic(ChainMethodBase):
             self.gradientE[i][:] = -self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
+
+        # Compute the gradient norm per every image
+        self.gradientENorm[:] = np.linalg.norm(self.gradientE, axis=1)
 
         y = y.reshape(-1)
         self.gradientE = self.gradientE.reshape(-1)
@@ -340,16 +298,14 @@ class NEBM_Geodesic(ChainMethodBase):
                                        self.distances
                                        )
 
-        # GreatCircle calculation of the geodesic seems to be more stable
-        # in complex landscapes than Vincenty's formula
-        # nebm_geodesic.image_distances_Vincenty(self.distances,
-        #                                        self.path_distances,
-        #                                        y,
-        #                                        self.n_images,
-        #                                        self.n_dofs_image,
-        #                                        self._material_int,
-        #                                        self.n_dofs_image_material
-        #                                        )
+    def compute_action(self):
+        action = spi.cumulative_trapezoid(self.distances, self.gradientENorm)
+        return action
+
+    def compute_min_action(self):
+        dE = self.energies[-1] - self.energies[0]
+        minAction = np.sum(np.abs(self.energies[1:] - self.energies[:-1]))
+        return 2 * (dE + minAction)
 
     def nebm_step(self, y):
 
@@ -471,3 +427,4 @@ class NEBM_Geodesic(ChainMethodBase):
         ydot[-self.n_dofs_image:] = 0
 
         return 0
+

@@ -64,7 +64,9 @@ void normalise(double *restrict a, int n){
     }
 }
 
-
+// Normalises every image of the array *y which has dimensions:
+//      n_dofs_image * n_images
+// The extrema images are NOT normalised
 void normalise_images_C(double *restrict y, int n_images, int n_dofs_image){
 
     int i;
@@ -394,7 +396,7 @@ void compute_effective_force_C(double *restrict G,
 // degrees of freedom. This function updates the *distances and *path_distances
 // arrays. The *distances array saves the distances as:
 //      [ |Y1 - Y0|, |Y2 - Y1|, ... ]
-// Path distances are the total distances relative to the 0-th image 
+// Path distances are the total distances relative to the 0-th image
 void compute_image_distances(double *restrict distances,
                              double *restrict path_distances,
                              double *restrict y,
