@@ -252,9 +252,7 @@ class StringMethod(ChainMethodBase):
         self.path_distances[1:] /= self.path_distances[-1]
 
     def step_RHS(self, t, y):
-        """
-        Use Step integrators from the chain_method_integrators library
-
+        """Use Step integrators from the `chain_method_integrators` library
         """
 
         self.ode_count += 1
@@ -282,9 +280,9 @@ class StringMethod(ChainMethodBase):
         we are solving dy/dt = 0
 
         WARNING: The variable step integrator from Sundials does not work well
-        with the StringMethod, making the algorithm overshoot the solutions for
-        large time steps and driving the images toward the extrema images.  We
-        could poossibly fix this by redefining the positions of the images
+        with the `StringMethod`, making the algorithm overshoot the solutions
+        for large time steps and driving the images toward the extrema images.
+        We could possibly fix this by redefining the positions of the images
         after every integrator step, instead of redefining them after a certain
         number of steps, however this requires to tune the Sundials Python
         wrapper. In addition, we would need to check the stopping criteria of

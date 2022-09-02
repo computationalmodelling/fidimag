@@ -148,6 +148,21 @@ class NEBM_FS(ChainMethodBase):
             self.energies[i] = self.sim.compute_energy()
         self.band = self.band.reshape(-1)
 
+    def initialise_integrator(self):
+        self.t = 0
+        self.iterations = 0
+        self.ode_count = 1
+
+        self.integrator = FSIntegrator(self.band,    # y
+                                       self.G,       # forces
+                                       self.step_RHS,
+                                       self.n_images,
+                                       self.n_dofs_image,
+                                       stepsize=1e-4)
+        self.integrator.set_options()
+        # In Verlet algorithm we only use the total force G and not YxYxG:
+        self._llg_evolve = False
+
     def generate_initial_band(self, method='linear'):
         """
         method      :: linear, rotation
