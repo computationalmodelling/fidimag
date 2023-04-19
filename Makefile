@@ -1,5 +1,6 @@
 PROJECT_DIR = $(abspath .)
 EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
+USER_EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions/user
 PYTHON = python3
 PYTEST = ${PYTHON} -m pytest
 
@@ -12,7 +13,9 @@ build:
 
 clean:
 	rm -rf ${EXTENSIONS_DIR}/*
+	mkdir -p ${USER_EXTENSIONS_DIR}
 	touch ${EXTENSIONS_DIR}/__init__.py
+	touch ${USER_EXTENSIONS_DIR}/__init__.py
 	rm -rf build
 
 docker:
