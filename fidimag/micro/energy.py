@@ -12,6 +12,7 @@ class Energy(object):
         self.dx = mesh.dx * mesh.unit_length
         self.dy = mesh.dy * mesh.unit_length
         self.dz = mesh.dz * mesh.unit_length
+        self.dxyz = self.dx * self.dy * self.dz
         self.nx = mesh.nx
         self.ny = mesh.ny
         self.nz = mesh.nz
@@ -39,9 +40,6 @@ class Energy(object):
         # compute_field again
         self.compute_field()
 
-        self.total_energy = np.sum(self.energy) * (self.mesh.dx *
-                                                   self.mesh.dy *
-                                                   self.mesh.dz *
-                                                   self.mesh.unit_length ** 3.)
+        self.total_energy = np.sum(self.energy) * self.dxyz
 
         return self.total_energy
