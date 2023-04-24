@@ -89,8 +89,9 @@ class Zeeman(object):
         sf = self.field * self.spin
         energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.mu_s
         self.energy[:] = energy_density
+        self.total_energy = np.sum(self.energy)
 
-        return np.sum(energy_density)
+        return self.total_energy
 
 
 class TimeZeeman(Zeeman):
