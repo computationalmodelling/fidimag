@@ -68,7 +68,8 @@ class HubertMinimiser(MinimiserBase):
                                               interactions,
                                               name,
                                               data_saver
-                                              )
+                                              use_jac=False,
+                                              integrator=None)
         # TODO: spin_last and gradE_last should only be temporal, not
         # driver variables
 
