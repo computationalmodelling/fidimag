@@ -5,6 +5,7 @@ from . import llg_stt
 from . import llg_stt_cpp
 from . import baryakhtar
 from fidimag.common import steepest_descent
+from fidimag.common import hubert_minimiser
 
 import fidimag.extensions.micro_clib as micro_clib
 import fidimag.common.helper as helper
@@ -19,6 +20,7 @@ KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llbar': baryakhtar.LLBar,
                  'llbar_full': baryakhtar.LLBarFull,
                  'steepest_descent': steepest_descent.SteepestDescent,
+                 'hubert_minimiser': hubert_minimiser.HubertMinimiser,
                  }
 
 

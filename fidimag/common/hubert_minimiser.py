@@ -9,27 +9,27 @@ class HubertMinimiser(MinimiserBase):
     """ Gradient descent energy minimisation algorithm.
 
     A minimisation, energy gradient descent, algorithm, that dynamically
-    updates a scaling factor α for the gradient of the energy::
+    updates a scaling factor η for the gradient of the energy::
 
-        m_new = m_old + α * α_s * δE/δm|_old
+        m_new = m_old + η * η_s * δE/δm|_old
 
-    where α_s is a fixed scaling factor. The E functional gradient is computed
-    from the effective field `δE/δm = - H_eff`. 
+    where η_s is a fixed scaling factor. The E functional gradient is computed
+    from the effective field `δE/δm = - H_eff`.
 
     This algorithm is based on the works [1, 2] and is implemented in [3] as
     *Hubert minimiser*. The modifications include using the E gradient instead
     of the magnetisation torque, and using different criteria for stopping the
-    algorithm. 
+    algorithm.
 
     The energy is stored for `t` number of steps during a creep stage, in the
     `trailE` array `[E0, E1 ... Et]`. If the energy decreases at this stage,
-    with respect to the trail step, α is increased to accelerate the descent.
-    Otherwise, α is decreased, with a given limit which, if it is reached, the
+    with respect to the trail step, η is increased to accelerate the descent.
+    Otherwise, η is decreased, with a given limit which, if it is reached, the
     minimisation is restarted. The saving of the trail energy is cyclic, i.e.
     if the current step reaches `t`, the next step will save `E` at `0`, and
     the energy difference at the current step is computed as `abs(Et - E0)/t`.
     The energy difference is scaled by the length of the trailing energy array,
-    `t`. 
+    `t`.
 
     The energy in this minimisation class is scaled by the `self.energyScale`
     parameter, so define the `stopping_dE` argument in `minimise` accordingly.
@@ -56,7 +56,8 @@ class HubertMinimiser(MinimiserBase):
     """
 
     def __init__(self, mesh, spin, magnetisation, magnetisation_inv, field,
-                 pins, interactions, name, data_saver):
+                 pins, interactions, name, data_saver,
+                 use_jac=False, integrator=None):
         """Hubert minimiser constructor
         """
 
@@ -68,12 +69,12 @@ class HubertMinimiser(MinimiserBase):
                                               interactions,
                                               name,
                                               data_saver
-                                              use_jac=False,
-                                              integrator=None)
+                                              )
         # TODO: spin_last and gradE_last should only be temporal, not
         # driver variables
 
-        # self.t = 0.0
+        self.t = 0.0
+        # Not using DAMPING here:
         # self._alpha_field = self._alpha * np.ones_like(self.spin)
         self.gradE = np.zeros_like(self.field)
         self.gradE_last = np.zeros_like(self.field)
@@ -114,8 +115,8 @@ class HubertMinimiser(MinimiserBase):
                  max_steps=2000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_steps=1,
-                 maxCreep=5, alpha_scale=1.0, stopping_dE=1e-6, dAlpha=2,
-                 alphaMin=0.001,
+                 maxCreep=5, eta_scale=1.0, stopping_dE=1e-6, dEta=2,
+                 etaMin=0.001,
                  # perturbSeed=42, perturbFactor=0.1,
                  nTrail=10, resetMax=20, gradEtol=1e-14
                  ):
@@ -127,25 +128,26 @@ class HubertMinimiser(MinimiserBase):
             Maximum number of evaluation steps, which increase according to
             the number of calls of the `compute_effective_field` function
         save_data_steps, save_m_steps, save_vtk_steps
-            Multiple of steps at which data, spin field and VTK file is saved 
+            Multiple of steps at which data, spin field and VTK file is saved
         log_steps
             Show log info every X steps
         maxCreep
             Maximum number of steps for the creeping stage, which is the
-            minimisation with a fixed α value
-        alpha_scale
+            minimisation with a fixed η value
+        eta_scale
             Scaling factor for the gradient at the spin update step
         stopping_dE
-            Mean energy difference with the trailing energy
-        dAlpha
-            Factor to increase/decrease α according to the energy change
-        alphaMin
-            Minimum value that α can reach, otherwise it is reset at 1.0 and
+            Mean energy difference with the trailing energy. Remember that the
+            energy is scaled by the `self.energyScale` parameter
+        dEta
+            Factor to increase/decrease η according to the energy change
+        etaMin
+            Minimum value that η can reach, otherwise it is reset at 1.0 and
             the minimisation starts over again
         nTrail
             Number of energy trailing steps
         resetMax
-            Maximum number of resets in case alpha reaches the minimum value
+            Maximum number of resets in case eta reaches the minimum value
             (indicating slow convergence)
         gradEtol
             Tolerance for the mean of the squared norm of the energy gradient,
@@ -163,7 +165,7 @@ class HubertMinimiser(MinimiserBase):
         self.spin_last[:] = self.spin
         self.trailE = np.zeros(nTrail)
         trailPool = cycle(range(nTrail))  # cycle through 0,1,...,(nTrail-1),0,1,...
-        alpha = 1.0
+        eta = 1.0
         # We might want to change this in the future to save memory:
         # pinsField = np.repeat(self._pins, 3).astype(bool)
         # Only update site with magnetisation > 0 which are not pinned
@@ -180,21 +182,22 @@ class HubertMinimiser(MinimiserBase):
                 self.compute_effective_field()
                 # self.step += 1
                 self.gradE_last[:] = -self.field  # Scale field??
+                self.gradE_last[~_material] = 0.0
                 self.gradE[:] = self.gradE_last
                 self.totalE_last = self.totalE
                 self.trailE[nStart] = self.totalE
                 nStart = next(trailPool)
-                alpha = 1.0
+                eta = 1.0
                 totalRestart = False
 
             creepCount = 0
 
-            # Creep stage: minimise with a fixed alpha
+            # Creep stage: minimise with a fixed eta
             while creepCount < maxCreep:
                 # Update spin. Avoid pinned or zero-Ms sites
-                self.spin[_material] = self.spin_last[_material] - alpha * alpha_scale * self.gradE_last[_material]
-                # self.spin[~pinsField] = self.spin_last[~pinsField] - alpha * alpha_scale * self.gradE_last[~pinsField]
-                # self.spin[:] = self.spin_last - alpha * alpha_scale * self.gradE_last
+                self.spin[_material] = self.spin_last[_material] - eta * eta_scale * self.gradE_last[_material]
+                # self.spin[~pinsField] = self.spin_last[~pinsField] - eta * eta_scale * self.gradE_last[~pinsField]
+                # self.spin[:] = self.spin_last - eta * eta_scale * self.gradE_last
 
                 # Normalize spin
                 self._normalise_spin(self.spin)
@@ -206,21 +209,22 @@ class HubertMinimiser(MinimiserBase):
                 self.compute_effective_field()  # Compute Heff and E using self.spin
                 self.step += 1
 
+                # TODO: No-material sites should have gradE=0.0 but we must
+                # be sure not taking them into account, in gradE at least
                 self.gradE[:] = -self.field  # Scale field??
+                self.gradE[~_material] = 0.0
                 # Save the energy and move trail index to next site
                 self.trailE[nStart] = self.totalE
                 nStart = next(trailPool)
                 gE_reshape = self.gradE.reshape(-1, 3)
                 np.einsum('ij,ij->i', gE_reshape, gE_reshape, out=self.gradE2)
-                # TODO: No-material sites should have gradE=0.0 but we must
-                # be sure not taking them into account, in gradE2 at least:
-                self.gradE2[~_material[::3]] = 0.0
+                # self.gradE2[~_material[::3]] = 0.0
                 # Compute E difference of current E (totalE) with the trailing E
                 deltaE = abs(self.trailE[nStart] - self.totalE) / nTrail
-                
+
                 # Statistics and saving:
                 if self.step % log_steps == 0:
-                    print(f'Creep n = {creepCount:>3}  reset = {resetCount:>3}  alpha = {alpha:>8}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(∇E)^2 = {self.gradE2.max():.4e}')
+                    print(f'Step = {self.step:>4} Creep n = {creepCount:>3}  reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(∇E^2) = {self.gradE2.max():.4e}')
                 # Note that step == 0 is never saved
                 if self.step % save_data_steps == 0:
                     self.data_saver.save()
@@ -234,7 +238,7 @@ class HubertMinimiser(MinimiserBase):
 
                 # with np.printoptions(precision=2):
                 #     print('Creep: ', self.trailE)
-                #     print(f': alpha = {alpha}  maxgradE = {self.gradE.max()}')
+                #     print(f': eta = {eta}  maxgradE = {self.gradE.max()}')
 
                 if deltaE < stopping_dE:  # if mean E diff is too small
                     print(f'Delta E = {deltaE} negligible. Stopping calculation.')
@@ -246,13 +250,13 @@ class HubertMinimiser(MinimiserBase):
                     exitFlag = True
                     break  # creep loop
 
-                if self.totalE > self.totalE_last:  # If E increases, decrease alpha so minimise slower
-                    print('Decreasing alpha')
+                if self.totalE > self.totalE_last:  # If E increases, decrease eta so minimise slower
+                    # print('Decreasing eta')
                     self.creepCount = 0
-                    alpha = alpha / (dAlpha * dAlpha)
+                    eta = eta / (dEta * dEta)
 
-                    if alpha < alphaMin:
-                        print(f'Parameter alpha smaller than minimum. Restarting minimisation. resetCount = {resetCount}')
+                    if eta < etaMin:
+                        print(f'Parameter eta smaller than minimum. Restarting minimisation. resetCount = {resetCount}')
                         resetCount += 1
                         # perturbSpins()  # in case of using Sph coordinates
                         if resetCount > resetMax:
@@ -276,13 +280,7 @@ class HubertMinimiser(MinimiserBase):
 
             # Stop while creepCount
 
-            # If creeping went OK, increase minimisation speed by increasing alpha
+            # If creeping went OK, increase minimisation speed by increasing eta
             # for a next creeping stage
-            alpha *= dAlpha
+            eta *= dEta
             resetCount = 0
-
-
-            # if self.step % log_steps == 0:
-            #     print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-            #         np.max(np.abs(self.tau)),
-            #         max_dm, self.step))
