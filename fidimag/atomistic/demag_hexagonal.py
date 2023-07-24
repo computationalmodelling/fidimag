@@ -78,15 +78,15 @@ class DemagHexagonal(object):
         self.n_c = mesh.n * 2
         # self.n_c = self.mesh_c.n
 
-        self.field = np.zeros(3 * self.n, dtype=np.float)
-        self.field_c = np.zeros(3 * self.n_c, dtype=np.float)
+        self.field = np.zeros(3 * self.n, dtype=np.float64)
+        self.field_c = np.zeros(3 * self.n_c, dtype=np.float64)
 
-        self.energy = np.zeros(self.n, dtype=np.float)
-        self.energy_c = np.zeros(self.n_c, dtype=np.float)
+        self.energy = np.zeros(self.n, dtype=np.float64)
+        self.energy_c = np.zeros(self.n_c, dtype=np.float64)
 
         unit_length = mesh.unit_length
-        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
-        self.mu_s_scale_c = np.zeros(2 * self.n, dtype=np.float)
+        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float64)
+        self.mu_s_scale_c = np.zeros(2 * self.n, dtype=np.float64)
 
         # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
         self.scale = 1e-7 / unit_length ** 3

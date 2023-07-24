@@ -67,7 +67,7 @@ class Zeeman(object):
 
         self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.B0, self.mesh)
-        self.energy = np.zeros(mesh.n, dtype=np.float)
+        self.energy = np.zeros(mesh.n)
 
     def update_field(self, B0):
         self.B0 = B0

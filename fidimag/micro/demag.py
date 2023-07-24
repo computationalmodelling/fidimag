@@ -32,7 +32,7 @@ class Demag(Energy):
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,
                                        self.nx, self.ny, self.nz, tensor_type='2d_pbc')
             nxyz = self.nx*self.ny*self.nz
-            tensors = np.zeros(6*nxyz, dtype=np.float)
+            tensors = np.zeros(6*nxyz, dtype=np.float64)
             pbc_2d_error = 1e-10
             sample_repeat_nx = -1
             sample_repeat_ny = -1
@@ -59,13 +59,13 @@ class Demag(Energy):
                 #else:
                 #    npzfile = np.load(tensor_file_name+'.npz')
                 #    geo_info = npzfile['geo']
-                #    geo_arr = np.array([self.nx,self.ny, self.nz, self.dx, self.dy, self.dz], dtype=np.float)
+                #    geo_arr = np.array([self.nx,self.ny, self.nz, self.dx, self.dy, self.dz], dtype=np.float64)
                 #    #print 'info', geo_info
                 #    if not np.allclose(geo_arr, geo_info):
                 #        self.demag.compute_tensors_2dpbc(tensors, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)
                 #    else:
                 #        tensors = npzfile['tensors']
-                #geo_arr = np.array([self.nx, self.ny, self.nz, self.dx, self.dy, self.dz], dtype=np.float)
+                #geo_arr = np.array([self.nx, self.ny, self.nz, self.dx, self.dy, self.dz], dtype=np.float64)
                 #np.savez(tensor_file_name+'.npz', geo=geo_arr, tensors=tensors)
 
             self.demag.compute_tensors_2dpbc(tensors, pbc_2d_error, sample_repeat_nx, sample_repeat_ny, dipolar_radius)

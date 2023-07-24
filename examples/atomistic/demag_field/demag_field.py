@@ -3,10 +3,10 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 
 import numpy as np
-from pc import Sim, Demag
+from fidimag.atomistic import Sim, Demag
 from fidimag.common import CuboidMesh
 import fidimag.common.constant as const
-from pc.save_vtk import SaveVTK
+from fidimag.common.save_vtk import SaveVTK
 
 
 def mu_s(pos):
@@ -52,7 +52,9 @@ def relax_system():
     mesh = CuboidMesh(nx=121, ny=121, nz=1, dx=0.5, dy=0.5, unit_length=1e-9)
 
     sim = Sim(mesh, name='relax_skx')
-    sim.set_default_options(gamma=const.gamma)
+
+    sim.driver.gamma = const.gamma
+    #sim.set_default_options(gamma=const.gamma)
 
     sim.driver.alpha = 1.0
 
@@ -66,12 +68,12 @@ def relax_system():
 
     field = demag.compute_field()
 
-    print field
+    print(field)
 
-    vtk = SaveVTK(mesh, name='demag')
-    vtk.save_vtk(field)
+    #vtk = SaveVTK(mesh, name='demag')
+    #vtk.save_vtk(field)
 
-    sim.save_vtk()
+    #sim.save_vtk()
 
     plot_f(mesh, field, sim._mu_s_inv)
 

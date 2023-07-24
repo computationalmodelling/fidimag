@@ -22,7 +22,7 @@ class DemagFull(Energy):
         super(DemagFull, self).setup(mesh, spin, mu_s, mu_s_inv)
 
         unit_length = mesh.unit_length
-        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float)
+        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float64)
 
         # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
         self.scale = 1e-7 / (unit_length ** 3)

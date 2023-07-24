@@ -13,7 +13,7 @@ def test_random_sphere(do_plot=False):
     """
     mt19937 = clib.rng_mt19937()
     mt19937.set_seed(123)
-    spin = np.zeros(3 * 10000, dtype=np.float)
+    spin = np.zeros(3 * 10000, dtype=np.float64)
     mt19937.fill_vector_uniform_sphere(spin, 10000)
     spin.shape = (-1,3)
     n = spin.shape[0]

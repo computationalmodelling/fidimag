@@ -68,7 +68,7 @@ class Sim(SimBase):
         self._micromagnetic = True
 
         # Saturation magnetisation definitions:
-        # self._Ms = np.zeros(self.n, dtype=np.float)
+        # self._Ms = np.zeros(self.n, dtype=np.float64)
         # David: be careful to change these references to the common mag array
         self._Ms = self._magnetisation
         # Remember this is a 3 * n array:

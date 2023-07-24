@@ -40,12 +40,12 @@ def relax_system(mesh):
 def save_plot():
     fig = plt.figure()
     data = np.load('m0.npy')
-    data.shape = (3, -1)
+    data.shape = (-1, 3)
     print(data)
 
-    plt.plot(data[0], '-', label='Sx')
-    plt.plot(data[1], '-', label='Sy')
-    plt.plot(data[2], '-', label='Sz')
+    plt.plot(data[:, 0], '-', label='Sx')
+    plt.plot(data[:, 1], '-', label='Sy')
+    plt.plot(data[:, 2], '-', label='Sz')
 
     plt.ylim([-1.2, 1.2])
     plt.ylabel('S')

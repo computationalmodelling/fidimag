@@ -23,3 +23,6 @@ def test_add_remove_interaction_simple():
     # Find the position in the data table
     position = headers.index('E_Zeeman')
     assert np.abs(float(last_data[position])) < 1e-15
+
+if __name__ == '__main__':
+    test_add_remove_interaction_simple()

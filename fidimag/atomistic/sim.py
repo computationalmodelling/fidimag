@@ -65,7 +65,7 @@ class Sim(SimBase):
         self._micromagnetic = False
 
         # Magnetic moments definitions:
-        # self._mu_s = np.zeros(self.n, dtype=np.float)
+        # self._mu_s = np.zeros(self.n, dtype=np.float64)
         # David: Be careful to change these references to the common
         # magnetisation array
         self._mu_s = self._magnetisation

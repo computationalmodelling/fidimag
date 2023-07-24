@@ -30,7 +30,7 @@ class EigenProblem(object):
 		assert len(m0)/3 == mesh.n
 
 		#self.M = sp.csr_matrix((2*self.n, 2*self.n), dtype=np.float)
-		self.M = sp.lil_matrix((2*self.n, 2*self.n), dtype=np.float)
+		self.M = sp.lil_matrix((2*self.n, 2*self.n), dtype=np.float64)
 
 		self.compute_theta_phi()
 		self.build_matrix()

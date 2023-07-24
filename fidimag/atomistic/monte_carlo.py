@@ -18,14 +18,14 @@ class MonteCarlo(object):
 
         self.ngbs = mesh.neighbours
 
-        self._mu_s = np.zeros(self.n, dtype=np.float)
-        self.spin = np.ones(3 * self.n, dtype=np.float)
-        self.spin_last = np.ones(3 * self.n, dtype=np.float)
+        self._mu_s = np.zeros(self.n, dtype=np.float64)
+        self.spin = np.ones(3 * self.n, dtype=np.float64)
+        self.spin_last = np.ones(3 * self.n, dtype=np.float64)
 
-        self.random_spin = np.zeros(3 * self.n, dtype=np.float)
-        self._H = np.zeros(3 * self.n, dtype=np.float)
+        self.random_spin = np.zeros(3 * self.n, dtype=np.float64)
+        self._H = np.zeros(3 * self.n, dtype=np.float64)
 
-        self._skx_number = np.zeros(self.n, dtype=np.float)
+        self._skx_number = np.zeros(self.n, dtype=np.float64)
         self.interactions = []
 
         self.create_tablewriter()

@@ -164,7 +164,7 @@ def test_skx_num_atomistic_hexagonal():
     sim.add(zeeman)
 
     sim.relax(dt=1e-13, stopping_dmdt=1e-2, max_steps=2000,
-              save_m_steps=None, save_vtk_steps=100)
+              save_m_steps=None, save_vtk_steps=None)
 
     skn_single = sim.skyrmion_number(method='BergLuscher')
     print('skx_number_hexagonal', skn_single)

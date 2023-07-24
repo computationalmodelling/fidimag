@@ -42,8 +42,8 @@ class LLG_STT_CPP(AtomisticDriver):
                                           integrator=integrator
                                           )
 
-        self._p = np.zeros(3 * self.n, dtype=np.float)
-        self._a_J = np.zeros(self.n, dtype=np.float)
+        self._p = np.zeros(3 * self.n, dtype=np.float64)
+        self._a_J = np.zeros(self.n, dtype=np.float64)
 
         self.a_J = 1
         self.beta = 0
