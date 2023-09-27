@@ -36,6 +36,7 @@ USER_DIR = os.path.join(SRC_DIR, "user")
 LOCAL_DIR = os.path.join(MODULE_DIR, "local")
 INCLUDE_DIR = os.path.join(LOCAL_DIR, "include")
 LIB_DIR = os.path.join(LOCAL_DIR, "lib")
+LIB_DIR64 = os.path.join(LOCAL_DIR, "lib64")
 
 
 pkg_init_path = os.path.join(
@@ -113,8 +114,8 @@ com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall']
 # hence why it is a 'relative'(r) path. Here the relative path is with respect to
 # the fidimag/fidimag/extensions directory.
 RPATH = '../../local/lib'
-com_link = ['-Wl,-rpath,{}'.format(LIB_DIR)]
-lib_paths = [LIB_DIR]
+com_link = ['-Wl,-rpath,{},-rpath,{}'.format(LIB_DIR, LIB_DIR64)]
+lib_paths = [LIB_DIR, LIB_DIR64]
 
 
 com_args.append('-fopenmp')
