@@ -341,6 +341,10 @@ cdef class CvodeSolver(object):
                                       < void * >self.jtimes_fun,
                                       < void * >self.mp, < void * >self.Jmp)
 
+        # The recommended choices for lmm are CV ADAMS for nonstiff problems and CV BDF for
+        # stiff problems. The default Newton iteration is recommended for stiff problems, and
+        # the fixed-point solver (previously referred to as the functional iteration in this guide) is
+        # recommended for nonstiff problems.
         self.cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON)
 
         flag = CVodeSetUserData(self.cvode_mem, < void*> & self.user_data)
