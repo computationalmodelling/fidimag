@@ -154,18 +154,27 @@ cdef extern from "sunlinsol/sunlinsol_spgmr.h":
 cdef extern from "cvode/cvode_diag.h":
     int CVDiag(void *cvode_mem)
 
-cdef extern from "cvode/cvode_spils.h":
-    int CVSpilsSetPrecType(void *cvode_mem, int pretype)
-    int CVSpilsSetGSType(void *cvode_mem, int gstype)
-    int CVSpilsSetMaxl(void *cvode_mem, int maxl)
-    int CVSpilsSetEpsLin(void *cvode_mem, realtype eplifac)
+cdef extern from "cvode/cvode_ls.h":
+    # int CVSpilsSetPrecType(void *cvode_mem, int pretype)
+    # int CVSpilsSetGSType(void *cvode_mem, int gstype)
+    # int CVSpilsSetMaxl(void *cvode_mem, int maxl)
+    # int CVSpilsSetEpsLin(void *cvode_mem, realtype eplifac)
 
-    ctypedef int (*CVSpilsPrecSetupFn)(realtype t, N_Vector y, N_Vector fy, booleantype jok, booleantype *jcurPtr, realtype gamma, void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
-    ctypedef int (*CVSpilsPrecSolveFn)(realtype t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z, realtype gamma, realtype delta, int lr, void *user_data, N_Vector tmp);
-    int CVSpilsSetPreconditioner(void *cvode_mem, CVSpilsPrecSetupFn pset, CVSpilsPrecSolveFn psolve);
+    ctypedef int (*CVLsPrecSetupFn)(realtype t, N_Vector y, N_Vector fy,
+                                    booleantype jok, booleantype *jcurPtr,
+                                    realtype gamma, void *user_data);
+    ctypedef int (*CVLsPrecSolveFn)(realtype t, N_Vector y, N_Vector fy,
+                                    N_Vector r, N_Vector z, realtype gamma,
+                                    realtype delta, int lr, void *user_data);
+    ctypedef int (*CVLsJacTimesSetupFn)(realtype t, N_Vector y,
+                                        N_Vector fy, void *user_data);
+    ctypedef int (*CVLsJacTimesVecFn)(N_Vector v, N_Vector Jv, realtype t,
+                                      N_Vector y, N_Vector fy,
+                                      void *user_data, N_Vector tmp);
 
-    ctypedef int (*CVSpilsJacTimesVecFn)(N_Vector v, N_Vector Jv, realtype t, N_Vector y, N_Vector fy, void *user_data, N_Vector tmp)
-    int CVSpilsSetJacTimesVecFn(void *cvode_mem, CVSpilsJacTimesVecFn jtv)
+    int CVodeSetPreconditioner(void *cvode_mem, CVLsPrecSetupFn pset, CVLsPrecSolveFn psolve);
+    int CVodeSetJacTimes(void *cvode_mem, CVLsJacTimesSetupFn jtsetup, CVLsJacTimesVecFn jtimes);
+    # int CVSpilsSetJacTimesVecFn(void *cvode_mem, CVSpilsJacTimesVecFn jtv)
 
 cdef extern from "sundials/sundials_iterative.h":
     int PREC_NONE
@@ -396,10 +405,10 @@ cdef class CvodeSolver(object):
                 flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300)
                 self.check_flag(flag, "CVSpgmr")
                 # functions below in p. 37 CVODE 2.7 manual
-                flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, < CVSpilsJacTimesVecFn > self.jvn_fun)
+                flag = CVodeSetJacTimes(self.cvode_mem, NULL, < CVSpilsJacTimesVecFn > self.jvn_fun)
                 self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
-                flag = CVSpilsSetPreconditioner(self.cvode_mem, < CVSpilsPrecSetupFn > self.psetup, < CVSpilsPrecSolveFn > psolve)
-                self.check_flag(flag, "CVSpilsSetPreconditioner")
+                flag = CVodeSetPreconditioner(self.cvode_mem, < CVSpilsPrecSetupFn > self.psetup, < CVSpilsPrecSolveFn > psolve)
+                self.check_flag(flag, "CVodeSetPreconditioner")
             else:
                 # this will use the SPGMR without preconditioner and without
                 # our computation of the product J * m'. Instead, it uses
