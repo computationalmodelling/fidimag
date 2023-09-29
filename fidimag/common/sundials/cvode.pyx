@@ -695,7 +695,7 @@ cdef class CvodeSolver_OpenMP(object):
     def stat(self):
         CVodeGetNumSteps(self.cvode_mem, & self.nsteps)
         CVodeGetNumRhsEvals(self.cvode_mem, & self.nfevals)
-        CVSpilsGetNumJtimesEvals(self.cvode_mem, & self.njevals)
+        CVodeGetNumJtimesEvals(self.cvode_mem, & self.njevals)
         return self.nsteps, self.nfevals, self.njevals
 
     def get_current_step(self):
