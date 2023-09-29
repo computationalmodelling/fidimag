@@ -92,7 +92,7 @@ cdef extern from "cvode/cvode.h":
     ctypedef int (*CVRootFn)(realtype t, N_Vector y, realtype *gout, void *user_data)
 
     void *CVodeCreate(int lmm, SUNContext sunctx)
-    int CVodeStep "CVode"(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask) nogil
+    int CVode "CVode"(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask) nogil
     int CVodeSetUserData(void *cvode_mem, void *user_data)
     int CVodeSetMaxOrd(void *cvode_mem, int maxord)
     int CVodeSetMaxNumSteps(void *cvode_mem, long int mxsteps)
@@ -146,7 +146,7 @@ cdef extern from "cvode/cvode.h":
 
     int CVDlsGetNumJacEvals(void *cvode_mem, long int *njevals)
     int CVDlsGetNumRhsEvals(void *cvode_mem, long int *nrevalsLS)
-    int CVSpilsGetNumJtimesEvals(void *cvode_mem, long int *njevals)
+    int CVodeGetNumJtimesEvals(void *cvode_mem, long int *njevals)
 
 cdef extern from "sunlinsol/sunlinsol_spgmr.h":
     int CVSpgmr(void *cvode_mem, int pretype, int max1)
@@ -177,10 +177,10 @@ cdef extern from "cvode/cvode_ls.h":
     # int CVSpilsSetJacTimesVecFn(void *cvode_mem, CVSpilsJacTimesVecFn jtv)
 
 cdef extern from "sundials/sundials_iterative.h":
-    int PREC_NONE
-    int PREC_LEFT
-    int PREC_RIGHT
-    int PREC_BOTH
+    int SUN_PREC_NONE
+    int SUN_PREC_LEFT
+    int SUN_PREC_RIGHT
+    int SUN_PREC_BOTH
 
     int MODIFIED_GS
     int CLASSICAL_GS
@@ -290,16 +290,15 @@ cdef int cv_jtimes_openmp(N_Vector v, N_Vector Jv, double t, N_Vector y, N_Vecto
     return 0
 
 
-cdef int psolve(double t, N_Vector y, N_Vector fy,
-                N_Vector r, N_Vector z, double gamma, double delta, int lr,
-                void * user_data, N_Vector tmp):
+# static int PSolve(realtype tn, N_Vector u, N_Vector fu, N_Vector r, N_Vector z,
+#                   realtype gamma, realtype delta, int lr, void *user_data);
+cdef int psolve(double t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z,
+                double gamma, double delta, int lr, void * user_data):
     copy_nv2nv(z, r)
     return 0
 
-cdef int psolve_openmp(double t, N_Vector y, N_Vector fy,
-                       N_Vector r, N_Vector z, double gamma,
-                       double delta, int lr,
-                       void * user_data, N_Vector tmp):
+cdef int psolve_openmp(double t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z,
+                       double gamma, double delta, int lr, void * user_data):
     copy_nv2nv_openmp(z, r)
     return 0
 
@@ -401,13 +400,35 @@ cdef class CvodeSolver(object):
             self.check_flag(flag, "CVDiag")
         elif self.linear_solver == "spgmr":
             if self.has_jtimes:
+                # The Jacobian preconditioner is set here based on the
+                # cvDiurnal_kry.c example from Sundials 6.1.1
+
                 # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
-                flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300)
-                self.check_flag(flag, "CVSpgmr")
+                # flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300)
+                # self.check_flag(flag, "CVSpgmr")
+
+                # Call SUNLinSol_SPGMR to specify the linear solver SPGMR
+                # with left preconditioning and the default Krylov dimension
+                LS = SUNLinSol_SPGMR(u, SUN_PREC_LEFT, 0, sunctx);
+                # TODO:
+                # if(check_retval((void *)LS, "SUNLinSol_SPGMR", 0)) return(1);
+
+                # Call CVodeSetLinearSolver to attach the linear sovler to CVode
+                flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
+                self.check_flag(flag, "CVodeSetLinearSolver")
+                # if (check_retval(&retval, "CVodeSetLinearSolver", 1)) return 1;
+
+                # Set the Jacobian-times-vector function */
+                flag = CVodeSetJacTimes(cvode_mem, NULL, jtv);
+                self.check_flag(flag, "CVodeSetJacTimes")
+
                 # functions below in p. 37 CVODE 2.7 manual
-                flag = CVodeSetJacTimes(self.cvode_mem, NULL, < CVSpilsJacTimesVecFn > self.jvn_fun)
-                self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
-                flag = CVodeSetPreconditioner(self.cvode_mem, < CVSpilsPrecSetupFn > self.psetup, < CVSpilsPrecSolveFn > psolve)
+                # flag = CVodeSetJacTimes(self.cvode_mem, NULL, < CVSpilsJacTimesVecFn > self.jvn_fun)
+                # self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
+
+                flag = CVodeSetPreconditioner(self.cvode_mem,
+                                             < CVLsPrecSetupFn > self.Precond,
+                                             < CVLsPrecSolveFn > psolve)
                 self.check_flag(flag, "CVodeSetPreconditioner")
             else:
                 # this will use the SPGMR without preconditioner and without
@@ -417,8 +438,9 @@ cdef class CvodeSolver(object):
                 # Actually, it's the same Jacobian approximation as used
                 # in CVDiag (only difference is CVDiag is a direct linear
                 # solver).
-                flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300)
-                self.check_flag(flag, "CVSpgmr")
+                flag = SUNLinSol_SPGMR(self.cvode_mem, SUN_PREC_NONE, 300)
+                # TODO:
+                # self.check_flag(flag, "SUNLinSol_SPGMR")
         else:
             raise RuntimeError(
                 "linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
@@ -446,17 +468,21 @@ cdef class CvodeSolver(object):
         flag = CVodeReInit(self.cvode_mem, self.t, self.u_y)
         self.check_flag(flag, "CVodeReInit")
 
+    # TODO: Instead of using flags we should use Sundials internal flag
+    # like CV_SUCCESS
     cpdef int run_until(self, double t_final) except -1:
         cdef int flag
         cdef double t_returned
-        flag = CVodeStep(self.cvode_mem, t_final, self.u_y, & t_returned, CV_NORMAL)
-        self.check_flag(flag, "CVodeStep")
+        flag = CVode(self.cvode_mem, t_final, self.u_y, & t_returned, CV_NORMAL)
+        self.check_flag(flag, "CVode")
         self.t = t_returned
         return 0
 
-    cdef int psetup(self, double t, N_Vector y, N_Vector fy,
-                    booleantype jok, booleantype * jcurPtr, double gamma,
-                    void * user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
+    # From exmaples: cvDiurnal_kry.c in Sundials repo:
+    # static int Precond(realtype tn, N_Vector u, N_Vector fu, booleantype jok,
+    #                    booleantype *jcurPtr, realtype gamma, void *user_data)
+    cdef int Precond(self, double t, N_Vector y, N_Vector fy, booleantype jok,
+                     booleantype * jcurPtr, double gamma, void * user_data):
         if not jok:
             copy_nv2arr(y, self.y)
         return 0
@@ -472,7 +498,7 @@ cdef class CvodeSolver(object):
     def stat(self):
         CVodeGetNumSteps(self.cvode_mem, & self.nsteps)
         CVodeGetNumRhsEvals(self.cvode_mem, & self.nfevals)
-        CVSpilsGetNumJtimesEvals(self.cvode_mem, & self.njevals)
+        CVodeGetNumJtimesEvals(self.cvode_mem, & self.njevals)
         return self.nsteps, self.nfevals, self.njevals
 
     def get_current_step(self):
@@ -592,14 +618,20 @@ cdef class CvodeSolver_OpenMP(object):
             self.check_flag(flag, "CVDiag")
         elif self.linear_solver == "spgmr":
             if self.has_jtimes:
-                # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
-                flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300)
-                self.check_flag(flag, "CVSpgmr")
-                # functions below in p. 37 CVODE 2.7 manual
-                flag = CVSpilsSetJacTimesVecFn(self.cvode_mem, < CVSpilsJacTimesVecFn > self.jvn_fun)
-                self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
-                flag = CVSpilsSetPreconditioner(self.cvode_mem, < CVSpilsPrecSetupFn > self.psetup, < CVSpilsPrecSolveFn > psolve_openmp)
-                self.check_flag(flag, "CVSpilsSetPreconditioner")
+
+                LS = SUNLinSol_SPGMR(u, SUN_PREC_LEFT, 0, sunctx);
+
+                flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
+                self.check_flag(flag, "CVodeSetLinearSolver")
+
+                flag = CVodeSetJacTimes(cvode_mem, NULL, jtv);
+                self.check_flag(flag, "CVodeSetJacTimes")
+
+                flag = CVodeSetPreconditioner(self.cvode_mem,
+                                             < CVLsPrecSetupFn > self.Precond,
+                                             < CVLsPrecSolveFn > psolve_openmp)
+                self.check_flag(flag, "CVodeSetPreconditioner")
+
             else:
                 # this will use the SPGMR without preconditioner and without
                 # our computation of the product J * m'. Instead, it uses
@@ -608,8 +640,8 @@ cdef class CvodeSolver_OpenMP(object):
                 # Actually, it's the same Jacobian approximation as used
                 # in CVDiag (only difference is CVDiag is a direct linear
                 # solver).
-                flag = CVSpgmr(self.cvode_mem, PREC_NONE, 300)
-                self.check_flag(flag, "CVSpgmr")
+                flag = SUNLinSol_SPGMR(self.cvode_mem, SUN_PREC_NONE, 300)
+                # self.check_flag(flag, "CVSpgmr")
         else:
             raise RuntimeError(
                 "linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
@@ -640,14 +672,14 @@ cdef class CvodeSolver_OpenMP(object):
     cpdef int run_until(self, double t_final) except -1:
         cdef int flag
         cdef double t_returned
-        flag = CVodeStep(self.cvode_mem, t_final, self.u_y, & t_returned, CV_NORMAL)
-        self.check_flag(flag, "CVodeStep")
+        flag = CVode(self.cvode_mem, t_final, self.u_y, & t_returned, CV_NORMAL)
+        self.check_flag(flag, "CVode")
         self.t = t_returned
         return 0
 
-    cdef int psetup(self, double t, N_Vector y, N_Vector fy,
-                    booleantype jok, booleantype * jcurPtr, double gamma,
-                    void * user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3):
+    cdef int Precond(self, double t, N_Vector y, N_Vector fy,
+                     booleantype jok, booleantype * jcurPtr, double gamma,
+                     void * user_data):
         if not jok:
             copy_nv2arr_openmp(y, self.y)
         return 0
