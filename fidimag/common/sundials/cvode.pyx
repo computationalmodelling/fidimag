@@ -7,17 +7,29 @@ from libc.string cimport memcpy
 import sys
 
 cdef extern from "sundials/sundials_context.h":
-    cdef struct _SUNContext
+    struct _SUNContext:
+        pass
     ctypedef _SUNContext *SUNContext
     int SUNContext_Create(void *comm, SUNContext *ctx)
     int SUNContext_Free(SUNContext *ctx)
+
 
 cdef extern from "sundials/sundials_types.h":
     ctypedef double realtype
     ctypedef bint booleantype
 
+# Types for the Sundials Linear System initialization
+cdef extern from "sundials/sundials_matrix.h":
+    struct _generic_SUNMatrix_Ops:
+        pass
+    struct _generic_SUNMatrix:
+        pass
+    ctypedef _generic_SUNMatrix *SUNMatrix
+    ctypedef _generic_SUNMatrix_Ops *SUNMatrix_Ops
+
+
 cdef extern from "sundials/sundials_nvector.h":
-    cdef struct _generic_N_Vector:
+    struct _generic_N_Vector:
         void *content
 
     ctypedef _generic_N_Vector *N_Vector
@@ -28,9 +40,10 @@ cdef extern from "sundials/sundials_nvector.h":
     void N_VPrint_Serial(N_Vector v)
     void N_VPrint_OpenMP(N_Vector v)
 
+
 cdef extern from "nvector/nvector_serial.h":
     cdef N_Vector N_VMake_Serial(long int vec_length, realtype *v_data, SUNContext sunctx)
-    cdef struct _N_VectorContent_Serial:
+    struct _N_VectorContent_Serial:
         long int length
         realtype *data
         booleantype own_data
@@ -41,14 +54,13 @@ cdef extern from "nvector/nvector_serial.h":
 cdef extern from "nvector/nvector_openmp.h":
     cdef N_Vector N_VMake_OpenMP(long int vec_length, realtype *v_data, int num_threads, SUNContext sunctx)
 
-    cdef struct _N_VectorContent_OpenMP:
+    struct _N_VectorContent_OpenMP:
         long int length
         realtype *data
         booleantype own_data
         int num_threads
 
     ctypedef _N_VectorContent_OpenMP *N_VectorContent_OpenMP
-
 
 
 cdef extern from "cvode/cvode.h":
@@ -149,6 +161,16 @@ cdef extern from "cvode/cvode.h":
     int CVodeGetNumJtimesEvals(void *cvode_mem, long int *njevals)
 
 cdef extern from "sunlinsol/sunlinsol_spgmr.h":
+
+    struct _generic_SUNLinearSolver_Ops:
+        pass
+    struct _generic_SUNLinearSolver:
+        pass
+    ctypedef _generic_SUNLinearSolver *SUNLinearSolver
+    ctypedef _generic_SUNLinearSolver_Ops *SUNLinearSolver_Ops
+
+    SUNLinearSolver SUNLinSol_SPGMR(N_Vector y, int pretype, int maxl, SUNContext sunctx)
+
     int CVSpgmr(void *cvode_mem, int pretype, int max1)
 
 cdef extern from "cvode/cvode_diag.h":
@@ -174,7 +196,7 @@ cdef extern from "cvode/cvode_ls.h":
 
     int CVodeSetPreconditioner(void *cvode_mem, CVLsPrecSetupFn pset, CVLsPrecSolveFn psolve);
     int CVodeSetJacTimes(void *cvode_mem, CVLsJacTimesSetupFn jtsetup, CVLsJacTimesVecFn jtimes);
-    # int CVSpilsSetJacTimesVecFn(void *cvode_mem, CVSpilsJacTimesVecFn jtv)
+    int CVodeSetLinearSolver(void *cvode_mem, SUNLinearSolver LS, SUNMatrix A)
 
 cdef extern from "sundials/sundials_iterative.h":
     int SUN_PREC_NONE
@@ -195,7 +217,7 @@ cdef struct cv_userdata:
     void * rhs_fun
     void * y
     void * dm_dt
-    void * jvn_fun
+    void * jv_fun
     void * v  # is the vector by which the Jacobian must be multiplied
     void * jv  # the value of Jacobian times v
 
@@ -271,7 +293,7 @@ cdef int cv_jtimes(N_Vector v, N_Vector Jv, double t, N_Vector y, N_Vector fy, v
     copy_nv2arr(y, m_arr)
     copy_nv2arr(v, mp_arr)
     copy_nv2arr(fy, ydot_arr)
-    (< object > ud.jvn_fun)(mp_arr, jv_arr, t, m_arr, ydot_arr)
+    (< object > ud.jv_fun)(mp_arr, jv_arr, t, m_arr, ydot_arr)
     copy_arr2nv(jv_arr, Jv)
     return 0
 
@@ -285,7 +307,7 @@ cdef int cv_jtimes_openmp(N_Vector v, N_Vector Jv, double t, N_Vector y, N_Vecto
     copy_nv2arr_openmp(y, m_arr)
     copy_nv2arr_openmp(v, mp_arr)
     copy_nv2arr_openmp(fy, ydot_arr)
-    (< object > ud.jvn_fun)(mp_arr, jv_arr, t, m_arr, ydot_arr)
+    (< object > ud.jv_fun)(mp_arr, jv_arr, t, m_arr, ydot_arr)
     copy_arr2nv_openmp(jv_arr, Jv)
     return 0
 
@@ -316,7 +338,7 @@ cdef class CvodeSolver(object):
     cdef N_Vector u_y
     cdef void * cvode_mem
     cdef void * rhs_fun
-    cdef void * jvn_fun
+    cdef void * jv_fun
     cdef callback_fun
     cdef jtimes_fun
     cdef cv_userdata user_data
@@ -335,7 +357,7 @@ cdef class CvodeSolver(object):
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
-        self.jvn_fun = <void * >cv_jtimes
+        self.jv_fun = <void * >cv_jtimes
         # wrapper for callback_fun (which is a Python function)
         self.rhs_fun = <void * >cv_rhs
         if linear_solver == "spgmr" or linear_solver == "diag":
@@ -391,6 +413,9 @@ cdef class CvodeSolver(object):
             flag = CVodeReInit(self.cvode_mem, t, self.u_y)
             self.check_flag(flag, "CVodeReInit")
         else:
+            # Call CVodeInit to initialize the integrator memory and specify the
+            # user's right hand side function in u_y'=f(t,u_y), the inital time t, and
+            # the initial dependent variable vector u_y. */
             flag = CVodeInit(self.cvode_mem, < CVRhsFn > self.rhs_fun, t, self.u_y)
             self.check_flag(flag, "CVodeInit")
             self.cvode_already_initialised = 1
@@ -409,21 +434,24 @@ cdef class CvodeSolver(object):
 
                 # Call SUNLinSol_SPGMR to specify the linear solver SPGMR
                 # with left preconditioning and the default Krylov dimension
-                LS = SUNLinSol_SPGMR(u, SUN_PREC_LEFT, 0, sunctx);
-                # TODO:
-                # if(check_retval((void *)LS, "SUNLinSol_SPGMR", 0)) return(1);
+                # maxl – the number of Krylov basis vectors to use.
+                # A maxl argument (3rd arg) that is <= 0, will result in the default value (5).
+                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_LEFT, 0, self.sunctx);
+                # CHECK:
+                if LS == NULL:
+                    raise ValueError('Error allocating linear solver')
 
                 # Call CVodeSetLinearSolver to attach the linear sovler to CVode
-                flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
+                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
                 # if (check_retval(&retval, "CVodeSetLinearSolver", 1)) return 1;
 
                 # Set the Jacobian-times-vector function */
-                flag = CVodeSetJacTimes(cvode_mem, NULL, jtv);
+                flag = CVodeSetJacTimes(self.cvode_mem, NULL, <CVLsJacTimesVecFn> self.jv_fun);
                 self.check_flag(flag, "CVodeSetJacTimes")
 
                 # functions below in p. 37 CVODE 2.7 manual
-                # flag = CVodeSetJacTimes(self.cvode_mem, NULL, < CVSpilsJacTimesVecFn > self.jvn_fun)
+                # flag = CVodeSetJacTimes(self.cvode_mem, NULL, < CVSpilsJacTimesVecFn > self.jv_fun)
                 # self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
 
                 flag = CVodeSetPreconditioner(self.cvode_mem,
@@ -431,16 +459,19 @@ cdef class CvodeSolver(object):
                                              < CVLsPrecSolveFn > psolve)
                 self.check_flag(flag, "CVodeSetPreconditioner")
             else:
-                # this will use the SPGMR without preconditioner and without
+                # OLD NOTE: this will use the SPGMR without preconditioner and without
                 # our computation of the product J * m'. Instead, it uses
                 # a difference quotient approximation of the product.
                 # c.f. Sec 4.6.7 in CVODE manual
                 # Actually, it's the same Jacobian approximation as used
                 # in CVDiag (only difference is CVDiag is a direct linear
                 # solver).
-                flag = SUNLinSol_SPGMR(self.cvode_mem, SUN_PREC_NONE, 300)
-                # TODO:
-                # self.check_flag(flag, "SUNLinSol_SPGMR")
+                #
+                # maxl – the number of Krylov basis vectors to use.
+                # NOTE: 300 -> magic number?
+                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
+                if LS == NULL:
+                    raise ValueError('Error allocating linear solver')
         else:
             raise RuntimeError(
                 "linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
@@ -517,7 +548,7 @@ cdef class CvodeSolver(object):
     def __dealloc__(self):
         self.user_data.rhs_fun = NULL
         self.user_data.y = NULL
-        self.user_data.jvn_fun = NULL
+        self.user_data.jv_fun = NULL
         self.user_data.dm_dt = NULL
         self.user_data.v = NULL
         self.user_data.jv = NULL
@@ -538,7 +569,7 @@ cdef class CvodeSolver_OpenMP(object):
     cdef N_Vector u_y
     cdef void * cvode_mem
     cdef void * rhs_fun
-    cdef void * jvn_fun
+    cdef void * jv_fun
     cdef callback_fun
     cdef jtimes_fun
     cdef cv_userdata user_data
@@ -561,7 +592,7 @@ cdef class CvodeSolver_OpenMP(object):
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
-        self.jvn_fun = <void * >cv_jtimes_openmp
+        self.jv_fun = <void * >cv_jtimes_openmp
         # wrapper for callback_fun (which is a Python function)
         self.rhs_fun = <void * >cv_rhs_openmp
         if linear_solver == "spgmr" or linear_solver == "diag":
@@ -619,12 +650,14 @@ cdef class CvodeSolver_OpenMP(object):
         elif self.linear_solver == "spgmr":
             if self.has_jtimes:
 
-                LS = SUNLinSol_SPGMR(u, SUN_PREC_LEFT, 0, sunctx);
+                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_LEFT, 0, self.sunctx);
+                if LS == NULL:
+                    raise ValueError('Could not allocate linear solver')
 
-                flag = CVodeSetLinearSolver(cvode_mem, LS, NULL);
+                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
 
-                flag = CVodeSetJacTimes(cvode_mem, NULL, jtv);
+                flag = CVodeSetJacTimes(self.cvode_mem, NULL, <CVLsJacTimesVecFn> self.jv_fun);
                 self.check_flag(flag, "CVodeSetJacTimes")
 
                 flag = CVodeSetPreconditioner(self.cvode_mem,
@@ -633,15 +666,9 @@ cdef class CvodeSolver_OpenMP(object):
                 self.check_flag(flag, "CVodeSetPreconditioner")
 
             else:
-                # this will use the SPGMR without preconditioner and without
-                # our computation of the product J * m'. Instead, it uses
-                # a difference quotient approximation of the product.
-                # c.f. Sec 4.6.7 in CVODE manual
-                # Actually, it's the same Jacobian approximation as used
-                # in CVDiag (only difference is CVDiag is a direct linear
-                # solver).
-                flag = SUNLinSol_SPGMR(self.cvode_mem, SUN_PREC_NONE, 300)
-                # self.check_flag(flag, "CVSpgmr")
+                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
+                if LS == NULL:
+                    raise ValueError('Could not allocate linear solver')
         else:
             raise RuntimeError(
                 "linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
@@ -714,7 +741,7 @@ cdef class CvodeSolver_OpenMP(object):
     def __dealloc__(self):
         self.user_data.rhs_fun = NULL
         self.user_data.y = NULL
-        self.user_data.jvn_fun = NULL
+        self.user_data.jv_fun = NULL
         self.user_data.dm_dt = NULL
         self.user_data.v = NULL
         self.user_data.jv = NULL
