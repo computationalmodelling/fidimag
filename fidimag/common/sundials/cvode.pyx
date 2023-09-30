@@ -427,10 +427,6 @@ cdef class CvodeSolver(object):
                 # The Jacobian preconditioner is set here based on the
                 # cvDiurnal_kry.c example from Sundials 6.1.1
 
-                # CVSpgmr(cvode_mem, pretype, maxl) p. 27 of CVODE 2.7 manual
-                # flag = CVSpgmr(self.cvode_mem, PREC_LEFT, 300)
-                # self.check_flag(flag, "CVSpgmr")
-
                 # Call SUNLinSol_SPGMR to specify the linear solver SPGMR
                 # with left preconditioning and the default Krylov dimension
                 # maxl – the number of Krylov basis vectors to use.
@@ -448,10 +444,6 @@ cdef class CvodeSolver(object):
                 # Set the Jacobian-times-vector function */
                 flag = CVodeSetJacTimes(self.cvode_mem, NULL, <CVLsJacTimesVecFn> self.jv_fun);
                 self.check_flag(flag, "CVodeSetJacTimes")
-
-                # functions below in p. 37 CVODE 2.7 manual
-                # flag = CVodeSetJacTimes(self.cvode_mem, NULL, < CVSpilsJacTimesVecFn > self.jv_fun)
-                # self.check_flag(flag, "CVSpilsSetJacTimesVecFn")
 
                 flag = CVodeSetPreconditioner(self.cvode_mem,
                                              < CVLsPrecSetupFn > self.Precond,
