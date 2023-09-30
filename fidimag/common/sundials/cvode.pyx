@@ -377,18 +377,17 @@ cdef class CvodeSolver(object):
         # defined by the SUNContext class.
         SUNContext_Create(NULL, & self.sunctx);
 
-        self.user_data = cv_userdata(< void*>self.callback_fun,
-                                      < void * >self.y0, < void * >self.dm_dt,
-                                      < void * >self.jtimes_fun,
-                                      < void * >self.mp, < void * >self.Jmp)
-
         # The recommended choices for lmm are CV ADAMS for nonstiff problems and CV BDF for
         # stiff problems. The default Newton iteration is recommended for stiff problems, and
         # the fixed-point solver (previously referred to as the functional iteration in this guide) is
         # recommended for nonstiff problems.
         self.cvode_mem = CVodeCreate(CV_BDF, self.sunctx)
 
-        flag = CVodeSetUserData(self.cvode_mem, < void*> & self.user_data)
+        self.user_data = cv_userdata(< void * >self.callback_fun,
+                                     < void * >self.y0, < void * >self.dm_dt,
+                                     < void * >self.jtimes_fun,
+                                     < void * >self.mp, < void * >self.Jmp)
+        flag = CVodeSetUserData(self.cvode_mem, <void*> &self.user_data);
         self.check_flag(flag, "CVodeSetUserData")
 
         self.cvode_already_initialised = 0
@@ -441,7 +440,7 @@ cdef class CvodeSolver(object):
                 if LS == NULL:
                     raise ValueError('Error allocating linear solver')
 
-                # Call CVodeSetLinearSolver to attach the linear sovler to CVode
+                # Call CVodeSetLinearSolver to attach the linear solver to CVode
                 flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
                 # if (check_retval(&retval, "CVodeSetLinearSolver", 1)) return 1;
@@ -472,6 +471,10 @@ cdef class CvodeSolver(object):
                 LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
                 if LS == NULL:
                     raise ValueError('Error allocating linear solver')
+
+                # Call CVodeSetLinearSolver to attach the linear sovler to CVode
+                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
+                self.check_flag(flag, "CVodeSetLinearSolver")
         else:
             raise RuntimeError(
                 "linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
@@ -505,7 +508,7 @@ cdef class CvodeSolver(object):
         cdef int flag
         cdef double t_returned
         flag = CVode(self.cvode_mem, t_final, self.u_y, & t_returned, CV_NORMAL)
-        self.check_flag(flag, "CVode")
+        self.check_flag(flag, "{}".format(flag))
         self.t = t_returned
         return 0
 
@@ -606,16 +609,15 @@ cdef class CvodeSolver_OpenMP(object):
         if jtimes_fun is not None:
             self.has_jtimes = 1
 
-        self.user_data = cv_userdata(< void*>self.callback_fun,
-                                      < void * >self.y0, < void * >self.dm_dt,
-                                      < void * >self.jtimes_fun,
-                                      < void * >self.mp, < void * >self.Jmp)
-
         SUNContext_Create(NULL, & self.sunctx);
         # Newton iterator is set by default now (Sundials 4.0)
         self.cvode_mem = CVodeCreate(CV_BDF, self.sunctx)
 
-        flag = CVodeSetUserData(self.cvode_mem, < void*> & self.user_data)
+        self.user_data = cv_userdata(< void*>self.callback_fun,
+                                      < void * >self.y0, < void * >self.dm_dt,
+                                      < void * >self.jtimes_fun,
+                                      < void * >self.mp, < void * >self.Jmp)
+        flag = CVodeSetUserData(self.cvode_mem, <void*> &self.user_data);
         self.check_flag(flag, "CVodeSetUserData")
 
         self.cvode_already_initialised = 0
@@ -669,6 +671,10 @@ cdef class CvodeSolver_OpenMP(object):
                 LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
                 if LS == NULL:
                     raise ValueError('Could not allocate linear solver')
+
+                # Call CVodeSetLinearSolver to attach the linear solver to CVode
+                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
+                self.check_flag(flag, "CVodeSetLinearSolver")
         else:
             raise RuntimeError(
                 "linear_solver is {}, should be spgmr or diag".format(self.linear_solver))
