@@ -80,8 +80,8 @@ class CubicAnisotropy(Energy):
     Compute the cubic anisotropy field using 2 specified perpendicular axes
     directions (the 3rd is set perpendicular). The energy density reads::
 
-                __         ^     ->  4
-        w = -Kc \   m_i (  a_i . m  )
+                __     ^     ->  4
+        w = -Kc \   (  a_i . m  )
                 /_
                 i
 
@@ -112,15 +112,15 @@ class CubicAnisotropy(Energy):
             m = self.spin.reshape(-1, 3)
 
         f_vec = self.field.reshape(-1, 3)
-        factor = (4. * self._Kc * self.mu_s_inv)[:, np.newaxis]
-        f_vec[:] = factor * (np.einsum('ij,j->i', m, self.axisA) ** 3)[:, np.newaxis] * self.axisA
-        f_vec[:] += factor * (np.einsum('ij,j->i', m, self.axisB) ** 3)[:, np.newaxis] * self.axisB
-        f_vec[:] += factor * (np.einsum('ij,j->i', m, self.axisC) ** 3)[:, np.newaxis] * self.axisC
+        factor = (4. * self._Kc * self.mu_s_inv)
+        f_vec[:] = (factor * (np.einsum('ij,j->i', m, self.axisA) ** 3))[:, np.newaxis] * self.axisA
+        f_vec[:] += (factor * (np.einsum('ij,j->i', m, self.axisB) ** 3))[:, np.newaxis] * self.axisB
+        f_vec[:] += (factor * (np.einsum('ij,j->i', m, self.axisC) ** 3))[:, np.newaxis] * self.axisC
 
-        e_rs = self.energy.reshape(-1, 3)
-        e_rs[:] = -self._Kc * (np.einsum('ij,j->i', m, self.axisA) ** 4)[:, np.newaxis]
-        e_rs[:] += -self._Kc * (np.einsum('ij,j->i', m, self.axisB) ** 4)[:, np.newaxis]
-        e_rs[:] += -self._Kc * (np.einsum('ij,j->i', m, self.axisC) ** 4)[:, np.newaxis]
+        e_rs = self.energy
+        e_rs[:] = -self._Kc * (np.einsum('ij,j->i', m, self.axisA) ** 4)
+        e_rs[:] += -self._Kc * (np.einsum('ij,j->i', m, self.axisB) ** 4)
+        e_rs[:] += -self._Kc * (np.einsum('ij,j->i', m, self.axisC) ** 4)
 
         # clib.compute_anisotropy_cubic(m,
         #                               self.field,
