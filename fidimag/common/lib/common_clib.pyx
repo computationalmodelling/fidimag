@@ -160,12 +160,13 @@ def init_scalar(value, mesh, *args):
     elif hasattr(value, '__call__'):
         for i in range(n):
             mesh_v[i] = value(mesh.coordinates[i], *args)
-
     elif isinstance(value, np.ndarray):
         if value.shape == mesh_v.shape:
             mesh_v[:] = value[:]
         else:
             raise ValueError("Array size must match the mesh size")
+    else:
+        raise TypeError("Scalar fields are generated only from digits, fns or numpy arrays")
 
     return mesh_v
 
@@ -189,6 +190,8 @@ def init_vector(m0, mesh, dim=3, norm=False, *args):
         else:
             spin.shape = (-1)
             spin[:] = m0  # overwriting the whole thing
+    else:
+        raise TypeError("Vector fields are generated only from lists, tuples, fns or numpy arrays")
     spin.shape = (-1,)
     if norm:
         normalise(spin)
