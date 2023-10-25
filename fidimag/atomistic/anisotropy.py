@@ -85,25 +85,33 @@ class CubicAnisotropy(Energy):
                 /_
                 i
 
-    with a_i the three perpendicular anisotropy axes. Only two of the axes
-    are specified using the `axisA` and `axisB` arguments.
+    with `a_i` the three perpendicular anisotropy axes. The three axes
+    are specified using the `cubicAxes` argument. Notice that in this
+    definition, `Kc > 0` means `a_i` are easy axes.
     """
 
-    def __init__(self, Kc, axisA=(1., 0, 0), axisB=(0, 1., 0),
+    def __init__(self, Kc, cubicAxes=(1., 0., 0., 0., 1., 0., 0., 0., 1.),
                  name='CubicAnisotropy'):
         self.Kc = Kc
         self.name = name
         self.jac = True
+        self.cubicAxes = cubicAxes
 
-        self.axisA = np.array(axisA).astype(np.float64)
-        self.axisA /= np.linalg.norm(self.axisA)
-        self.axisB = np.array(axisB).astype(np.float64)
-        self.axisB /= np.linalg.norm(self.axisB)
+    @property
+    def cubicAxes(self):
+        return self._cubicAxes
+
+    @cubicAxes.setter
+    def cubicAxes(self, axes):
+        self._cubicAxes = np.array(axes).astype(np.float64)
+        if self._cubicAxes.size != 9:
+            raise ValueError('Sequence with axes coordinates requires 9 input values')
+
+        self._cubicAxes.shape = (3, 3)
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(CubicAnisotropy, self).setup(mesh, spin, mu_s, mu_s_inv)
         self._Kc = helper.init_scalar(self.Kc, self.mesh)
-        self.axisC = np.cross(self.axisA, self.axisB)
 
     def compute_field(self, t=0, spin=None):
         if spin is not None:
@@ -112,15 +120,17 @@ class CubicAnisotropy(Energy):
             m = self.spin.reshape(-1, 3)
 
         f_vec = self.field.reshape(-1, 3)
-        factor = (4. * self._Kc * self.mu_s_inv)
-        f_vec[:] = (factor * (np.einsum('ij,j->i', m, self.axisA) ** 3))[:, np.newaxis] * self.axisA
-        f_vec[:] += (factor * (np.einsum('ij,j->i', m, self.axisB) ** 3))[:, np.newaxis] * self.axisB
-        f_vec[:] += (factor * (np.einsum('ij,j->i', m, self.axisC) ** 3))[:, np.newaxis] * self.axisC
-
         e_rs = self.energy
-        e_rs[:] = -self._Kc * (np.einsum('ij,j->i', m, self.axisA) ** 4)
-        e_rs[:] += -self._Kc * (np.einsum('ij,j->i', m, self.axisB) ** 4)
-        e_rs[:] += -self._Kc * (np.einsum('ij,j->i', m, self.axisC) ** 4)
+        f_vec[:] = 0.0
+        e_rs[:] = 0.0
+
+        factor = (4. * self._Kc * self.mu_s_inv)[:, None]  # (n, 1) array
+        for ax in self._cubicAxes:
+            # Every row is m . ax . Make a column vector: (n, 1)
+            m_dot_ax = np.array(np.einsum('ij,j->i', m, ax), ndmin=2).reshape(-1, 1)
+            # factor * m_dot_ax generate a column vector. Every row is multiplied by ax
+            f_vec[:] += (factor * (m_dot_ax ** 3)) * ax
+            e_rs[:] += np.einsum('i,ij->i', -self._Kc, m_dot_ax ** 4)
 
         # clib.compute_anisotropy_cubic(m,
         #                               self.field,
