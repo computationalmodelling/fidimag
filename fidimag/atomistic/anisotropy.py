@@ -2,6 +2,7 @@ import fidimag.extensions.clib as clib
 import numpy as np
 from .energy import Energy
 import fidimag.common.helper as helper
+from itertools import permutations
 
 
 class Anisotropy(Energy):
@@ -108,6 +109,13 @@ class CubicAnisotropy(Energy):
             raise ValueError('Sequence with axes coordinates requires 9 input values')
 
         self._cubicAxes.shape = (3, 3)
+
+        # Check that axes are perpendicular using the rows of _cubicAxes
+        for i1, i2 in permutations((0, 1, 2), r=2):
+            ax1 = self._cubicAxes[i1]
+            ax2 = self._cubicAxes[i2]
+            if np.any(np.dot(ax1, ax2) > 1e-3):
+                raise ValueError(f'Axes {ax1} and {ax2} are not perpendicular')
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super(CubicAnisotropy, self).setup(mesh, spin, mu_s, mu_s_inv)
