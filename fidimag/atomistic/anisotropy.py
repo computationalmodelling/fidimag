@@ -110,6 +110,10 @@ class CubicAnisotropy(Energy):
 
         self._cubicAxes.shape = (3, 3)
 
+        # Normalise axes
+        norm = np.linalg.norm(self._cubicAxes, axis=1)
+        self._cubicAxes = self._cubicAxes / norm[:, None]
+
         # Check that axes are perpendicular using the rows of _cubicAxes
         for i1, i2 in permutations((0, 1, 2), r=2):
             ax1 = self._cubicAxes[i1]
