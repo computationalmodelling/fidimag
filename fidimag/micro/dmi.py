@@ -285,3 +285,53 @@ class DMI(Energy):
                                      )
 
         return self.field
+
+
+class DMICylindrical(Energy):
+
+    """
+    """
+
+    def __init__(self, D, name='DMICyl'):
+        """
+        """
+        self.D = D
+        self.name = name
+        self.jac = True
+
+        # if self.dmi_type == 'D_n' or self.dmi_type == 'C_n':
+        #     if not self.D2:
+        #         raise Exception("For C_n and D_n symmetry, you must also pass a D2 value"
+        #                          " as this material class has multiple DMI constants")
+
+    def setup(self, mesh, spin, Ms, Ms_inv):
+        super(DMI, self).setup(mesh, spin, Ms, Ms_inv)
+
+        self.Ds = helper.init_scalar(self.D, self.mesh)
+        r = self.mesh.coordinates.reshape(-1, 3)
+        self.rho = np.zeros((self.mesh.n, 2))
+        self.phi = np.arctan2(r[:, 1], r[:, 0])
+        self.rho[:, 0] = np.cos(self.phi)
+        self.rho[:, 1] = np.sin(self.phi)
+        self.rho.shape = (-1,)
+
+    def compute_field(self, t=0, spin=None):
+        if spin is not None:
+            m = spin
+        else:
+            m = self.spin
+
+        micro_clib.compute_dmi_field_cyl(m,
+                                         self.field,
+                                         self.energy,
+                                         self.Ms_inv,
+                                         self.Ds,
+                                         self.dx,
+                                         self.dy,
+                                         self.dz,
+                                         self.n,
+                                         self.neighbours,
+                                         self.rho
+                                         )
+
+        return self.field

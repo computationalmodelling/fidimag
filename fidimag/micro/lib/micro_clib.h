@@ -22,6 +22,13 @@ void dmi_field(double *restrict m, double *restrict field,
                double *dmi_vector,
                double dx, double dy, double dz, int n, int *ngbs);
 
+void dmi_field_cyl(double *restrict m, double *restrict field,
+                   double *restrict energy, double *restrict Ms_inv,
+                   double *restrict D,
+                   double dx, double dy, double dz,
+                   int n, int *restrict ngbs,
+                   double *restrict rho);
+
 void compute_exch_field_rkky_micro(double *m, double *field, double *energy, double *Ms_inv,
                          double sigma, int nx, double ny, double nz, int z_bottom, int z_top);
 

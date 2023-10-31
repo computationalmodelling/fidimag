@@ -16,6 +16,13 @@ cdef extern from "micro_clib.h":
                    double dx, double dy, double dz,
                    int n, int *ngbs)
 
+    void dmi_field_cyl(double *restrict m, double *restrict field,
+                       double *restrict energy, double *restrict Ms_inv,
+                       double *restrict D,
+                       double dx, double dy, double dz,
+                       int n, int *restrict ngbs,
+                       double *restrict rho)
+
     void compute_uniaxial_anis(double *m, double *field,
                                double *energy, double *Ms_inv,
                                double *Ku, double *axis,
@@ -71,6 +78,21 @@ def compute_dmi_field(double [:] m,
     dmi_field(&m[0], &field[0], &energy[0], &Ms_inv[0],
               &D[0], n_dmis, &dmi_vector[0],
               dx, dy, dz, n, &ngbs[0, 0])
+
+
+def compute_dmi_field_cyl(double [:] m,
+                          double [:] field,
+                          double [:] energy,
+                          double [:] Ms_inv,
+                          double [:] D,
+                          dx, dy, dz,
+                          n,
+                          int [:, :] ngbs,
+                          double [:] rho
+                          ):
+
+    dmi_field(&m[0], &field[0], &energy[0], &Ms_inv[0],
+              &D[0], dx, dy, dz, n, &ngbs[0, 0], &rho[0])
 
 
 def compute_anisotropy_micro(double [:] m,

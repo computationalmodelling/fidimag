@@ -382,8 +382,6 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
 
     /* Here we iterate through every mesh node */
     for (int i = 0; i < n; i++) {
-        double DMIc;
-        double fx = 0, fy = 0, fz = 0;
         int idnm, idnr;     // Index for the magnetisation and rho matrices
         /* Set a zero field for sites without magnetic material */
         if (Ms_inv[i] == 0.0){
@@ -399,7 +397,6 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
 
         double mrho_minusx = 0.0;
         double mrho_plusx = 0.0;
-        double dmrho_dx = 0.0;
 
         double dmrho_dxyz[3] = {0.0};
         // Transposed m Jacobian: {dmx/dx, dmy/dx, dmz/dx, dmx/dy, ...}
@@ -448,7 +445,7 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
             }
         }
 
-        // H = (2 D / mu0 Ms) * (div(m) rho - grad(m . rho))
+        // H = -(2 D / mu0 Ms) * (div(m) rho - grad(m . rho))
         double div_m = (dmxyz_dxyz[0] + dmxyz_dxyz[4] + dmxyz_dxyz[8]);
         field[3 * i]     = div_m * rho[2 * i] - dmrho_dxyz[0];
         field[3 * i + 1] = div_m * rho[2 * i + 1] - dmrho_dxyz[1];
