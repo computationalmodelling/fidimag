@@ -305,7 +305,7 @@ class DMICylindrical(Energy):
         #                          " as this material class has multiple DMI constants")
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        super(DMI, self).setup(mesh, spin, Ms, Ms_inv)
+        super(DMICylindrical, self).setup(mesh, spin, Ms, Ms_inv)
 
         self.Ds = helper.init_scalar(self.D, self.mesh)
         r = self.mesh.coordinates.reshape(-1, 3)
