@@ -4,6 +4,7 @@
 #include <math.h>
 
 const double MS_EPS = 1e-8;
+const double EPS = 1e-8;
 
 /* Functions to Compute the micromagnetic Dzyaloshinskii Moriya interaction
  *  field and energy using the
@@ -376,15 +377,14 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
 
     // rho :: (n, 2) array [rx0, ry0, rx1, ry1, ...]
 
-    /* These are for the DMI prefactor or coefficient */
-    double dxs[6] = {dx, dx, dy, dy, dz, dz};
+    /* These are for the ... */
+    double dxs[3] = {dx, dy, dz};
 
     /* Here we iterate through every mesh node */
     for (int i = 0; i < n; i++) {
         double DMIc;
         double fx = 0, fy = 0, fz = 0;
         int idnm, idnr;     // Index for the magnetisation and rho matrices
-        int idn = 6 * i; // index for the neighbours
         /* Set a zero field for sites without magnetic material */
         if (Ms_inv[i] == 0.0){
             field[3 * i] = 0;
@@ -401,108 +401,67 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
         double mrho_plusx = 0.0;
         double dmrho_dx = 0.0;
 
-        dmrho_dx
-        
-        // -x
-        // if ((ngbs[idn] != -1) && Ms_inv[ngbs[idn + 1]] != 0) {
-        if (ngbs[idn] != -1 || fabs(Ms_inv[ngbs[idn]]) < MS_EPS) {
-            idnm = 3 * ngbs[idn];
-            idnr = 2 * ngbs[idn];
-            mrho_minusx = m[idnm] * rho[idnr] + m[idnm + 1] * rho[idnr + 1];
+        double dmrho_dxyz[3] = {0.0};
+        // Transposed m Jacobian: {dmx/dx, dmy/dx, dmz/dx, dmx/dy, ...}
+        double dmxyz_dxyz[9] = {0.0};
 
-            dmrho_dx += (mrho_i - mrho_minusx) / dx;
-        }
+        // Compute dmr_dx, dmr_dy, dmr_dz using 1st or 2nd order (when possible)
+        // approximations
+        for (int j = 0; j < 3; j++) {
 
-        // +x
-        if (ngbs[idn + 1] != -1 || fabs(Ms_inv[ngbs[idn + 1]]) < MS_EPS){
-            idnm = 3 * ngbs[idn + 1];
-            idnr = 2 * ngbs[idn + 1];
-            mrho_plusx = m[idnm] * rho[idnr] + m[idnm + 1] * rho[idnr + 1];
+            int idn = 6 * i + 2 * j; // index for the neighbours
 
-            dmrho_dx += (mrho_plusx - mrho_i) / dx;
-            if (fabs(mrho_minusx) > EPS ) {
-                dmrho_dx *= 0.5;
+            // -x
+            // if ((ngbs[idn] != -1) && Ms_inv[ngbs[idn + 1]] != 0)
+            if (ngbs[idn] != -1 || fabs(Ms_inv[ngbs[idn]]) < MS_EPS) {
+                idnm = 3 * ngbs[idn];  // start index of -x neighbour
+                idnr = 2 * ngbs[idn];
+                mrho_minusx = m[idnm] * rho[idnr] + m[idnm + 1] * rho[idnr + 1];
+
+                dmrho_dxyz[j] += (mrho_i - mrho_minusx) / dx;
+
+                dmxyz_dxyz[3 * j]     += (m[i] - m[idnm]) / dxs[j];
+                dmxyz_dxyz[3 * j + 1] += (m[i + 1] - m[idnm + 1]) / dxs[j];
+                dmxyz_dxyz[3 * j + 2] += (m[i + 2] - m[idnm + 2]) / dxs[j];
+            }
+
+            // +x
+            if (ngbs[idn + 1] != -1 || fabs(Ms_inv[ngbs[idn + 1]]) < MS_EPS){
+                idnm = 3 * ngbs[idn + 1];
+                idnr = 2 * ngbs[idn + 1];
+                mrho_plusx = m[idnm] * rho[idnr] + m[idnm + 1] * rho[idnr + 1];
+
+                dmrho_dxyz[j] += (mrho_plusx - mrho_i) / dx;
+
+                dmxyz_dxyz[3 * j]     += (m[i] - m[idnm]) / dxs[j];
+                dmxyz_dxyz[3 * j + 1] += (m[i + 1] - m[idnm + 1]) / dxs[j];
+                dmxyz_dxyz[3 * j + 2] += (m[i + 2] - m[idnm + 2]) / dxs[j];
+
+                // If there was a ngbr in the -x direction, use a 2nd order finite diff
+                // derivative approx. The contrib of m_i cancels out
+                if (fabs(mrho_minusx) > EPS ) {
+                    dmrho_dxyz[j] *= 0.5;
+                    dmxyz_dxyz[3 * j]     *= 0.5;
+                    dmxyz_dxyz[3 * j + 1] *= 0.5;
+                    dmxyz_dxyz[3 * j + 2] *= 0.5;
+                }
             }
         }
 
+        // H = (2 D / mu0 Ms) * (div(m) rho - grad(m . rho))
+        double div_m = (dmxyz_dxyz[0] + dmxyz_dxyz[4] + dmxyz_dxyz[8]);
+        field[3 * i]     = div_m * rho[2 * i] - dmrho_dxyz[0];
+        field[3 * i + 1] = div_m * rho[2 * i + 1] - dmrho_dxyz[1];
+        field[3 * i + 2] = -dmrho_dxyz[2];
 
+        for (int k = 0; k < 3; ++k) {
+            field[3 * i + k] *= -2.0 * D[i] * Ms_inv[i] * MU0_INV;
+        }
 
-
-        // if (fabs(dmrho_dx) < MS_EPS){
-        // }
-
-
-
-
-        /* Here we iterate through the neighbours. Remember:
-         * j = 0, 1, 2, 3, 4, 5  --> -x, +x, -y, +y, -z, +z
-         Previously we had n_dmi_neighbours as a parameter,
-         but now we just skip if the vector entries are zero
-         instead, because we can have cases such as in D_n
-         where the D1 component has -x,+x,-y,+y,0,0
-         and the D2 component has 0,0,0,0,-z,+z.
-        */
-        for (int j = 0; j < 6; j++) {
-            /* Add the DMI field x times for every DMI constant */
-            for (int k = 0; k < n_dmis; k++) {
-                
-                // starting index of the DMI vector for this neighbour (j)
-                // (remember we have 18 comps of dmi_vector per DMI constant)
-                int ngbr_idx_D = k * 18 + 3 * j;
-
-                /* We skip the neighbour if
-                   (a) it doesn't exist (ngbs[idn + j] = -1)
-                   (b) there is no material there
-                   (c) DMI value is zero there
-                */
-                if ((ngbs[idn + j] != -1) && (Ms_inv[ngbs[idn + j]] !=  0)) {
-                /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
-                 * The cross_i function gives the i component of the
-                 * cross product. The coefficient is computed according
-                 * to the DMI strength of the current lattice site.
-                 * For the denominator, for example, if j=2 or 3, then
-                 * dxs[j] = dy
-                 */
-
-                    /* check the DMI vector exists */
-                    if (dmi_vector[ngbr_idx_D    ] != 0 ||
-                        dmi_vector[ngbr_idx_D + 1] != 0 ||
-                        dmi_vector[ngbr_idx_D + 2] != 0   ) {
-                        /* Notice the x component of the cross product of +-x
-                         * times anything is zero (similar for the other comps) */
-
-                        // Get DMI constant from neighbour and scale
-                        // DMI components are in consecutive order per neighbour,
-                        // i.e. if 2 DMI consts: [D0 D1 D0 D1 .... ]
-                        DMIc = -D[n_dmis * ngbs[idn + j] + k] / dxs[j];
-
-                        idnm = 3 * ngbs[idn + j]; // index for magnetisation
-
-                        fx += DMIc * cross_x(dmi_vector[ngbr_idx_D],
-                                             dmi_vector[ngbr_idx_D + 1],
-                                             dmi_vector[ngbr_idx_D + 2],
-                                             m[idnm], m[idnm + 1], m[idnm + 2]);
-                        fy += DMIc * cross_y(dmi_vector[ngbr_idx_D],
-                                             dmi_vector[ngbr_idx_D + 1],
-                                             dmi_vector[ngbr_idx_D + 2],
-                                             m[idnm], m[idnm + 1], m[idnm + 2]);
-                        fz += DMIc * cross_z(dmi_vector[ngbr_idx_D],
-                                             dmi_vector[ngbr_idx_D + 1],
-                                             dmi_vector[ngbr_idx_D + 2],
-                                             m[idnm], m[idnm + 1], m[idnm + 2]);
-
-                    }
-                }
-            }  // Close for loop through n of DMI constants
-        }  // Close for loop through neighbours per mesh site
-
-        /* Energy as: (-mu0 * Ms / 2) * [ H_dmi * m ]   */
-        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
-        		+ fz * m[3 * i + 2]);
-
-        /* Update the field H_dmi which has the same structure than *m */
-        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
-        field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
-        field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
+        // m . grad(mrho)
+        energy[i] = m[i] * dmrho_dxyz[0] + m[i + 1] * dmrho_dxyz[1] + m[i + 2] * dmrho_dxyz[2];
+        // div(m) * (mrho)
+        energy[i] += (dmxyz_dxyz[0] + dmxyz_dxyz[4] + dmxyz_dxyz[8]) * mrho_i;
+        energy[i] *= D[i];
     }
 }
