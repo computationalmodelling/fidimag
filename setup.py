@@ -43,18 +43,6 @@ pkg_init_path = os.path.join(
     os.path.dirname(__file__), 'fidimag', '__init__.py')
 
 
-def get_version():
-    with open(pkg_init_path) as f:
-        for line in f:
-            m = re.match(r'''__version__\s*=\s*(['"])(.+)\1''', line.strip())
-            if m:
-                return m.group(2)
-    raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
-
-
-version = get_version()
-
-
 def glob_cfiles(path, excludes, extension="*.c"):
     cfiles = []
     for cfile in glob.glob(os.path.join(path, extension)):
@@ -264,7 +252,7 @@ nthreads = multiprocessing.cpu_count()
 print('Building with {} threads'.format(nthreads))
 setup(
     name='fidimag',
-    version=version,
+    version='3.1a0',
     description='Finite difference micromagnetic code',
     packages=['fidimag',
               'fidimag.atomistic',

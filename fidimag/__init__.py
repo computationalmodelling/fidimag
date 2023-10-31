@@ -49,5 +49,17 @@ except ImportError as e:
          """
     print(message.format(FIDIMAG_DIR, e, platform.machine(), platform.platform(), platform.processor()))
 
+# Set version from *installed* fidimag
+try:
+    # Python 3.8+
+    from importlib import metadata
+except ImportError:
+    try:
+        import importlib_metadata as metadata
+    except ImportError:
+        __version__ = "unknown"
 
-__version__ = '3.Xa'
+try:
+    __version__ = metadata.version("fidimag")
+except Exception:
+    __version__ = "unknown"
