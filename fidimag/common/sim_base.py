@@ -93,6 +93,7 @@ class SimBase(object):
 
         """
 
+        # NOTE: Check memory leak here:
         self.spin[:] = helper.init_vector(m0, self.mesh, 3, normalise)
 
         # TODO: carefully checking and requires to call set_mu first
@@ -101,14 +102,16 @@ class SimBase(object):
         # with no material, i.e. M_s = 0 or mu_s = 0
         # TODO: Check for atomistic and micromagnetic cases
         self.spin.shape = (-1, 3)
-        for i in range(self.spin.shape[0]):
-            if self._magnetisation[i] == 0:
-                self.spin[i, :] = 0
+        self.spin[self._magnetisation == 0, :] = 0.0
         self.spin.shape = (-1,)
 
         # Set the initial state for the Sundials integrator using the
         # spins array
         # Minimiser methods do not have integrator
+        # NOTE 08/11/23: Is this necessary here? We should move this piece
+        # of code to the integrator setup
+        # NOTE: Multiple calls to this piece of code seems to create a
+        # memory leak (also check code above)
         try:
             self.driver.integrator.set_initial_value(self.spin, self.driver.t)
         except AttributeError:
