@@ -13,6 +13,7 @@ from .chain_method_base import ChainMethodBase
 import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
+# import pdb
 
 
 class NEBM_Geodesic(ChainMethodBase):
@@ -270,14 +271,14 @@ class NEBM_Geodesic(ChainMethodBase):
 
         """
 
-        self.gradientE = self.gradientE.reshape(self.n_images, -1)
+        self.gradientE.shape = (self.n_images, -1)
 
-        y = y.reshape(self.n_images, -1)
+        y.shape = (self.n_images, -1)
 
         # Only update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.set_m(y[i])
+            self.sim.spin[:] = y[i]
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
@@ -287,8 +288,8 @@ class NEBM_Geodesic(ChainMethodBase):
 
             self.energies[i] = self.sim.compute_energy()
 
-        y = y.reshape(-1)
-        self.gradientE = self.gradientE.reshape(-1)
+        y.shape = (-1,)
+        self.gradientE.shape = (-1,)
 
     def compute_tangents(self, y):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
@@ -354,9 +355,7 @@ class NEBM_Geodesic(ChainMethodBase):
     def nebm_step(self, y):
 
         self.compute_effective_field_and_energy(y)
-        nebm_clib.project_images(self.gradientE, y,
-                                 self.n_images, self.n_dofs_image
-                                 )
+        nebm_clib.project_images(self.gradientE, y, self.n_images, self.n_dofs_image)
         self.compute_tangents(y)
         self.compute_spring_force(y)
 
