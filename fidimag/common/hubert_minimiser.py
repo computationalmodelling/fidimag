@@ -129,7 +129,7 @@ class HubertMinimiser(MinimiserBase):
                  maxCreep=5, eta_scale=1.0, stopping_dE=1e-6, dEta=2,
                  etaMin=0.001,
                  # perturbSeed=42, perturbFactor=0.1,
-                 nTrail=10, resetMax=20, mXgradE_tol=1.
+                 nTrail=10, resetMax=20, mXgradE_tol=0.1
                  ):
         """Performs the minimisation
 
@@ -287,9 +287,9 @@ class HubertMinimiser(MinimiserBase):
                     self.gradE_last[:] = self.gradE[:]
                     self.totalE_last = self.totalE
 
-                    avGradE = np.sum(self.mXgradE) / self.mXgradE.shape[0]
+                    avGradE = np.sum(np.abs(self.mXgradE)) / self.mXgradE.shape[0]
                     if avGradE < mXgradE_tol:
-                        print(f'Average gradient G^2/N = {avGradE} negligible. Stopping calculation.')
+                        print(f'Average torque length |mX∇E|/N = {avGradE} negligible. Stopping calculation.')
                         exitFlag = True
 
             # Stop while creepCount
