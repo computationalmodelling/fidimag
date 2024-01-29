@@ -1,13 +1,11 @@
 from distutils.core import setup
 from distutils.extension import Extension
 import multiprocessing
-from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 import numpy
 import os
 import glob
 import re
-import sys
 
 class BuildError(Exception):
     pass
@@ -59,7 +57,7 @@ def glob_cfiles(path, excludes, extension="*.c"):
     cfiles = []
     for cfile in glob.glob(os.path.join(path, extension)):
         filename = os.path.basename(cfile)
-        if not filename in tuple(excludes):
+        if filename not in tuple(excludes):
             cfiles.append(cfile)
     return cfiles
 
@@ -265,12 +263,12 @@ print('Building with {} threads'.format(nthreads))
 setup(
     name='fidimag',
     version=version,
-    description='Finite difference micromagnetic code',
+    description='Atomistic and finite-difference-micromagnetics code',
     packages=['fidimag',
               'fidimag.atomistic',
               'fidimag.micro',
               'fidimag.extensions',
               'fidimag.common',
               ],
-    ext_modules=cythonize(ext_modules, nthreads=nthreads),
+    ext_modules=cythonize(ext_modules, nthreads=nthreads, compiler_directives={'language_level' : "3"}),
 )

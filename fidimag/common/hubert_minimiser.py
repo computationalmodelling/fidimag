@@ -14,7 +14,8 @@ class HubertMinimiser(MinimiserBase):
         m_new = m_old + η * η_s * δE/δm|_old
 
     where η_s is a fixed scaling factor. The E functional gradient is computed
-    from the effective field `δE/δm = - H_eff`.
+    from the effective field `δE/δm = - H_eff` (note that we are ignoring
+    scaling parameters, such as mu0, Ms or mu_s).
 
     This algorithm is based on the works [1, 2] and is implemented in [3] as
     *Hubert minimiser*. The modifications include using the E gradient instead
@@ -33,6 +34,12 @@ class HubertMinimiser(MinimiserBase):
 
     The energy in this minimisation class is scaled by the `self.energyScale`
     parameter, so define the `stopping_dE` argument in `minimise` accordingly.
+    A more robust and global parameter to stop the minimisation process is the
+    torque with respect to the effective field, which should tend to zero in
+    a local energy minimum. In Cartesian coordinates, this is the result of
+    minimising the energy functional with the constraint of a fixed
+    magnetisation length. This criteria is controlled via the `mXgradE_tol`
+    parameter.
 
     The number of evaluation steps is counted according to how many times the
     effective field is computed in the creep stage. This number is stored in
@@ -78,7 +85,11 @@ class HubertMinimiser(MinimiserBase):
         # self._alpha_field = self._alpha * np.ones_like(self.spin)
         self.gradE = np.zeros_like(self.field)
         self.gradE_last = np.zeros_like(self.field)
-        self.gradE2 = np.zeros(mesh.n)
+        # If we use Cartesian coordinates then what is decreasing in gradient search is m X gradE
+        # This comes form the fact that we minimize: E(m) - λ * (m^2 - 1)
+        # with respect to m, i.e. d(...)/dm = 0, and that leads to m x Heff = 0
+        # If we use speherical coordinates, the constraint is implicit and we have: dE/dtheta = 0, dE/dphi = 0
+        self.mXgradE = np.zeros(mesh.n)
         self.totalE = 0.0
         self.totalE_last = 0.0
         self.energyScale = 1.
@@ -118,7 +129,7 @@ class HubertMinimiser(MinimiserBase):
                  maxCreep=5, eta_scale=1.0, stopping_dE=1e-6, dEta=2,
                  etaMin=0.001,
                  # perturbSeed=42, perturbFactor=0.1,
-                 nTrail=10, resetMax=20, gradEtol=1e-14
+                 nTrail=10, resetMax=20, mXgradE_tol=0.1
                  ):
         """Performs the minimisation
 
@@ -149,9 +160,10 @@ class HubertMinimiser(MinimiserBase):
         resetMax
             Maximum number of resets in case eta reaches the minimum value
             (indicating slow convergence)
-        gradEtol
-            Tolerance for the mean of the squared norm of the energy gradient,
-            `||gradE||^2`. The average is calculated from all spin sites.
+        mXgradE_tol
+            Tolerance for the mean of the squared norm of the m X energy gradient,
+            product `||m X gradE||^2`. The average is calculated from all spin sites
+            in material sites.
         """
 
         # rstate = np.random.RandomState(perturbSeed)
@@ -216,15 +228,17 @@ class HubertMinimiser(MinimiserBase):
                 # Save the energy and move trail index to next site
                 self.trailE[nStart] = self.totalE
                 nStart = next(trailPool)
-                gE_reshape = self.gradE.reshape(-1, 3)
-                np.einsum('ij,ij->i', gE_reshape, gE_reshape, out=self.gradE2)
+                mXgrad = np.cross(self.spin.reshape(-1, 3), self.gradE.reshape(-1, 3), axis=1)
+                # np.einsum('ij,ij->i', mXgrad, mXgrad, out=self.mXgradE2)
+                self.mXgradE[:] = np.linalg.norm(mXgrad, axis=1)
+                self.mXgradE[~_material[::3]] = 0.0
                 # self.gradE2[~_material[::3]] = 0.0
                 # Compute E difference of current E (totalE) with the trailing E
                 deltaE = abs(self.trailE[nStart] - self.totalE) / nTrail
 
                 # Statistics and saving:
                 if self.step % log_steps == 0:
-                    print(f'Step = {self.step:>4} Creep n = {creepCount:>3}  reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(∇E^2) = {self.gradE2.max():.4e}')
+                    print(f'Step = {self.step:>4} Creep n = {creepCount:>3}  reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(|mX∇E|) = {self.mXgradE.max():.4e}')
                 # Note that step == 0 is never saved
                 if self.step % save_data_steps == 0:
                     self.data_saver.save()
@@ -273,9 +287,9 @@ class HubertMinimiser(MinimiserBase):
                     self.gradE_last[:] = self.gradE[:]
                     self.totalE_last = self.totalE
 
-                    avGradE = np.sum(self.gradE2) / self.gradE2.shape[0]
-                    if avGradE < gradEtol:
-                        print(f'Average gradient G^2/N = {avGradE} negligible. Stopping calculation.')
+                    avGradE = np.sum(np.abs(self.mXgradE)) / self.mXgradE.shape[0]
+                    if avGradE < mXgradE_tol:
+                        print(f'Average torque length |mX∇E|/N = {avGradE} negligible. Stopping calculation.')
                         exitFlag = True
 
             # Stop while creepCount

@@ -424,7 +424,7 @@ class ChainMethodBase(object):
         #     self.integrator.set_options()
         elif integrator == 'rk4' or integrator == 'euler':
             self.integrator = StepIntegrator(self.band, self.step_RHS,
-                                             step=self.integrator,
+                                             step=integrator,
                                              stepsize=1e-3)
             self.integrator.set_options()
             self._llg_evolve = True

@@ -56,7 +56,7 @@ cdef extern from "clib.h":
 
     void compute_full_exch_field(double *spin, double *field, double *mu_s_inv,
                                  double *energy,
-				 double *J, int *ngbs, int n, int n_ngbs,
+				                 double *J, int *ngbs, int n, int n_ngbs,
                                  int n_shells, int *n_ngbs_shell,
                                  int *sum_ngbs_shell
                                  )

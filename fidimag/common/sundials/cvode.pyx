@@ -104,7 +104,7 @@ cdef extern from "cvode/cvode.h":
     ctypedef int (*CVRootFn)(realtype t, N_Vector y, realtype *gout, void *user_data)
 
     void *CVodeCreate(int lmm, SUNContext sunctx)
-    int CVode "CVode"(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask) nogil
+    # int CVode "CVode"(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask) nogil
     int CVodeSetUserData(void *cvode_mem, void *user_data)
     int CVodeSetMaxOrd(void *cvode_mem, int maxord)
     int CVodeSetMaxNumSteps(void *cvode_mem, long int mxsteps)

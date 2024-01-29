@@ -585,20 +585,20 @@ void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
 		}
 
         double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
-       	double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
+        double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
         // (Y * Y) G - (Y * G) Y = - Y x (Y x G)
-       	dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
-       	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
-       	dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
+        dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
+        dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
+        dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
 
         // Correction factor to rescale the spin length at every iteration step
-       	double c = 6 * sqrt(dYdt[j]     * dYdt[j]     +
+        double c = 6 * sqrt(dYdt[j]     * dYdt[j]     +
                             dYdt[j + 1] * dYdt[j + 1] +
                             dYdt[j + 2] * dYdt[j + 2]);
 
-       	dYdt[j]     += c * (1 - Y_dot_Y) * Y[j];
+        dYdt[j]     += c * (1 - Y_dot_Y) * Y[j];
         dYdt[j + 1] += c * (1 - Y_dot_Y) * Y[j + 1];
-       	dYdt[j + 2] += c * (1 - Y_dot_Y) * Y[j + 2];
+        dYdt[j + 2] += c * (1 - Y_dot_Y) * Y[j + 2];
     }
 }
 
@@ -624,7 +624,7 @@ void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dY
 
     int n_spins = n_dofs_image / 3;
     for(int i = 0; i < n_spins; i++){
-       	int j = 3 * i;
+        int j = 3 * i;
 
         if (pins[i] > 0){
             dYdt[j] = 0;
@@ -634,11 +634,11 @@ void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dY
 		}
 
         double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
-       	double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
+        double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
         // (Y * Y) G - (Y * G) Y = - Y x (Y x G)
-       	dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
-       	dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
-       	dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
+        dYdt[j] = Y_dot_Y * G[j] - Y_dot_G * Y[j];
+        dYdt[j + 1] = Y_dot_Y * G[j + 1] - Y_dot_G * Y[j + 1];
+        dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
     }
 }
 

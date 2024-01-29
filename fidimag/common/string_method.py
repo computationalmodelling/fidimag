@@ -305,7 +305,7 @@ class StringMethod(ChainMethodBase):
         # Update the step with the optimisation algorithm, in this
         # case we use: dY /dt = Y x Y x D - correction-factor
         # (check the C code in common/)
-        nebm_clib.compute_dYdt_G(
+        nebm_clib.compute_dYdt(
             y, self.G, ydot, self.sim._pins, self.n_images, self.n_dofs_image)
 
         # The effective force at the extreme images should already be zero, but
