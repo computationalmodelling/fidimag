@@ -1,7 +1,11 @@
 import os
+import sys
 import platform
 
 try:
+    from . import extensions
+    from . import atomistic
+    from . import micro
     from . import common
     citation = common.citation
 except ImportError as e:
