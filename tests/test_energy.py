@@ -53,7 +53,7 @@ def relax_system(mesh, Dx=0.005, Dp=0.01):
     sim.add(anis)
     print('Added Anisotropy')
 
-    anis2 = Anisotropy([0, 0, -Dp], name='Dp')
+    anis2 = Anisotropy(-Dp, [0, 0, 1], name='Dp')
     sim.add(anis2)
     print('Added Anisotropy 2')
 
