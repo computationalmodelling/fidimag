@@ -1,8 +1,5 @@
 import os
 import pyvtk
-from fidimag.common import CuboidMesh
-from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
-import sys
 
 log = pyvtk.logging.getLogger(pyvtk.__name__)
 log.setLevel(pyvtk.logging.ERROR)
@@ -14,10 +11,10 @@ class VTK(object):
         self.directory = directory
         self.filename = filename
 
-        if isinstance(mesh, HexagonalMesh):
+        if mesh.mesh_type == 'hexagonal':
             structure = pyvtk.PolyData(points=mesh.vertices,
                                        polygons=mesh.hexagons)
-        elif isinstance(mesh, CuboidMesh):
+        elif mesh.mesh_type == 'cuboid':
             # for keyword argument dimensions: if the mesh is made up of
             # nx * ny * nz cells, it has (nx + 1) * (ny + 1) * (nz + 1)
             # vertices.
