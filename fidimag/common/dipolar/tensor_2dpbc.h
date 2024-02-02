@@ -1,4 +1,4 @@
-
+#include <math.h>
 
 //------------------------------------------------------------------------------
 inline double RR(double x, double y, double z) { return x * x + y * y + z * z; }

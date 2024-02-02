@@ -70,6 +70,7 @@ to copyright protection within the United States.
  */
 
 #include <math.h>
+#include <stdlib.h>
 
 double Newell_f(double x, double y, double z);
 double Newell_g(double x, double y, double z);
