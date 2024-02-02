@@ -413,13 +413,14 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
             if (ngbs[idn] != -1 || fabs(Ms_inv[ngbs[idn]]) < MS_EPS) {
                 idnm = 3 * ngbs[idn];  // start index of -x neighbour
                 idnr = 2 * ngbs[idn];
+                // idm = 3 * i; -> TODO
                 mrho_minusx = m[idnm] * rho[idnr] + m[idnm + 1] * rho[idnr + 1];
 
                 dmrho_dxyz[j] += (mrho_i - mrho_minusx) / dx;
 
-                dmxyz_dxyz[3 * j]     += (m[i] - m[idnm]) / dxs[j];
-                dmxyz_dxyz[3 * j + 1] += (m[i + 1] - m[idnm + 1]) / dxs[j];
-                dmxyz_dxyz[3 * j + 2] += (m[i + 2] - m[idnm + 2]) / dxs[j];
+                dmxyz_dxyz[3 * j]     += (m[3 * i] - m[idnm]) / dxs[j];
+                dmxyz_dxyz[3 * j + 1] += (m[3 * i + 1] - m[idnm + 1]) / dxs[j];
+                dmxyz_dxyz[3 * j + 2] += (m[3 * i + 2] - m[idnm + 2]) / dxs[j];
             }
 
             // +x
@@ -430,9 +431,9 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
 
                 dmrho_dxyz[j] += (mrho_plusx - mrho_i) / dx;
 
-                dmxyz_dxyz[3 * j]     += (m[i] - m[idnm]) / dxs[j];
-                dmxyz_dxyz[3 * j + 1] += (m[i + 1] - m[idnm + 1]) / dxs[j];
-                dmxyz_dxyz[3 * j + 2] += (m[i + 2] - m[idnm + 2]) / dxs[j];
+                dmxyz_dxyz[3 * j]     += (-m[3 * i]     + m[idnm]) / dxs[j];
+                dmxyz_dxyz[3 * j + 1] += (-m[3 * i + 1] + m[idnm + 1]) / dxs[j];
+                dmxyz_dxyz[3 * j + 2] += (-m[3 * i + 2] + m[idnm + 2]) / dxs[j];
 
                 // If there was a ngbr in the -x direction, use a 2nd order finite diff
                 // derivative approx. The contrib of m_i cancels out
@@ -455,8 +456,12 @@ void dmi_field_cyl(double *restrict m, double *restrict field,
             field[3 * i + k] *= -2.0 * D[i] * Ms_inv[i] * MU0_INV;
         }
 
+        // Transposed m Jacobian: {dmx/dx, dmy/dx, dmz/dx, dmx/dy, ...}
         // m . grad(mrho)
-        energy[i] = m[i] * dmrho_dxyz[0] + m[i + 1] * dmrho_dxyz[1] + m[i + 2] * dmrho_dxyz[2];
+        // energy[i] = m[i] * dmrho_dxyz[0] + m[i + 1] * dmrho_dxyz[1] + m[i + 2] * dmrho_dxyz[2];
+        energy[i] = -(m[3 * i] * dmxyz_dxyz[0] + m[3 * i + 1] * dmxyz_dxyz[3] + m[3 * i + 2] * dmxyz_dxyz[6]) * rho[2 * i]
+                    -(m[3 * i] * dmxyz_dxyz[1] + m[3 * i + 1] * dmxyz_dxyz[4] + m[3 * i + 2] * dmxyz_dxyz[7]) * rho[2 * i + 1];
+
         // div(m) * (mrho)
         energy[i] += (dmxyz_dxyz[0] + dmxyz_dxyz[4] + dmxyz_dxyz[8]) * mrho_i;
         energy[i] *= D[i];
