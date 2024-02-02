@@ -1,9 +1,9 @@
 /* This file demag_oommf.h is taken from the OOMMF project (oommf/app/oxs/ext/demagcoef.h
 downloaded from http://math.nist.gov/oommf/dist/oommf12a5rc_20120928.tar.gz)
-with slightly modifications (change OC_REALWIDE to double) 
+with slightly modifications (change OC_REALWIDE to double)
 and distributed under this license shown below. */
 
-/* License 
+/* License
 
 OOMMF - Object Oriented MicroMagnetic Framework
 
@@ -39,10 +39,6 @@ to copyright protection within the United States.
 
 */
 
-
-
-
-
 /* FILE: demagcoef.h            -*-Mode: c++-*-
  *
  * Demag coefficients.
@@ -73,83 +69,75 @@ to copyright protection within the United States.
  *
  */
 
+#include <math.h>
 
-double Newell_f(double x,double y,double z);
-double Newell_g(double x,double y,double z);
+double Newell_f(double x, double y, double z);
+double Newell_g(double x, double y, double z);
 
 double
 CalculateSDA00(double x, double y, double z,
-		double dx,double dy,double dz);
+               double dx, double dy, double dz);
 
 inline double
 CalculateSDA11(double x, double y, double z,
-	       double dx,double dy,double dz)
-{ return CalculateSDA00(y,x,z,dy,dx,dz); }
+               double dx, double dy, double dz) { return CalculateSDA00(y, x, z, dy, dx, dz); }
 
 inline double
 CalculateSDA22(double x, double y, double z,
-	       double dx,double dy,double dz)
-{ return CalculateSDA00(z,y,x,dz,dy,dx); }
-
+               double dx, double dy, double dz) { return CalculateSDA00(z, y, x, dz, dy, dx); }
 
 double
 CalculateSDA01(double x, double y, double z,
-	       double dx,double dy,double dz);
+               double dx, double dy, double dz);
 
 inline double
 CalculateSDA02(double x, double y, double z,
-	       double dx,double dy,double dz)
-{ return CalculateSDA01(x,z,y,dx,dz,dy); }
+               double dx, double dy, double dz) { return CalculateSDA01(x, z, y, dx, dz, dy); }
 
 inline double
 CalculateSDA12(double x, double y, double z,
-	       double dx,double dy,double dz)
-{ return CalculateSDA01(y,z,x,dy,dz,dx); }
+               double dx, double dy, double dz) { return CalculateSDA01(y, z, x, dy, dz, dx); }
 
-
-double SelfDemagNx(double xsize,double ysize,double zsize);
-double SelfDemagNy(double xsize,double ysize,double zsize);
-double SelfDemagNz(double xsize,double ysize,double zsize);
+double SelfDemagNx(double xsize, double ysize, double zsize);
+double SelfDemagNy(double xsize, double ysize, double zsize);
+double SelfDemagNz(double xsize, double ysize, double zsize);
 
 double DemagNxxAsymptotic(double x, double y, double z,
-                            double dx,double dy,double dz);
+                          double dx, double dy, double dz);
 
 double DemagNxyAsymptotic(double x, double y, double z,
-                            double dx,double dy,double dz);
+                          double dx, double dy, double dz);
 
 double DemagNyyAsymptotic(double x, double y, double z,
-                            double dx,double dy,double dz);
+                          double dx, double dy, double dz);
 
 double DemagNzzAsymptotic(double x, double y, double z,
-                            double dx,double dy,double dz);
+                          double dx, double dy, double dz);
 
 double DemagNxzAsymptotic(double x, double y, double z,
-                            double dx,double dy,double dz);
+                          double dx, double dy, double dz);
 
 double DemagNyzAsymptotic(double x, double y, double z,
-                            double dx,double dy,double dz);
-
-
+                          double dx, double dy, double dz);
 
 ////////////////////////////////////////////////////////////////////////////
 // Routines to do accurate summation
 
-static int AS_Compare(const void* px,const void* py)
-{
+static int AS_Compare(const void *px, const void *py) {
   // Comparison based on absolute values
-  double x=fabs(*((const double *)px));
-  double y=fabs(*((const double *)py));
-  if(x<y) return 1;
-  if(x>y) return -1;
+  double x = fabs(*((const double *)px));
+  double y = fabs(*((const double *)py));
+  if (x < y)
+    return 1;
+  if (x > y)
+    return -1;
   return 0;
 }
 
-
-static double		       
-AccurateSum(int n,double *arr)
-{
+static double
+AccurateSum(int n, double *arr) {
   // Order by decreasing magnitude
-  qsort(arr,n,sizeof(double),AS_Compare);
+  qsort(arr, n, sizeof(double), AS_Compare);
 
   // Add up using doubly compensated summation.  If necessary, mark
   // variables these "volatile" to protect against problems arising
@@ -157,22 +145,22 @@ AccurateSum(int n,double *arr)
   // order with respect to parentheses at high levels of optimization,
   // i.e., write "u=x; u-=(y-corr)" as opposed to "u=x-(y-corr)".
 
-  double sum,corr,y,u,t,v,z,x,tmp;
+  double sum, corr, y, u, t, v, z, x, tmp;
 
-  sum=arr[0]; corr=0;
-  for(int i=1;i<n;i++) {
-    x=arr[i];
-    y=corr+x;
-    tmp=y-corr;
-    u=x-tmp;
-    t=y+sum;
-    tmp=t-sum;
-    v=y-tmp;
-    z=u+v;
-    sum=t+z;
-    tmp=sum-t;
-    corr=z-tmp;
+  sum = arr[0];
+  corr = 0;
+  for (int i = 1; i < n; i++) {
+    x = arr[i];
+    y = corr + x;
+    tmp = y - corr;
+    u = x - tmp;
+    t = y + sum;
+    tmp = t - sum;
+    v = y - tmp;
+    z = u + v;
+    sum = t + z;
+    tmp = sum - t;
+    corr = z - tmp;
   }
   return sum;
 }
-

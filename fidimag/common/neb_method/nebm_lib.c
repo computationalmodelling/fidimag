@@ -2,7 +2,7 @@
 #include "math.h"
 #include <stdlib.h>
 
-void cross_product(double *restrict output, double * A, double * B){
+void cross_product(double *restrict output, double *A, double *B) {
     /* Cross product between arrays A and B, assuming they
      * have length = 3
      * Every resulting component is stored in the *output array
@@ -13,12 +13,12 @@ void cross_product(double *restrict output, double * A, double * B){
     output[2] = A[0] * B[1] - A[1] * B[0];
 }
 
-double dot_product(double * A, double * B, int n){
+double dot_product(double *A, double *B, int n) {
     /* Dot product between arrays A and B , assuming they
      * have length n */
 
     double dotp = 0;
-    for(int i = 0; i < n; i++){
+    for (int i = 0; i < n; i++) {
         dotp += A[i] * B[i];
     }
 
@@ -35,12 +35,14 @@ double compute_norm(double *restrict a, int n) {
      */
 
     double norm = 0;
-    for(int i = 0; i < n; i++){ norm += a[i] * a[i]; }
+    for (int i = 0; i < n; i++) {
+        norm += a[i] * a[i];
+    }
     norm = sqrt(norm);
     return norm;
 }
 
-void normalise(double *restrict a, int n){
+void normalise(double *restrict a, int n) {
 
     /* Normalise the *a array, whose length is n (3 * number of nodes in
      * cartesian, and 2 * number of nodes in spherical) To do this we compute
@@ -55,56 +57,52 @@ void normalise(double *restrict a, int n){
 
     length = compute_norm(a, n);
 
-    if (length > 0){
+    if (length > 0) {
         length = 1.0 / length;
     }
 
-    for(int i = 0; i < n; i++){
+    for (int i = 0; i < n; i++) {
         a[i] *= length;
     }
 }
 
-
-void normalise_images_C(double *restrict y, int n_images, int n_dofs_image){
+void normalise_images_C(double *restrict y, int n_images, int n_dofs_image) {
 
     int i;
 
     // Index where the components of an image start in the *y array,
     int im_idx;
 
-    for(i = 1; i < n_images - 1; i++){
+    for (i = 1; i < n_images - 1; i++) {
         im_idx = i * n_dofs_image;
-        double * y_i = &y[im_idx];
+        double *y_i = &y[im_idx];
 
         normalise(y_i, n_dofs_image);
     }
 }
 
-void normalise_spins_C(double *restrict y, int n_images, int n_dofs_image){
+void normalise_spins_C(double *restrict y, int n_images, int n_dofs_image) {
 
     int i, j;
 
     // Index where the components of an image start in the *y array,
     int im_idx;
 
-    for(i = 1; i < n_images - 1; i++){
+    for (i = 1; i < n_images - 1; i++) {
         im_idx = i * n_dofs_image;
 
         // Normalise per spin
-        for(j = 0; j < n_dofs_image; j+=3){
-            double * y_i = &y[im_idx + j];
+        for (j = 0; j < n_dofs_image; j += 3) {
+            double *y_i = &y[im_idx + j];
             normalise(y_i, 3);
         }
     }
 }
 
-
 /* ------------------------------------------------------------------------- */
 
-
 void compute_tangents_C(double *restrict tangents, double *restrict y, double *restrict energies,
-                        int n_dofs_image, int n_images
-                        ) {
+                        int n_dofs_image, int n_images) {
 
     /* Compute the tangents for every degree of freedom of a NEBM band,
      * following the rules from Henkelman and Jonsson [Henkelman et al.,
@@ -167,31 +165,31 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
 
     double *t_plus;
     double *t_minus;
-    t_plus  = malloc(n_dofs_image * sizeof(double));
+    t_plus = malloc(n_dofs_image * sizeof(double));
     t_minus = malloc(n_dofs_image * sizeof(double));
 
     double deltaE_plus, deltaE_minus;
     double deltaE_MAX, deltaE_MIN;
 
-    for(i = 1; i < n_images - 1; i++){
+    for (i = 1; i < n_images - 1; i++) {
 
         im_idx = i * (n_dofs_image);
         next_im_idx = (i + 1) * (n_dofs_image);
         prev_im_idx = (i - 1) * (n_dofs_image);
 
         // Tangents of the i-th image
-        double * t = &tangents[im_idx];
+        double *t = &tangents[im_idx];
 
         // Compute the t+ and t- vectors for the i-th image of the band, which
         // is given by the difference of the Y_i image with its neighbours
-        for(j = 0; j < n_dofs_image; j++){
-            t_plus[j]  = y[next_im_idx + j] - y[im_idx + j];
-            t_minus[j] = y[im_idx + j]      - y[prev_im_idx + j];
+        for (j = 0; j < n_dofs_image; j++) {
+            t_plus[j] = y[next_im_idx + j] - y[im_idx + j];
+            t_minus[j] = y[im_idx + j] - y[prev_im_idx + j];
         }
 
         // Similarly, compute the energy differences
-        deltaE_plus  = energies[i + 1] - energies[i];
-        deltaE_minus = energies[i]     - energies[i - 1];
+        deltaE_plus = energies[i + 1] - energies[i];
+        deltaE_minus = energies[i] - energies[i - 1];
 
         /* Now we follow Henkelman and Jonsson rules [Henkelman et al., Journal
          * of Chemical Physics 113, 22 (2000)] for the tangent directions
@@ -207,20 +205,22 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
 
         /* ----------------------------------------------------------------- */
 
-        if(deltaE_plus > 0 && deltaE_minus > 0) {
-            for(j = 0; j < n_dofs_image; j++) t[j] = t_plus[j];
+        if (deltaE_plus > 0 && deltaE_minus > 0) {
+            for (j = 0; j < n_dofs_image; j++)
+                t[j] = t_plus[j];
         }
 
         /* ----------------------------------------------------------------- */
 
-        else if(deltaE_plus < 0 && deltaE_minus < 0) {
-            for(j = 0; j < n_dofs_image; j++) t[j] = t_minus[j];
+        else if (deltaE_plus < 0 && deltaE_minus < 0) {
+            for (j = 0; j < n_dofs_image; j++)
+                t[j] = t_minus[j];
         }
 
         /* ----------------------------------------------------------------- */
 
-        else if((deltaE_plus < 0 && deltaE_minus > 0) ||      // A maximum
-                (deltaE_plus > 0 && deltaE_minus < 0)) {      // A minimum
+        else if ((deltaE_plus < 0 && deltaE_minus > 0) || // A maximum
+                 (deltaE_plus > 0 && deltaE_minus < 0)) { // A minimum
 
             /* According to the energy of the neighbouring images, the tangent
              * of the i-th image will be a combination of the differences wrt
@@ -231,13 +231,13 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
             deltaE_MIN = fmin(fabs(deltaE_plus), fabs(deltaE_minus));
 
             if (energies[i + 1] > energies[i - 1]) {
-                for(j = 0; j < n_dofs_image; j++) {
+                for (j = 0; j < n_dofs_image; j++) {
                     t[j] = t_plus[j] * deltaE_MAX + t_minus[j] * deltaE_MIN;
                 }
             }
 
             else {
-                for(j = 0; j < n_dofs_image; j++) {
+                for (j = 0; j < n_dofs_image; j++) {
                     t[j] = t_plus[j] * deltaE_MIN + t_minus[j] * deltaE_MAX;
                 }
             }
@@ -246,7 +246,8 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
 
         // When energy has a constant slope
         else {
-            for(j = 0; j < n_dofs_image; j++) t[j] = t_plus[j] + t_minus[j];
+            for (j = 0; j < n_dofs_image; j++)
+                t[j] = t_plus[j] + t_minus[j];
         }
 
         /* ----------------------------------------------------------------- */
@@ -256,18 +257,16 @@ void compute_tangents_C(double *restrict tangents, double *restrict y, double *r
     free(t_minus);
 } // Close main function
 
-
 /* ------------------------------------------------------------------------- */
 
 void compute_spring_force_C(
-        double *restrict spring_force,
-        double *restrict y,
-        double *restrict tangents,
-        double *restrict k,
-        int n_images,
-        int n_dofs_image,
-        double *restrict distances
-        ) {
+    double *restrict spring_force,
+    double *restrict y,
+    double *restrict tangents,
+    double *restrict k,
+    int n_images,
+    int n_dofs_image,
+    double *restrict distances) {
 
     /* Compute the spring force for every image of an energy band, which is
      * defined in the *y array. The *y array has (n_images * n_dofs_image)
@@ -297,35 +296,32 @@ void compute_spring_force_C(
 
     double dY_plus_norm, dY_minus_norm;
 
-    for(i = 1; i < n_images - 1; i++){
+    for (i = 1; i < n_images - 1; i++) {
 
         im_idx = i * (n_dofs_image);
 
-        double * sf = &spring_force[im_idx];
-        double * t = &tangents[im_idx];
+        double *sf = &spring_force[im_idx];
+        double *t = &tangents[im_idx];
 
         // Get the distances between the i-th image, Y_i, and its
         // neighbours, the (i+1)-th and (i-1)-th images.
-        dY_plus_norm  = distances[i];
+        dY_plus_norm = distances[i];
         dY_minus_norm = distances[i - 1];
 
         // Now compute the spring force
-        for(j = 0; j < n_dofs_image; j++) {
+        for (j = 0; j < n_dofs_image; j++) {
             sf[j] = k[i] * (dY_plus_norm - dY_minus_norm) * t[j];
         }
     }
-
 }
 
-
 /* ------------------------------------------------------------------------- */
-
 
 void compute_effective_force_C(double *restrict G,
                                double *restrict tangents,
                                double *restrict gradientE,
                                double *restrict spring_force,
-                               int    *restrict climbing_image,
+                               int *restrict climbing_image,
                                int n_images,
                                int n_dofs_image) {
 
@@ -357,30 +353,30 @@ void compute_effective_force_C(double *restrict G,
     int im_idx;
     double gradE_dot_t;
 
-    for(i = 1; i < n_images - 1; i++){
+    for (i = 1; i < n_images - 1; i++) {
 
         im_idx = i * (n_dofs_image);
 
-        double * t = &tangents[im_idx];
-        double * gradE = &gradientE[im_idx];
-        double * sf = &spring_force[im_idx];
+        double *t = &tangents[im_idx];
+        double *gradE = &gradientE[im_idx];
+        double *sf = &spring_force[im_idx];
 
         gradE_dot_t = dot_product(gradE, t, n_dofs_image);
 
-        if(climbing_image[i] == 0) {
-            for(j = 0; j < n_dofs_image; j++) {
+        if (climbing_image[i] == 0) {
+            for (j = 0; j < n_dofs_image; j++) {
                 G[im_idx + j] = -gradE[j] + gradE_dot_t * t[j] + sf[j];
             }
         }
         // falling image with spring constant -> 0
-        else if(climbing_image[i] == -1) {
-            for(j = 0; j < n_dofs_image; j++) {
+        else if (climbing_image[i] == -1) {
+            for (j = 0; j < n_dofs_image; j++) {
                 G[im_idx + j] = -gradE[j];
             }
         }
         // climbing image
         else {
-            for(j = 0; j < n_dofs_image; j++) {
+            for (j = 0; j < n_dofs_image; j++) {
                 G[im_idx + j] = -gradE[j] + 2 * gradE_dot_t * t[j];
             }
         }
@@ -394,24 +390,23 @@ void compute_effective_force_C(double *restrict G,
 // degrees of freedom. This function updates the *distances and *path_distances
 // arrays. The *distances array saves the distances as:
 //      [ |Y1 - Y0|, |Y2 - Y1|, ... ]
-// Path distances are the total distances relative to the 0-th image 
+// Path distances are the total distances relative to the 0-th image
 void compute_image_distances(double *restrict distances,
                              double *restrict path_distances,
                              double *restrict y,
                              int n_images,
                              int n_dofs_image,
-                             double (* compute_distance)(double *,
-                                                         double *,
-                                                         int,
-                                                         int *,
-                                                         int),
-                             int *restrict  material,
-                             int n_dofs_image_material
-                             ) {
+                             double (*compute_distance)(double *,
+                                                        double *,
+                                                        int,
+                                                        int *,
+                                                        int),
+                             int *restrict material,
+                             int n_dofs_image_material) {
 
     int i, im_idx, next_im_idx;
     path_distances[0] = 0.0;
-    for(i = 0; i < n_images - 1; i++){
+    for (i = 0; i < n_images - 1; i++) {
 
         im_idx = i * (n_dofs_image);
         next_im_idx = (i + 1) * (n_dofs_image);
@@ -419,8 +414,7 @@ void compute_image_distances(double *restrict distances,
         distances[i] = compute_distance(&y[next_im_idx], &y[im_idx],
                                         n_dofs_image,
                                         material,
-                                        n_dofs_image_material
-                                        );
+                                        n_dofs_image_material);
         path_distances[i + 1] = path_distances[i] + distances[i];
     }
 }
@@ -428,8 +422,7 @@ void compute_image_distances(double *restrict distances,
 // ----------------------------------------------------------------------------
 
 void project_vector_C(double *restrict vector, double *restrict y_i,
-                      int n_dofs_image
-                      ){
+                      int n_dofs_image) {
 
     /* Project a vector into the space of the y_i image in an energy band. We
      * assume that *image and *y_i have the same length. The vector and the
@@ -459,20 +452,19 @@ void project_vector_C(double *restrict vector, double *restrict y_i,
     int j;
     double v_dot_m_i = 0;
 
-    for(j = 0; j < n_dofs_image; j++) {
+    for (j = 0; j < n_dofs_image; j++) {
         // Every 3 components of the *vector and *y_i array, compute the
         // dot product of the i-th vector (i.e. using
         //      ( vector[j], vector[j+1], vector[j+2] ) , j=0,3,6, ... )
         // and then compute the projection for the 3 components of the vector
-        if (j % 3 == 0) v_dot_m_i = dot_product(&vector[j], &y_i[j], 3);
+        if (j % 3 == 0)
+            v_dot_m_i = dot_product(&vector[j], &y_i[j], 3);
         vector[j] = vector[j] - v_dot_m_i * y_i[j];
     }
 }
 
-
 void project_images_C(double *restrict vector, double *restrict y,
-                      int n_images, int n_dofs_image
-                      ){
+                      int n_images, int n_dofs_image) {
 
     /* Compute the projections of the vectors in the *vector array into the
      * space formed by the spin vectors in the array *y
@@ -506,23 +498,21 @@ void project_images_C(double *restrict vector, double *restrict y,
     // Index where the components of an image start in the *y array,
     int im_idx;
 
-    for(i = 1; i < n_images - 1; i++){
+    for (i = 1; i < n_images - 1; i++) {
 
         im_idx = i * (n_dofs_image);
 
-        double * v = &vector[im_idx];
-        double * y_i = &y[im_idx];
+        double *v = &vector[im_idx];
+        double *y_i = &y[im_idx];
 
         project_vector_C(v, y_i, n_dofs_image);
-
     }
 }
 
 // ----------------------------------------------------------------------------
 
 double compute_distance_cartesian(double *restrict A, double *restrict B, int n_dofs_image,
-                                  int *restrict material, int n_dofs_image_material
-                                  ) {
+                                  int *restrict material, int n_dofs_image_material) {
 
     /* Compute the distance between two images, A and B, discarding the sites
      * without material
@@ -535,9 +525,9 @@ double compute_distance_cartesian(double *restrict A, double *restrict B, int n_
     double distance;
     int j = 0;
 
-    for(int i = 0; i < n_dofs_image; i++) {
+    for (int i = 0; i < n_dofs_image; i++) {
         if (material[i] > 0) {
-            A_minus_B[j]  = A[i] - B[i];
+            A_minus_B[j] = A[i] - B[i];
             j += 1;
         }
     }
@@ -570,19 +560,18 @@ double compute_distance_cartesian(double *restrict A, double *restrict B, int n_
 
 void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
                   int *restrict pins,
-                  int n_dofs_image
-                  ) {
+                  int n_dofs_image) {
 
     int n_spins = n_dofs_image / 3;
-    for(int i = 0; i < n_spins; i++){
-       	int j = 3 * i;
+    for (int i = 0; i < n_spins; i++) {
+        int j = 3 * i;
 
-        if (pins[i] > 0){
+        if (pins[i] > 0) {
             dYdt[j] = 0;
-		    dYdt[j + 1] = 0;
-		    dYdt[j + 2] = 0;
-		    continue;
-		}
+            dYdt[j + 1] = 0;
+            dYdt[j + 2] = 0;
+            continue;
+        }
 
         double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
         double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
@@ -592,11 +581,11 @@ void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
         dYdt[j + 2] = Y_dot_Y * G[j + 2] - Y_dot_G * Y[j + 2];
 
         // Correction factor to rescale the spin length at every iteration step
-        double c = 6 * sqrt(dYdt[j]     * dYdt[j]     +
+        double c = 6 * sqrt(dYdt[j] * dYdt[j] +
                             dYdt[j + 1] * dYdt[j + 1] +
                             dYdt[j + 2] * dYdt[j + 2]);
 
-        dYdt[j]     += c * (1 - Y_dot_Y) * Y[j];
+        dYdt[j] += c * (1 - Y_dot_Y) * Y[j];
         dYdt[j + 1] += c * (1 - Y_dot_Y) * Y[j + 1];
         dYdt[j + 2] += c * (1 - Y_dot_Y) * Y[j + 2];
     }
@@ -604,9 +593,9 @@ void compute_dYdt(double *restrict Y, double *restrict G, double *restrict dYdt,
 
 void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYdt, int *restrict pins,
                     int n_images, int n_dofs_image) {
-    #pragma omp parallel for schedule(static)
-	for(int i = 1; i < n_images - 1; i++){
-        //printf("");
+#pragma omp parallel for schedule(static)
+    for (int i = 1; i < n_images - 1; i++) {
+        // printf("");
         int j = i * n_dofs_image;
         compute_dYdt(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
     }
@@ -619,19 +608,18 @@ void compute_dYdt_C(double *restrict y, double *restrict G, double *restrict dYd
 
 void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dYdt,
                      int *restrict pins,
-                     int n_dofs_image
-                     ) {
+                     int n_dofs_image) {
 
     int n_spins = n_dofs_image / 3;
-    for(int i = 0; i < n_spins; i++){
+    for (int i = 0; i < n_spins; i++) {
         int j = 3 * i;
 
-        if (pins[i] > 0){
+        if (pins[i] > 0) {
             dYdt[j] = 0;
-		    dYdt[j + 1] = 0;
-		    dYdt[j + 2] = 0;
-		    continue;
-		}
+            dYdt[j + 1] = 0;
+            dYdt[j + 2] = 0;
+            continue;
+        }
 
         double Y_dot_Y = Y[j] * Y[j] + Y[j + 1] * Y[j + 1] + Y[j + 2] * Y[j + 2];
         double Y_dot_G = Y[j] * G[j] + Y[j + 1] * G[j + 1] + Y[j + 2] * G[j + 2];
@@ -645,9 +633,9 @@ void compute_dYdt_nc(double *restrict Y, double *restrict G, double *restrict dY
 void compute_dYdt_nc_C(double *restrict y, double *restrict G, double *restrict dYdt,
                        int *restrict pins,
                        int n_images, int n_dofs_image) {
-    #pragma omp parallel for schedule(static)
-	for(int i = 1; i < n_images - 1; i++){
-        //printf("");
+#pragma omp parallel for schedule(static)
+    for (int i = 1; i < n_images - 1; i++) {
+        // printf("");
         int j = i * n_dofs_image;
         compute_dYdt_nc(&y[j], &G[j], &dYdt[j], &pins[0], n_dofs_image);
     }
