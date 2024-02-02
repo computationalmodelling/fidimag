@@ -152,38 +152,21 @@ class Sim(SimBase):
 
         """
 
-        print('Set Ms')
         self._Ms[:] = helper.init_scalar(value, self.mesh)
 
-        print('Finish Set Ms')
         nonzero = 0
 
-        filterMs = self._Ms > 0.0
+        filterMs = (self._Ms > 0.0)
         self._Ms_inv[filterMs] = 1.0 / self._Ms[filterMs]
         nonzero = self._Ms[filterMs].size
-        # for i in range(self.n):
-        #     if self._Ms[i] > 0.0:
-        #         self._Ms_inv[i] = 1.0 / self._Ms[i]
-        #         nonzero += 1
-        print(f'{nonzero=}')
-        print(f'{self.mesh.n=}')
 
         # We moved this variable to the micro_driver class
         self.driver.n_nonzero = nonzero
 
-        print('Set inverse')
         filterMs = (self._Ms == 0.0)
         self._pins[filterMs] = 1
         filterNgbs = np.isin(self.mesh.neighbours, np.where(filterMs))
         self.mesh.neighbours[filterNgbs] = -1
-
-        # for i in range(len(self._Ms)):
-        #     if self._Ms[i] == 0.0:
-        #         self._pins[i] = 1
-
-        #         # Set the neighbour index to -1 for sites with Ms = 0
-        #         self.mesh.neighbours[self.mesh.neighbours == i] = -1
-        print('Set pins')
 
         # TODO: Check if this is necessary here, it is only defined
         # for the LLG STT in the drivers
