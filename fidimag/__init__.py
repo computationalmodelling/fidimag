@@ -4,9 +4,9 @@ import platform
 
 try:
     from . import extensions
-    from . import common
     from . import atomistic
     from . import micro
+    from . import common
     citation = common.citation
 except ImportError as e:
     # cwd = os.getcwd()
@@ -17,8 +17,8 @@ except ImportError as e:
       1) The extensions are not built. Try running 'make' from the root directory.
 
       2) FIDIMAG loads comon libraries dynamically. Currently, FIDIMAG requires
-         * Sundials 2.6.2
-         * FFTW 3.3.5
+         * Sundials 6.6.1
+         * FFTW 3.3.8
          If you are using Linux, you may be able to download these through a
          package manager such as apt or yum. However, convenience scripts
          are provided in the folder bin to install these locally for Ubuntu.
