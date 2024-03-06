@@ -14,7 +14,7 @@ def run(integrator, jacobian):
     name = "sim_" + integrator
     if integrator == "sundials":
         name += "_J1" if jacobian else "_J0"
-    sim = Sim(mesh, name, integrator, use_jac=jacobian)
+    sim = Sim(mesh, name, integrator=integrator, driver='llg', use_jac=jacobian)
     sim.Ms = 0.86e6
     sim.driver.alpha = 0.5
     sim.set_m((1, 0, 1))
@@ -23,7 +23,8 @@ def run(integrator, jacobian):
 
     ts = np.linspace(0, 3e-10, 61)
     for t in ts:
-        sim.run_until(t)
+        print(f'Running until t = {t}')
+        sim.driver.run_until(t)
 
 if __name__ == "__main__":
     run("sundials", False)

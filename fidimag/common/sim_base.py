@@ -37,7 +37,9 @@ class SimBase(object):
             self.xperiodic, self.yperiodic = mesh.periodicity
 
         # To save the simulation data: ----------------------------------------
-
+        # TODO: The defined lambda fn are inefficient since Heff is computed
+        # It would be better to pass the value directly to the class, or
+        # define a dictionary in the class that is updated every time
         self.data_saver = DataSaver(self, name + '.txt')
 
         self.data_saver.entities['E_total'] = {

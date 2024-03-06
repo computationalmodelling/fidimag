@@ -1,8 +1,8 @@
 #include "micro_clib.h"
 
 void compute_exch_field_micro(double *restrict m, double *restrict field, double *restrict energy,
-			      double *restrict Ms_inv, double A, double dx, double dy, double dz,
-                  int n, int *restrict ngbs) {
+                              double *restrict Ms_inv, double A, double dx, double dy, double dz,
+                              int n, int *restrict ngbs) {
 
     /* Compute the micromagnetic exchange field and energy using the
      * matrix of neighbouring spins and a second order approximation
@@ -83,36 +83,36 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
      */
 
     /* Define the coefficients */
-	double ax = 2 * A / (dx * dx);
+    double ax = 2 * A / (dx * dx);
     double ay = 2 * A / (dy * dy);
     double az = 2 * A / (dz * dz);
 
     /* Here we iterate through every mesh node */
-	#pragma omp parallel for
-	for (int i = 0; i < n; i++) {
-	    double fx = 0, fy = 0, fz = 0;
-	    int idnm = 0;     // Index for the magnetisation matrix
-	    int idn = 6 * i; // index for the neighbours
+#pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        double fx = 0, fy = 0, fz = 0;
+        int idnm = 0;    // Index for the magnetisation matrix
+        int idn = 6 * i; // index for the neighbours
 
         /* Set a zero field for sites without magnetic material */
-	    if (Ms_inv[i] == 0.0){
-	        field[3 * i] = 0;
-	        field[3 * i + 1] = 0;
-	        field[3 * i + 2] = 0;
-	        continue;
-	    }
+        if (Ms_inv[i] == 0.0) {
+            field[3 * i] = 0;
+            field[3 * i + 1] = 0;
+            field[3 * i + 2] = 0;
+            continue;
+        }
 
         /* Here we iterate through the neighbours */
         for (int j = 0; j < 6; j++) {
             /* Remember that index=-1 is for sites without material */
-	        if (ngbs[idn + j] >= 0) {
+            if (ngbs[idn + j] >= 0) {
                 /* Magnetisation of the neighbouring spin since ngbs gives
                  * the neighbour's index */
-	            idnm = 3 * ngbs[idn + j];
+                idnm = 3 * ngbs[idn + j];
 
                 /* Check that the magnetisation of the neighbouring spin
                  * is larger than zero */
-                if (Ms_inv[ngbs[idn + j]] > 0){
+                if (Ms_inv[ngbs[idn + j]] > 0) {
 
                     /* Neighbours in the -x and +x directions
                      * giving: ( m[i-x] - m[i] ) + ( m[i+x] - m[i] )
@@ -128,45 +128,44 @@ void compute_exch_field_micro(double *restrict m, double *restrict field, double
                      * This same applies for the other directions
                      */
                     if (j == 0 || j == 1) {
-                        fx += ax * (m[idnm]     - m[3 * i]);
+                        fx += ax * (m[idnm] - m[3 * i]);
                         fy += ax * (m[idnm + 1] - m[3 * i + 1]);
                         fz += ax * (m[idnm + 2] - m[3 * i + 2]);
                     }
                     /* Neighbours in the -y and +y directions */
                     else if (j == 2 || j == 3) {
-                        fx += ay * (m[idnm]     - m[3  * i]);
+                        fx += ay * (m[idnm] - m[3 * i]);
                         fy += ay * (m[idnm + 1] - m[3 * i + 1]);
                         fz += ay * (m[idnm + 2] - m[3 * i + 2]);
                     }
                     /* Neighbours in the -z and +z directions */
                     else if (j == 4 || j == 5) {
-                        fx += az * (m[idnm]     - m[3 * i]);
+                        fx += az * (m[idnm] - m[3 * i]);
                         fy += az * (m[idnm + 1] - m[3 * i + 1]);
                         fz += az * (m[idnm + 2] - m[3 * i + 2]);
+                    } else {
+                        continue;
                     }
-                    else {
-                        continue; }
                 }
             }
         }
 
         /* Energy as: (-mu0 * Ms / 2) * [ H_ex * m ]   */
-        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
-                            + fz * m[3 * i + 2]);
+        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1] + fz * m[3 * i + 2]);
 
         /* Update the field H_ex which has the same structure than *m */
-        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
+        field[3 * i] = fx * Ms_inv[i] * MU0_INV;
         field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
         field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
     }
 }
 
-inline int get_index(int nx, int ny, int i, int j, int k){
- return k * nx*ny + j * nx + i;
+inline int get_index(int nx, int ny, int i, int j, int k) {
+    return k * nx * ny + j * nx + i;
 }
 
 void compute_exch_field_rkky_micro(double *m, double *field, double *energy, double *Ms_inv,
-                         double sigma, int nx, double ny, double nz, int z_bottom, int z_top){
+                                   double sigma, int nx, double ny, double nz, int z_bottom, int z_top) {
 
     /* Compute the micromagnetic exchange field and energy using the
      * matrix of neighbouring spins and a second order approximation
@@ -193,44 +192,42 @@ void compute_exch_field_rkky_micro(double *m, double *field, double *energy, dou
      *
      */
 
-		 int n = nx*ny*nz;
-		 for (int i = 0; i < n; i++){
+    int n = nx * ny * nz;
+    for (int i = 0; i < n; i++) {
         energy[i] = 0;
-				field[3*i]=0;
-				field[3*i+1]=0;
-				field[3*i+2]=0;
-		 }
+        field[3 * i] = 0;
+        field[3 * i + 1] = 0;
+        field[3 * i + 2] = 0;
+    }
 
-		 #pragma omp parallel for
-		 for (int i = 0; i < nx; i++) {
-			 for (int j = 0; j < ny; j++){
-				 double mtx=0, mty=0, mtz=0;
-				 double mbx=0, mby=0, mbz=0;
-				 int id1 = get_index(nx,ny, i, j, z_bottom);
-				 int id2 = get_index(nx,ny, i, j, z_top);
-				 mtx = m[3*id2];
-				 mty = m[3*id2+1];
-				 mtz = m[3*id2+2];
+#pragma omp parallel for
+    for (int i = 0; i < nx; i++) {
+        for (int j = 0; j < ny; j++) {
+            double mtx = 0, mty = 0, mtz = 0;
+            double mbx = 0, mby = 0, mbz = 0;
+            int id1 = get_index(nx, ny, i, j, z_bottom);
+            int id2 = get_index(nx, ny, i, j, z_top);
+            mtx = m[3 * id2];
+            mty = m[3 * id2 + 1];
+            mtz = m[3 * id2 + 2];
 
-				 mbx = m[3*id1];
-				 mby = m[3*id1+1];
-				 mbz = m[3*id1+2];
+            mbx = m[3 * id1];
+            mby = m[3 * id1 + 1];
+            mbz = m[3 * id1 + 2];
 
-				 if (Ms_inv[id1] != 0.0){
-					 energy[id1]  = sigma*(1-mtx*mbx-mty*mby-mtz*mbz);
-					 field[3*id1]   = sigma * mtx * Ms_inv[id1] * MU0_INV;
-					 field[3*id1+1] = sigma * mty * Ms_inv[id1] * MU0_INV;
-					 field[3*id1+2] = sigma * mtz * Ms_inv[id1] * MU0_INV;
-				 }
+            if (Ms_inv[id1] != 0.0) {
+                energy[id1] = sigma * (1 - mtx * mbx - mty * mby - mtz * mbz);
+                field[3 * id1] = sigma * mtx * Ms_inv[id1] * MU0_INV;
+                field[3 * id1 + 1] = sigma * mty * Ms_inv[id1] * MU0_INV;
+                field[3 * id1 + 2] = sigma * mtz * Ms_inv[id1] * MU0_INV;
+            }
 
-				 if (Ms_inv[id2] != 0.0){
-					 energy[id2]  = sigma*(1-mtx*mbx-mty*mby-mtz*mbz);
-					 field[3*id2]   = sigma * mbx * Ms_inv[id2] * MU0_INV;
-					 field[3*id2+1] = sigma * mby * Ms_inv[id2] * MU0_INV;
-					 field[3*id2+2] = sigma * mbz * Ms_inv[id2] * MU0_INV;
-				 }
-			 }
-		 }
-
-
+            if (Ms_inv[id2] != 0.0) {
+                energy[id2] = sigma * (1 - mtx * mbx - mty * mby - mtz * mbz);
+                field[3 * id2] = sigma * mbx * Ms_inv[id2] * MU0_INV;
+                field[3 * id2 + 1] = sigma * mby * Ms_inv[id2] * MU0_INV;
+                field[3 * id2 + 2] = sigma * mbz * Ms_inv[id2] * MU0_INV;
+            }
+        }
+    }
 }

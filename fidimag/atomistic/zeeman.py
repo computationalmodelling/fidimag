@@ -67,7 +67,7 @@ class Zeeman(object):
 
         self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.B0, self.mesh)
-        self.energy = np.zeros(mesh.n, dtype=np.float)
+        self.energy = np.zeros(mesh.n)
 
     def update_field(self, B0):
         self.B0 = B0
@@ -89,8 +89,9 @@ class Zeeman(object):
         sf = self.field * self.spin
         energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.mu_s
         self.energy[:] = energy_density
+        self.total_energy = np.sum(self.energy)
 
-        return np.sum(energy_density)
+        return self.total_energy
 
 
 class TimeZeeman(Zeeman):

@@ -5,6 +5,7 @@ from . import llg_stt
 from . import llg_stt_cpp
 from . import baryakhtar
 from fidimag.common import steepest_descent
+from fidimag.common import hubert_minimiser
 
 import fidimag.extensions.micro_clib as micro_clib
 import fidimag.common.helper as helper
@@ -19,6 +20,7 @@ KNOWN_DRIVERS = {'llg': llg.LLG,
                  'llbar': baryakhtar.LLBar,
                  'llbar_full': baryakhtar.LLBarFull,
                  'steepest_descent': steepest_descent.SteepestDescent,
+                 'hubert_minimiser': hubert_minimiser.HubertMinimiser,
                  }
 
 
@@ -66,7 +68,7 @@ class Sim(SimBase):
         self._micromagnetic = True
 
         # Saturation magnetisation definitions:
-        # self._Ms = np.zeros(self.n, dtype=np.float)
+        # self._Ms = np.zeros(self.n, dtype=np.float64)
         # David: be careful to change these references to the common mag array
         self._Ms = self._magnetisation
         # Remember this is a 3 * n array:
@@ -151,21 +153,20 @@ class Sim(SimBase):
         """
 
         self._Ms[:] = helper.init_scalar(value, self.mesh)
+
         nonzero = 0
-        for i in range(self.n):
-            if self._Ms[i] > 0.0:
-                self._Ms_inv[i] = 1.0 / self._Ms[i]
-                nonzero += 1
+
+        filterMs = (self._Ms > 0.0)
+        self._Ms_inv[filterMs] = 1.0 / self._Ms[filterMs]
+        nonzero = self._Ms[filterMs].size
 
         # We moved this variable to the micro_driver class
         self.driver.n_nonzero = nonzero
 
-        for i in range(len(self._Ms)):
-            if self._Ms[i] == 0.0:
-                self._pins[i] = 1
-
-                # Set the neighbour index to -1 for sites with Ms = 0
-                self.mesh.neighbours[self.mesh.neighbours == i] = -1
+        filterMs = (self._Ms == 0.0)
+        self._pins[filterMs] = 1
+        filterNgbs = np.isin(self.mesh.neighbours, np.where(filterMs))
+        self.mesh.neighbours[filterNgbs] = -1
 
         # TODO: Check if this is necessary here, it is only defined
         # for the LLG STT in the drivers

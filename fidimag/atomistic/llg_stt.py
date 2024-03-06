@@ -61,9 +61,9 @@ class LLG_STT(AtomisticDriver):
 
         self.field_stt = np.zeros(3 * self.n)
 
-        self._jx = np.zeros(self.n, dtype=np.float)
-        self._jy = np.zeros(self.n, dtype=np.float)
-        self._jz = np.zeros(self.n, dtype=np.float)
+        self._jx = np.zeros(self.n, dtype=np.float64)
+        self._jy = np.zeros(self.n, dtype=np.float64)
+        self._jz = np.zeros(self.n, dtype=np.float64)
 
         self.p = 0.5
         self.beta = 0

@@ -94,7 +94,7 @@ class LLBar(MicroDriver):
 
         self.lap = Laplace(mesh)
 
-        self.field_perp = np.zeros(3 * self.n, dtype=np.float)
+        self.field_perp = np.zeros(3 * self.n, dtype=np.float64)
 
         self.beta = 0
 

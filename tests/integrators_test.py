@@ -33,7 +33,10 @@ def test_step(integrator, stepsize, debug=False):
         ys[i+1] = yp
     if not debug:
         assert 85 < ys[-1] < 100
-    return ts, ys
+
+    # Tests should return None (see PytestReturnNotNoneWarning)
+    # TODO: Compare solutions with expected one
+    # return ts, ys
 
 @pytest.mark.parametrize("integrator,stepsize_reported,stepsize_internal", [
     ("euler", 0.2, 0.2),
@@ -54,9 +57,11 @@ def test_step_integrator(integrator, stepsize_reported, stepsize_internal):
         ts[i+1] = integrator.t
         ys[i+1] = integrator.y
     assert 85 < ys[-1] < 100
-    return ts, ys
+    
+    # return ts, ys
 
 
+@pytest.mark.skip(reason="Not using assert")
 def test_scipy_integrator():
     y_true = lambda t: np.sin(t) + t
     f = lambda t, y: np.cos(t) + 1  # derivative of f we'll use for integration
@@ -73,13 +78,14 @@ def test_scipy_integrator():
     for i, t in enumerate(ts[1:]):
         od.run_until(t)
         ts[i+1] = od.t
-        ys[i+1] = od.y
+        ys[i+1] = od.y[0]
         print("t = {}".format(t))
 
 
     print(len(od.internal_timesteps))
     print(od.rhs_evals)
-    return y_true, ts, ys, od.internal_timesteps
+    
+    # return y_true, ts, ys, od.internal_timesteps
 
 
 if __name__ == "__main__":

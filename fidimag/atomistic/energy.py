@@ -28,8 +28,9 @@ class Energy(object):
         self.total_energy = 0
         self.mu_s = mu_s
 
-        self.field = np.zeros(3 * self.n, dtype=np.float)
-        self.energy = np.zeros(mesh.n, dtype=np.float)
+        self.field = np.zeros(3 * self.n, dtype=np.float64)
+        self.energy = np.zeros(mesh.n, dtype=np.float64)
+        self.total_energy = 0.0
 
         self.mu_s_inv = mu_s_inv
 

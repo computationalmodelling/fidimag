@@ -8,5 +8,4 @@ double step_Verlet_C(double *restrict forces,
                      double mass,
                      int n_images,
                      int n_dofs_image,
-                     double (* update_field) (double, double *)
-                     );
+                     double (*update_field)(double, double *));

@@ -3,6 +3,7 @@ from .sllg import SLLG
 from .llg_stt import LLG_STT
 from .llg_stt_cpp import LLG_STT_CPP
 from fidimag.common.steepest_descent import SteepestDescent
+from fidimag.common.hubert_minimiser import HubertMinimiser
 # from .minimiser import Minimiser
 
 import fidimag.common.skyrmion_number
@@ -17,6 +18,7 @@ KNOWN_DRIVERS = {'llg': LLG,
                  'llg_stt': LLG_STT,
                  'llg_stt_cpp': LLG_STT_CPP,
                  'steepest_descent': SteepestDescent,
+                 'hubert_minimiser': HubertMinimiser,
                  # 'minimiser': Minimiser
                  }
 
@@ -63,7 +65,7 @@ class Sim(SimBase):
         self._micromagnetic = False
 
         # Magnetic moments definitions:
-        # self._mu_s = np.zeros(self.n, dtype=np.float)
+        # self._mu_s = np.zeros(self.n, dtype=np.float64)
         # David: Be careful to change these references to the common
         # magnetisation array
         self._mu_s = self._magnetisation

@@ -1,7 +1,7 @@
 #include "micro_clib.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Functions to Compute the micromagnetic Dzyaloshinskii Moriya interaction
  *  field and energy using the
@@ -151,23 +151,23 @@
  *  two DMIs:
  *
  *         dmi_vector = [ Dx(-x) Dy(-x) Dz(-x) -- DMI vector 1 per every NN
- *                        Dx(+x) Dy(+x) Dz(+x) 
- *                        Dx(-y) Dy(-y) Dz(-y) 
- *                        ... 
+ *                        Dx(+x) Dy(+x) Dz(+x)
+ *                        Dx(-y) Dy(-y) Dz(-y)
+ *                        ...
  *                        Dx(+z) Dy(+z) Dz(+z) --
  *                        Dx(-x) Dy(-x) Dz(-x) -- DMI vector 2 per every NN
- *                        Dx(+x) Dy(+x) Dz(+x) 
- *                        Dx(-y) Dy(-y) Dz(-y) 
- *                        ... 
- *                        Dx(+z) Dy(+z) Dz(+z) 
+ *                        Dx(+x) Dy(+x) Dz(+x)
+ *                        Dx(-y) Dy(-y) Dz(-y)
+ *                        ...
+ *                        Dx(+z) Dy(+z) Dz(+z)
  *                      ]
  *
  * and DMI constants are passed inerspersed in the D array per every node
- *   
+ *
  *    D = [ D1_0 D2_0 D1_1 D2_1 ... D1_N D2_N]
- *                      
+ *
  *  where D1_i is the 1st DMI constant of the i-mesh node
- * 
+ *
  * ------------------------------------------------------------------------
  * INTERFACIAL DMI
  * ------------------------------------------------------------------------
@@ -239,9 +239,7 @@
  * continuum expression when doing the limit  a_x a_y a_z  --> 0
  */
 
-
 // ----------------------------------------------------------------------------
-
 
 /* A function to compute any DMI given the corresponding DM vectors
  * obtained from discretising the Lifshitz invariants using the
@@ -265,10 +263,10 @@
  *                 the finite differences model. For DMIs defined in 2D
  *                 the last 6 terms are set to zero
  *
-*/
+ */
 void dmi_field(double *restrict m, double *restrict field,
                double *restrict energy, double *restrict Ms_inv,
-               double *restrict D, int n_dmis, 
+               double *restrict D, int n_dmis,
                double *dmi_vector,
                double dx, double dy, double dz,
                int n, int *restrict ngbs) {
@@ -280,10 +278,10 @@ void dmi_field(double *restrict m, double *restrict field,
     for (int i = 0; i < n; i++) {
         double DMIc;
         double fx = 0, fy = 0, fz = 0;
-        int idnm;     // Index for the magnetisation matrix
+        int idnm;        // Index for the magnetisation matrix
         int idn = 6 * i; // index for the neighbours
         /* Set a zero field for sites without magnetic material */
-        if (Ms_inv[i] == 0.0){
+        if (Ms_inv[i] == 0.0) {
             field[3 * i] = 0;
             field[3 * i + 1] = 0;
             field[3 * i + 2] = 0;
@@ -302,7 +300,7 @@ void dmi_field(double *restrict m, double *restrict field,
         for (int j = 0; j < 6; j++) {
             /* Add the DMI field x times for every DMI constant */
             for (int k = 0; k < n_dmis; k++) {
-                
+
                 // starting index of the DMI vector for this neighbour (j)
                 // (remember we have 18 comps of dmi_vector per DMI constant)
                 int ngbr_idx_D = k * 18 + 3 * j;
@@ -312,19 +310,19 @@ void dmi_field(double *restrict m, double *restrict field,
                    (b) there is no material there
                    (c) DMI value is zero there
                 */
-                if ((ngbs[idn + j] != -1) && (Ms_inv[ngbs[idn + j]] !=  0)) {
-                /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
-                 * The cross_i function gives the i component of the
-                 * cross product. The coefficient is computed according
-                 * to the DMI strength of the current lattice site.
-                 * For the denominator, for example, if j=2 or 3, then
-                 * dxs[j] = dy
-                 */
+                if ((ngbs[idn + j] != -1) && (Ms_inv[ngbs[idn + j]] != 0)) {
+                    /* We do here:  -(D / dx_i) * ( r_{ij} X M_{j} )
+                     * The cross_i function gives the i component of the
+                     * cross product. The coefficient is computed according
+                     * to the DMI strength of the current lattice site.
+                     * For the denominator, for example, if j=2 or 3, then
+                     * dxs[j] = dy
+                     */
 
                     /* check the DMI vector exists */
-                    if (dmi_vector[ngbr_idx_D    ] != 0 ||
+                    if (dmi_vector[ngbr_idx_D] != 0 ||
                         dmi_vector[ngbr_idx_D + 1] != 0 ||
-                        dmi_vector[ngbr_idx_D + 2] != 0   ) {
+                        dmi_vector[ngbr_idx_D + 2] != 0) {
                         /* Notice the x component of the cross product of +-x
                          * times anything is zero (similar for the other comps) */
 
@@ -347,18 +345,16 @@ void dmi_field(double *restrict m, double *restrict field,
                                              dmi_vector[ngbr_idx_D + 1],
                                              dmi_vector[ngbr_idx_D + 2],
                                              m[idnm], m[idnm + 1], m[idnm + 2]);
-
                     }
                 }
-            }  // Close for loop through n of DMI constants
-        }  // Close for loop through neighbours per mesh site
+            } // Close for loop through n of DMI constants
+        }     // Close for loop through neighbours per mesh site
 
         /* Energy as: (-mu0 * Ms / 2) * [ H_dmi * m ]   */
-        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1]
-        		+ fz * m[3 * i + 2]);
+        energy[i] = -0.5 * (fx * m[3 * i] + fy * m[3 * i + 1] + fz * m[3 * i + 2]);
 
         /* Update the field H_dmi which has the same structure than *m */
-        field[3 * i]     = fx * Ms_inv[i] * MU0_INV;
+        field[3 * i] = fx * Ms_inv[i] * MU0_INV;
         field[3 * i + 1] = fy * Ms_inv[i] * MU0_INV;
         field[3 * i + 2] = fz * Ms_inv[i] * MU0_INV;
     }

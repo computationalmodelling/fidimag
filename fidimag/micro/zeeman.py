@@ -99,10 +99,11 @@ class Zeeman(object):
 
         energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.Ms
 
-        return np.sum(energy_density) * (self.mesh.dx *
-                                         self.mesh.dy *
-                                         self.mesh.dz *
-                                         self.mesh.unit_length ** 3.)
+        self.total_energy = np.sum(energy_density) * (
+            self.mesh.dx * self.mesh.dy * self.mesh.dz * 
+            self.mesh.unit_length ** 3.)
+
+        return self.total_energy
 
 
 class TimeZeeman(Zeeman):

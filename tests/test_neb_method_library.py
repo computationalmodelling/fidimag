@@ -171,7 +171,7 @@ def test_project_vectors_into_image():
     9 degrees of freedom = 3 vector
     """
 
-    a = np.arange(9, dtype=np.float)
+    a = np.arange(9, dtype=np.float64)
     image = np.array([0., 0, 1,
                       1, 0, 0,
                       0, 0, 1])
@@ -210,8 +210,8 @@ def test_project_images_into_image():
 
     """
 
-    a = np.zeros(18 + 18, dtype=np.float)
-    a[9:27] = np.arange(18, dtype=np.float)
+    a = np.zeros(18 + 18, dtype=np.float64)
+    a[9:27] = np.arange(18, dtype=np.float64)
     images = np.array([0., 0, 0, 0, 0, 0, 0, 0, 0,
                        0., 0, 1, 1, 0, 0, 0, 0, 1,
                        0., 1, 0, 0, 0, 1, 1, 1, 0,
@@ -227,7 +227,7 @@ def test_project_images_into_image():
     # Dot products for every vector
     a_dot_images = [2., 3., 8.,
                     10., 14., 15. + 16.]
-    expected_res = np.zeros(18 + 18, dtype=np.float)
+    expected_res = np.zeros(18 + 18, dtype=np.float64)
     # Projections:
     expected_res[9:12] = [0, 1, 2 - a_dot_images[0]]
     expected_res[12:15] = [3 - a_dot_images[1], 4, 5]
@@ -252,12 +252,12 @@ def test_normalise_images():
     the normalisation with Numpy calculations
     """
 
-    a = np.zeros(18 + 18, dtype=np.float)
-    a[9:27] = np.arange(18, dtype=np.float)
+    a = np.zeros(18 + 18, dtype=np.float64)
+    a[9:27] = np.arange(18, dtype=np.float64)
     nebm_clib.normalise_images(a, 4, 9)
 
-    b = np.zeros(18 + 18, dtype=np.float)
-    b[9:27] = np.arange(18, dtype=np.float)
+    b = np.zeros(18 + 18, dtype=np.float64)
+    b[9:27] = np.arange(18, dtype=np.float64)
     norms = [np.sqrt(np.sum(b[9:18] ** 2)),
              np.sqrt(np.sum(b[18:27] ** 2))]
 

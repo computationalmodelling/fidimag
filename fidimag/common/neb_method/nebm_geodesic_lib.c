@@ -1,12 +1,11 @@
 #include "nebm_geodesic_lib.h"
-#include "nebm_lib.h"
 #include "math.h"
+#include "nebm_lib.h"
 
 double compute_geodesic_Vincenty(double *restrict A, double *restrict B,
                                  int n_dofs_image,
                                  int *restrict material,
-                                 int n_dofs_image_material
-                                 ) {
+                                 int n_dofs_image_material) {
 
     /* Compute the Geodesic distance between two images: A and B,  of an energy
      * band. For this, we use Vincenty's formula, which is defined in
@@ -24,14 +23,14 @@ double compute_geodesic_Vincenty(double *restrict A, double *restrict B,
      *                 the A or B arrays. Since we assume Cartesian
      *                 coordinates, the number of spins is just:
      *                      n_dofs_image / 3
-     * 
+     *
      * material     :: An array of size (3 * n_spins), containing only 1 and 0s
      *                 For every spin, its value is repeated 3 times (the number
      *                 of dofs). The values of material is 1 where mu_s or M_s
      *                 are larger than zero.
      *                 This array is not necessary here since sites without
      *                 material do not change their magnetisation and thus they
-     *                 do not contribute to the Geodesic distance magnitude 
+     *                 do not contribute to the Geodesic distance magnitude
      *
      * Vicenty's formula is defined by computing the distance between
      * corresponding spins of the images A and B. So, if we have m(A)_i as
@@ -61,7 +60,7 @@ double compute_geodesic_Vincenty(double *restrict A, double *restrict B,
     // of A and B. The i-th spin components start at the 3 * i position
     // in the arrays
     // We do not sum sites without
-    for(int i = 0; i < n_spins; i++){
+    for (int i = 0; i < n_spins; i++) {
         // We only need to know if the spin is in a site with material (Ms, mu_s > 0)
         // so we skip the material for m_y and m_z which are the same as
         // the material for m_x
@@ -83,13 +82,12 @@ double compute_geodesic_Vincenty(double *restrict A, double *restrict B,
 }
 
 double compute_geodesic_GreatCircle(double *restrict A, double *restrict B,
-                                 int n_dofs_image,
-                                 int *restrict material,
-                                 int n_dofs_image_material
-                                 ) {
+                                    int n_dofs_image,
+                                    int *restrict material,
+                                    int n_dofs_image_material) {
 
     /* Compute the Geodesic distance between two images: A and B,  of an energy
-     * band. 
+     * band.
      *
      * INPUTS:
      *
@@ -103,14 +101,14 @@ double compute_geodesic_GreatCircle(double *restrict A, double *restrict B,
      *                 the A or B arrays. Since we assume Cartesian
      *                 coordinates, the number of spins is just:
      *                      n_dofs_image / 3
-     * 
+     *
      * material     :: An array of size (3 * n_spins), containing only 1 and 0s
      *                 For every spin, its value is repeated 3 times (the number
      *                 of dofs). The values of material is 1 where mu_s or M_s
      *                 are larger than zero.
      *                 This array is not necessary here since sites without
      *                 material do not change their magnetisation and thus they
-     *                 do not contribute to the Geodesic distance magnitude 
+     *                 do not contribute to the Geodesic distance magnitude
      *
      */
 
@@ -124,7 +122,7 @@ double compute_geodesic_GreatCircle(double *restrict A, double *restrict B,
     // of A and B. The i-th spin components start at the 3 * i position
     // in the arrays
     // We do not sum sites without
-    for(int i = 0; i < n_spins; i++){
+    for (int i = 0; i < n_spins; i++) {
         // We only need to know if the spin is in a site with material (Ms, mu_s > 0)
         // so we skip the material for m_y and m_z which are the same as
         // the material for m_x

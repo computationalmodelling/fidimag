@@ -42,11 +42,11 @@ class SLLG(AtomisticDriver):
                                    integrator=integrator
                                    )
 
-        self._T = np.zeros(self.n, dtype=np.float)
-        self.next_spin = np.zeros(3*self.n, dtype=np.float)
-        self.eta = np.zeros(3*self.n, dtype=np.float)
-        self.dm1 = np.zeros(3*self.n, dtype=np.float)
-        self.dm2 = np.zeros(3*self.n, dtype=np.float)
+        self._T = np.zeros(self.n, dtype=np.float64)
+        self.next_spin = np.zeros(3*self.n, dtype=np.float64)
+        self.eta = np.zeros(3*self.n, dtype=np.float64)
+        self.dm1 = np.zeros(3*self.n, dtype=np.float64)
+        self.dm2 = np.zeros(3*self.n, dtype=np.float64)
 
         self.minor_step = 0
         self.mt19937 = clib.rng_mt19937()
