@@ -150,7 +150,12 @@ class FSIntegrator(BaseIntegrator):
     """A step integrator considering the action of the band
     """
     def __init__(self, band, forces, action, rhs_fun, n_images, n_dofs_image,
-                 max_steps=1000):
+                 max_steps=1000,
+                 maxCreep=5, eta_scale=1.0, stopping_dE=1e-6, dEta=2,
+                 etaMin=0.001,
+                 # perturbSeed=42, perturbFactor=0.1,
+                 nTrail=10, resetMax=20, mXgradE_tol=0.1
+                 ):
         super(FSIntegrator, self).__init__(band, rhs_fun)
 
         self.i_step = 0
@@ -161,10 +166,59 @@ class FSIntegrator(BaseIntegrator):
         self.forces = forces
         self.max_steps = max_steps
 
+        self.y_last = np.zeros_like(self.y)  # y -> band
+        self.step = 0
+        self.nTrail = nTrail
+
     def run_until(self, t):
         pass
 
     def run_for(self, n_steps):
+
+        nStart = 0
+        exitFlag = False
+        totalRestart = True
+        resetCount = 0
+        creepCount = 0
+        self.trailE = np.zeros(nTrail)
+        trailPool = cycle(range(nTrail))  # cycle through 0,1,...,(nTrail-1),0,1,...
+        eta = 1.0
+
+        while not exitFlag:
+
+            if totalRestart:
+                if self.step > 0:
+                    print('Restarting')
+                self.y[:] = self.y_last
+
+                # Compute from self.band. Do not update the step at this stage:
+                # This step updates the forces in the G array of the nebm module,
+                # using the current band state self.y
+                self.rhs(t, self.y)
+
+
+                # self.step += 1
+                self.gradE_last[:] = -self.field  # Scale field??
+                self.gradE_last[~_material] = 0.0
+                self.gradE[:] = self.gradE_last
+                self.totalE_last = self.totalE
+                self.trailE[nStart] = self.totalE
+                nStart = next(trailPool)
+                eta = 1.0
+                totalRestart = False
+
+            creepCount = 0
+
+            # Creep stage: minimise with a fixed eta
+            while creepCount < maxCreep:
+                # Update spin. Avoid pinned or zero-Ms sites
+                self.y[:] = self.y_last - eta * eta_scale * self.forces_images
+
+
+
+
+
+
         # while abs(self.i_step - steps) > EPSILON:
         st = 1
         while st < n_steps:

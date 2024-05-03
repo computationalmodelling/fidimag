@@ -314,7 +314,7 @@ class NEBM_FS(ChainMethodBase):
                                        )
 
     def compute_action(self):
-        action = spi.cumulative_trapezoid(self.distances, self.gradientENorm)
+        action = spi.trapezoid(self.gradientENorm, self.distances)
         return action
 
     def compute_min_action(self):
