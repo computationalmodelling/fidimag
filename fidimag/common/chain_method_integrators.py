@@ -2,6 +2,7 @@ import numpy as np
 import warnings
 from .integrators import BaseIntegrator
 from .integrators import euler_step, runge_kutta_step
+from itertools import cycle
 
 import fidimag.extensions.nebm_clib as nebm_clib
 
@@ -149,7 +150,7 @@ class VerletIntegrator(BaseIntegrator):
 class FSIntegrator(BaseIntegrator):
     """A step integrator considering the action of the band
     """
-    def __init__(self, band, forces, action, rhs_fun, n_images, n_dofs_image,
+    def __init__(self, band, forces, action, rhs_fun, action_fun, n_images, n_dofs_image,
                  max_steps=1000,
                  maxCreep=5, eta_scale=1.0, stopping_dE=1e-6, dEta=2,
                  etaMin=0.001,
@@ -157,6 +158,8 @@ class FSIntegrator(BaseIntegrator):
                  nTrail=10, resetMax=20, mXgradE_tol=0.1
                  ):
         super(FSIntegrator, self).__init__(band, rhs_fun)
+
+        self.action_fun = action_fun
 
         self.i_step = 0
         self.n_images = n_images
@@ -175,14 +178,17 @@ class FSIntegrator(BaseIntegrator):
 
     def run_for(self, n_steps):
 
+        t = 0.0
         nStart = 0
         exitFlag = False
         totalRestart = True
         resetCount = 0
         creepCount = 0
-        self.trailE = np.zeros(nTrail)
+        self.trailAction = np.zeros(nTrail)
         trailPool = cycle(range(nTrail))  # cycle through 0,1,...,(nTrail-1),0,1,...
         eta = 1.0
+
+        INNER_DOFS = slice(self.n_dofs_image, -self.n_dofs_image)
 
         while not exitFlag:
 
@@ -194,15 +200,17 @@ class FSIntegrator(BaseIntegrator):
                 # Compute from self.band. Do not update the step at this stage:
                 # This step updates the forces in the G array of the nebm module,
                 # using the current band state self.y
+                # TODO: remove time from chain method rhs
+                #       make a specific function to update G??
                 self.rhs(t, self.y)
-
+                self.action = self.action_fun()
 
                 # self.step += 1
-                self.gradE_last[:] = -self.field  # Scale field??
-                self.gradE_last[~_material] = 0.0
-                self.gradE[:] = self.gradE_last
-                self.totalE_last = self.totalE
-                self.trailE[nStart] = self.totalE
+                self.forces_last[:] = self.forces  # Scale field??
+                # self.gradE_last[~_material] = 0.0
+                # self.gradE[:] = self.gradE_last
+                self.action_last = self.action
+                self.trailAction[nStart] = self.action
                 nStart = next(trailPool)
                 eta = 1.0
                 totalRestart = False
@@ -212,10 +220,28 @@ class FSIntegrator(BaseIntegrator):
             # Creep stage: minimise with a fixed eta
             while creepCount < maxCreep:
                 # Update spin. Avoid pinned or zero-Ms sites
-                self.y[:] = self.y_last - eta * eta_scale * self.forces_images
+                self.y[:] = self.y_last + eta * eta_scale * self.forces
+                normalise_spins(self.y)
+
+                self.trailAction
+
+                self.rhs(t, self.y)
+                self.action = self.action_fun()
+
+                self.trailAction[nStart] = self.action
+                nStart = next(trailPool)
+
+                bandNormSquared = 0.0
+                # Getting averages of forces from the INNER images in the band (no extrema)
+                # (forces are given by vector G in the chain method code)
+                G_norms = np.linalg.norm(self.forces[INNER_DOFS].reshape(-1, 3), axis=1)
+                # Compute the root mean square per image
+                rms_G_norms_per_image = np.sqrt(np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1))
+                mean_rms_G_norms_per_image = np.mean(rms_G_norms_per_image)
 
 
-
+                # 10 seems like a magic number; we set here a minimum number of evaulations
+                if (nStart > nTrail * 10) and :
 
 
 

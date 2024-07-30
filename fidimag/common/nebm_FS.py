@@ -314,7 +314,9 @@ class NEBM_FS(ChainMethodBase):
                                        )
 
     def compute_action(self):
+        # TODO: we can use a better quadrature such as Gaussian
         action = spi.trapezoid(self.gradientENorm, self.distances)
+        # TODO: Add spring fore term to the action
         return action
 
     def compute_min_action(self):
