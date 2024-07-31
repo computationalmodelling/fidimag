@@ -3,6 +3,7 @@ import warnings
 from .integrators import BaseIntegrator
 from .integrators import euler_step, runge_kutta_step
 from itertools import cycle
+import scipy.interpolate as si
 
 import fidimag.extensions.nebm_clib as nebm_clib
 
@@ -306,6 +307,19 @@ class FSIntegrator(BaseIntegrator):
             # After creep loop:
             self.eta = self.eta * self.dEta
             resetCount = 0
+
+    # Taken from the string method class
+    def refine_path(self, distances):
+        """
+        """
+        new_dist = np.linspace(distances[0], distances[-1], distances.shape[0])
+        # Restructure the string by interpolating every spin component
+        # print(self.integrator.y[self.n_dofs_image:self.n_dofs_image + 10])
+        bandrs = self.band.reshape(self.n_images, self.n_dofs_image)
+        for i in range(self.n_dofs_image):
+
+            cs = si.CubicSpline(distances, bandrs[:, i])
+            bandrs[:, i] = cs(new_dist)
 
     def set_options(self):
         pass
