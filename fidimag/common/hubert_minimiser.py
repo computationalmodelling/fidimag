@@ -291,6 +291,7 @@ class HubertMinimiser(MinimiserBase):
                     if avGradE < mXgradE_tol:
                         print(f'Average torque length |mX∇E|/N = {avGradE} negligible. Stopping calculation.')
                         exitFlag = True
+                        # TODO: add break here?
 
             # Stop while creepCount
 

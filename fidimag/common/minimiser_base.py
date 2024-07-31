@@ -1,4 +1,5 @@
 from __future__ import division
+from abc import abstractmethod
 import numpy as np
 import os
 import zipfile
@@ -75,9 +76,8 @@ class MinimiserBase(object):
         """
         pass
 
-    def minimise(self, stopping_dm=1e-2, max_steps=2000,
-                 save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
-                 log_steps=1000):
+    @abstractmethod
+    def minimise(self):
         pass
 
     def relax(self):
