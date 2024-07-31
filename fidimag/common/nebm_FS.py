@@ -324,7 +324,7 @@ class NEBM_FS(ChainMethodBase):
         minAction = np.sum(np.abs(self.energies[1:] - self.energies[:-1]))
         return 2 * (dE + minAction)
 
-    def nebm_step(self, y):
+    def nebm_step(self, y, ensure_zero_extrema=False):
 
         self.compute_effective_field_and_energy(y)
         nebm_clib.project_images(self.gradientE, y,
@@ -341,6 +341,12 @@ class NEBM_FS(ChainMethodBase):
                                           self.n_images,
                                           self.n_dofs_image
                                           )
+
+        # The effective force at the extreme images should already be zero, but
+        # we will manually remove any value
+        if ensure_zero_extrema:
+            self.G[:self.n_dofs_image] = 0
+            self.G[-self.n_dofs_image:] = 0
 
         # Should be the same if we project the gradient before, instead
         # of the total force
@@ -388,7 +394,7 @@ class NEBM_FS(ChainMethodBase):
     #     else:
     #         return 0
 
-    def step_RHS(self, t, y):
+    def step_RHS(self, band):
         """
 
         This function is called on every iteration of the integrators in
@@ -400,7 +406,7 @@ class NEBM_FS(ChainMethodBase):
 
         # Update the effective field, energies, spring forces and tangents
         # using the *y* array
-        self.nebm_step(y)
+        self.nebm_step(band)
 
         # Now set the RHS of the equation as the effective force on the energy
         # band, which is stored on the self.G array

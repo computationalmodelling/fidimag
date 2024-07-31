@@ -42,6 +42,8 @@ class StepIntegrator(BaseIntegrator):
         self._step = step_choices[step]
 
 
+# TODO: these integrators are not general anymore, as they rely on the
+# structure of the chain method classes
 class VerletIntegrator(BaseIntegrator):
     """A quick Verlet integration in Cartesian coordinates
 
@@ -148,19 +150,24 @@ class VerletIntegrator(BaseIntegrator):
 # NEBM integrator for F-S algorithm
 
 
-class FSIntegrator(BaseIntegrator):
+# TODO: these integrators are not general anymore, as they rely on the
+# structure of the chain method classes
+# TODO: type checks
+class FSIntegrator(object):
     """A step integrator considering the action of the band
     """
-    def __init__(self, band, forces, rhs_fun, action_fun, n_images, n_dofs_image,
+    def __init__(self, ChainObj,
+                 # band, forces, distances, rhs_fun, action_fun,
+                 # n_images, n_dofs_image,
                  maxSteps=1000,
                  maxCreep=5, actionTol=1e-10, forcesTol=1e-6,
                  etaScale=1.0, dEta=2, minEta=0.001,
                  # perturbSeed=42, perturbFactor=0.1,
                  nTrail=10, resetMax=20
                  ):
-        super(FSIntegrator, self).__init__(band, rhs_fun)
+        # super(FSIntegrator, self).__init__(band, rhs_fun)
 
-        self.action_fun = action_fun
+        self.ChainObj = ChainObj
 
         # Integration parameters
         # TODO: move to run function?
@@ -172,24 +179,22 @@ class FSIntegrator(BaseIntegrator):
         self.forcesTol = forcesTol
         self.actionTol = actionTol
         self.maxSteps = maxSteps
-
-        self.i_step = 0
-        self.n_images = n_images
-        self.n_dofs_image = n_dofs_image
-        # self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
-        # self.G :
-        self.forces = forces
-        self.forces_old = np.zeros_like(forces)
-
-        # Rename y to band
-        self.band = self.y
-        self.band_old = np.zeros_like(self.band)  # y -> band
-
         self.step = 0
         self.nTrail = nTrail
+        self.i_step = 0
 
-    def run_until(self, t):
-        pass
+        # Chain objects:
+        self.n_images = self.ChainObj.n_images
+        self.n_dofs_image = self.ChainObj.n_dofs_image
+        # self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
+        # self.G :
+        self.forces = self.ChainObj.forces
+        self.distances = self.ChainObj.distances
+        self.forces_old = np.zeros_like(self.ChainObj.forces)
+
+        # self.band should be just a reference to the band in the ChainObj
+        self.band = self.ChainObj.band
+        self.band_old = np.zeros_like(self.band)
 
     def run_for(self, n_steps):
 
@@ -202,6 +207,7 @@ class FSIntegrator(BaseIntegrator):
         self.trailAction = np.zeros(self.nTrail)
         trailPool = cycle(range(self.nTrail))  # cycle through 0,1,...,(nTrail-1),0,1,...
         eta = 1.0
+        self.i_step = 0
 
         # In __init__:
         # self.band_last[:] = self.band
@@ -216,7 +222,7 @@ class FSIntegrator(BaseIntegrator):
                 self.band[:] = self.band_old
 
                 # Compute from self.band. Do not update the step at this stage:
-                # This step updates the forces in the G array of the nebm module,
+                # This step updates the forces and distances in the G array of the nebm module,
                 # using the current band state self.y
                 # TODO: remove time from chain method rhs
                 #       make a specific function to update G??
@@ -243,11 +249,13 @@ class FSIntegrator(BaseIntegrator):
 
                 self.trailAction
 
-                self.rhs(t, self.y)
-                self.action = self.action_fun()
+                self.ChainObj.nebm_step(self.band, ensure_zero_extrema=True)
+                self.action = self.ChainObj.action_fun()
 
                 self.trailAction[nStart] = self.action
                 nStart = next(trailPool)
+
+                self.i_step += 1
 
                 # Getting averages of forces from the INNER images in the band (no extrema)
                 # (forces are given by vector G in the chain method code)
@@ -266,7 +274,7 @@ class FSIntegrator(BaseIntegrator):
                     exitFlag = True
                     break  # creep loop
 
-                if (n_steps >= self.maxSteps):
+                if (self.i_step >= self.maxSteps):
                     print('Number of steps reached maximum')
                     exitFlag = True
                     break  # creep loop
@@ -282,7 +290,7 @@ class FSIntegrator(BaseIntegrator):
                         print('')
                         resetCount += 1
                         bestAction = self.action_old
-                        RefinePath(self.band)  # Resets the path to equidistant structures (smoothing  kinks?)
+                        self.refine_path(self.ChainObj.distances, self.band)  # Resets the path to equidistant structures (smoothing  kinks?)
                         # PathChanged[:] = True
 
                         if resetCount > self.resetMax:
@@ -309,13 +317,13 @@ class FSIntegrator(BaseIntegrator):
             resetCount = 0
 
     # Taken from the string method class
-    def refine_path(self, distances):
+    def refine_path(self, distances, band):
         """
         """
         new_dist = np.linspace(distances[0], distances[-1], distances.shape[0])
         # Restructure the string by interpolating every spin component
         # print(self.integrator.y[self.n_dofs_image:self.n_dofs_image + 10])
-        bandrs = self.band.reshape(self.n_images, self.n_dofs_image)
+        bandrs = band.reshape(self.n_images, self.n_dofs_image)
         for i in range(self.n_dofs_image):
 
             cs = si.CubicSpline(distances, bandrs[:, i])
