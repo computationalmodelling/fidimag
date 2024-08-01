@@ -227,7 +227,7 @@ class FSIntegrator(object):
                 # TODO: remove time from chain method rhs
                 #       make a specific function to update G??
                 self.rhs(t, self.y)
-                self.action = self.action_fun()
+                self.action = self.ChainObj.compute_action()
 
                 # self.step += 1
                 self.forces_old[:] = self.forces  # Scale field??
@@ -259,14 +259,19 @@ class FSIntegrator(object):
 
                 # Getting averages of forces from the INNER images in the band (no extrema)
                 # (forces are given by vector G in the chain method code)
-                # TODO: we might use all band images, not only inner ones
-                G_norms = np.linalg.norm(self.forces[INNER_DOFS].reshape(-1, 3), axis=1)
+                # TODO: we might use all band images, not only inner ones, although G is zero at the extrema
+                Gnorms2 = np.sum(self.forces[INNER_DOFS].reshape(-1, 3)**2, axis=1)
                 # Compute the root mean square per image
-                rms_G_norms_per_image = np.sqrt(np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1))
+                rms_G_norms_per_image = np.sqrt(np.mean(Gnorms2.reshape(self.n_images - 2, -1), axis=1))
                 mean_rms_G_norms_per_image = np.mean(rms_G_norms_per_image)
 
                 # Average step difference between trailing action and new action
                 deltaAction = (np.abs(self.trailAction[nStart] - self.action)) / self.nTrail
+
+                # Print log
+                print(f'Step {self.i_step}  ⟨RMS(G)〉= {mean_rms_G_norms_per_image:.5e}  ',
+                      f'deltaAction = {deltaAction:.5e}  Creep n = {creepCount:>3}  resetC = {resetCount:>3}  ',
+                      f'eta = {eta:>5.4e}')
 
                 # 10 seems like a magic number; we set here a minimum number of evaulations
                 if (nStart > self.nTrail * 10) and (deltaAction < self.actionTol):
@@ -289,7 +294,7 @@ class FSIntegrator(object):
                     if (eta < 1e-3):
                         print('')
                         resetCount += 1
-                        bestAction = self.action_old
+                        # bestAction = self.action_old
                         self.refine_path(self.ChainObj.distances, self.band)  # Resets the path to equidistant structures (smoothing  kinks?)
                         # PathChanged[:] = True
 
@@ -329,13 +334,13 @@ class FSIntegrator(object):
             cs = si.CubicSpline(distances, bandrs[:, i])
             bandrs[:, i] = cs(new_dist)
 
-    def set_options(self):
-        pass
+    # def set_options(self):
+    #     pass
 
-    def _step(self, t, y, h, f):
-        """
-        """
-        pass
+    # def _step(self, t, y, h, f):
+    #     """
+    #     """
+    #     pass
 
 def normalise_spins(y):
     # Normalise an array of spins y with 3 * N elements

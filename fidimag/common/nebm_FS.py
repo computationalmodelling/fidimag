@@ -7,6 +7,8 @@ from .chain_method_tools import interpolation_Rodrigues_rotation
 from .chain_method_tools import m_to_zero_nomaterial
 from .chain_method_base import ChainMethodBase
 
+from .chain_method_integrators import FSIntegrator
+
 import scipy.integrate as spi
 
 import logging
@@ -14,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
+# TODO: we can just inherit from the geodesic nebm class!
 class NEBM_FS(ChainMethodBase):
     """
     ARGUMENTS -----------------------------------------------------------------
@@ -153,16 +156,9 @@ class NEBM_FS(ChainMethodBase):
         self.iterations = 0
         self.ode_count = 1
 
-        self.integrator = FSIntegrator(self.band,    # y
-                                       self.G,       # forces
-                                       self.step_RHS,
-                                       self.n_images,
-                                       self.n_dofs_image,
-                                       stepsize=1e-4)
-        self.integrator.set_options()
-        # In Verlet algorithm we only use the total force G and not YxYxG:
-        self._llg_evolve = False
-
+        # Use default integrator parameters. Pass this class object to the integrator
+        self.integrator = FSIntegrator(self)
+ 
     def generate_initial_band(self, method='linear'):
         """
         method      :: linear, rotation
@@ -258,7 +254,9 @@ class NEBM_FS(ChainMethodBase):
             self.energies[i] = self.sim.compute_energy()
 
         # Compute the gradient norm per every image
-        self.gradientENorm[:] = np.linalg.norm(self.gradientE, axis=1)
+        Gnorms2 = np.sum(self.gradientE.reshape(-1, 3)**2, axis=1)
+        # Compute the root mean square per image
+        self.gradientENorm[:] = np.sqrt(np.mean(Gnorms2.reshape(self.n_images, -1), axis=1))
 
         y = y.reshape(-1)
         self.gradientE = self.gradientE.reshape(-1)
@@ -314,9 +312,39 @@ class NEBM_FS(ChainMethodBase):
                                        )
 
     def compute_action(self):
+        """
+        """
+        # Check that action is computed AFTER calculating and projecting the forces
+
+        # nebm_clib.image_distances_GreatCircle(self.distances,
+        #                                       self.path_distances,
+        #                                       y,
+        #                                       self.n_images,
+        #                                       self.n_dofs_image,
+        #                                       self._material_int,
+        #                                       self.n_dofs_image_material
+        #                                       )
+
         # TODO: we can use a better quadrature such as Gaussian
+        # notice that the gradient norm here is using the RMS
         action = spi.trapezoid(self.gradientENorm, self.distances)
-        # TODO: Add spring fore term to the action
+
+        # The spring term in the action is added as |F_k|^2 / (2 * self.k) = self.k * x^2 / 2
+        # (CHECK) This assumes the spring force is orthogonal to the force gradient (after projection)
+        # Knorms2 = np.sum(self.spring_force.reshape(-1, 3)**2, axis=1)
+        # # Compute the root mean square per image
+        # springF_norms = np.sqrt(np.mean(Knorms2.reshape(self.n_images, -1), axis=1))
+
+        # Norm of the spring force per image (assuming tangents as unit vectors)
+        # These are the norms of the inner images
+        dist_plus_norm = self.distances[1:]
+        dist_minus_norm = self.distances[:-1]
+        # dY_plus_norm = distances[i];
+        # dY_minus_norm = distances[i - 1];
+        springF2 = self.k * ((dist_plus_norm - dist_minus_norm)**2)
+        # CHECK: do we need to scale?
+        action += np.sum(springF2) / (self.n_images - 2)
+
         return action
 
     def compute_min_action(self):
