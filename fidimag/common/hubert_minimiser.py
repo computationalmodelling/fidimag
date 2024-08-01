@@ -264,6 +264,7 @@ class HubertMinimiser(MinimiserBase):
                     exitFlag = True
                     break  # creep loop
 
+                # TODO: check if we need to use last spin state here
                 if self.totalE > self.totalE_last:  # If E increases, decrease eta so minimise slower
                     # print('Decreasing eta')
                     self.creepCount = 0

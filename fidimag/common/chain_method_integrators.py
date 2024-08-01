@@ -160,10 +160,10 @@ class FSIntegrator(object):
                  # band, forces, distances, rhs_fun, action_fun,
                  # n_images, n_dofs_image,
                  maxSteps=1000,
-                 maxCreep=5, actionTol=1e-10, forcesTol=1e-6,
-                 etaScale=1.0, dEta=2, minEta=0.001,
+                 maxCreep=6, actionTol=1e-10, forcesTol=1e-6,
+                 etaScale=1e-6, dEta=4., minEta=1e-6,
                  # perturbSeed=42, perturbFactor=0.1,
-                 nTrail=10, resetMax=20
+                 nTrail=13, resetMax=20
                  ):
         # super(FSIntegrator, self).__init__(band, rhs_fun)
 
@@ -188,17 +188,16 @@ class FSIntegrator(object):
         self.n_dofs_image = self.ChainObj.n_dofs_image
         # self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
         # self.G :
-        self.forces = self.ChainObj.forces
+        self.forces = self.ChainObj.G
         self.distances = self.ChainObj.distances
-        self.forces_old = np.zeros_like(self.ChainObj.forces)
+        self.forces_old = np.zeros_like(self.ChainObj.G)
 
         # self.band should be just a reference to the band in the ChainObj
         self.band = self.ChainObj.band
-        self.band_old = np.zeros_like(self.band)
+        self.band_old = np.copy(self.band)
 
     def run_for(self, n_steps):
 
-        t = 0.0
         nStart = 0
         exitFlag = False
         totalRestart = True
@@ -214,19 +213,25 @@ class FSIntegrator(object):
 
         INNER_DOFS = slice(self.n_dofs_image, -self.n_dofs_image)
 
+        # Save data of energies on every step
+        self.ChainObj.tablewriter.save()
+        self.ChainObj.tablewriter_dm.save()
+
+        np.save(self.ChainObj.name + '_init.npy', self.ChainObj.band)
+
         while not exitFlag:
 
             if totalRestart:
-                if self.step > 0:
+                if self.i_step > 0:
                     print('Restarting')
                 self.band[:] = self.band_old
 
                 # Compute from self.band. Do not update the step at this stage:
                 # This step updates the forces and distances in the G array of the nebm module,
                 # using the current band state self.y
-                # TODO: remove time from chain method rhs
-                #       make a specific function to update G??
-                self.rhs(t, self.y)
+                # TODO: make a specific function to update G??
+                print('Computing forces')
+                self.ChainObj.nebm_step(self.band, ensure_zero_extrema=True)
                 self.action = self.ChainObj.compute_action()
 
                 # self.step += 1
@@ -250,12 +255,16 @@ class FSIntegrator(object):
                 self.trailAction
 
                 self.ChainObj.nebm_step(self.band, ensure_zero_extrema=True)
-                self.action = self.ChainObj.action_fun()
+                self.action = self.ChainObj.compute_action()
 
                 self.trailAction[nStart] = self.action
                 nStart = next(trailPool)
 
                 self.i_step += 1
+
+                # Save data of energies on every step
+                self.ChainObj.tablewriter.save()
+                self.ChainObj.tablewriter_dm.save()
 
                 # Getting averages of forces from the INNER images in the band (no extrema)
                 # (forces are given by vector G in the chain method code)
@@ -268,10 +277,14 @@ class FSIntegrator(object):
                 # Average step difference between trailing action and new action
                 deltaAction = (np.abs(self.trailAction[nStart] - self.action)) / self.nTrail
 
+                # print('trail Actions', self.trailAction)
+
                 # Print log
                 print(f'Step {self.i_step}  ⟨RMS(G)〉= {mean_rms_G_norms_per_image:.5e}  ',
                       f'deltaAction = {deltaAction:.5e}  Creep n = {creepCount:>3}  resetC = {resetCount:>3}  ',
-                      f'eta = {eta:>5.4e}')
+                      f'eta = {eta:>5.4e}  '
+                      f'action = {self.action:>5.4e}  action_old = {self.action_old:>5.4e}'
+                      )
 
                 # 10 seems like a magic number; we set here a minimum number of evaulations
                 if (nStart > self.nTrail * 10) and (deltaAction < self.actionTol):
@@ -291,17 +304,25 @@ class FSIntegrator(object):
                     eta = eta / (self.dEta * self.dEta)
 
                     # If eta is too small, reset and start again
-                    if (eta < 1e-3):
-                        print('')
+                    if (eta < self.minEta):
+                        # print('')
                         resetCount += 1
                         # bestAction = self.action_old
-                        self.refine_path(self.ChainObj.distances, self.band)  # Resets the path to equidistant structures (smoothing  kinks?)
+                        print('Refining path')
+                        self.refine_path(self.ChainObj.path_distances, self.band)  # Resets the path to equidistant structures (smoothing  kinks?)
                         # PathChanged[:] = True
 
                         if resetCount > self.resetMax:
-                            print('Failed to converge!')
-                    # Otherwise, just 
+                            print('Failed to converge! Reached max number of restarts')
+                            exitFlag = True
+                            break  # creep loop
+
+                        totalRestart = True
+                        break  # creep loop
+
+                    # Otherwise, just start again with smaller alpha 
                     else:
+                        print('Decreasing alpha')
                         self.band[:] = self.band_old
                         self.forces[:] = self.forces_old
                 # If action decreases, move to next creep step
@@ -318,20 +339,22 @@ class FSIntegrator(object):
             # END creep while loop
 
             # After creep loop:
-            self.eta = self.eta * self.dEta
+            eta = eta * self.dEta
             resetCount = 0
 
+        np.save(self.ChainObj.name + '.npy', self.ChainObj.band)
+
     # Taken from the string method class
-    def refine_path(self, distances, band):
+    def refine_path(self, path_distances, band):
         """
         """
-        new_dist = np.linspace(distances[0], distances[-1], distances.shape[0])
+        new_dist = np.linspace(path_distances[0], path_distances[-1], path_distances.shape[0])
         # Restructure the string by interpolating every spin component
         # print(self.integrator.y[self.n_dofs_image:self.n_dofs_image + 10])
         bandrs = band.reshape(self.n_images, self.n_dofs_image)
         for i in range(self.n_dofs_image):
 
-            cs = si.CubicSpline(distances, bandrs[:, i])
+            cs = si.CubicSpline(path_distances, bandrs[:, i])
             bandrs[:, i] = cs(new_dist)
 
     # def set_options(self):

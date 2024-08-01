@@ -113,7 +113,7 @@ class NEBM_FS(ChainMethodBase):
                  name='unnamed',
                  climbing_image=None,
                  openmp=False,
-                 integrator='sundials'  # or scipy
+                 # integrator='sundials'  # or scipy
                  ):
 
         super(NEBM_FS, self).__init__(sim,
@@ -127,7 +127,7 @@ class NEBM_FS(ChainMethodBase):
                                       )
 
         # We need the gradient norm to calculate the action
-        self.gradientENorm = np.zeros_like(self.n_images)
+        self.gradientENorm = np.zeros(self.n_images)
 
         # Initialisation ------------------------------------------------------
         # See the NEBMBase class for details
@@ -136,7 +136,7 @@ class NEBM_FS(ChainMethodBase):
 
         self.initialise_energies()
 
-        self.initialise_integrator(integrator=integrator)
+        self.initialise_integrator()
 
         self.create_tablewriter()
 
@@ -236,9 +236,9 @@ class NEBM_FS(ChainMethodBase):
         the relaxation function
         """
 
-        self.gradientE = self.gradientE.reshape(self.n_images, -1)
+        self.gradientE.shape = (self.n_images, -1)
 
-        y = y.reshape(self.n_images, -1)
+        y.shape = (self.n_images, -1)
 
         # Do not update the extreme images
         for i in range(1, len(y) - 1):
@@ -253,13 +253,17 @@ class NEBM_FS(ChainMethodBase):
 
             self.energies[i] = self.sim.compute_energy()
 
+        # TODO: move this calc to the action function
         # Compute the gradient norm per every image
-        Gnorms2 = np.sum(self.gradientE.reshape(-1, 3)**2, axis=1)
+        Gnorms2 = np.sum(self.gradientE**2, axis=1) / self.n_images
         # Compute the root mean square per image
-        self.gradientENorm[:] = np.sqrt(np.mean(Gnorms2.reshape(self.n_images, -1), axis=1))
+        self.gradientENorm[:] = np.sqrt(Gnorms2)
 
-        y = y.reshape(-1)
-        self.gradientE = self.gradientE.reshape(-1)
+        # DEBUG:
+        # print('gradEnorm', self.gradientENorm)
+
+        y.shape = (-1)
+        self.gradientE.shape = (-1)
 
     def compute_tangents(self, y):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
@@ -327,7 +331,10 @@ class NEBM_FS(ChainMethodBase):
 
         # TODO: we can use a better quadrature such as Gaussian
         # notice that the gradient norm here is using the RMS
-        action = spi.trapezoid(self.gradientENorm, self.distances)
+        action = spi.trapezoid(self.gradientENorm, self.path_distances)
+
+        # DEBUG:
+        # print('action from gradE', action)
 
         # The spring term in the action is added as |F_k|^2 / (2 * self.k) = self.k * x^2 / 2
         # (CHECK) This assumes the spring force is orthogonal to the force gradient (after projection)
@@ -341,9 +348,12 @@ class NEBM_FS(ChainMethodBase):
         dist_minus_norm = self.distances[:-1]
         # dY_plus_norm = distances[i];
         # dY_minus_norm = distances[i - 1];
-        springF2 = self.k * ((dist_plus_norm - dist_minus_norm)**2)
+        springF2 = self.k[1:-1] * ((dist_plus_norm - dist_minus_norm)**2)
         # CHECK: do we need to scale?
         action += np.sum(springF2) / (self.n_images - 2)
+
+        # DEBUG:
+        # print('action spring term', np.sum(springF2) / (self.n_images - 2))
 
         return action
 
