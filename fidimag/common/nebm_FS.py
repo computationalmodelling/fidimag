@@ -253,15 +253,6 @@ class NEBM_FS(ChainMethodBase):
 
             self.energies[i] = self.sim.compute_energy()
 
-        # TODO: move this calc to the action function
-        # Compute the gradient norm per every image
-        Gnorms2 = np.sum(self.gradientE**2, axis=1) / self.n_images
-        # Compute the root mean square per image
-        self.gradientENorm[:] = np.sqrt(Gnorms2)
-
-        # DEBUG:
-        # print('gradEnorm', self.gradientENorm)
-
         y.shape = (-1)
         self.gradientE.shape = (-1)
 
@@ -328,10 +319,20 @@ class NEBM_FS(ChainMethodBase):
         #                                       self._material_int,
         #                                       self.n_dofs_image_material
         #                                       )
+        
+        # NOTE: Gradient here is projected in the S2^N tangent space
+        self.gradientE.shape = (self.n_images, -1)
+        Gnorms2 = np.sum(self.gradientE**2, axis=1) / self.n_images
+        # Compute the root mean square per image
+        self.gradientENorm[:] = np.sqrt(Gnorms2)
+        self.gradientE.shape = (-1)
+
+        # DEBUG:
+        # print('gradEnorm', self.gradientENorm)
 
         # TODO: we can use a better quadrature such as Gaussian
         # notice that the gradient norm here is using the RMS
-        action = spi.trapezoid(self.gradientENorm, self.path_distances)
+        action = spi.simpson(self.gradientENorm, x=self.path_distances)
 
         # DEBUG:
         # print('action from gradE', action)
@@ -348,9 +349,9 @@ class NEBM_FS(ChainMethodBase):
         dist_minus_norm = self.distances[:-1]
         # dY_plus_norm = distances[i];
         # dY_minus_norm = distances[i - 1];
-        springF2 = self.k[1:-1] * ((dist_plus_norm - dist_minus_norm)**2)
+        springF2 = 0.5 * self.k[1:-1] * ((dist_plus_norm - dist_minus_norm)**2)
         # CHECK: do we need to scale?
-        action += np.sum(springF2) / (self.n_images - 2)
+        # action += np.sum(springF2) / (self.n_images - 2)
 
         # DEBUG:
         # print('action spring term', np.sum(springF2) / (self.n_images - 2))

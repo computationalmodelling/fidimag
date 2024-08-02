@@ -60,7 +60,8 @@ def relax_string(maxst, simname, init_im, interp, save_every=10000):
     # equal to 'the number of initial states specified', minus one.
     interpolations = interp
 
-    nebm = NEBM_FS(sim, init_im, interpolations=interpolations, name=simname)
+    nebm = NEBM_FS(sim, init_im, interpolations=interpolations, name=simname,
+                   interpolation_method='linear')
 
     # dt = integrator.stepsize means after every integrator step, the images
     # are rescaled. We can run more integrator steps if we decrease the
@@ -83,8 +84,8 @@ def mid_m(pos):
 
 def test_energy_barrier_2particles_string():
     # Initial images: we set here a rotation interpolating
-    init_im = [(-1, 0, 0), (1, 0, 0)]
-    interp = [13]
+    init_im = [(-1, 0, 0), (0.0, 0.0, 1.0), (1, 0, 0)]
+    interp = [6, 6]
 
     barriers = []
 

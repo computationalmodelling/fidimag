@@ -249,7 +249,7 @@ class FSIntegrator(object):
             # Creep stage: minimise with a fixed eta
             while creepCount < self.maxCreep:
                 # Update spin. Avoid pinned or zero-Ms sites
-                self.band[:] = self.band_old + eta * self.etaScale * self.forces
+                self.band[:] = self.band_old + eta * self.etaScale * self.forces_old
                 normalise_spins(self.band)
 
                 self.trailAction
@@ -285,6 +285,7 @@ class FSIntegrator(object):
                       f'eta = {eta:>5.4e}  '
                       f'action = {self.action:>5.4e}  action_old = {self.action_old:>5.4e}'
                       )
+                # print(self.forces)
 
                 # 10 seems like a magic number; we set here a minimum number of evaulations
                 if (nStart > self.nTrail * 10) and (deltaAction < self.actionTol):
