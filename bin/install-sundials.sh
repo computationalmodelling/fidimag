@@ -28,33 +28,33 @@ download_and_cmake_install() {
     # $2 name of the package
     # $3 URL where ${1}.tar.gz can be obtained
     # $4 configure options
-    if [ ! -e ${1}/${2}.tar.gz ]; then
+    if [ ! -e ${2}.tar.gz ]; then
         echo "Downloading "${3}/${1}/${2}.tar.gz"."
         wget -q -O ${2}.tar.gz ${3}/${1}/${2}.tar.gz
-    fi;
-
-    if [ ! -e ${2} ]; then
         tar -xzf ${2}.tar.gz
-
-        echo "Configuring "${2}"."
-        mkdir ${2}_build
-        cd ${2}_build
-        cmake ${4} ../${2}
-
-        echo "Compiling and installing "${2}"."
-        {
-            make -j2
-            make install
-        } > /dev/null
-
-        echo "Cleaning up."
-        cd ..
-        rm -rf ${2}
-        rm -rf ${2}_build
-
-        cd ${HERE_DIR}
-        echo "Done."
     fi;
+
+    echo "Configuring "${2}"."
+    if [ -e ${2}_build ]; then
+        rm -r ${2}_build
+    fi;
+    mkdir -p ${2}_build
+    cd ${2}_build
+    cmake ${4} ../${2}
+
+    echo "Compiling and installing "${2}"."
+    {
+        make -j2
+        make install
+    } > /dev/null
+
+    echo "Cleaning up."
+    cd ..
+    rm -rf ${2}
+    rm -rf ${2}_build
+
+    cd ${HERE_DIR}
+    echo "Done."
 }
 
 download_and_cmake_install \
