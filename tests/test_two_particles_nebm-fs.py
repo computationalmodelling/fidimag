@@ -3,9 +3,10 @@ import pytest
 # FIDIMAG:
 from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
-from fidimag.micro import UniformExchange, UniaxialAnisotropy
+from fidimag.micro import UniformExchange, UniaxialAnisotropy, Demag
 from fidimag.common.nebm_FS import NEBM_FS
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Material Parameters
 # Parameters
@@ -61,12 +62,12 @@ def relax_string(maxst, simname, init_im, interp, save_every=10000):
     interpolations = interp
 
     nebm = NEBM_FS(sim, init_im, interpolations=interpolations, name=simname,
-                   interpolation_method='linear')
+                   interpolation_method='rotation', spring_constant=1e5)
 
     # dt = integrator.stepsize means after every integrator step, the images
     # are rescaled. We can run more integrator steps if we decrease the
     # stepsize, e.g. dt=1e-3 and integrator.stepsize=1e-4
-    nebm.integrator.maxSteps = 33
+    nebm.integrator.maxSteps = 400
     nebm.integrator.run_for(maxst,
                             # save_vtks_every=save_every,
                             # save_npys_every=save_every,
@@ -84,7 +85,7 @@ def mid_m(pos):
 
 def test_energy_barrier_2particles_string():
     # Initial images: we set here a rotation interpolating
-    init_im = [(-1, 0, 0), (0.0, 0.0, 1.0), (1, 0, 0)]
+    init_im = [(-1, 0, 0), (0.0, 0.2, 1.0), (1, 0, 0)]
     interp = [6, 6]
 
     barriers = []

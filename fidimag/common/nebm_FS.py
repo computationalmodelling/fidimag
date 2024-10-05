@@ -263,9 +263,9 @@ class NEBM_FS(ChainMethodBase):
         nebm_clib.project_images(self.tangents, y,
                                  self.n_images, self.n_dofs_image
                                  )
-        nebm_clib.normalise_images(self.tangents,
-                                   self.n_images, self.n_dofs_image
-                                   )
+        # nebm_clib.normalise_images(self.tangents,
+        #                            self.n_images, self.n_dofs_image
+        #                            )
 
     def compute_spring_force(self, y):
         """
@@ -322,7 +322,9 @@ class NEBM_FS(ChainMethodBase):
         
         # NOTE: Gradient here is projected in the S2^N tangent space
         self.gradientE.shape = (self.n_images, -1)
-        Gnorms2 = np.sum(self.gradientE**2, axis=1) / self.n_images
+        # NOTE: HEre we have to divide by the number of spins per image,not n_images:
+        Gnorms2 = np.sum(self.gradientE**2, axis=1) / self.n_spins
+
         # Compute the root mean square per image
         self.gradientENorm[:] = np.sqrt(Gnorms2)
         self.gradientE.shape = (-1)
@@ -333,6 +335,10 @@ class NEBM_FS(ChainMethodBase):
         # TODO: we can use a better quadrature such as Gaussian
         # notice that the gradient norm here is using the RMS
         action = spi.simpson(self.gradientENorm, x=self.path_distances)
+        # print('E', self.energies / (self.mesh.dx * self.mesh.dy * self.mesh.dz * self.mesh.unit_length**3))
+        # print('gradE norm', self.gradientENorm)
+        # print('Path distance', self.path_distances)
+        print('Images', self.band.reshape(-1, 3).reshape(self.n_images, -1))
 
         # DEBUG:
         # print('action from gradE', action)
@@ -361,15 +367,14 @@ class NEBM_FS(ChainMethodBase):
     def compute_min_action(self):
         dE = self.energies[-1] - self.energies[0]
         minAction = np.sum(np.abs(self.energies[1:] - self.energies[:-1]))
-        return 2 * (dE + minAction)
+        return 2 * (dE + minAction) / (self.mesh.dx * self.mesh.dy * self.mesh.dz * self.mesh.unit_length**3) / self.path_distances[-1]
 
     def nebm_step(self, y, ensure_zero_extrema=False):
 
         self.compute_effective_field_and_energy(y)
-        nebm_clib.project_images(self.gradientE, y,
-                                 self.n_images, self.n_dofs_image
-                                 )
+        nebm_clib.project_images(self.gradientE, y, self.n_images, self.n_dofs_image)
         self.compute_tangents(y)
+        nebm_clib.normalise_spins(self.tangents, self.n_images, self.n_dofs_image)
         self.compute_spring_force(y)
 
         nebm_clib.compute_effective_force(self.G,

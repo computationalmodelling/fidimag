@@ -160,7 +160,7 @@ class FSIntegrator(object):
                  # band, forces, distances, rhs_fun, action_fun,
                  # n_images, n_dofs_image,
                  maxSteps=1000,
-                 maxCreep=6, actionTol=1e-10, forcesTol=1e-6,
+                 maxCreep=6, actionTol=1e-2, forcesTol=1e-6,
                  etaScale=1e-6, dEta=4., minEta=1e-6,
                  # perturbSeed=42, perturbFactor=0.1,
                  nTrail=13, resetMax=20
@@ -249,7 +249,7 @@ class FSIntegrator(object):
             # Creep stage: minimise with a fixed eta
             while creepCount < self.maxCreep:
                 # Update spin. Avoid pinned or zero-Ms sites
-                self.band[:] = self.band_old + eta * self.etaScale * self.forces_old
+                self.band[:] = self.band_old - eta * self.etaScale * self.forces_old
                 normalise_spins(self.band)
 
                 self.trailAction
@@ -271,7 +271,8 @@ class FSIntegrator(object):
                 # TODO: we might use all band images, not only inner ones, although G is zero at the extrema
                 Gnorms2 = np.sum(self.forces[INNER_DOFS].reshape(-1, 3)**2, axis=1)
                 # Compute the root mean square per image
-                rms_G_norms_per_image = np.sqrt(np.mean(Gnorms2.reshape(self.n_images - 2, -1), axis=1))
+                rms_G_norms_per_image = np.sum(Gnorms2.reshape(self.n_images - 2, -1), axis=1) / self.ChainObj.n_spins
+                rms_G_norms_per_image = np.sqrt(rms_G_norms_per_image)
                 mean_rms_G_norms_per_image = np.mean(rms_G_norms_per_image)
 
                 # Average step difference between trailing action and new action
@@ -279,11 +280,14 @@ class FSIntegrator(object):
 
                 # print('trail Actions', self.trailAction)
 
+                ma = self.ChainObj.compute_min_action()
+
                 # Print log
                 print(f'Step {self.i_step}  ⟨RMS(G)〉= {mean_rms_G_norms_per_image:.5e}  ',
                       f'deltaAction = {deltaAction:.5e}  Creep n = {creepCount:>3}  resetC = {resetCount:>3}  ',
                       f'eta = {eta:>5.4e}  '
-                      f'action = {self.action:>5.4e}  action_old = {self.action_old:>5.4e}'
+                      f'action = {self.action:>5.4e}  action_old = {self.action_old:>5.4e} '
+                      f'MIN action = {ma:>5.4e}'
                       )
                 # print(self.forces)
 
