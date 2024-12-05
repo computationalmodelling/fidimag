@@ -89,7 +89,7 @@ class DriverBase(object):
         elif integrator == "sundials":
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
         elif integrator == "euler" or integrator == "rk4":
-            self.integrator = StepIntegrator(self.spin, self.step_rhs)
+            self.integrator = StepIntegrator(self.spin, self.step_rhs, step=integrator)
         elif integrator == "scipy":
             self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
 
