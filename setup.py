@@ -1,5 +1,5 @@
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools import Extension
 import multiprocessing
 from Cython.Build import cythonize
 import numpy
@@ -17,8 +17,10 @@ else:
     os.environ["CC"] = "gcc"
     print("Using CC={} (set by setup.py)".format(os.environ['CC']))
 
-MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+# setup.py requires relative paths:
+MODULE_DIR = os.path.dirname(os.path.relpath(__file__))
 SRC_DIR = os.path.join(MODULE_DIR, "fidimag")
+#
 SUNDIALS_DIR = os.path.join(SRC_DIR, "common", "sundials")
 NEB_DIR = os.path.join(SRC_DIR, "common", "neb")
 NEBM_DIR = os.path.join(SRC_DIR, "common", "neb_method")
@@ -48,9 +50,6 @@ def get_version():
             if m:
                 return m.group(2)
     raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
-
-
-version = get_version()
 
 
 def glob_cfiles(path, excludes, extension="*.c"):
@@ -231,10 +230,11 @@ ext_modules = [
               )
 ]
 
-
+yellow = "\x1b[33;49m"
+reset = "\x1b[0m"
 for folder in glob.glob(os.path.join(USER_DIR, '*/')):
     module_name = folder.split('/')[-2]
-    print('Found User Module: {}'.format(module_name))
+    print(yellow + f'Found User Module: {module_name}' + reset)
     user_sources = glob.glob(folder + '/*.pyx')
     if len(user_sources) != 1:
         raise BuildError("User Modules are only allowed one Cython .pyx file")
@@ -259,11 +259,10 @@ for folder in glob.glob(os.path.join(USER_DIR, '*/')):
     )
 
 nthreads = multiprocessing.cpu_count()
-print('Building with {} threads'.format(nthreads))
+print(yellow + f'Building with {nthreads} threads' + reset)
 setup(
     name='fidimag',
-    version=version,
-    description='Atomistic and finite-difference-micromagnetics code',
+    version=get_version(),
     packages=['fidimag',
               'fidimag.atomistic',
               'fidimag.micro',
