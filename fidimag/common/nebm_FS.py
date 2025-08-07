@@ -338,7 +338,8 @@ class NEBM_FS(ChainMethodBase):
         # print('E', self.energies / (self.mesh.dx * self.mesh.dy * self.mesh.dz * self.mesh.unit_length**3))
         # print('gradE norm', self.gradientENorm)
         # print('Path distance', self.path_distances)
-        print('Images', self.band.reshape(-1, 3).reshape(self.n_images, -1))
+        #
+        # print('Images', self.band.reshape(-1, 3).reshape(self.n_images, -1))
 
         # DEBUG:
         # print('action from gradE', action)
