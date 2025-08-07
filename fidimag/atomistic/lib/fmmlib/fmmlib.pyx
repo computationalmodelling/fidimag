@@ -35,8 +35,8 @@ cdef vector[Particle] sim_to_particles(mesh, mu_s):
         for j in range(mesh.ny):
             for i in range(mesh.nx):
                 id = k * mesh.nx * mesh.ny + j * mesh.nx + i
-                // Check that the spin is not a 'ghost' spin
-                if mus[id] != 0:
+                # Check that the spin is not a 'ghost' spin
+                if mu_s[id] != 0:
                     ids.append(id)
                 
 
