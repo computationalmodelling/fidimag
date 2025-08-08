@@ -4,8 +4,8 @@ dynamic = ["version"]
 description = "Atomistic and Finite-DIfference microMAGnetic code, based on Python, Cython and C "
 readme = "README.md"
 # Not fully supported:
-# license-files = "LICENSE.txt"
-license = "BSD-2-Clause"
+# license-files = ["LICENSE.txt"]
+# license = "BSD-2-Clause"
 requires-python = ">= 3.10"
 dependencies = [
     'numpy',
