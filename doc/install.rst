@@ -2,54 +2,71 @@ Installation
 ============
 
 
-Please use these instructions to build and run Fidimag on Linux or
-OS X. We do not currently support Windows, as none of the developers
-use this as their operating system, though please make a pull request
-with instructions or let us know if you are able to get Fidimag
-working on a Windows machine.
+Please use these instructions to build and run Fidimag on Linux, OS X, or Windows WSL. 
+Fidimag can work in Windows using a Python disctribution such as Anaconda or Mamba, with a C/C++ compiler. 
 
-Ubuntu
-------
+Linux
+-----
 
-Users can run a quick convenience script in the folder Fidimag/bin
-by running the command::
-    sudo bash ubuntu_install_script.sh
+We recommend using `mamba <https://mamba.readthedocs.io/en/latest/>` (or conda). First create an environment with Python >= 3.10.
 
-Then, follow the instructions in 'All Systems' below.
+.. code-block:: bash
+
+    mamba create -n fidimag python=3.13 -c conda-forge
+    mamba activate fidimag
 
 
-Other Linux
------------
+Now clone the repository and `cd` into it.
 
-Please install FFTW and Sundials using the scripts below, or use your package
-manager to do so.   
+.. code-block:: bash
 
-* install-fftw.sh
-* install-sundials.sh
+    git clone git@github.com:computationalmodelling/fidimag.git
+    cd fidimag
 
-We also need a number of Python packages:
-  
-  * numpy
-  * scipy
-  * cython
-  * pytest
-  * matplotlib
-  * ipywidgets
-  * pyvtk
-  * ipython
 
-These can be installed through the pip package manager with::
-
-    pip install numpy scipy cython pytest matplotlib ipywidgets pyvtk ipython
-
-You will need a relatively recent installation of CMake (> version 3) to use the Sundials script. You may also need to install development versions of
+Install FFTW and Sundials. You will need a relatively recent installation of  (> version 3) to use the Sundials script. You may also need to install development versions of
 
 * BLAS
 * LAPACK
 
-though many Linux distributions come with these.
+though many Linux distributions come with these. Using the scripts provided in Fidimag:
 
-Then, follow the instructions in 'All Systems' below.
+.. code-block:: bash
+
+    cd bin
+    bash install-fftw.sh
+    bash install-sundials.sh
+
+Python library dependencies are specified in the `pyproject.toml` file. We can install the `fidimag` library in editable mode, using `pip`:
+
+.. code-block:: bash
+
+    pip install -e .
+
+This will build the C/C++ modules and setup `fidimag` in our Python environment. We can make any changes to the Python code and not install the library again, unless we modified the C/C++ modules, which requires building again. Now we can simply call
+
+.. code-block:: bash
+
+    python -c "import fidimag"
+
+
+If you want to check everything has worked correctly, try the command 'make test' from the fidimag directory - if all tests pass, then you have a working installation!
+
+Alternatively, for development, we can install the C/C++ modules
+
+.. code-block:: bash
+
+    make
+
+
+and link the Fidimag directory to the Python path
+
+.. code-block:: bash
+
+    export PYTHONPATH=/path/to/fidimag:$PYTHONPATH
+
+
+Any changes to the C/C++ modules will require building only the modified codes and not all of the modules using `make`.
 
 
 OS X
@@ -57,7 +74,9 @@ OS X
 
 OS X has not shipped with GCC since the release of OS X Mavericks. You therefore need to install this, as the version of clang which ships does not support OpenMP. We advise that you use the brew package manager, and install gcc5. We also strongly advise that you install the Anaconda Python distribution - we do not test against the version of Python that comes with OS X.
 
-Once you have done this, you need to specify the compiler you are using::
+Once you have done this, you need to specify the compiler you are using
+
+.. code-block:: bash
 
     export CC=gcc-5
 
@@ -65,26 +84,22 @@ You can then follow the same installation instructions as for 'Other Linux', but
 
 Then, follow the instructions in 'All Systems' below.
 
+Troubleshooting
+---------------
 
-All systems
------------
+If there is a problem with finding C/C++ sundials and fftw libraries, it is necessary to update the corresponding env variable
 
-Once you've built Fidimag, you need to add the libraries to your LD_LIBRARY_PATH, so that Fidimag can find them. If you installed SUNDIALS and FFTW using our scripts, you can do this with the command::
+.. code-block:: bash
 
     export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
 
-You may want to add this and another command to the file ~/.bashrc on Linux or ~/.bash_profile on OS X::
-
-    export PYTHONPATH=/path/to/fidimag:$PYTHONPATH
-
-Adding Fidimag to your PYTHONPATH allows fidimag to be imported in Python from any directory.
-
-If you want to check everything has worked correctly, try the command 'make test' from the fidimag directory - if all tests pass, then you have a working installation!
 
 OOMMF
 -----
 
 Some additional tests check Fidimag against OOMMF. To run these, you need a working OOMMF installation, and you need need to tell the system where to
-find it. You can do this by setting the environment variable to the directory containing oommf.tcl::
+find it. You can do this by setting the environment variable to the directory containing oommf.tcl
+
+.. code-block:: bash
 
     export OOMMF_PATH=/path/to/folder/containing/OOMMF

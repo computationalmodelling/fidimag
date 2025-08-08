@@ -10,11 +10,14 @@
 | Tests Type | Status |
 |:-:|:-:|
 | GHA Unit Tests | ![Build](https://github.com/computationalmodelling/fidimag/actions/workflows/build.yml/badge.svg?)
-| Notebooks | ![Notebooks](https://travis-matrix-badges.herokuapp.com/repos/computationalmodelling/fidimag/branches/master/2)
 
 <img src="http://computationalmodelling.github.io/fidimag/figs/skyrmion.jpg" alt="Fidimag Image" width="400" align="right">
 
 Fidimag solves finite-difference micromagnetic problems and supports atomistic simulations, using Python interface. The interface to both types of simulation is similar.
+
+### Install
+
+See: [https://fidimag.readthedocs.io/en/latest/install.html](https://fidimag.readthedocs.io/en/latest/install.html)
 
 ### Features
 * Optimal LLG equation integration using modern [Sundial's v6](https://github.com/LLNL/sundials/) CVODE solver
@@ -84,7 +87,6 @@ Contributions and pull requests to both the code and documentation are welcome.
 If you use Fidimag, please cite as:
 
 Bisotti, M.-A., Cortés-Ortuño, D., Pepper, R., Wang, W., Beg, M., Kluyver, T. and Fangohr, H., 2018. Fidimag – A Finite Difference Atomistic and Micromagnetic Simulation Package. Journal of Open Research Software, 6(1), p.22. DOI: http://doi.org/10.5334/jors.223
-
 
 
 ### Acknowledgements
