@@ -19,10 +19,13 @@ class BuildError(Exception):
 
 
 # setup.py requires relative paths:
-# MODULE_DIR = os.path.dirname(os.path.relpath(__file__))
-INCLUDE_DIR = 'local/include'
-LIB_DIR = 'local/lib'
-LIB_DIR64 = 'local/lib64'
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+INCLUDE_DIR = os.path.join(MODULE_DIR, 'local', 'include')
+LIB_DIR = os.path.join(MODULE_DIR, 'local', 'lib')
+LIB_DIR64 = os.path.join(MODULE_DIR, 'local', 'lib64')
+# INCLUDE_DIR = 'local/include'
+# LIB_DIR = 'local/lib'
+# LIB_DIR64 = 'local/lib64'
 
 # rpath is the path relative to the compiled shared object files (e.g. clib.so, etc)
 # which the dynamic linker looks for the linked libraries (e.g. libsundials_*.so) in.
@@ -30,7 +33,7 @@ LIB_DIR64 = 'local/lib64'
 # hence why it is a 'relative'(r) path. Here the relative path is with respect to
 # the fidimag/fidimag/extensions directory.
 RPATH = '../../local/lib'
-com_link = ['-Wl,-rpath,{},-rpath,{}'.format(str(LIB_DIR), str(LIB_DIR64))]
+com_link = ['-Wl,-rpath,{},-rpath,{}'.format(str(LIB_DIR), str(LIB_DIR64)), '-fopenmp']
 
 lib_paths = [LIB_DIR, LIB_DIR64]
 # lib_paths = [LIB_DIR, os.path.join(MODULE_DIR, 'native')]
@@ -38,8 +41,8 @@ lib_paths = [LIB_DIR, LIB_DIR64]
 # com_libs = ['fidimag']
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 # com_args = []
-com_args = ['-O3', '-Wno-unused-function', '-Wall', '-std=c99']
-com_args_cpp = ['-O3', '-Wno-unused-function', '-Wall', '-std=c++14']
+com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall', '-std=c99', '-fopenmp']
+com_args_cpp = ['-O3', '-Wno-unused-function', '-Wall', '-std=c++14', '-fopenmp']
 
 if 'SUNDIALS_INC' in os.environ:
      com_inc.append(os.environ['SUNDIALS_INC'])
@@ -64,8 +67,22 @@ for i, (module, src) in enumerate(zip(ext_names, source_files)):
     print(sYellow + f"Compiling module {module}" + sReset)
 
     # src is a Path
-    incFiles = [str(incF) for incF in src.parent.rglob('*[!pyx]') if incF != src.with_suffix('.c')]
-    com_inc = [numpy.get_include(), INCLUDE_DIR] + incFiles
+    srcFiles = [str(sF) for sF in src.parent.glob('*') if sF.is_file()
+                and sF != src.with_suffix('.c') 
+                and str(sF).endswith(('.c', '.cpp'))
+                ]
+
+    com_inc = [numpy.get_include(), INCLUDE_DIR] + [str(src.parent)]
+
+    # print(module)
+    # print(com_inc)
+    # print(com_libs)
+    # print(srcFiles)
+    # print(lib_paths)
+    # print(com_link)
+    # print(com_args_compiler)
+    for s in srcFiles:
+        print(s)
 
     if 'fmm' in module:
         print(sBlue + f'Using cpp for this module' + sReset)
@@ -76,7 +93,7 @@ for i, (module, src) in enumerate(zip(ext_names, source_files)):
         lan = 'c'
 
     ext_modules.append(Extension(module,
-                                 sources=[src],
+                                 sources=srcFiles,
                                  include_dirs=com_inc,
                                  libraries=com_libs,
                                  library_dirs=lib_paths,
