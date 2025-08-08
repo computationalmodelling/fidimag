@@ -7,3 +7,7 @@ build:
 
 conda:
   environment: doc/environment.yml
+
+sphinx:
+  # Path to your Sphinx configuration file.
+  configuration: doc/conf.py
