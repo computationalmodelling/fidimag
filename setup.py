@@ -14,34 +14,17 @@ sRed = "\x1b[31;49m"
 sReset = "\x1b[0m"
 
 
-class BuildError(Exception):
-    pass
+MODULE_DIR = Path(__file__).parent  # This should be the abs path
+print(MODULE_DIR)
+INCLUDE_DIR = MODULE_DIR / 'local/include'
+LIB_DIR = MODULE_DIR / 'local/lib'
+LIB_DIR64 = MODULE_DIR / 'local/lib64'
 
-
-# setup.py requires relative paths:
-# MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODULE_DIR = os.path.dirname(os.path.relpath(__file__))
-INCLUDE_DIR = os.path.join(MODULE_DIR, 'local', 'include')
-LIB_DIR = os.path.join(MODULE_DIR, 'local', 'lib')
-LIB_DIR64 = os.path.join(MODULE_DIR, 'local', 'lib64')
-# INCLUDE_DIR = 'local/include'
-# LIB_DIR = 'local/lib'
-# LIB_DIR64 = 'local/lib64'
-
-# rpath is the path relative to the compiled shared object files (e.g. clib.so, etc)
-# which the dynamic linker looks for the linked libraries (e.g. libsundials_*.so) in.
-# We need to set it relatively in order for it to be preserved if the parent directory is moved
-# hence why it is a 'relative'(r) path. Here the relative path is with respect to
-# the fidimag/fidimag/extensions directory.
-RPATH = '../../local/lib'
-com_link = ['-Wl,-rpath,{},-rpath,{}'.format(str(LIB_DIR), str(LIB_DIR64)), '-fopenmp']
-
-lib_paths = [LIB_DIR, LIB_DIR64]
-# lib_paths = [LIB_DIR, os.path.join(MODULE_DIR, 'native')]
-# com_inc = [numpy.get_include(), INCLUDE_DIR, os.path.join(MODULE_DIR, 'native', 'include')]
-# com_libs = ['fidimag']
+# Paths are relative to the extensions directory in: fidimag/extensions/
+# So we use "../..". Otherwise, we have to add the LIB folder to LD_LIBRARY_PATH env variable
+com_link = ['-Wl,-rpath,../../{},-rpath,../../{}'.format(str(LIB_DIR), str(LIB_DIR64)), '-fopenmp']
+lib_paths = [str(LIB_DIR), str(LIB_DIR64)]
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
-# com_args = []
 com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall', '-std=c99', '-fopenmp']
 com_args_cpp = ['-O3', '-Wno-unused-function', '-Wall', '-std=c++14', '-fopenmp']
 
@@ -54,14 +37,16 @@ if 'FFTW_INC' in os.environ:
 # Find .pyx files with extensions (source files)
 ROOT_DIR = Path('fidimag')
 source_files = [s for s in ROOT_DIR.rglob('*.pyx')]  # Paths
-print(source_files)
+
+# User extensions are located in the "user" namespace within "extensions"
 ext_names = []
 for s in source_files:
     if 'user' in str(s):
         ext_names.append("fidimag.extensions.user." + s.stem)
     else:
         ext_names.append("fidimag.extensions." + s.stem)
-print(ext_names)
+
+com_inc = [numpy.get_include(), str(INCLUDE_DIR)]
 
 ext_modules = []
 for i, (module, src) in enumerate(zip(ext_names, source_files)):
@@ -70,13 +55,14 @@ for i, (module, src) in enumerate(zip(ext_names, source_files)):
     if 'fmmlib' in module:
         continue
 
-    # src is a Path
+    # "python -m build ..." can use absolute paths
     # srcFiles = [str(sF.resolve()) for sF in src.parent.glob('*')  # resolve -> absolute paths
     #             if sF.is_file()
     #             and sF != src.with_suffix('.c') 
     #             and str(sF).endswith(('.c', '.cpp'))
     #             ]
 
+    # src is a Path
     srcFiles = [str(sF) for sF in src.parent.glob('*')
                 if sF.is_file()
                 and sF != src.with_suffix('.c')
@@ -84,21 +70,9 @@ for i, (module, src) in enumerate(zip(ext_names, source_files)):
                 and str(sF).endswith(('.c', '.cpp', '.pyx'))
                 ]
 
-    com_inc = [numpy.get_include(), INCLUDE_DIR]
-
-    print(module)
-    print(com_inc)
-    print(com_libs)
-    print(srcFiles)
-    print(lib_paths)
-    print(com_link)
-    # print(com_args_compiler)
-    for s in srcFiles:
-        print(s)
-    print(com_inc)
 
     if 'fmm' in module:
-        print(sBlue + f'Using cpp for this module' + sReset)
+        print(sBlue + f'Using cpp for this module: {module}' + sReset)
         com_args_compiler = com_args_cpp
         lan = 'c++'
     else:
@@ -124,15 +98,9 @@ else:
     os.environ["CC"] = "gcc"
     print("Using CC={} (set by setup.py)".format(os.environ['CC']))
 
-USER_DIR = os.path.join("fidimag/user")
-
-
-pkg_init_path = os.path.join(
-    os.path.dirname(__file__), 'fidimag', '__init__.py')
-
 
 def get_version():
-    with open(pkg_init_path) as f:
+    with open('fidimag/__init__.py') as f:
         for line in f:
             m = re.match(r'''__version__\s*=\s*(['"])(.+)\1''', line.strip())
             if m:
