@@ -34,8 +34,8 @@ if 'SUNDIALS_INC' in os.environ:
 if 'FFTW_INC' in os.environ:
      com_inc.append(os.environ['FFTW_INC'])
 
-# Find .pyx files with extensions (source files)
-ROOT_DIR = Path('fidimag')
+# Find all .pyx files with extensions (source files)
+ROOT_DIR = MODULE_DIR / 'fidimag'
 source_files = [s for s in ROOT_DIR.rglob('*.pyx')]  # Paths
 
 # User extensions are located in the "user" namespace within "extensions"

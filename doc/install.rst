@@ -8,7 +8,7 @@ Fidimag can work in Windows using a Python disctribution such as Anaconda or Mam
 Linux
 -----
 
-We recommend using ![mamba](https://mamba.readthedocs.io/en/latest/) (or conda). First create an environment with Python >= 3.10.
+We recommend using `mamba <https://mamba.readthedocs.io/en/latest/>` (or conda). First create an environment with Python >= 3.10.
 
 .. code-block:: bash
 

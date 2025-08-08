@@ -17,7 +17,7 @@ Fidimag solves finite-difference micromagnetic problems and supports atomistic s
 
 ### Install
 
-See: ![https://fidimag.readthedocs.io/en/latest/install.html](https://fidimag.readthedocs.io/en/latest/install.html)
+See: [https://fidimag.readthedocs.io/en/latest/install.html](https://fidimag.readthedocs.io/en/latest/install.html)
 
 ### Features
 * Optimal LLG equation integration using modern [Sundial's v6](https://github.com/LLNL/sundials/) CVODE solver
