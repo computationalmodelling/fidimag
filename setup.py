@@ -14,15 +14,16 @@ sRed = "\x1b[31;49m"
 sReset = "\x1b[0m"
 
 
-MODULE_DIR = Path(__file__).parent  # This should be the abs path
+ABS_MODULE_DIR = Path(__file__).parent  # This should be the abs path
+MODULE_DIR = Path('.')  # This should be the rel path (setup.py requires rel paths for pip -e)
 print(MODULE_DIR)
-INCLUDE_DIR = MODULE_DIR / 'local/include'
-LIB_DIR = MODULE_DIR / 'local/lib'
-LIB_DIR64 = MODULE_DIR / 'local/lib64'
+INCLUDE_DIR = ABS_MODULE_DIR / 'local/include'
+# Use absolute paths for the sundials/fftw libs:
+LIB_DIR = ABS_MODULE_DIR / 'local/lib'
+LIB_DIR64 = ABS_MODULE_DIR / 'local/lib64'
 
-# Paths are relative to the extensions directory in: fidimag/extensions/
-# So we use "../..". Otherwise, we have to add the LIB folder to LD_LIBRARY_PATH env variable
-com_link = ['-Wl,-rpath,../../{},-rpath,../../{}'.format(str(LIB_DIR), str(LIB_DIR64)), '-fopenmp']
+# rpath: run-time search path for the sundials (cvode) and fftw library objects
+com_link = ['-Wl,-rpath,{},-rpath,{}'.format(str(LIB_DIR), str(LIB_DIR64)), '-fopenmp']
 lib_paths = [str(LIB_DIR), str(LIB_DIR64)]
 com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall', '-std=c99', '-fopenmp']
@@ -34,7 +35,7 @@ if 'SUNDIALS_INC' in os.environ:
 if 'FFTW_INC' in os.environ:
      com_inc.append(os.environ['FFTW_INC'])
 
-# Find all .pyx files with extensions (source files)
+# Find all .pyx files with extensions (source files) -> relative paths
 ROOT_DIR = MODULE_DIR / 'fidimag'
 source_files = [s for s in ROOT_DIR.rglob('*.pyx')]  # Paths
 
