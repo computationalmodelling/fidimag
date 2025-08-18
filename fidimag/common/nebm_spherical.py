@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 import numpy as np
 import fidimag.extensions.nebm_clib as nebm_clib
 from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
@@ -13,7 +11,7 @@ log = logging.getLogger(name="fidimag")
 
 
 class NEBM_Spherical(ChainMethodBase):
-    """
+    r"""
 
     ARGUMENTS -----------------------------------------------------------------
 
@@ -244,7 +242,7 @@ class NEBM_Spherical(ChainMethodBase):
         # Only update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.set_m(spherical2cartesian(y[i]))
+            self.sim.spin[:] = spherical2cartesian(y[i])
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
