@@ -184,12 +184,12 @@ class NEBM_Geodesic(ChainMethodBase):
 
     def initialise_energies(self):
         # Energy of the images
-        self.band = self.band.reshape(self.n_images, -1)
+        self.band.shape = (self.n_images, -1)
         for i in range(self.n_images):
             self.sim.set_m(self.band[i])
             self.sim.compute_effective_field(t=0)
             self.energies[i] = self.sim.compute_energy()
-        self.band = self.band.reshape(-1)
+        self.band.shape = (-1)
 
     def generate_initial_band(self, method='linear'):
         """
@@ -199,7 +199,7 @@ class NEBM_Geodesic(ChainMethodBase):
 
         # Every row will be an image of the band, i.e. the i-th row is
         # the i-t image
-        self.band = self.band.reshape(self.n_images, -1)
+        self.band.shape = (self.n_images, -1)
 
         # Indexes indicating the image number (position of the images) in the
         # band, for the specified initial images
@@ -255,7 +255,7 @@ class NEBM_Geodesic(ChainMethodBase):
                           i_initial_images[i + 1]] = interpolation
 
         # expand the energy band array
-        self.band = self.band.reshape(-1)
+        self.band.shape = (-1)
 
     def compute_effective_field_and_energy(self, y):
         """
@@ -270,14 +270,14 @@ class NEBM_Geodesic(ChainMethodBase):
 
         """
 
-        self.gradientE = self.gradientE.reshape(self.n_images, -1)
-
-        y = y.reshape(self.n_images, -1)
+        self.gradientE.shape = (self.n_images, -1)
+        y.shape = (self.n_images, -1)
 
         # Only update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.set_m(y[i])
+            # self.sim.set_m(y[i])  # -> memory leak
+            self.sim.spin[:] = y[i]
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
@@ -287,8 +287,8 @@ class NEBM_Geodesic(ChainMethodBase):
 
             self.energies[i] = self.sim.compute_energy()
 
-        y = y.reshape(-1)
-        self.gradientE = self.gradientE.reshape(-1)
+        y.shape = (-1)
+        self.gradientE.shape = (-1)
 
     def compute_tangents(self, y):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
