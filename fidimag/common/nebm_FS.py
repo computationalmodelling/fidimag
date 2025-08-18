@@ -245,7 +245,7 @@ class NEBM_FS(ChainMethodBase):
         # Do not update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.set_m(y[i])
+            self.sim.spin[:] = y[i]
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
@@ -331,7 +331,8 @@ class NEBM_FS(ChainMethodBase):
         # Gnorms2 = np.sum(self.G**2, axis=1) / self.n_spins
 
         # Compute the root mean square per image
-        self.gradientENorm[:] = np.sqrt(Gnorms2)
+        # self.gradientENorm[:] = np.sqrt(Gnorms2)
+        self.gradientENorm[:] = np.linalg.norm(self.gradientE, axis=1) / self.n_spins
         self.gradientE.shape = (-1)
         # self.G.shape = (-1)
 
