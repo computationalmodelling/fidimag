@@ -405,7 +405,6 @@ cdef class CvodeSolver(object):
         self.t = t
         self.y[:] = spin[:]
 
-        cdef double[:] y = self.y
         copy_arr2nv(self.y, self.u_y)
 
         if self.cvode_already_initialised:
