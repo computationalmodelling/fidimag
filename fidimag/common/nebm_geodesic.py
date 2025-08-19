@@ -16,7 +16,7 @@ log = logging.getLogger(name="fidimag")
 
 
 class NEBM_Geodesic(ChainMethodBase):
-    """
+    r"""
     ARGUMENTS -----------------------------------------------------------------
 
     sim                 :: An instance of a micromagnetic or an atomistic
@@ -276,10 +276,8 @@ class NEBM_Geodesic(ChainMethodBase):
         # Only update the extreme images
         for i in range(1, len(y) - 1):
 
-            # self.sim.set_m(y[i])  # -> memory leak
+            # self.sim.set_m(y[i])  # -> memory leak if sim has a driver
             self.sim.spin[:] = y[i]
-            # elif self.coordinates == 'Cartesian':
-            #     self.sim.set_m(self.band[i])
 
             self.sim.compute_effective_field(t=0)
 
