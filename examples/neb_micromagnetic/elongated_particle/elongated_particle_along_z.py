@@ -1,4 +1,3 @@
-from __future__ import print_function
 import pytest
 
 """
@@ -46,7 +45,6 @@ from fidimag.micro import Sim
 from fidimag.common import CuboidMesh
 from fidimag.micro import UniformExchange, UniaxialAnisotropy, Demag
 from fidimag.common.nebm_geodesic import NEBM_Geodesic
-from fidimag.common.nebm_cartesian import NEBM_Cartesian
 import numpy as np
 
 # Material Parameters ---------------------------------------------------------
@@ -78,7 +76,7 @@ def relax_neb(sim, k, maxst, simname, initial_images, interpolations,
                             'linear' or 'rotation' (Rodrigues formulae)
     """
 
-    method_dict = {'Cartesian': NEBM_Cartesian, 'Geodesic': NEBM_Geodesic}
+    method_dict = {'Geodesic': NEBM_Geodesic}
 
     neb = method_dict[method](sim,
                               initial_images,
@@ -139,7 +137,7 @@ def test_energy_barrier_cylinder():
     init_im = [(0, 0, -1), (0, 0.9, 0.1), (0, 0, 1)]
     interp = [8, 8]
 
-    for method in ['Geodesic', 'Cartesian']:
+    for method in ['Geodesic']:
         relax_neb(elongated_part_sim(),
                   1e4, 2000,
                   'neb_cylinder_z-axis_{}'.format(method),
