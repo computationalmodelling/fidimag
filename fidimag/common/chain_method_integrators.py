@@ -160,8 +160,8 @@ class FSIntegrator(object):
                  # band, forces, distances, rhs_fun, action_fun,
                  # n_images, n_dofs_image,
                  maxSteps=1000,
-                 maxCreep=6, actionTol=1e-2, forcesTol=1e-6,
-                 etaScale=1e-6, dEta=4., minEta=1e-6,
+                 maxCreep=4, actionTol=1e-2, forcesTol=1e-8,
+                 etaScale=1e4, dEta=4., minEta=1e-6,
                  # perturbSeed=42, perturbFactor=0.1,
                  nTrail=13, resetMax=20
                  ):
@@ -188,13 +188,17 @@ class FSIntegrator(object):
         self.n_dofs_image = self.ChainObj.n_dofs_image
         # self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
         # self.G :
-        self.forces = self.ChainObj.G
+        self.forces = -self.ChainObj.G
         self.distances = self.ChainObj.distances
         self.forces_old = np.zeros_like(self.ChainObj.G)
 
         # self.band should be just a reference to the band in the ChainObj
-        self.band = self.ChainObj.band
-        self.band_old = np.copy(self.band)
+        # self.band = self.ChainObj.band
+        self.band_old = np.copy(self.ChainObj.band)
+
+        # CHECK
+        self.ChainObj.k[:] = 0.0
+        self.ChainObj.spring_force[:] = 0.0
 
     def run_for(self, n_steps):
 
@@ -218,24 +222,25 @@ class FSIntegrator(object):
         self.ChainObj.tablewriter_dm.save()
 
         np.save(self.ChainObj.name + '_init.npy', self.ChainObj.band)
+        self.action_old = 0.0
 
         while not exitFlag:
 
             if totalRestart:
                 if self.i_step > 0:
                     print('Restarting')
-                self.band[:] = self.band_old
+                self.ChainObj.band[:] = self.band_old
 
                 # Compute from self.band. Do not update the step at this stage:
                 # This step updates the forces and distances in the G array of the nebm module,
                 # using the current band state self.y
                 # TODO: make a specific function to update G??
                 print('Computing forces')
-                self.ChainObj.nebm_step(self.band, ensure_zero_extrema=True)
+                self.ChainObj.nebm_step(self.ChainObj.band, ensure_zero_extrema=True)
                 self.action = self.ChainObj.compute_action()
 
                 # self.step += 1
-                self.forces_old[:] = self.forces  # Scale field??
+                self.forces_old[:] = self.ChainObj.G  # Scale field??
                 # self.gradE_last[~_material] = 0.0
                 # self.gradE[:] = self.gradE_last
                 self.action_old = self.action
@@ -243,18 +248,41 @@ class FSIntegrator(object):
                 nStart = next(trailPool)
                 eta = 1.0
                 totalRestart = False
-
             creepCount = 0
+
 
             # Creep stage: minimise with a fixed eta
             while creepCount < self.maxCreep:
                 # Update spin. Avoid pinned or zero-Ms sites
-                self.band[:] = self.band_old - eta * self.etaScale * self.forces_old
-                normalise_spins(self.band)
+                self.ChainObj.band[:] = self.band_old - eta * self.etaScale * self.forces_old
+                normalise_spins(self.ChainObj.band)
 
-                self.trailAction
+                # self.refine_path(self.ChainObj.path_distances, self.ChainObj.band)  # Resets the path to equidistant structures (smoothing  kinks?)
+                # normalise_spins(self.ChainObj.band)
 
-                self.ChainObj.nebm_step(self.band, ensure_zero_extrema=True)
+                self.trailAction[nStart] = self.action
+                nStart = next(trailPool)
+
+                self.ChainObj.nebm_step(self.ChainObj.band, ensure_zero_extrema=True)
+
+                # gradE = self.ChainObj.gradientE.reshape(self.n_images, -1)
+                # band = self.ChainObj.band.reshape(self.n_images, -1)
+                # tgts = self.ChainObj.tangents.reshape(self.n_images, -1)
+                # forces = self.ChainObj.G.reshape(self.n_images, -1)
+                # for im_idx in range(gradE.shape[0]):
+                #         gradE_dot_tgt = np.sum(forces[im_idx] * tgts[im_idx])
+                #         print(f'Im {im_idx}', forces[im_idx], tgts[im_idx], gradE_dot_tgt)
+                #         print('-----', np.linalg.norm(tgts[im_idx]))
+                # gradE = self.ChainObj.gradientE.reshape(self.n_images, -1)
+                # band = self.ChainObj.band.reshape(self.n_images, -1)
+                # tgts = self.ChainObj.tangents.reshape(self.n_images, -1)
+                # forces = self.ChainObj.G.reshape(self.n_images, -1)
+
+                # for im_idx in range(gradE.shape[0]):
+                #     gradE_dot_tgt = np.sum(forces[im_idx] * tgts[im_idx])
+                #     print(np.linalg.norm(tgts[im_idx]), gradE_dot_tgt)
+                # print('--')
+
                 self.action = self.ChainObj.compute_action()
 
                 self.trailAction[nStart] = self.action
@@ -269,9 +297,9 @@ class FSIntegrator(object):
                 # Getting averages of forces from the INNER images in the band (no extrema)
                 # (forces are given by vector G in the chain method code)
                 # TODO: we might use all band images, not only inner ones, although G is zero at the extrema
-                Gnorms2 = np.sum(self.forces[INNER_DOFS].reshape(-1, 3)**2, axis=1)
+                Gnorms2 = np.sum(self.ChainObj.G.reshape(-1, 3)**2, axis=1)
                 # Compute the root mean square per image
-                rms_G_norms_per_image = np.sum(Gnorms2.reshape(self.n_images - 2, -1), axis=1) / self.ChainObj.n_spins
+                rms_G_norms_per_image = np.sum(Gnorms2.reshape(self.n_images, -1), axis=1) / self.ChainObj.n_images
                 rms_G_norms_per_image = np.sqrt(rms_G_norms_per_image)
                 mean_rms_G_norms_per_image = np.mean(rms_G_norms_per_image)
 
@@ -314,7 +342,7 @@ class FSIntegrator(object):
                         resetCount += 1
                         # bestAction = self.action_old
                         print('Refining path')
-                        self.refine_path(self.ChainObj.path_distances, self.band)  # Resets the path to equidistant structures (smoothing  kinks?)
+                        self.refine_path(self.ChainObj.path_distances, self.ChainObj.band)  # Resets the path to equidistant structures (smoothing  kinks?)
                         # PathChanged[:] = True
 
                         if resetCount > self.resetMax:
@@ -328,14 +356,14 @@ class FSIntegrator(object):
                     # Otherwise, just start again with smaller alpha 
                     else:
                         print('Decreasing alpha')
-                        self.band[:] = self.band_old
-                        self.forces[:] = self.forces_old
+                        self.ChainObj.band[:] = self.band_old
+                        self.ChainObj.G[:] = self.forces_old
                 # If action decreases, move to next creep step
                 else:
                     creepCount += 1
                     self.action_old = self.action
-                    self.band_old[:] = self.band
-                    self.forces_old[:] = self.forces
+                    self.band_old[:] = self.ChainObj.band
+                    self.forces_old[:] = self.ChainObj.G
 
                     if (mean_rms_G_norms_per_image < self.forcesTol):
                         print('Change of mean of the force RMSquares negligible')

@@ -126,6 +126,8 @@ class NEBM_FS(ChainMethodBase):
                                       openmp=openmp
                                       )
 
+        # The gradient = - H_eff
+        self.gradientE = np.zeros_like(self.band)
         # We need the gradient norm to calculate the action
         self.gradientENorm = np.zeros(self.n_images)
 
@@ -243,7 +245,7 @@ class NEBM_FS(ChainMethodBase):
         # Do not update the extreme images
         for i in range(1, len(y) - 1):
 
-            self.sim.set_m(y[i])
+            self.sim.spin[:] = y[i]
             # elif self.coordinates == 'Cartesian':
             #     self.sim.set_m(self.band[i])
 
@@ -263,9 +265,9 @@ class NEBM_FS(ChainMethodBase):
         nebm_clib.project_images(self.tangents, y,
                                  self.n_images, self.n_dofs_image
                                  )
-        # nebm_clib.normalise_images(self.tangents,
-        #                            self.n_images, self.n_dofs_image
-        #                            )
+        nebm_clib.normalise_images(self.tangents,
+                                   self.n_images, self.n_dofs_image
+                                   )
 
     def compute_spring_force(self, y):
         """
@@ -321,13 +323,18 @@ class NEBM_FS(ChainMethodBase):
         #                                       )
         
         # NOTE: Gradient here is projected in the S2^N tangent space
+        # nebm_clib.project_images(self.gradientE, self.band, self.n_images, self.n_dofs_image)
         self.gradientE.shape = (self.n_images, -1)
-        # NOTE: HEre we have to divide by the number of spins per image,not n_images:
+        # # NOTE: HEre we have to divide by the number of spins per image,not n_images:
         Gnorms2 = np.sum(self.gradientE**2, axis=1) / self.n_spins
+        # self.G.shape = (self.n_images, -1)
+        # Gnorms2 = np.sum(self.G**2, axis=1) / self.n_spins
 
         # Compute the root mean square per image
-        self.gradientENorm[:] = np.sqrt(Gnorms2)
+        # self.gradientENorm[:] = np.sqrt(Gnorms2)
+        self.gradientENorm[:] = np.linalg.norm(self.gradientE, axis=1) / self.n_spins
         self.gradientE.shape = (-1)
+        # self.G.shape = (-1)
 
         # DEBUG:
         # print('gradEnorm', self.gradientENorm)
@@ -374,8 +381,11 @@ class NEBM_FS(ChainMethodBase):
 
         self.compute_effective_field_and_energy(y)
         nebm_clib.project_images(self.gradientE, y, self.n_images, self.n_dofs_image)
-        self.compute_tangents(y)
-        nebm_clib.normalise_spins(self.tangents, self.n_images, self.n_dofs_image)
+        # print('GRADE', self.gradientE)
+        self.compute_tangents(y)  # In the function: tangents -> project -> normalise
+        # self.tangents.shape = (self.n_images, -1)
+        # print(f'tangent norms', np.linalg.norm(self.tangents, axis=1))
+        # self.tangents.shape = (-1)
         self.compute_spring_force(y)
 
         nebm_clib.compute_effective_force(self.G,
@@ -386,6 +396,27 @@ class NEBM_FS(ChainMethodBase):
                                           self.n_images,
                                           self.n_dofs_image
                                           )
+        # self.G.shape = (self.n_images, -1, 3)
+        # self.tangents.shape = (self.n_images, -1, 3)
+        # self.gradientE.shape = (self.n_images, -1, 3)
+        # for im_idx in range(self.G.shape[0]):
+        #     for s_idx in range(self.G.shape[1]):
+        #         gradE_dot_t = np.dot(self.gradientE[im_idx, s_idx, :], self.tangents[im_idx, s_idx, :])
+        #         self.G[im_idx, s_idx, :] = -self.gradientE[im_idx, s_idx, :] + gradE_dot_t * self.tangents[im_idx, s_idx, :]
+        # self.G.shape = (-1)
+        # self.tangents.shape = (-1)
+        # self.gradientE.shape = (-1)
+
+
+        # tgts = self.tangents.reshape(self.n_images, -1)
+        # forces = self.G.reshape(self.n_images, -1)
+        # for im_idx in range(forces.shape[0]):
+        #     gradE_dot_tgt = np.sum(forces[im_idx] * tgts[im_idx])
+        #     print(f'Im {im_idx}', forces[im_idx], tgts[im_idx], gradE_dot_tgt)
+        #     print('-----', np.linalg.norm(tgts[im_idx]))
+        #     print(self.spring_force.reshape(self.n_images, -1)[im_idx])
+        # tgts = self.tangents.reshape(self.n_images, -1)
+        # forces = self.G.reshape(self.n_images, -1)
 
         # The effective force at the extreme images should already be zero, but
         # we will manually remove any value

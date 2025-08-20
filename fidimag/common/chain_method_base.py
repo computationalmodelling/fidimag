@@ -199,10 +199,7 @@ class ChainMethodBase(object):
         self.n_dofs_image_material = np.sum(self._material)
 
         # VTK saver for the magnetisation/spin field --------------------------
-        self.VTK = VTK(self.mesh,
-                       directory='vtks'.format(self.name),
-                       filename='image'
-                       )
+        self.VTK = VTK(self.mesh, directory='vtks', filename='image')
 
         # Functions to convert the energy band coordinates to Cartesian
         # coordinates when saving VTK and NPY files We assume Cartesian
@@ -302,6 +299,9 @@ class ChainMethodBase(object):
         # ---------------------------------------------------------------------
 
         self.G_log = []
+
+        # Make sure the sim object does not have a driver: (see sim_base.py -> set_m)
+        sim.driver = None
 
     # TODO: Move this property to the NEBM classes because they are only
     # relevant to the NEBM and not the string method
@@ -403,21 +403,17 @@ class ChainMethodBase(object):
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self,
-                              integrator='sundials',
-                              rtol=1e-6, atol=1e-6):
+    def initialise_integrator(self, integrator='sundials', rtol=1e-6, atol=1e-6):
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
         if integrator == 'sundials':
             if not self.openmp:
-                self.integrator = cvode.CvodeSolver(self.band,
-                                                    self.Sundials_RHS)
+                self.integrator = cvode.CvodeSolver(self.band, self.Sundials_RHS)
                 self.integrator.set_options(rtol, atol)
             else:
-                self.integrator = cvode.CvodeSolver_OpenMP(self.band,
-                                                           self.Sundials_RHS)
+                self.integrator = cvode.CvodeSolver_OpenMP(self.band, self.Sundials_RHS)
                 self.integrator.set_options(rtol, atol)
         # elif integrator == 'scipy':
         #     self.integrator = ScipyIntegrator(self.band, self.step_RHS)
@@ -440,8 +436,7 @@ class ChainMethodBase(object):
             # In Verlet algorithm we only use the total force G and not YxYxG:
             self._llg_evolve = False
         else:
-            raise Exception('No valid integrator specified. Available: '
-                            '"sundials", "scipy"')
+            raise Exception('No valid integrator specified. Available: "sundials", "scipy"')
 
     def create_tablewriter(self):
         entities_energy = {
@@ -763,11 +758,15 @@ class ChainMethodBase(object):
             self.compute_tangents(self.band)
             self.compute_distances()
 
+        self.gradientE.shape = (self.n_images, -1)
+        self.tangents.shape = (self.n_images, -1)
+
         deltas = np.zeros(self.n_images)
         for i in range(self.n_images):
-            deltas[i] = np.dot(self.scale * (self.gradientE).reshape(self.n_images, -1)[i],
-                               self.tangents.reshape(self.n_images, -1)[i]
-                               )
+            deltas[i] = np.dot(self.scale * self.gradientE[i], self.tangents[i])
+
+        self.gradientE.shape = (-1)
+        self.tangents.shape = (-1)
 
         ds = self.path_distances
         E = self.energies
