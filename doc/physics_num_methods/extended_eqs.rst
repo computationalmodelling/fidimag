@@ -123,7 +123,7 @@ Spin transfer torque (current-perpendicular-to-plane, CPP)
 In this case (current-perpendicular-to-plane, CPP), there are two types of torques can be 
 added to the orginal LLG equation. One is the so called Slonczewski torque 
 :math:`\vec{\tau}_s=-a_J \vec{m} \times (\vec{m} \times \vec{p})`, and the other is 
-a fieldlike torque :math:`\vec{\tau}_f=- b_J(\vec{m} \times \vec{p})` [PRL 102 037206 (2009)]. 
+a fieldlike torque :math:`\vec{\tau}_f=- b_J(\vec{m} \times \vec{p})` [PRL 102 067206 (2009)]. 
 So the full LLG equation is
  
 .. math::
