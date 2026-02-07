@@ -25,15 +25,9 @@ LIB_DIR64 = ABS_MODULE_DIR / 'local/lib64'
 # rpath: run-time search path for the sundials (cvode) and fftw library objects
 com_link = ['-Wl,-rpath,{},-rpath,{}'.format(str(LIB_DIR), str(LIB_DIR64)), '-fopenmp']
 lib_paths = [str(LIB_DIR), str(LIB_DIR64)]
-com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_cvodes', 'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
+com_libs = ['m', 'fftw3_omp', 'fftw3', 'sundials_core', 'sundials_cvodes', 'sundials_nvecserial', 'sundials_nvecopenmp', 'blas', 'lapack']
 com_args = ['-O3', '-Wno-cpp', '-Wno-unused-function', '-Wall', '-std=c99', '-fopenmp']
 com_args_cpp = ['-O3', '-Wno-unused-function', '-Wall', '-std=c++14', '-fopenmp']
-
-if 'SUNDIALS_INC' in os.environ:
-     com_inc.append(os.environ['SUNDIALS_INC'])
-
-if 'FFTW_INC' in os.environ:
-     com_inc.append(os.environ['FFTW_INC'])
 
 # Find all .pyx files with extensions (source files) -> relative paths
 ROOT_DIR = MODULE_DIR / 'fidimag'
@@ -48,6 +42,12 @@ for s in source_files:
         ext_names.append("fidimag.extensions." + s.stem)
 
 com_inc = [numpy.get_include(), str(INCLUDE_DIR)]
+
+if 'SUNDIALS_INC' in os.environ:
+     com_inc.append(os.environ['SUNDIALS_INC'])
+
+if 'FFTW_INC' in os.environ:
+     com_inc.append(os.environ['FFTW_INC'])
 
 ext_modules = []
 for i, (module, src) in enumerate(zip(ext_names, source_files)):
@@ -109,7 +109,7 @@ def get_version():
     raise Exception("Couldn't find __version__ in %s" % pkg_init_path)
 
 
-nthreads = multiprocessing.cpu_count()
+nthreads = 0  # Disabled parallel compilation due to Python 3.14 multiprocessing issues (0 = no multiprocessing)
 print(sYellow + f'Building with {nthreads} threads' + sReset)
 setup(
     name='fidimag',

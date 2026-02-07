@@ -10,13 +10,14 @@ cdef extern from "sundials/sundials_context.h":
     struct _SUNContext:
         pass
     ctypedef _SUNContext *SUNContext
+    void* SUN_COMM_NULL
     int SUNContext_Create(void *comm, SUNContext *ctx)
     int SUNContext_Free(SUNContext *ctx)
 
 
 cdef extern from "sundials/sundials_types.h":
-    ctypedef double realtype
-    ctypedef bint booleantype
+    ctypedef double sunsunrealtype
+    ctypedef bint sunsunbooleantype
 
 # Types for the Sundials Linear System initialization
 cdef extern from "sundials/sundials_matrix.h":
@@ -42,22 +43,22 @@ cdef extern from "sundials/sundials_nvector.h":
 
 
 cdef extern from "nvector/nvector_serial.h":
-    cdef N_Vector N_VMake_Serial(long int vec_length, realtype *v_data, SUNContext sunctx)
+    cdef N_Vector N_VMake_Serial(long int vec_length, double *v_data, SUNContext sunctx)
     struct _N_VectorContent_Serial:
         long int length
-        realtype *data
-        booleantype own_data
+        double *data
+        int own_data
 
     ctypedef _N_VectorContent_Serial *N_VectorContent_Serial
 
 
 cdef extern from "nvector/nvector_openmp.h":
-    cdef N_Vector N_VMake_OpenMP(long int vec_length, realtype *v_data, int num_threads, SUNContext sunctx)
+    cdef N_Vector N_VMake_OpenMP(long int vec_length, double *v_data, int num_threads, SUNContext sunctx)
 
     struct _N_VectorContent_OpenMP:
         long int length
-        realtype *data
-        booleantype own_data
+        double *data
+        int own_data
         int num_threads
 
     ctypedef _N_VectorContent_OpenMP *N_VectorContent_OpenMP
@@ -100,34 +101,34 @@ cdef extern from "cvode/cvode.h":
     int CV_BAD_DKY
     int CV_TOO_CLOSE
 
-    ctypedef int (*CVRhsFn)(realtype t, N_Vector y, N_Vector ydot, void *user_data)
-    ctypedef int (*CVRootFn)(realtype t, N_Vector y, realtype *gout, void *user_data)
+    ctypedef int (*CVRhsFn)(double t, N_Vector y, N_Vector ydot, void *user_data)
+    ctypedef int (*CVRootFn)(double t, N_Vector y, double *gout, void *user_data)
 
     void *CVodeCreate(int lmm, SUNContext sunctx)
-    # int CVode "CVode"(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask) nogil
+    # int CVode "CVode"(void *cvode_mem, double tout, N_Vector yout, double *tret, int itask) nogil
     int CVodeSetUserData(void *cvode_mem, void *user_data)
     int CVodeSetMaxOrd(void *cvode_mem, int maxord)
     int CVodeSetMaxNumSteps(void *cvode_mem, long int mxsteps)
     int CVodeSetMaxHnilWarns(void *cvode_mem, int mxhnil)
-    int CVodeSetStabLimDet(void *cvode_mem, booleantype stldet)
-    int CVodeSetInitStep(void *cvode_mem, realtype hin)
-    int CVodeSetMinStep(void *cvode_mem, realtype hmin)
-    int CVodeSetMaxStep(void *cvode_mem, realtype hmax)
-    int CVodeSetStopTime(void *cvode_mem, realtype tstop)
+    int CVodeSetStabLimDet(void *cvode_mem, int stldet)
+    int CVodeSetInitStep(void *cvode_mem, double hin)
+    int CVodeSetMinStep(void *cvode_mem, double hmin)
+    int CVodeSetMaxStep(void *cvode_mem, double hmax)
+    int CVodeSetStopTime(void *cvode_mem, double tstop)
     int CVodeSetMaxErrTestFails(void *cvode_mem, int maxnef)
     int CVodeSetMaxNonlinIters(void *cvode_mem, int maxcor)
     int CVodeSetMaxConvFails(void *cvode_mem, int maxncf)
-    int CVodeSetNonlinConvCoef(void *cvode_mem, realtype nlscoef)
+    int CVodeSetNonlinConvCoef(void *cvode_mem, double nlscoef)
     int CVodeSetIterType(void *cvode_mem, int iter)
     int CVodeSetRootDirection(void *cvode_mem, int *rootdir)
     int CVodeSetNoInactiveRootWarn(void *cvode_mem)
-    int CVodeInit(void *cvode_mem, CVRhsFn f, realtype t0, N_Vector y0)
-    int CVodeReInit(void *cvode_mem, realtype t0, N_Vector y0)
-    int CVodeSStolerances(void *cvode_mem, realtype reltol, realtype abstol)
-    int CVodeSVtolerances(void *cvode_mem, realtype reltol, N_Vector abstol)
+    int CVodeInit(void *cvode_mem, CVRhsFn f, double t0, N_Vector y0)
+    int CVodeReInit(void *cvode_mem, double t0, N_Vector y0)
+    int CVodeSStolerances(void *cvode_mem, double reltol, double abstol)
+    int CVodeSVtolerances(void *cvode_mem, double reltol, N_Vector abstol)
     int CVodeRootInit(void *cvode_mem, int nrtfn, CVRootFn g)
-    int CVode(void *cvode_mem, realtype tout, N_Vector yout, realtype *tret, int itask)
-    int CVodeGetDky(void *cvode_mem, realtype t, int k, N_Vector dky)
+    int CVode(void *cvode_mem, double tout, N_Vector yout, double *tret, int itask)
+    int CVodeGetDky(void *cvode_mem, double t, int k, N_Vector dky)
     int CVodeGetWorkSpace(void *cvode_mem, long int *lenrw, long int *leniw)
     int CVodeGetNumSteps(void *cvode_mem, long int *nsteps)
     int CVodeGetNumRhsEvals(void *cvode_mem, long int *nfevals)
@@ -136,11 +137,11 @@ cdef extern from "cvode/cvode.h":
     int CVodeGetLastOrder(void *cvode_mem, int *qlast)
     int CVodeGetCurrentOrder(void *cvode_mem, int *qcur)
     int CVodeGetNumStabLimOrderReds(void *cvode_mem, long int *nslred)
-    int CVodeGetActualInitStep(void *cvode_mem, realtype *hinused)
-    int CVodeGetLastStep(void *cvode_mem, realtype *hlast)
-    int CVodeGetCurrentStep(void *cvode_mem, realtype *hcur)
-    int CVodeGetCurrentTime(void *cvode_mem, realtype *tcur)
-    int CVodeGetTolScaleFactor(void *cvode_mem, realtype *tolsfac)
+    int CVodeGetActualInitStep(void *cvode_mem, double *hinused)
+    int CVodeGetLastStep(void *cvode_mem, double *hlast)
+    int CVodeGetCurrentStep(void *cvode_mem, double *hcur)
+    int CVodeGetCurrentTime(void *cvode_mem, double *tcur)
+    int CVodeGetTolScaleFactor(void *cvode_mem, double *tolsfac)
     int CVodeGetErrWeights(void *cvode_mem, N_Vector eweight)
     int CVodeGetEstLocalErrors(void *cvode_mem, N_Vector ele)
     int CVodeGetNumGEvals(void *cvode_mem, long int *ngevals)
@@ -148,8 +149,8 @@ cdef extern from "cvode/cvode.h":
     int CVodeGetIntegratorStats(void *cvode_mem, long int *nsteps,
                                 long int *nfevals, long int *nlinsetups,
                                 long int *netfails, int *qlast,
-                                int *qcur, realtype *hinused, realtype *hlast,
-                                realtype *hcur, realtype *tcur)
+                                int *qcur, double *hinused, double *hlast,
+                                double *hcur, double *tcur)
     int CVodeGetNumNonlinSolvIters(void *cvode_mem, long int *nniters)
     int CVodeGetNumNonlinSolvConvFails(void *cvode_mem, long int *nncfails)
     int CVodeGetNonlinSolvStats(void *cvode_mem, long int *nniters, long int *nncfails)
@@ -180,17 +181,17 @@ cdef extern from "cvode/cvode_ls.h":
     # int CVSpilsSetPrecType(void *cvode_mem, int pretype)
     # int CVSpilsSetGSType(void *cvode_mem, int gstype)
     # int CVSpilsSetMaxl(void *cvode_mem, int maxl)
-    # int CVSpilsSetEpsLin(void *cvode_mem, realtype eplifac)
+    # int CVSpilsSetEpsLin(void *cvode_mem, sunrealtype eplifac)
 
-    ctypedef int (*CVLsPrecSetupFn)(realtype t, N_Vector y, N_Vector fy,
-                                    booleantype jok, booleantype *jcurPtr,
-                                    realtype gamma, void *user_data);
-    ctypedef int (*CVLsPrecSolveFn)(realtype t, N_Vector y, N_Vector fy,
-                                    N_Vector r, N_Vector z, realtype gamma,
-                                    realtype delta, int lr, void *user_data);
-    ctypedef int (*CVLsJacTimesSetupFn)(realtype t, N_Vector y,
+    ctypedef int (*CVLsPrecSetupFn)(double t, N_Vector y, N_Vector fy,
+                                    int jok, int *jcurPtr,
+                                    double gamma, void *user_data);
+    ctypedef int (*CVLsPrecSolveFn)(double t, N_Vector y, N_Vector fy,
+                                    N_Vector r, N_Vector z, double gamma,
+                                    double delta, int lr, void *user_data);
+    ctypedef int (*CVLsJacTimesSetupFn)(double t, N_Vector y,
                                         N_Vector fy, void *user_data);
-    ctypedef int (*CVLsJacTimesVecFn)(N_Vector v, N_Vector Jv, realtype t,
+    ctypedef int (*CVLsJacTimesVecFn)(N_Vector v, N_Vector Jv, double t,
                                       N_Vector y, N_Vector fy,
                                       void *user_data, N_Vector tmp);
 
@@ -312,8 +313,8 @@ cdef int cv_jtimes_openmp(N_Vector v, N_Vector Jv, double t, N_Vector y, N_Vecto
     return 0
 
 
-# static int PSolve(realtype tn, N_Vector u, N_Vector fu, N_Vector r, N_Vector z,
-#                   realtype gamma, realtype delta, int lr, void *user_data);
+# static int PSolve(sunrealtype tn, N_Vector u, N_Vector fu, N_Vector r, N_Vector z,
+#                   sunrealtype gamma, sunrealtype delta, int lr, void *user_data);
 cdef int psolve(double t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z,
                 double gamma, double delta, int lr, void * user_data):
     copy_nv2nv(z, r)
@@ -375,7 +376,7 @@ cdef class CvodeSolver(object):
         # All of the SUNDIALS objects (vectors, linear and nonlinear solvers, matrices, etc.)
         # that collectively form a SUNDIALS simulation, hold a reference to a common simulation context object
         # defined by the SUNContext class.
-        SUNContext_Create(NULL, & self.sunctx);
+        SUNContext_Create(SUN_COMM_NULL, & self.sunctx);
 
         # The recommended choices for lmm are CV ADAMS for nonstiff problems and CV BDF for
         # stiff problems. The default Newton iteration is recommended for stiff problems, and
@@ -504,10 +505,10 @@ cdef class CvodeSolver(object):
         return 0
 
     # From exmaples: cvDiurnal_kry.c in Sundials repo:
-    # static int Precond(realtype tn, N_Vector u, N_Vector fu, booleantype jok,
-    #                    booleantype *jcurPtr, realtype gamma, void *user_data)
-    cdef int Precond(self, double t, N_Vector y, N_Vector fy, booleantype jok,
-                     booleantype * jcurPtr, double gamma, void * user_data):
+    # static int Precond(sunrealtype tn, N_Vector u, N_Vector fu, sunbooleantype jok,
+    #                    sunbooleantype *jcurPtr, sunrealtype gamma, void *user_data)
+    cdef int Precond(self, double t, N_Vector y, N_Vector fy, int jok,
+                     int * jcurPtr, double gamma, void * user_data):
         if not jok:
             copy_nv2arr(y, self.y)
         return 0
@@ -600,7 +601,7 @@ cdef class CvodeSolver_OpenMP(object):
         if jtimes_fun is not None:
             self.has_jtimes = 1
 
-        SUNContext_Create(NULL, & self.sunctx);
+        SUNContext_Create(SUN_COMM_NULL, & self.sunctx);
         # Newton iterator is set by default now (Sundials 4.0)
         self.cvode_mem = CVodeCreate(CV_BDF, self.sunctx)
 
@@ -702,7 +703,7 @@ cdef class CvodeSolver_OpenMP(object):
         return 0
 
     cdef int Precond(self, double t, N_Vector y, N_Vector fy,
-                     booleantype jok, booleantype * jcurPtr, double gamma,
+                     int jok, int * jcurPtr, double gamma,
                      void * user_data):
         if not jok:
             copy_nv2arr_openmp(y, self.y)
