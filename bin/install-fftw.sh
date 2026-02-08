@@ -3,7 +3,7 @@
 # This script installs FFTW locally. It may need to environment
 # variables to work, like 'export CC=gcc' in ARCHER.
 
-FFTW=fftw-3.3.8
+FFTW=fftw-3.3.10
 
 set -e
 
