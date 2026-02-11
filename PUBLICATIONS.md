@@ -2,6 +2,8 @@
 
 The following publications, in reverse chronological order, have used or cited Fidimag:
 
+[33] [Event-based high throughput computing: A series of case studies on a massively parallel softcore machine](https://doi.org/10.1049/cdt2.12051) IET Computers & Digital Techniques 17(1), 29-42 (2022)
+
 [32] [Thermal Evolution of Skyrmion Formation Mechanism in Chiral Multilayer Films](https://journals.aps.org/prapplied/abstract/10.1103/PhysRevApplied.17.044039) Phys. Rev. Applied 17, 044039 (2022)
 
 [31] [Mutual conversion between a magnetic Néel hopfion and a Néel toron](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.105.174407) Phys. Rev. B 105, 174407 (2022)
