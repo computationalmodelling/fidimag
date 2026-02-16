@@ -1,3 +1,69 @@
+Version 3.0
+-----------
+
+### Build System Modernization
+
+**Major change**: The build system has been completely modernized from `setup.py` to a modern PEP 517/518 compliant system using `scikit-build-core`, `CMake`, and `uv`.
+
+#### Key Changes
+
+* **Build Backend**: Migrated from setuptools to scikit-build-core + CMake
+* **Package Manager**: Now using `uv` with lock files (`uv.lock`) for reproducible builds
+* **Cython Code Generation**: Now generates files out-of-source in `build/` directory instead of in-place
+* **Configuration**: Moved from `setup.py` to declarative `pyproject.toml` + `CMakeLists.txt`
+* **CI/CD**: Updated GitHub Actions workflows to use `uv` and the new build system
+* **Dependencies**: All C/C++ libraries now properly managed by CMake (SUNDIALS, FFTW, BLAS, LAPACK, OpenMP)
+
+#### Installation Changes
+
+**Old way**:
+```bash
+pip install -e .
+```
+
+**New way**:
+```bash
+uv sync
+```
+
+#### For Developers
+
+* New `CMakeLists.txt` for build configuration
+* New `cmake/FindSUNDIALS.cmake` for dependency management
+* Added `clean_cython_files.sh` for cleaning old build artifacts
+* Added `BUILD.md` for detailed build documentation
+* Added `MIGRATION.md` for migration guide
+
+#### Breaking Changes
+
+* `setup.py` deprecated (retained for backward compatibility, will be removed in v3.1)
+* Cython-generated `.c` files no longer in source tree (now in `build/` only)
+* Requires CMake 3.18+ for building from source
+* Python 3.9+ required (Python 3.14 recommended)
+* **Python 2 no longer supported** - removed `docker/minimal-py2/`
+
+#### Migration
+
+See `MIGRATION.md` for detailed migration instructions. Quick steps:
+
+```bash
+# Clean old artifacts
+bash clean_cython_files.sh
+
+# Install with new build system
+uv sync
+```
+
+#### Benefits
+
+* 10-100x faster package installation with `uv`
+* Reproducible builds via lock files
+* Cleaner source tree (no generated files)
+* Better cross-platform support
+* Improved dependency management
+
+---
+
 Version 3.0 Alpha
 ------------------
 * Changes to the helper functions init_scalar and init_vector (fidimag/common/helper.py)

@@ -17,7 +17,25 @@ Fidimag solves finite-difference micromagnetic problems and supports atomistic s
 
 ### Install
 
-See: [https://fidimag.readthedocs.io/en/latest/install.html](https://fidimag.readthedocs.io/en/latest/install.html)
+**Quick start** (using modern build system with uv):
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and build
+git clone https://github.com/computationalmodelling/fidimag.git
+cd fidimag
+uv sync
+
+# Activate environment
+source .venv/bin/activate
+```
+
+For detailed installation instructions and troubleshooting, see:
+- **Build documentation**: [BUILD.md](BUILD.md)
+- **Migration guide**: [MIGRATION.md](MIGRATION.md)
+- **Online docs**: [https://fidimag.readthedocs.io/en/latest/install.html](https://fidimag.readthedocs.io/en/latest/install.html)
 
 ### Features
 * Optimal LLG equation integration using modern [Sundial's v7](https://github.com/LLNL/sundials/) CVODE solver

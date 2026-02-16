@@ -1,35 +1,42 @@
 FROM jupyter/scipy-notebook
-# where to install source
+
 USER root
+
+# Install system dependencies
+RUN apt update && apt install -y cmake gcc g++ build-essential curl ca-certificates
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    ln -s /root/.cargo/bin/uv /usr/local/bin/uv
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Set up /io directory
 RUN mkdir -p /io
 RUN chown $NB_USER /io
-RUN apt update && apt install -y cmake
+
 USER $NB_USER
-ENV FIDIMAG_DIR /io
+
+# Clone fidimag
+ENV FIDIMAG_DIR=/io
 WORKDIR /io
-RUN git clone https://github.com/rpep/fidimag.git
+RUN git clone https://github.com/computationalmodelling/fidimag.git
 WORKDIR /io/fidimag
-# install third party libraries from source
+
+# Install third party libraries from source
 RUN bash bin/install-fftw.sh
 RUN bash bin/install-sundials.sh
 
-# install pyvtk
-RUN pip install pyvtk
-# install cython
-RUN pip install cython --upgrade
+# Build fidimag using uv
+RUN uv sync --frozen
 
-# compile fidimag
-RUN python3 setup.py build_ext --inplace
-RUN pip install psutil
-ENV PYTHONPATH=$FIDIMAG_DIR
-ENV LD_LIBRARY_PATH=$FIDIMAG_DIR/local/lib
-WORKDIR $FIDIMAG_DIR/tests
+ENV LD_LIBRARY_PATH=/io/fidimag/local/lib \
+    OMP_NUM_THREADS=1
 
 # https://github.com/conda-forge/matplotlib-feedstock/issues/36
 RUN conda install --quiet --yes icu
 
-# check that tests run okay
-RUN conda install --quiet --yes pytest
+# Verify installation
+RUN uv run python -c "import fidimag; print(f'Fidimag {fidimag.__version__} installed')"
 
 # /io will be mounted from the host system
 WORKDIR /io
