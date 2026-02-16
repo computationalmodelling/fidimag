@@ -20,7 +20,7 @@ Fidimag solves finite-difference micromagnetic problems and supports atomistic s
 See: [https://fidimag.readthedocs.io/en/latest/install.html](https://fidimag.readthedocs.io/en/latest/install.html)
 
 ### Features
-* Optimal LLG equation integration using modern [Sundial's v6](https://github.com/LLNL/sundials/) CVODE solver
+* Optimal LLG equation integration using modern [Sundial's v7](https://github.com/LLNL/sundials/) CVODE solver
 * Offers LLG and LLG with spin torque terms (Zhang-Li and Sloncewski)
 * Calculations using the Geodesic-Nudged-Elastic-Band and String methods to compute energy barriers.
 * Exchange, Zeeman, Demagnetising, Uniaxial Anisotropy energy classes.

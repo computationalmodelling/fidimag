@@ -37,6 +37,8 @@ though many Linux distributions come with these. Using the scripts provided in F
     bash install-fftw.sh
     bash install-sundials.sh
 
+The installation script will automatically download and build SUNDIALS v7.6.0.
+
 Python library dependencies are specified in the `pyproject.toml` file. We can install the `fidimag` library in editable mode, using `pip`:
 
 .. code-block:: bash

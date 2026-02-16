@@ -479,7 +479,9 @@ void finalize_plan(fft_demag_plan *restrict plan) {
   fftw_free(plan->hy);
   fftw_free(plan->hz);
 
-  fftw_cleanup_threads();
+  // Note: fftw_cleanup_threads() is a global cleanup function and should
+  // NOT be called per-object. It should only be called once at program exit.
+  // Calling it here causes crashes when multiple FFTDemag objects are used.
 
   free(plan);
 }

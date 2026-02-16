@@ -5,10 +5,16 @@ set -e
 # when SUNDIALS moved to a CMake-based installation. Will install locally.
 # It may need environment variables to work, like `export CC=gcc` in ARCHER.
 
+# Parse command line arguments
+SILENT=true
+if [[ "$1" == "--not-silent" ]]; then
+    SILENT=false
+fi
+
 # Github release from Sundials repository
 # https://github.com/LLNL/sundials
-SUNDIALS_TAG=v6.6.1
-SUNDIALS=sundials-6.6.1
+SUNDIALS_TAG=v7.6.0
+SUNDIALS=sundials-7.6.0
 
 # Make sure CMake is installed, since SUNDIALS requires it.
 type cmake >/dev/null 2>&1 || { printf "CMake required to build SUNDIALS. You can install it by typing: \nsudo apt install cmake\n"; exit 1;}
@@ -42,10 +48,15 @@ download_and_cmake_install() {
         cmake ${4} ../${2}
 
         echo "Compiling and installing "${2}"."
-        {
+        if [ "$SILENT" = true ]; then
+            {
+                make -j2
+                make install
+            } > /dev/null
+        else
             make -j2
             make install
-        } > /dev/null
+        fi
 
         echo "Cleaning up."
         cd ..
