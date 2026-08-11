@@ -135,3 +135,20 @@ class DemagFMM(Energy):
         self.fmm.compute_field(self.field)
         self.field *= -1e-7
         return self.field
+
+    def compute_energy(self):
+        # Energy is computed lazily (only when requested), mirroring the FFT
+        # Demag class, so that compute_field stays free of this cost on the
+        # integrator hot path.
+        self.compute_field()
+
+        m = self.spin
+        # Per-site energy density, same convention as DemagFull (demag_full.c):
+        # E_i = -(mu_s_i / 2) * m_i . H_i , the 1/2 avoiding double counting.
+        # self.field is already the scaled demag field.
+        self.energy[:] = -0.5 * self.mu_s * (self.field[0::3] * m[0::3]
+                                             + self.field[1::3] * m[1::3]
+                                             + self.field[2::3] * m[2::3])
+
+        self.total_energy = np.sum(self.energy)
+        return self.total_energy
