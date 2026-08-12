@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18...3.28)
-project(fidimag LANGUAGES C)
+project(fidimag LANGUAGES C CXX)
 
 # Policy settings for modern CMake
 if(POLICY CMP0167)
@@ -21,6 +21,8 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 # C/C++ standards
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Position independent code (required for Python extensions)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -54,8 +56,8 @@ find_program(CYTHON_EXECUTABLE NAMES cython cython3 REQUIRED)
 message(STATUS "Cython: ${CYTHON_EXECUTABLE}")
 
 # OpenMP (required for parallel computation)
-find_package(OpenMP REQUIRED COMPONENTS C)
-message(STATUS "OpenMP found: C ${OpenMP_C_FLAGS}")
+find_package(OpenMP REQUIRED COMPONENTS C CXX)
+message(STATUS "OpenMP found: C ${OpenMP_C_FLAGS} / CXX ${OpenMP_CXX_FLAGS}")
 
 # BLAS and LAPACK (linear algebra)
 find_package(BLAS REQUIRED)
@@ -64,19 +66,21 @@ message(STATUS "BLAS: ${BLAS_LIBRARIES}")
 message(STATUS "LAPACK: ${LAPACK_LIBRARIES}")
 
 # FFTW3 (Fast Fourier Transform)
-# Look for both regular and OpenMP versions
-find_library(FFTW3_LIBRARY NAMES fftw3 REQUIRED
-    HINTS ${PROJECT_SOURCE_DIR}/local/lib ${PROJECT_SOURCE_DIR}/local/lib64
-    DOC "FFTW3 library"
-)
-find_library(FFTW3_OMP_LIBRARY NAMES fftw3_omp REQUIRED
-    HINTS ${PROJECT_SOURCE_DIR}/local/lib ${PROJECT_SOURCE_DIR}/local/lib64
-    DOC "FFTW3 OpenMP library"
-)
-find_path(FFTW3_INCLUDE_DIR fftw3.h
-    HINTS ${PROJECT_SOURCE_DIR}/local/include $ENV{FFTW_INC}
-    DOC "FFTW3 include directory"
-)
+# Prefer the OpenMP-enabled build in local/, falling back to a system install.
+# Each dependency is searched twice: first in local/ only (NO_DEFAULT_PATH), so
+# a local copy always wins deterministically; then, if not found there, the
+# second (unrestricted) find looks in system paths. find_library/find_path are
+# no-ops once the cache variable is set, so the fallback only runs when needed.
+set(FFTW3_LOCAL_LIB ${PROJECT_SOURCE_DIR}/local/lib ${PROJECT_SOURCE_DIR}/local/lib64)
+
+find_library(FFTW3_LIBRARY NAMES fftw3 PATHS ${FFTW3_LOCAL_LIB} NO_DEFAULT_PATH)
+find_library(FFTW3_LIBRARY NAMES fftw3 REQUIRED)
+
+find_library(FFTW3_OMP_LIBRARY NAMES fftw3_omp PATHS ${FFTW3_LOCAL_LIB} NO_DEFAULT_PATH)
+find_library(FFTW3_OMP_LIBRARY NAMES fftw3_omp REQUIRED)
+
+find_path(FFTW3_INCLUDE_DIR fftw3.h PATHS ${PROJECT_SOURCE_DIR}/local/include NO_DEFAULT_PATH)
+find_path(FFTW3_INCLUDE_DIR fftw3.h HINTS $ENV{FFTW_INC} REQUIRED)
 message(STATUS "FFTW3: ${FFTW3_LIBRARY}")
 message(STATUS "FFTW3 OpenMP: ${FFTW3_OMP_LIBRARY}")
 message(STATUS "FFTW3 include: ${FFTW3_INCLUDE_DIR}")
@@ -96,6 +100,14 @@ set(C_COMPILE_FLAGS
     -O3
     -Wall
     -Wno-cpp
+    -Wno-unused-function
+)
+
+# C++ compiler flags (for the FMM/BH extension); mirrors the old setup.py
+# com_args_cpp (-std=c++14 is handled via CMAKE_CXX_STANDARD above).
+set(CXX_COMPILE_FLAGS
+    -O3
+    -Wall
     -Wno-unused-function
 )
 
@@ -135,15 +147,27 @@ endif()
 # =============================================================================
 
 function(add_fidimag_extension MODULE_NAME SOURCE_FILE)
-    # Get the module name without "fidimag.extensions." prefix for target name
-    string(REPLACE "." "_" TARGET_NAME ${MODULE_NAME})
+    # Optional trailing CPP flag selects the C++ toolchain (used by FMM/BH);
+    # without it the module is built as C, exactly as before.
+    cmake_parse_arguments(ARG "CPP" "" "" ${ARGN})
+    if(ARG_CPP)
+        set(LANG CXX)
+        set(EXT cpp)
+        set(EXTENSION_FLAGS ${CXX_COMPILE_FLAGS})
+        set(EXTENSION_LIBRARIES m OpenMP::OpenMP_CXX)  # FMM only needs libm + OpenMP
+    else()
+        set(LANG C)
+        set(EXT c)
+        set(EXTENSION_FLAGS ${C_COMPILE_FLAGS})
+        set(EXTENSION_LIBRARIES ${COMMON_LIBRARIES})
+    endif()
 
-    # Determine output paths
+    string(REPLACE "." "_" TARGET_NAME ${MODULE_NAME})
     get_filename_component(SOURCE_DIR ${SOURCE_FILE} DIRECTORY)
     get_filename_component(SOURCE_NAME ${SOURCE_FILE} NAME_WE)
 
-    # Cython output file (always C)
-    set(CYTHON_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_DIR}/${SOURCE_NAME}.c")
+    # Cython output (.c or .cpp depending on language)
+    set(CYTHON_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${SOURCE_DIR}/${SOURCE_NAME}.${EXT}")
 
     # Find additional C/C++ source files in the same directory
     file(GLOB EXTRA_SOURCES
@@ -152,34 +176,32 @@ function(add_fidimag_extension MODULE_NAME SOURCE_FILE)
     )
 
     # Remove the cythonized output if it's in the source dir
-    list(FILTER EXTRA_SOURCES EXCLUDE REGEX ".*${SOURCE_NAME}\\.c$")
-    list(FILTER EXTRA_SOURCES EXCLUDE REGEX ".*${SOURCE_NAME}\\.cpp$")
+    list(FILTER EXTRA_SOURCES EXCLUDE REGEX ".*/${SOURCE_NAME}\\.(c|cpp)$")
 
-    message(STATUS "Extension ${MODULE_NAME}:")
-    message(STATUS "  Source: ${SOURCE_FILE}")
-    message(STATUS "  Cython output: ${CYTHON_OUTPUT}")
+    message(STATUS "Extension ${MODULE_NAME} (${LANG}): ${SOURCE_FILE}")
     message(STATUS "  Extra sources: ${EXTRA_SOURCES}")
-    message(STATUS "  Language: C")
 
     # Ensure output directory exists
     get_filename_component(CYTHON_OUTPUT_DIR ${CYTHON_OUTPUT} DIRECTORY)
     file(MAKE_DIRECTORY ${CYTHON_OUTPUT_DIR})
 
-    # Cythonize the .pyx file
+    # Cythonize the .pyx file (--cplus only for C++ modules)
+    set(CYTHON_FLAGS -3 --directive linetrace=True --directive language_level=3)
+    if(ARG_CPP)
+        list(APPEND CYTHON_FLAGS --cplus)
+    endif()
+
     add_custom_command(
         OUTPUT ${CYTHON_OUTPUT}
-        COMMAND ${CYTHON_EXECUTABLE}
-            -3  # Python 3
-            --directive linetrace=True
-            --directive language_level=3
+        COMMAND ${CYTHON_EXECUTABLE} ${CYTHON_FLAGS}
             -o ${CYTHON_OUTPUT}
             ${PROJECT_SOURCE_DIR}/fidimag/${SOURCE_FILE}
         DEPENDS ${PROJECT_SOURCE_DIR}/fidimag/${SOURCE_FILE}
         COMMENT "Cythonizing ${SOURCE_FILE}"
     )
 
-    set_source_files_properties(${CYTHON_OUTPUT} PROPERTIES LANGUAGE C)
-    set_source_files_properties(${EXTRA_SOURCES} PROPERTIES LANGUAGE C)
+    set_source_files_properties(${CYTHON_OUTPUT} ${EXTRA_SOURCES}
+        PROPERTIES LANGUAGE ${LANG})
 
     # Create the Python extension module
     Python_add_library(${TARGET_NAME} MODULE
@@ -192,7 +214,7 @@ function(add_fidimag_extension MODULE_NAME SOURCE_FILE)
     set_target_properties(${TARGET_NAME} PROPERTIES
         OUTPUT_NAME ${SOURCE_NAME}
         PREFIX ""  # No lib prefix
-        LINKER_LANGUAGE C
+        LINKER_LANGUAGE ${LANG}
     )
 
     # Include directories
@@ -201,11 +223,9 @@ function(add_fidimag_extension MODULE_NAME SOURCE_FILE)
         ${PROJECT_SOURCE_DIR}/fidimag/${SOURCE_DIR}
     )
 
-    # Compiler flags
-    target_compile_options(${TARGET_NAME} PRIVATE ${C_COMPILE_FLAGS})
-
-    # Link libraries
-    target_link_libraries(${TARGET_NAME} PRIVATE ${COMMON_LIBRARIES})
+    # Compiler flags and libraries (language-specific)
+    target_compile_options(${TARGET_NAME} PRIVATE ${EXTENSION_FLAGS})
+    target_link_libraries(${TARGET_NAME} PRIVATE ${EXTENSION_LIBRARIES})
 
     # RPATH for finding local libraries at runtime
     set_target_properties(${TARGET_NAME} PROPERTIES
@@ -230,6 +250,9 @@ endfunction()
 
 # Atomistic extensions
 add_fidimag_extension("fidimag.extensions.clib" "atomistic/lib/clib.pyx")
+
+# FMM / Barnes-Hut demag extension (C++)
+add_fidimag_extension("fidimag.extensions.fmm" "atomistic/fmmlib/fmm.pyx" CPP)
 
 # Micromagnetic extensions
 add_fidimag_extension("fidimag.extensions.micro_clib" "micro/lib/micro_clib.pyx")
