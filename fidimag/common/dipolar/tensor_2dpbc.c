@@ -204,6 +204,21 @@ void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors) {
                 y = abs(j - ny + 1);
                 z = abs(k - nz + 1);
 
+                // Padded wrap edge (x==nx / y==ny / z==nz at the last index):
+                // no physical counterpart, and indexing tensors[] here would
+                // read past the caller's 6*nx*ny*nz buffer (the source of the
+                // intermittent NaN in tensor_yz). Zero it, matching the Nyquist
+                // zeroing in compute_demag_tensors.
+                if (x >= nx || y >= ny || z >= nz) {
+                    plan->tensor_xx[index] = 0.0;
+                    plan->tensor_yy[index] = 0.0;
+                    plan->tensor_zz[index] = 0.0;
+                    plan->tensor_xy[index] = 0.0;
+                    plan->tensor_xz[index] = 0.0;
+                    plan->tensor_yz[index] = 0.0;
+                    continue;
+                }
+
                 id = z * nxy + y * nx + x;
 
                 plan->tensor_xx[index] = tensors[id];

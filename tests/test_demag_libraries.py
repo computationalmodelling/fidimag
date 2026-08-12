@@ -242,13 +242,24 @@ def test_demag_2d_pbc():
     sim.add(demag)
     sim.compute_effective_field(0)
 
-    assert not np.isnan(demag.demag.tensor_xx).any()
-    assert not np.isnan(demag.demag.tensor_xy).any()
-    assert not np.isnan(demag.demag.tensor_xz).any()
-    assert not np.isnan(demag.demag.tensor_yy).any()
-    assert not np.isnan(demag.demag.tensor_yz).any()
-    assert not np.isnan(demag.demag.tensor_zz).any()
-    assert not np.isnan(sim.field).any(), "NaN in demag array"
+    tensors = [demag.demag.tensor_xx, demag.demag.tensor_xy,
+               demag.demag.tensor_xz, demag.demag.tensor_yy,
+               demag.demag.tensor_yz, demag.demag.tensor_zz]
+
+    # Regression guard: the padded FFT tensor must be fully initialised. A
+    # previous out-of-bounds read in the 2d_pbc fill left the wrap edge
+    # uninitialised, giving an intermittent NaN (or inf) in tensor_yz.
+    for t in tensors:
+        assert np.isfinite(t).all()
+    assert np.isfinite(sim.field).all(), "non-finite value in demag field"
+
+    # The padded wrap edge (last x/y plane of the FFT-padded tensor) has no
+    # physical counterpart and is now deterministically zeroed by the fill.
+    lenx, leny, lenz = demag.demag.lenx, demag.demag.leny, demag.demag.lenz
+    for t in tensors:
+        tp = t.reshape(lenz, leny, lenx)
+        assert np.all(tp[:, :, lenx - 1] == 0.0)
+        assert np.all(tp[:, leny - 1, :] == 0.0)
 
 if __name__ == '__main__':
     test_hexagonal_demags_1Dchain()
