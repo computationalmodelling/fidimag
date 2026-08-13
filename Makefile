@@ -1,22 +1,54 @@
 PROJECT_DIR = $(abspath .)
 EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions
 USER_EXTENSIONS_DIR = ${PROJECT_DIR}/fidimag/extensions/user
-PYTHON = python3
-PYTEST = ${PYTHON} -m pytest
+# Use uv run to execute in the managed virtual environment
+PYTHON = uv run python
+PYTEST = uv run pytest
+
+.DEFAULT_GOAL := help
+
+help:
+	@echo "Fidimag Makefile - Common Tasks"
+	@echo "================================"
+	@echo ""
+	@echo "Build:"
+	@echo "  make build          Build fidimag using uv (recommended)"
+	@echo "  make build-old      Build using old setup.py (deprecated)"
+	@echo "  make clean          Clean all build artifacts"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test           Run quick tests (not slow, not oommf)"
+	@echo "  make test-all       Run all tests"
+	@echo "  make test-basic     Run basic tests"
+	@echo "  make test-oommf     Run OOMMF tests only"
+	@echo "  make test-ipynb     Run notebook tests"
+	@echo "  make test-clean     Clean test output files"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  make doc            Build all documentation"
+	@echo "  make doc-html       Build HTML documentation"
+	@echo "  make doc-clean      Clean documentation build"
+	@echo ""
+	@echo "Docker:"
+	@echo "  make docker         Build Docker image"
+	@echo "  make test-docker    Run tests in Docker"
+	@echo ""
+	@echo "Note: All Python/pytest commands use 'uv run' to execute in the managed environment"
+	@echo ""
 
 #####################
 # Cython Extensions #
 #####################
 
 build:
+	uv sync --reinstall-package fidimag
+
+build-old:
+	# Old setup.py-based build (deprecated)
 	${PYTHON} setup.py build_ext --inplace -j2
 
 clean:
-	rm -rf ${EXTENSIONS_DIR}/*
-	mkdir -p ${USER_EXTENSIONS_DIR}
-	touch ${EXTENSIONS_DIR}/__init__.py
-	touch ${USER_EXTENSIONS_DIR}/__init__.py
-	rm -rf build
+	bash clean_cython_files.sh
 
 docker:
 	docker build -t fidimag -f ./docker/travis/Dockerfile .

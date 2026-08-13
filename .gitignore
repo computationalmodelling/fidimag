@@ -1,4 +1,5 @@
 *.txt
+!CMakeLists.txt
 *.pyc
 *.ndt
 *.gch

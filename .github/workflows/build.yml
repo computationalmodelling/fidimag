@@ -1,6 +1,6 @@
 name: Fidimag test
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   unit-tests:
@@ -8,51 +8,43 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.12', '3.13', '3.14']
+        os: [ubuntu-latest]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: "Update apt and install cmake"
+      - name: "Update apt and install dependencies"
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y cmake
+          sudo apt-get install -y cmake gcc g++
           sudo apt-get install -y libatlas-base-dev libatlas3-base
 
-      - name: "Install sundials and fftw"
+      - name: "Install SUNDIALS and FFTW"
         working-directory: ./bin
         run: |
           bash install-fftw.sh
           bash install-sundials.sh
-    
-      - name: "Install pip and packages"
-        working-directory: ./
-        run: |
-          python3 -m ensurepip
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --user scipy numpy pytest matplotlib
-          python3 -m pip install --user setuptools pyvtk cython psutil
 
-      - name: "Install FIDIMAG"
+      - name: "Install uv"
         run: |
-          python3 setup.py build_ext --inplace
-          PWD=$(pwd)
-          export PYTHONPATH=$PWD:$PYTHONPATH
-          echo "PYTHONPATH=$PYTHONPATH"
-          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$PWD/local/lib" >> $GITHUB_ENV
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: "Run test"
+      - name: "Build and install Fidimag"
+        run: |
+          uv sync --frozen --all-extras
+          echo "LD_LIBRARY_PATH=$PWD/local/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: "Run tests"
         working-directory: ./tests
         run: |
-          python3 -m pytest -v
-# env:
-# PYTHONPATH: $PWD
+          uv run pytest -v -m "not slow and not run_oommf"
