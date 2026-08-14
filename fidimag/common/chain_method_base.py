@@ -338,7 +338,8 @@ class ChainMethodBase(object):
         """
 
         Save VTK files in different folders, according to the simulation name
-        and step. Files are saved as vtks/simname_simstep_vtk/image_00000x.vtk
+        and step. Files are saved as vtks/simname_simstep_vtk/image_00000x.vti
+        (or .vtp for a hexagonal mesh)
 
         coordinates_function    :: A function to transform the coordinates of
                                    the band to Cartesian coordinates. For

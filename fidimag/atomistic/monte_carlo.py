@@ -6,7 +6,7 @@ import fidimag.extensions.clib as clib
 from fidimag.common.fileio import DataSaver
 import fidimag.common.helper as helper
 import fidimag.common.constant as const
-from fidimag.common.save_vtk import SaveVTK
+from fidimag.common.vtk import VTK
 
 class MonteCarlo(object):
 
@@ -29,7 +29,7 @@ class MonteCarlo(object):
         self.interactions = []
 
         self.create_tablewriter()
-        self.vtk = SaveVTK(self.mesh, name=name)
+        self.VTK = VTK(self.mesh, directory='{}_vtks'.format(name), filename='m')
 
         self.hexagonal_mesh = False
         if mesh.mesh_type == 'hexagonal':
@@ -130,9 +130,10 @@ class MonteCarlo(object):
         NOTE: It is recommended to use a *cell to point data* filter in
         Paraview or Mayavi to plot the vector field
         """
-        self.vtk.save_vtk(self.spin.reshape(-1, 3),
-                          self._mu_s,
-                          step=self.step)
+        self.VTK.reset_data()
+        self.VTK.save_scalar(self._mu_s, name='Ms')
+        self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
+        self.VTK.write_file(step=self.step)
 
     def save_m(self):
         if not os.path.exists('%s_npys' % self.name):

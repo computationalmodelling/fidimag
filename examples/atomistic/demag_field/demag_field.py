@@ -6,7 +6,6 @@ import numpy as np
 from fidimag.atomistic import Sim, Demag
 from fidimag.common import CuboidMesh
 import fidimag.common.constant as const
-from fidimag.common.save_vtk import SaveVTK
 
 
 def mu_s(pos):

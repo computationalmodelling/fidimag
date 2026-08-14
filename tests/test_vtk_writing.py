@@ -1,51 +1,82 @@
-import os
-import subprocess
+import base64
+import struct
+import xml.etree.ElementTree as ET
+
+import numpy as np
+
 from fidimag.common import CuboidMesh
 from fidimag.atomistic.hexagonal_mesh import HexagonalMesh
 from fidimag.common.field import scalar_field, vector_field
 from fidimag.common.vtk import VTK
-import pyvtk
-import pytest
 
-MODULE_DIR = os.path.realpath(os.path.dirname(__file__))
-REF_DIR = os.path.dirname(__file__) + '/vtk_refs/'
 
-def same_as_ref(filepath, ref_dir):
+def decode_data_array(data_array, dtype):
     """
-    Looks for file with the same filename as `filepath` in `ref_dir`
-    and compares the two.
-
+    Decode an inline base64 VTK DataArray (header_type="UInt32") back into
+    a numpy array of the given dtype.
     """
-    filename = os.path.basename(filepath)
-    reference = os.path.join(ref_dir, filename)
-    ret = subprocess.call(["diff", filepath, reference])
-    f = open(filepath, 'r').read()
-    print('new\n', f)
-    f = open(reference, 'r').read()
-    print('ref\n', f)
+    raw = base64.b64decode(data_array.text.strip())
+    # '<I' = little-endian unsigned int (4 bytes), matching the UInt32
+    # byte-count header VTK.write_file() prepends before the payload.
+    n_bytes = struct.unpack('<I', raw[:4])[0]
+    payload = raw[4:4 + n_bytes]
+    return np.frombuffer(payload, dtype=dtype)
 
-    return ret == 0  # 0 means files are the same, c.f. man diff exit codes
 
-@pytest.mark.skip(reason="Need a better way to test; precision means comparing diffs does not work.")
 def test_save_scalar_field(tmpdir):
     mesh = CuboidMesh(4, 3, 2, 4, 3, 2)
     s = scalar_field(mesh, lambda r: r[0] + r[1] + r[2])
     vtk = VTK(mesh, directory=str(tmpdir), filename="save_scalar")
     vtk.save_scalar(s, name="s")
-    assert same_as_ref(vtk.write_file(), REF_DIR)
+    path = vtk.write_file()
 
-@pytest.mark.skip(reason="Need a better way to test; precision means comparing diffs does not work.")
+    assert path.endswith(".vti")
+    root = ET.parse(path).getroot()
+    data_array = root.find(".//DataArray[@Name='s']")
+    values = decode_data_array(data_array, np.float32)
+    np.testing.assert_allclose(values, s.reshape(-1).astype(np.float32))
+
+
 def test_save_vector_field(tmpdir):
     mesh = CuboidMesh(4, 3, 2, 4, 3, 2)
-    s = vector_field(mesh, lambda r: (r[0], r[1], r[2]))
+    v = vector_field(mesh, lambda r: (r[0], r[1], r[2]))
     vtk = VTK(mesh, directory=str(tmpdir), filename="save_vector")
-    vtk.save_vector(s, name="s")
-    assert same_as_ref(vtk.write_file(), REF_DIR)
+    vtk.save_vector(v, name="s")
+    path = vtk.write_file()
 
-@pytest.mark.skip(reason="Need a better way to test; precision means comparing diffs does not work.")
+    assert path.endswith(".vti")
+    root = ET.parse(path).getroot()
+    data_array = root.find(".//DataArray[@Name='s']")
+    assert data_array.get("NumberOfComponents") == "3"
+    values = decode_data_array(data_array, np.float32).reshape(-1, 3)
+    np.testing.assert_allclose(values, v.reshape(-1, 3).astype(np.float32))
+
+
 def test_save_scalar_field_hexagonal_mesh(tmpdir):
     mesh = HexagonalMesh(1, 3, 3)
     s = scalar_field(mesh, lambda r: r[0] + r[1])
     vtk = VTK(mesh, directory=str(tmpdir), filename="scalar_hexagonal")
     vtk.save_scalar(s, name="s")
-    assert same_as_ref(vtk.write_file(), REF_DIR)
+    path = vtk.write_file()
+
+    assert path.endswith(".vtp")
+    root = ET.parse(path).getroot()
+
+    # ".//Points/DataArray" is an ElementTree XPath: search anywhere below
+    # the root (".//") for a <Points><DataArray> pair, i.e. the point
+    # coordinates (the Points DataArray has no Name attribute, unlike the
+    # named CellData/Polys arrays below).
+    points_array = root.find(".//Points/DataArray")
+    points = decode_data_array(points_array, np.float32).reshape(-1, 3)
+    np.testing.assert_allclose(points, mesh.vertices.astype(np.float32))
+
+    # [@Name='connectivity'] filters to the DataArray with that attribute,
+    # since <Polys> holds two DataArrays (connectivity and offsets).
+    connectivity = decode_data_array(
+        root.find(".//Polys/DataArray[@Name='connectivity']"), np.int64)
+    np.testing.assert_array_equal(
+        connectivity.reshape(-1, 6), mesh.hexagons)
+
+    data_array = root.find(".//CellData/DataArray[@Name='s']")
+    values = decode_data_array(data_array, np.float32)
+    np.testing.assert_allclose(values, s.reshape(-1).astype(np.float32))
