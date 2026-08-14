@@ -137,6 +137,9 @@ class VTK(object):
         xml += '</VTKFile>\n'
         return xml
 
+    def _render(self):
+        return self._write_vti() if self.extension == "vti" else self._write_vtp()
+
     def write_file(self, step=0):
         if not os.path.isdir(self.directory):
             os.makedirs(self.directory)
@@ -144,8 +147,27 @@ class VTK(object):
         filename = "{}_{:06}.{}".format(self.filename, step, self.extension)
         path = os.path.join(self.directory, filename)
 
-        xml = self._write_vti() if self.extension == "vti" else self._write_vtp()
         with open(path, 'w') as f:
-            f.write(xml)
+            f.write(self._render())
+
+        return path
+
+    def save_as(self, path):
+        """
+        Write the currently stored scalar/vector data to a single file at
+        `path`, without the `{filename}_{step:06d}` sequence naming used by
+        `write_file`. Useful for one-off saves rather than a simulation's
+        step-by-step snapshots. The mesh-appropriate extension (.vti or
+        .vtp) is appended if `path` doesn't already end with it.
+        """
+        if not path.endswith("." + self.extension):
+            path = path + "." + self.extension
+
+        directory = os.path.dirname(path)
+        if directory and not os.path.isdir(directory):
+            os.makedirs(directory)
+
+        with open(path, 'w') as f:
+            f.write(self._render())
 
         return path
