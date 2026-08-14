@@ -173,11 +173,14 @@ class AtomisticDriver(DriverBase):
     # Save functions ----------------------------------------------------------
     # -------------------------------------------------------------------------
 
-    def save_vtk(self):
+    def save_vtk(self, filename=None):
         """
         Save a VTK file with the magnetisation vector field and magnetic
         moments as cell data. Magnetic moments are saved in units of
         Bohr magnetons
+
+        If `filename` is given, the data is written to that single file
+        instead of the usual `{name}_{step:06d}` sequence.
 
         NOTE: It is recommended to use a *cell to point data* filter in
         Paraview or Mayavi to plot the vector field
@@ -188,4 +191,7 @@ class AtomisticDriver(DriverBase):
         self.VTK.save_scalar(self._mu_s / const.mu_B, name='mu_s')
         self.VTK.save_vector(self.spin.reshape(-1, 3), name='spins')
 
-        self.VTK.write_file(step=self.step)
+        if filename is not None:
+            self.VTK.save_as(filename)
+        else:
+            self.VTK.write_file(step=self.step)
