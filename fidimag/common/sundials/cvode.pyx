@@ -171,6 +171,7 @@ cdef extern from "sunlinsol/sunlinsol_spgmr.h":
     ctypedef _generic_SUNLinearSolver_Ops *SUNLinearSolver_Ops
 
     SUNLinearSolver SUNLinSol_SPGMR(N_Vector y, int pretype, int maxl, SUNContext sunctx)
+    int SUNLinSolFree(SUNLinearSolver S)
 
     int CVSpgmr(void *cvode_mem, int pretype, int max1)
 
@@ -348,6 +349,7 @@ cdef class CvodeSolver(object):
     cdef int has_jtimes
     cdef str linear_solver
     cdef str parellel_solver
+    cdef SUNLinearSolver LS
     def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
         self.t = 0
         self.y0 = spins
@@ -355,6 +357,8 @@ cdef class CvodeSolver(object):
         self.y = np.copy(spins)
         self.mp = np.copy(spins)
         self.Jmp = np.copy(spins)
+
+        self.LS = NULL
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
@@ -419,6 +423,14 @@ cdef class CvodeSolver(object):
             self.check_flag(flag, "CVodeInit")
             self.cvode_already_initialised = 1
 
+        # A new call to set_initial_value (e.g. re-running set_initial_value
+        # after the solver was already initialised) would otherwise create a
+        # new SUNLinearSolver every time without freeing the previous one, so
+        # release it here before it goes out of scope
+        if self.LS != NULL:
+            SUNLinSolFree(self.LS)
+            self.LS = NULL
+
         if self.linear_solver == "diag":
             flag = CVDiag(self.cvode_mem)
             self.check_flag(flag, "CVDiag")
@@ -431,13 +443,13 @@ cdef class CvodeSolver(object):
                 # with left preconditioning and the default Krylov dimension
                 # maxl – the number of Krylov basis vectors to use.
                 # A maxl argument (3rd arg) that is <= 0, will result in the default value (5).
-                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_LEFT, 0, self.sunctx);
+                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_LEFT, 0, self.sunctx);
                 # CHECK:
-                if LS == NULL:
+                if self.LS == NULL:
                     raise ValueError('Error allocating linear solver')
 
                 # Call CVodeSetLinearSolver to attach the linear solver to CVode
-                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
+                flag = CVodeSetLinearSolver(self.cvode_mem, self.LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
                 # if (check_retval(&retval, "CVodeSetLinearSolver", 1)) return 1;
 
@@ -460,12 +472,12 @@ cdef class CvodeSolver(object):
                 #
                 # maxl – the number of Krylov basis vectors to use.
                 # NOTE: 300 -> magic number?
-                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
-                if LS == NULL:
+                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
+                if self.LS == NULL:
                     raise ValueError('Error allocating linear solver')
 
                 # Call CVodeSetLinearSolver to attach the linear sovler to CVode
-                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
+                flag = CVodeSetLinearSolver(self.cvode_mem, self.LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
         else:
             raise RuntimeError(
@@ -547,6 +559,9 @@ cdef class CvodeSolver(object):
         self.user_data.dm_dt = NULL
         self.user_data.v = NULL
         self.user_data.jv = NULL
+        if self.LS != NULL:
+            SUNLinSolFree(self.LS)
+            self.LS = NULL
         N_VDestroy_Serial(self.u_y)
         CVodeFree(& self.cvode_mem)
         SUNContext_Free(& self.sunctx)
@@ -574,6 +589,7 @@ cdef class CvodeSolver_OpenMP(object):
     cdef str linear_solver
     cdef str parellel_solver
     cdef int num_threads
+    cdef SUNLinearSolver LS
 
     def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
         self.num_threads = openmp.omp_get_max_threads()
@@ -584,6 +600,8 @@ cdef class CvodeSolver_OpenMP(object):
         self.y = np.copy(spins)
         self.mp = np.copy(spins)
         self.Jmp = np.copy(spins)
+
+        self.LS = NULL
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
@@ -638,17 +656,25 @@ cdef class CvodeSolver_OpenMP(object):
             self.check_flag(flag, "CVodeInit")
             self.cvode_already_initialised = 1
 
+        # A new call to set_initial_value (e.g. re-running set_initial_value
+        # after the solver was already initialised) would otherwise create a
+        # new SUNLinearSolver every time without freeing the previous one, so
+        # release it here before it goes out of scope
+        if self.LS != NULL:
+            SUNLinSolFree(self.LS)
+            self.LS = NULL
+
         if self.linear_solver == "diag":
             flag = CVDiag(self.cvode_mem)
             self.check_flag(flag, "CVDiag")
         elif self.linear_solver == "spgmr":
             if self.has_jtimes:
 
-                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_LEFT, 0, self.sunctx);
-                if LS == NULL:
+                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_LEFT, 0, self.sunctx);
+                if self.LS == NULL:
                     raise ValueError('Could not allocate linear solver')
 
-                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
+                flag = CVodeSetLinearSolver(self.cvode_mem, self.LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
 
                 flag = CVodeSetJacTimes(self.cvode_mem, NULL, <CVLsJacTimesVecFn> self.jv_fun);
@@ -660,12 +686,12 @@ cdef class CvodeSolver_OpenMP(object):
                 self.check_flag(flag, "CVodeSetPreconditioner")
 
             else:
-                LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
-                if LS == NULL:
+                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
+                if self.LS == NULL:
                     raise ValueError('Could not allocate linear solver')
 
                 # Call CVodeSetLinearSolver to attach the linear solver to CVode
-                flag = CVodeSetLinearSolver(self.cvode_mem, LS, NULL);
+                flag = CVodeSetLinearSolver(self.cvode_mem, self.LS, NULL);
                 self.check_flag(flag, "CVodeSetLinearSolver")
         else:
             raise RuntimeError(
@@ -743,6 +769,9 @@ cdef class CvodeSolver_OpenMP(object):
         self.user_data.dm_dt = NULL
         self.user_data.v = NULL
         self.user_data.jv = NULL
+        if self.LS != NULL:
+            SUNLinSolFree(self.LS)
+            self.LS = NULL
         N_VDestroy_OpenMP(self.u_y)
         CVodeFree(& self.cvode_mem)
         SUNContext_Free(& self.sunctx)
