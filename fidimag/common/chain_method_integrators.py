@@ -42,8 +42,21 @@ class StepIntegrator(BaseIntegrator):
 
 class VerletIntegrator(BaseIntegrator):
     """
-    A quick Verlet integration in Cartesian coordinates
-    See: J. Chem. Theory Comput., 2017, 13 (7), pp 3250–3259
+    Quick-min velocity-projection (VP) integration in Cartesian coordinates, with a *global* velocity
+    projection across the whole band (all inner images together) rather than projecting each image
+    independently -- same idea as SPIRIT's VP solver. See:
+
+        Bessarab, Uzdin, Jonsson, "Method for finding mechanism and activation energy of magnetic
+        transitions, applied to skyrmion and antivortex annihilation", Comp. Phys. Comm. 196, 335 (2015).
+
+    Also based on the quick-min velocity Verlet scheme in J. Chem. Theory Comput., 2017, 13 (7), 3250-3259.
+
+    A single global ratio <v|F> / <F|F>, summed over every degree of freedom of every (non-extreme)
+    image, is used to project/reset the velocity of the *whole* band at once, rather than letting each
+    image decide independently whether to keep moving. This couples the images' descent direction
+    together (as in a single, high-dimensional quick-min minimisation of the whole band) and is
+    noticeably less prone to getting stuck oscillating between images with locally inconsistent
+    velocity projections than the previous per-image version.
     """
     def __init__(self, band, forces, rhs_fun, n_images, n_dofs_image,
                  mass=0.1, stepsize=1e-15):
@@ -54,7 +67,6 @@ class VerletIntegrator(BaseIntegrator):
         self.mass = mass
         self.stepsize = stepsize
         self.velocity = np.zeros_like(band).reshape(n_images, -1)
-        self.velocity_new = np.zeros_like(band).reshape(n_images, -1)
         self.forces_prev = np.zeros_like(band).reshape(n_images, -1)
         # self.G :
         self.forces = forces
@@ -66,21 +78,6 @@ class VerletIntegrator(BaseIntegrator):
 
             self.rhs_evals_nb += 0
 
-            # If we could make the C function to work:
-            # nebm_clib.step_Verlet(
-            #     self.forces,
-            #     self.forces_prev,
-            #     self.velocity,
-            #     self.velocity_new,
-            #     self.y,
-            #     self.t,
-            #     self.stepsize,
-            #     self.mass,
-            #     self.n_images,
-            #     self.n_dofs_image,
-            #     self.rhs
-            #     )
-
             if self.t > t:
                 break
         return 0
@@ -90,49 +87,42 @@ class VerletIntegrator(BaseIntegrator):
 
     def _step(self, t, y, h, f):
         """
-        Quick-min Velocity Verlet step
+        Quick-min velocity-projection (VP) step, with the projection done
+        globally over the whole band -- see the class docstring.
         """
 
         f(t, y)
         force_images = self.forces
         force_images.shape = (self.n_images, -1)
-        # In this case f represents the force: a = dy/dt = f/m
-        # * self.m_inv[:, np.newaxis]
         y.shape = (self.n_images, -1)
-        # print(force_images[2])
 
-        # Loop through every image in the band
-        for i in range(1, self.n_images - 1):
+        inner = slice(1, self.n_images - 1)
 
-            force = force_images[i]
-            velocity = self.velocity[i]
-            velocity_new = self.velocity_new[i]
+        # Leapfrog velocity update: average of the previous and current
+        # force, for every inner image
+        self.velocity[inner] += (h / (2 * self.mass)) * (
+            self.forces_prev[inner] + force_images[inner])
 
-            # Update coordinates from Newton eq, which uses the "acceleration"
-            # At step 0 velocity is zero
-            y[i][:] = y[i] + h * (velocity + (h / (2 * self.mass)) * force)
+        # Global projection of the velocity onto the force, summed over
+        # every degree of freedom of every inner image (i.e. treating the
+        # whole band as a single high-dimensional vector)
+        projection_full = np.einsum('ij,ij', self.velocity[inner],
+                                    force_images[inner])
+        force_norm2_full = np.einsum('ij,ij', force_images[inner],
+                                     force_images[inner])
 
-            # Update the velocity from a mean with the prev step
-            # (Velocity Verlet)
-            velocity[:] = velocity_new[:] + (h / (2 * self.mass)) * (self.forces_prev[i] + force)
+        if projection_full <= 0 or force_norm2_full == 0:
+            self.velocity[inner] = 0.0
+        else:
+            ratio = projection_full / force_norm2_full
+            self.velocity[inner] = ratio * force_images[inner]
 
-            # Project the force of the image into the velocity vector: < v | F >
-            velocity_proj = np.einsum('i,i', force, velocity)
+        # Update coordinates using the (just projected) velocity, plus the
+        # usual explicit half-step force term
+        y[inner] = (y[inner] + h * self.velocity[inner]
+                   + (h ** 2 / (2 * self.mass)) * force_images[inner])
 
-            # Set velocity to zero when the proj = 0
-            if velocity_proj <= 0:
-                velocity_new[:] = 0.0
-            else:
-                # Norm of the force squared <F | F>
-                force_norm_2 = np.einsum('i,i', force, force)
-                factor = velocity_proj / force_norm_2
-                # Set updated velocity: v = v * (<v|F> / |F|^2)
-                velocity_new[:] = factor * force
-
-            # New velocity from Newton equation (old Verlet)
-            # velocity[:] = velocity_new + (h / self.mass) * force
-
-        # Store the force for the Velocity Verlet algorithm
+        # Store the force for the next step's leapfrog velocity update
         self.forces_prev[:] = force_images
 
         y.shape = (-1,)

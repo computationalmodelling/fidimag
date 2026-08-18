@@ -236,6 +236,12 @@ class ChainMethodBase(object):
         self.variable_k = False
         self.dk = 1
 
+        # Weight (in (0, 1]) given to the energy axis when combining the
+        # path distance and the energy into a single spring-force spacing
+        # metric (see e.g. NEBM_Geodesic.compute_energy_weighted_spring_lengths).
+        # 0 (default) disables it and uses the plain path distance, as before.
+        self.spring_force_ratio = 0
+
         # Climbing Image ------------------------------------------------------
 
         # Set a list with the images where 1 is for climbing image and 0 for
@@ -598,7 +604,7 @@ class ChainMethodBase(object):
 
     def relax(self, dt=1e-8, stopping_dYdt=1, max_iterations=1000,
               save_npys_every=100, save_vtks_every=100,
-              save_initial_state=True
+              save_initial_state=True, stopping_max_force=None
               ):
 
         """
@@ -611,6 +617,19 @@ class ChainMethodBase(object):
                              number of evaluations is dt / stepsize.
                              You can update the integrator evolve step using:
                                 self.integrator.stepsize = 1e-4
+
+        stopping_max_force :: Optional. If set, also stop once the largest
+                              force norm on the band (max|G|, over the
+                              inner images) drops below this value. This is
+                              a physically meaningful, step-size-independent
+                              convergence check, unlike stopping_dYdt (which
+                              only measures how much the Cartesian
+                              coordinates changed in the last step, and can
+                              be small simply because the integrator took a
+                              tiny internal step, even far from a true force
+                              equilibrium). Off (None) by default, so the
+                              previous stopping_dYdt-only behaviour is
+                              unchanged unless this is explicitly requested.
 
         """
 
@@ -718,6 +737,9 @@ class ChainMethodBase(object):
 
             # Stop criteria:
             if max_dYdt < stopping_dYdt:
+                break
+            if (stopping_max_force is not None
+                    and np.max(G_norms) < stopping_max_force):
                 break
 
         np.savetxt(self.name + '_G_log.txt', np.array(self.G_log))

@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
+from scipy.interpolate import CubicHermiteSpline
 import fidimag.extensions.nebm_clib as nebm_clib
 
 from .chain_method_tools import spherical2cartesian, cartesian2spherical, compute_norm
@@ -309,7 +310,14 @@ class NEBM_Geodesic(ChainMethodBase):
         """
         if self.variable_k:
             E_max = np.max(self.energies)
-            E_i = np.maximum(self.energies[1:-1], self.energies[:-2])
+            # E_i is the energy used to decide the i-th image's spring
+            # constant: the largest of its two *neighbours'* energies
+            # (images i-1 and i+1), following the reference above. Do NOT
+            # compare against the image's own energy (self.energies[1:-1])
+            # -- that was a past bug here: it made the scheme only look at
+            # the left neighbour and ignore the right one, breaking the
+            # left/right symmetry the method relies on.
+            E_i = np.maximum(self.energies[:-2], self.energies[2:])
             E_ref = max(self.energies[0], self.energies[-1])
 
             k = np.copy(self.k)
@@ -331,11 +339,23 @@ class NEBM_Geodesic(ChainMethodBase):
                                                   self.n_dofs_image_material
                                                   )
 
+        # Optionally combine the geodesic distance (self.path_distances)
+        # with the energy to decide the image spacing used in the spring
+        # force, c.f. the path-length weighting discussed in
+        # Bessarab, Uzdin, Jonsson, Comp. Phys. Comm. 196 (2015) 335-347
+        # (already cited above): images bunch up more strongly around
+        # regions of large energy variation (e.g. a saddle point) instead
+        # of being purely equidistant along the geodesic path.
+        if self.spring_force_ratio > 0:
+            spring_distances = self.compute_energy_weighted_spring_lengths()
+        else:
+            spring_distances = self.distances
+
         nebm_clib.compute_spring_force(self.spring_force, y,
                                        self.tangents,
                                        k, self.n_images,
                                        self.n_dofs_image,
-                                       self.distances
+                                       spring_distances
                                        )
 
         # GreatCircle calculation of the geodesic seems to be more stable
@@ -348,6 +368,81 @@ class NEBM_Geodesic(ChainMethodBase):
         #                                        self._material_int,
         #                                        self.n_dofs_image_material
         #                                        )
+
+    def compute_energy_weighted_spring_lengths(self, n_interpolations=20):
+        """
+        Combine the geodesic path distance (self.path_distances) and the
+        energy (self.energies) into a single, energy-weighted arc length
+        per band segment, instead of spacing images purely by geodesic
+        distance. A cubic Hermite spline is built through the points
+        (path_distances_i, energies_i, dE/d(path_distance)_i) and used to
+        measure a distance that combines both axes, so images bunch up
+        more strongly wherever the energy changes fast (e.g. approaching a
+        saddle point) rather than being purely equidistant along the path.
+        See the path-length weighting discussed in Bessarab, Uzdin,
+        Jonsson, Comp. Phys. Comm. 196 (2015) 335-347 (already cited in
+        this class' docstring).
+
+        self.spring_force_ratio (in (0, 1]) sets the weight given to the
+        energy axis; the rest (1 - spring_force_ratio) is given to the
+        path distance axis.
+
+        Returns an array of length (n_images - 1), where entry i is the
+        energy-weighted length of the segment between image i and image
+        i + 1 -- same layout as self.distances, so it can be used as a
+        drop-in replacement in nebm_clib.compute_spring_force.
+        """
+        path_distances = self.path_distances
+        energies = self.energies
+
+        # dE/d(path_distance) at every image, including the extremes. For
+        # inner images self.gradientE is the raw effective field (not yet
+        # a true energy derivative), so it must be converted with the same
+        # self.scale factor used in compute_polynomial_factors (mu_0 * Ms *
+        # dV per dof for micromagnetics, mu_s per dof for atomistic) before
+        # taking the dot product with the tangent. The extreme images are
+        # fixed throughout the relaxation and never get an effective field/
+        # tangent computed for them, so we only need a cheap finite-
+        # difference estimate of the local slope there to seed the spline's
+        # boundary derivative -- no extra field evaluation required at the
+        # fixed endpoints.
+        dE_dx = np.zeros(self.n_images)
+        gradientE = self.gradientE.reshape(self.n_images, -1)
+        tangents = self.tangents.reshape(self.n_images, -1)
+        for i in range(1, self.n_images - 1):
+            dE_dx[i] = np.dot(self.scale * gradientE[i], tangents[i])
+        dE_dx[0] = ((energies[1] - energies[0])
+                    / (path_distances[1] - path_distances[0]))
+        dE_dx[-1] = ((energies[-1] - energies[-2])
+                     / (path_distances[-1] - path_distances[-2]))
+
+        ratio_E = min(1.0, self.spring_force_ratio)
+        ratio_x = 1.0 - ratio_E
+
+        spline = CubicHermiteSpline(path_distances, energies, dE_dx)
+
+        # Sub-divide every segment [x_i, x_{i+1}] into n_interpolations
+        # pieces, with segment boundaries falling exactly on the path
+        # distance nodes
+        x_fine = np.concatenate(
+            [np.linspace(path_distances[i], path_distances[i + 1],
+                         n_interpolations, endpoint=False)
+             for i in range(self.n_images - 1)] + [[path_distances[-1]]]
+            )
+        e_fine = spline(x_fine)
+
+        range_x = path_distances[-1] - path_distances[0]
+        range_E = np.max(e_fine) - np.min(e_fine)
+        if range_E < 1e-30:
+            range_E = 1.0
+
+        dx = ratio_x * np.diff(x_fine) / range_x
+        dE = ratio_E * np.diff(e_fine) / range_E
+        sub_lengths = np.sqrt(dx ** 2 + dE ** 2) * range_x
+
+        # Sum the sub-segments back into one length per image-to-image
+        # segment (same layout as self.distances)
+        return sub_lengths.reshape(self.n_images - 1, n_interpolations).sum(axis=1)
 
     def nebm_step(self, y):
 
