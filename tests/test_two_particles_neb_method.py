@@ -314,6 +314,159 @@ def test_energy_weighted_spring_force_clustering():
     plt.close(fig)
 
 
+def test_curvature_weighted_spring_force_clustering():
+    """
+    Check that the curvature-weighted spring force
+    (NEBM_Geodesic.spring_weighting = 'curvature',
+    NEBM_Geodesic.compute_curvature_weighted_spring_lengths) does the
+    opposite of the energy-weighted one
+    (test_energy_weighted_spring_force_clustering): it concentrates images
+    around every sharp critical point of the path (minima AND maxima
+    alike, since |d^2E/d(path_distance)^2| is large at both), and spreads
+    them out on the smoothly-curving flanks in between -- see that
+    method's docstring for why this is an ad hoc heuristic rather than
+    something derived from the GNEB literature, unlike the energy-weighted
+    default.
+
+    Uses the same staged protocol as
+    test_energy_weighted_spring_force_clustering (plain CVODE relax ->
+    climbing image on the saddle -> VP + curvature weighting), for the
+    same reason: compute_curvature_weighted_spring_lengths also refits a
+    global spline every RHS call, which CVODE's adaptive step-size control
+    doesn't handle well.
+
+    Also saves a plot of energy and image spacing vs. path distance for
+    both cases, so the clustering can be checked visually.
+    """
+    init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
+    interp = [10, 10]
+
+    def max_spring_force(neb):
+        return np.max(np.linalg.norm(neb.spring_force.reshape(-1, 3), axis=1))
+
+    def make_neb(simname):
+        sim = Sim(mesh)
+        sim.Ms = two_part
+        sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
+        return NEBM_Geodesic(sim, init_im, interpolations=interp,
+                             spring_constant=1e4, name=simname,
+                             integrator='sundials')
+
+    # --- Baseline: plain, distance-only spring force -----------------------
+    neb_uniform = make_neb('neb_2particles_curvature_uniform')
+    neb_uniform.relax(max_iterations=2000, save_vtks_every=5000,
+                      save_npys_every=5000, stopping_dYdt=1e-4,
+                      stopping_max_force=1e-2, dt=1e-6)
+
+    # --- Curvature-weighted band: staged protocol ---------------------------
+    neb_curv = make_neb('neb_2particles_curvature_weighted')
+
+    # Stage 1: plain relaxation to convergence
+    neb_curv.relax(max_iterations=2000, save_vtks_every=5000,
+                   save_npys_every=5000, stopping_dYdt=1e-4,
+                   stopping_max_force=1e-2, dt=1e-6)
+
+    # Stage 2: climbing image on the peak
+    peak = int(np.argmax(neb_curv.energies))
+    neb_curv.climbing_image = [peak]
+    neb_curv.initialise_integrator(integrator='sundials')
+    neb_curv.relax(max_iterations=30, save_vtks_every=50000,
+                   save_npys_every=50000, stopping_dYdt=1e-6,
+                   dt=1e-6, save_initial_state=False)
+
+    # Stage 3: turn on curvature weighting, switch to VP
+    del neb_curv.climbing_image
+    neb_curv.spring_force_ratio = 0.9
+    neb_curv.spring_weighting = 'curvature'
+    neb_curv.initialise_integrator(integrator='verlet')
+    neb_curv.relax(max_iterations=20000, save_vtks_every=50000,
+                   save_npys_every=50000, stopping_dYdt=1e-8,
+                   stopping_max_force=1e-2, dt=1e-4,
+                   save_initial_state=False)
+
+    print('max|spring_force| (uniform)  :', max_spring_force(neb_uniform))
+    print('max|spring_force| (curvature):', max_spring_force(neb_curv))
+    assert max_spring_force(neb_uniform) < 0.02
+    assert max_spring_force(neb_curv) < 0.02
+
+    def spacing_variation(neb):
+        return np.std(neb.distances) / np.mean(neb.distances)
+
+    def curvature_vs_gap_correlation(neb):
+        """
+        Correlation between each inner image's local |d^2E/d(path_distance)^2|
+        (central finite difference of dE/dx, itself a central finite
+        difference of E, on the relaxed band) and the average gap of its
+        two neighbouring segments. A NEGATIVE correlation is the
+        signature of curvature-weighted spacing: images bunch up (small
+        gap) at sharp critical points (large curvature), and spread out
+        on the smoothly-curving flanks (small curvature) in between.
+        """
+        E = neb.energies
+        x = neb.path_distances
+        dE_dx = np.gradient(E, x)
+        d2E_dx2 = np.abs(np.gradient(dE_dx, x))[1:-1]
+        local_gap = 0.5 * (neb.distances[:-1] + neb.distances[1:])
+        return np.corrcoef(d2E_dx2, local_gap)[0, 1]
+
+    cv_uniform = spacing_variation(neb_uniform)
+    cv_curv = spacing_variation(neb_curv)
+    corr_curv = curvature_vs_gap_correlation(neb_curv)
+
+    print('spacing coefficient of variation (uniform)  :', cv_uniform)
+    print('spacing coefficient of variation (curvature):', cv_curv)
+    print('|d2E/dx2| vs. gap correlation (curvature)   :', corr_curv)
+
+    assert cv_uniform < 0.01
+    assert cv_curv > 0.15
+    assert corr_curv < -0.3
+
+    # --- Plot for visual verification ---------------------------------
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    def critical_image_indices(neb):
+        E = neb.energies
+        idxs = [0, len(E) - 1]
+        for i in range(1, len(E) - 1):
+            if (E[i] - E[i - 1]) * (E[i + 1] - E[i]) <= 0:
+                idxs.append(i)
+        return np.array(sorted(set(idxs)))
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex='col')
+    for col, (neb, title) in enumerate(
+            [(neb_uniform, 'spring_force_ratio = 0 (uniform spacing)'),
+             (neb_curv, "spring_force_ratio = 0.9, spring_weighting = "
+                       "'curvature'")]
+            ):
+        crit_idxs = critical_image_indices(neb)
+
+        ax_E = axes[0, col]
+        ax_E.plot(neb.path_distances, neb.energies / 1.602e-19, 'o-')
+        ax_E.plot(neb.path_distances[crit_idxs],
+                 neb.energies[crit_idxs] / 1.602e-19,
+                 'r*', markersize=14,
+                 label='critical images (dE/dx ~ 0)')
+        ax_E.set_title(title)
+        ax_E.set_ylabel('Energy (eV)')
+        ax_E.legend()
+
+        seg_mid = 0.5 * (neb.path_distances[:-1] + neb.path_distances[1:])
+        ax_d = axes[1, col]
+        ax_d.plot(seg_mid, neb.distances, 'o-', color='tab:green')
+        ax_d.plot(neb.path_distances[crit_idxs],
+                 np.interp(neb.path_distances[crit_idxs], seg_mid,
+                           neb.distances),
+                 'r*', markersize=14)
+        ax_d.set_xlabel('path distance')
+        ax_d.set_ylabel('image spacing')
+
+    plt.tight_layout()
+    plt.savefig('neb_2particles_curvature_weighted_comparison.png', dpi=150)
+    plt.close(fig)
+
+
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]

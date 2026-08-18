@@ -242,6 +242,14 @@ class ChainMethodBase(object):
         # 0 (default) disables it and uses the plain path distance, as before.
         self.spring_force_ratio = 0
 
+        # Which quantity spring_force_ratio weights the spacing by:
+        # 'energy' (default) uses NEBM_Geodesic.compute_energy_weighted_spring_lengths
+        # (dE/d(path_distance) -- refines the flanks between critical points),
+        # 'curvature' uses NEBM_Geodesic.compute_curvature_weighted_spring_lengths
+        # (d^2E/d(path_distance)^2 -- refines around critical points themselves).
+        # Only used when spring_force_ratio > 0.
+        self.spring_weighting = 'energy'
+
         # Climbing Image ------------------------------------------------------
 
         # Set a list with the images where 1 is for climbing image and 0 for

@@ -340,14 +340,17 @@ class NEBM_Geodesic(ChainMethodBase):
                                                   )
 
         # Optionally combine the geodesic distance (self.path_distances)
-        # with the energy to decide the image spacing used in the spring
-        # force, c.f. the path-length weighting discussed in
-        # Bessarab, Uzdin, Jonsson, Comp. Phys. Comm. 196 (2015) 335-347
-        # (already cited above): images bunch up more strongly around
-        # regions of large energy variation (e.g. a saddle point) instead
-        # of being purely equidistant along the geodesic path.
+        # with the energy (self.spring_weighting == 'energy', default) or
+        # its curvature (self.spring_weighting == 'curvature') to decide
+        # the image spacing used in the spring force -- see
+        # compute_energy_weighted_spring_lengths and
+        # compute_curvature_weighted_spring_lengths for what each of these
+        # actually does and does not achieve.
         if self.spring_force_ratio > 0:
-            spring_distances = self.compute_energy_weighted_spring_lengths()
+            if self.spring_weighting == 'curvature':
+                spring_distances = self.compute_curvature_weighted_spring_lengths()
+            else:
+                spring_distances = self.compute_energy_weighted_spring_lengths()
         else:
             spring_distances = self.distances
 
@@ -377,11 +380,25 @@ class NEBM_Geodesic(ChainMethodBase):
         distance. A cubic Hermite spline is built through the points
         (path_distances_i, energies_i, dE/d(path_distance)_i) and used to
         measure a distance that combines both axes, so images bunch up
-        more strongly wherever the energy changes fast (e.g. approaching a
-        saddle point) rather than being purely equidistant along the path.
-        See the path-length weighting discussed in Bessarab, Uzdin,
-        Jonsson, Comp. Phys. Comm. 196 (2015) 335-347 (already cited in
-        this class' docstring).
+        more strongly wherever the energy changes fast (e.g. on the flanks
+        approaching a saddle point) rather than being purely equidistant
+        along the path. See the path-length weighting discussed in
+        Bessarab, Uzdin, Jonsson, Comp. Phys. Comm. 196 (2015) 335-347
+        (already cited in this class' docstring).
+
+        This weighting by dE/d(path_distance) is not just a heuristic: for
+        a converged MEP the perpendicular component of the energy
+        gradient vanishes by construction, so dE/d(path_distance) there
+        equals the full gradient norm ||grad E||. Fabian & Shcherbakov,
+        Geophys. J. Int. 215(1), 314-324 (2018), derive that ||grad E|| is
+        exactly the natural weight (a Fermat's-principle-like "refractive
+        index") for a thermodynamic-action-minimizing arc-length
+        parametrization of the path, i.e. this scheme is the discretized,
+        image-spacing analogue of their continuum result -- and it is
+        *not* expected to concentrate images at a critical point itself,
+        since ||grad E|| (and dE/d(path_distance)) vanishes there too, at
+        minima and maxima alike. See compute_curvature_weighted_spring_lengths
+        for a spacing scheme that does target critical points specifically.
 
         self.spring_force_ratio (in (0, 1]) sets the weight given to the
         energy axis; the rest (1 - spring_force_ratio) is given to the
@@ -392,43 +409,12 @@ class NEBM_Geodesic(ChainMethodBase):
         i + 1 -- same layout as self.distances, so it can be used as a
         drop-in replacement in nebm_clib.compute_spring_force.
         """
-        path_distances = self.path_distances
-        energies = self.energies
-
-        # dE/d(path_distance) at every image, including the extremes. For
-        # inner images self.gradientE is the raw effective field (not yet
-        # a true energy derivative), so it must be converted with the same
-        # self.scale factor used in compute_polynomial_factors (mu_0 * Ms *
-        # dV per dof for micromagnetics, mu_s per dof for atomistic) before
-        # taking the dot product with the tangent. The extreme images are
-        # fixed throughout the relaxation and never get an effective field/
-        # tangent computed for them, so we only need a cheap finite-
-        # difference estimate of the local slope there to seed the spline's
-        # boundary derivative -- no extra field evaluation required at the
-        # fixed endpoints.
-        dE_dx = np.zeros(self.n_images)
-        gradientE = self.gradientE.reshape(self.n_images, -1)
-        tangents = self.tangents.reshape(self.n_images, -1)
-        for i in range(1, self.n_images - 1):
-            dE_dx[i] = np.dot(self.scale * gradientE[i], tangents[i])
-        dE_dx[0] = ((energies[1] - energies[0])
-                    / (path_distances[1] - path_distances[0]))
-        dE_dx[-1] = ((energies[-1] - energies[-2])
-                     / (path_distances[-1] - path_distances[-2]))
+        path_distances, energies, spline = self._energy_hermite_spline()
 
         ratio_E = min(1.0, self.spring_force_ratio)
         ratio_x = 1.0 - ratio_E
 
-        spline = CubicHermiteSpline(path_distances, energies, dE_dx)
-
-        # Sub-divide every segment [x_i, x_{i+1}] into n_interpolations
-        # pieces, with segment boundaries falling exactly on the path
-        # distance nodes
-        x_fine = np.concatenate(
-            [np.linspace(path_distances[i], path_distances[i + 1],
-                         n_interpolations, endpoint=False)
-             for i in range(self.n_images - 1)] + [[path_distances[-1]]]
-            )
+        x_fine = self._fine_path_grid(path_distances, n_interpolations)
         e_fine = spline(x_fine)
 
         range_x = path_distances[-1] - path_distances[0]
@@ -443,6 +429,123 @@ class NEBM_Geodesic(ChainMethodBase):
         # Sum the sub-segments back into one length per image-to-image
         # segment (same layout as self.distances)
         return sub_lengths.reshape(self.n_images - 1, n_interpolations).sum(axis=1)
+
+    def compute_curvature_weighted_spring_lengths(self, n_interpolations=20):
+        """
+        Weight the spring-force segment spacing by the local energy
+        curvature |d^2E/d(path_distance)^2| instead of by the energy value
+        (c.f. compute_energy_weighted_spring_lengths). dE/d(path_distance)
+        vanishes at every critical point of the path -- minima *and*
+        maxima alike -- so the energy-value weighting above refines the
+        monotonic flanks between critical points, not the critical points
+        themselves. Curvature does the opposite: it is largest exactly at
+        a sharp, well-resolved extremum (e.g. a saddle point pinned by a
+        climbing image) and near zero on the gently-curved stretches in
+        between, so weighting by it concentrates images around critical
+        points instead.
+
+        NOTE: unlike compute_energy_weighted_spring_lengths, this is an ad
+        hoc heuristic, not something derived from a reference. Weighting
+        the discrete band spacing by curvature is not, by itself, how the
+        GNEB literature actually addresses poor resolution around sharply
+        peaked barriers -- Schrautzer, Sallermann, Bessarab, Jonsson,
+        arXiv:2403.11799 (2024) note this exact limitation of GNEB and
+        instead resolve it with a *separate* minimum-mode-following
+        saddle-point solver (inverting the gradient along the lowest
+        Hessian eigenmode, using only its lowest two eigenpairs), run
+        after GNEB/climbing image gets close, rather than by reshaping the
+        band's spacing. That is the properly-motivated way to get real
+        resolution at a saddle point; this method is a cheaper, purely
+        local stand-in that concentrates *existing* images there instead
+        of adding genuinely new information about the landscape.
+
+        This uses the adaptive-mesh/equidistribution approach: a monitor
+        (weight) function w(x) = (1 - ratio_C) + ratio_C * |curvature(x)|
+        / max|curvature|, in [1 - ratio_C, 1], is integrated along the
+        path (self.spring_force_ratio sets ratio_C, same convention as
+        compute_energy_weighted_spring_lengths). Where w(x) is large, a
+        given physical path-distance step accumulates more of this
+        weighted length, so a *smaller* step is needed to fill out an
+        equal share of it -- concentrating images there.
+
+        Returns an array of length (n_images - 1), where entry i is the
+        curvature-weighted length of the segment between image i and
+        image i + 1 -- same layout as self.distances, so it can be used
+        as a drop-in replacement in nebm_clib.compute_spring_force.
+        """
+        path_distances, energies, spline = self._energy_hermite_spline()
+        # Exact (not finite-difference) 2nd derivative of the piecewise
+        # cubic spline. CubicHermiteSpline is only C1-continuous (it
+        # matches value + 1st derivative at each node), so this curvature
+        # can jump discontinuously right at the image nodes; evaluating it
+        # at the fine sub-segment midpoints below (x_mid) rather than at
+        # the nodes themselves avoids having to pick a side at that jump.
+        curvature_spline = spline.derivative(nu=2)
+
+        ratio_C = min(1.0, self.spring_force_ratio)
+
+        x_fine = self._fine_path_grid(path_distances, n_interpolations)
+        x_mid = 0.5 * (x_fine[:-1] + x_fine[1:])
+        curvature_mid = np.abs(curvature_spline(x_mid))
+
+        curvature_scale = np.max(curvature_mid)
+        if curvature_scale < 1e-30:
+            curvature_scale = 1.0
+
+        weight = (1.0 - ratio_C) + ratio_C * (curvature_mid / curvature_scale)
+        sub_lengths = weight * np.diff(x_fine)
+
+        # Sum the sub-segments back into one length per image-to-image
+        # segment (same layout as self.distances)
+        return sub_lengths.reshape(self.n_images - 1, n_interpolations).sum(axis=1)
+
+    def _energy_hermite_spline(self):
+        """
+        Build a cubic Hermite spline through (path_distance_i, energy_i,
+        dE/d(path_distance)_i) for every image, including the extremes.
+        Shared by compute_energy_weighted_spring_lengths and
+        compute_curvature_weighted_spring_lengths.
+
+        For inner images self.gradientE is the raw effective field (not
+        yet a true energy derivative), so it must be converted with the
+        same self.scale factor used in compute_polynomial_factors (mu_0 *
+        Ms * dV per dof for micromagnetics, mu_s per dof for atomistic)
+        before taking the dot product with the tangent. The extreme
+        images are fixed throughout the relaxation and never get an
+        effective field/tangent computed for them, so we only need a
+        cheap finite-difference estimate of the local slope there to seed
+        the spline's boundary derivative -- no extra field evaluation
+        required at the fixed endpoints.
+
+        Returns (path_distances, energies, spline).
+        """
+        path_distances = self.path_distances
+        energies = self.energies
+
+        dE_dx = np.zeros(self.n_images)
+        gradientE = self.gradientE.reshape(self.n_images, -1)
+        tangents = self.tangents.reshape(self.n_images, -1)
+        for i in range(1, self.n_images - 1):
+            dE_dx[i] = np.dot(self.scale * gradientE[i], tangents[i])
+        dE_dx[0] = ((energies[1] - energies[0])
+                    / (path_distances[1] - path_distances[0]))
+        dE_dx[-1] = ((energies[-1] - energies[-2])
+                     / (path_distances[-1] - path_distances[-2]))
+
+        spline = CubicHermiteSpline(path_distances, energies, dE_dx)
+        return path_distances, energies, spline
+
+    def _fine_path_grid(self, path_distances, n_interpolations):
+        """
+        Sub-divide every segment [x_i, x_{i+1}] into n_interpolations
+        pieces, with segment boundaries falling exactly on the path
+        distance nodes.
+        """
+        return np.concatenate(
+            [np.linspace(path_distances[i], path_distances[i + 1],
+                         n_interpolations, endpoint=False)
+             for i in range(self.n_images - 1)] + [[path_distances[-1]]]
+            )
 
     def nebm_step(self, y):
 
