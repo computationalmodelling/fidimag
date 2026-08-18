@@ -85,6 +85,8 @@ class HubertMinimiser(MinimiserBase):
         # self._alpha_field = self._alpha * np.ones_like(self.spin)
         self.gradE = np.zeros_like(self.field)
         self.gradE_last = np.zeros_like(self.field)
+        # Polak-Ribiere conjugate gradient search direction (MERRILL's `S`)
+        self.PR_searchDirection = np.zeros_like(self.field)
         # If we use Cartesian coordinates then what is decreasing in gradient search is m X gradE
         # This comes form the fact that we minimize: E(m) - λ * (m^2 - 1)
         # with respect to m, i.e. d(...)/dm = 0, and that leads to m x Heff = 0
@@ -99,6 +101,9 @@ class HubertMinimiser(MinimiserBase):
     #     self.update_effective_field()
     #     self._new_spin[self._material] = (self.spin + self.field)[self._material]
 
+    # WARNING: obj.compute_energy() computes the energy by calling
+    #          compute_field() first, evaluated at t=0; if the simulation has a
+    #          time-dependent-field, the answer might be wrong
     def compute_effective_field(self, t=0):
         """
         Modified version of the `compute_effective_field` function to obtain
@@ -178,6 +183,9 @@ class HubertMinimiser(MinimiserBase):
         self.trailE = np.zeros(nTrail)
         trailPool = cycle(range(nTrail))  # cycle through 0,1,...,(nTrail-1),0,1,...
         eta = 1.0
+        # ||gradE||^2 at the last accepted point, used as the denominator in
+        # the Polak-Ribiere beta below (MERRILL's `GO2`)
+        GSQUARE = 0.0
         # We might want to change this in the future to save memory:
         # pinsField = np.repeat(self._pins, 3).astype(bool)
         # Only update site with magnetisation > 0 which are not pinned
@@ -200,6 +208,12 @@ class HubertMinimiser(MinimiserBase):
                 self.trailE[nStart] = self.totalE
                 nStart = next(trailPool)
                 eta = 1.0
+                # Reset the conjugate direction to plain steepest descent
+                # (equivalent to beta = 0 in MERRILL, which happens here
+                # naturally since the gradient hasn't changed from the last
+                # accepted point)
+                self.PR_searchDirection[:] = self.gradE_last
+                GSQUARE = np.sum(self.gradE_last[_material] ** 2)
                 totalRestart = False
 
             creepCount = 0
@@ -207,9 +221,9 @@ class HubertMinimiser(MinimiserBase):
             # Creep stage: minimise with a fixed eta
             while creepCount < maxCreep:
                 # Update spin. Avoid pinned or zero-Ms sites
-                self.spin[_material] = self.spin_last[_material] - eta * eta_scale * self.gradE_last[_material]
-                # self.spin[~pinsField] = self.spin_last[~pinsField] - eta * eta_scale * self.gradE_last[~pinsField]
-                # self.spin[:] = self.spin_last - eta * eta_scale * self.gradE_last
+                self.spin[_material] = self.spin_last[_material] - eta * eta_scale * self.PR_searchDirection[_material]
+                # self.spin[~pinsField] = self.spin_last[~pinsField] - eta * eta_scale * self.PR_searchDirection[~pinsField]
+                # self.spin[:] = self.spin_last - eta * eta_scale * self.PR_searchDirection
 
                 # Normalize spin
                 self._normalise_spin(self.spin)
@@ -266,7 +280,7 @@ class HubertMinimiser(MinimiserBase):
 
                 if self.totalE > self.totalE_last:  # If E increases, decrease eta so minimise slower
                     # print('Decreasing eta')
-                    self.creepCount = 0
+                    creepCount = 0
                     eta = eta / (dEta * dEta)
 
                     if eta < etaMin:
@@ -282,6 +296,18 @@ class HubertMinimiser(MinimiserBase):
                 else:  # if E decreases move to next creep step
                     # print('Total E < total E last')
                     creepCount += 1
+
+                    # Polak-Ribiere conjugate gradient direction update.
+                    # Must use the OLD gradE_last (gradient at the point we
+                    # are leaving) together with the newly accepted gradE
+                    # before gradE_last gets overwritten below.
+                    GO2 = GSQUARE
+                    GSQUARE = np.sum(self.gradE[_material] ** 2)
+                    SPG = np.sum(self.gradE_last[_material] * self.gradE[_material])
+                    beta = max(0.0, (GSQUARE - SPG) / GO2) if GO2 != 0.0 else 0.0
+                    self.PR_searchDirection[_material] = self.gradE[_material] + beta * self.PR_searchDirection[_material]
+                    self.PR_searchDirection[~_material] = 0.0
+
                     # Update Energy, spin and gradE
                     self.spin_last[:] = self.spin[:]
                     self.gradE_last[:] = self.gradE[:]
@@ -294,7 +320,14 @@ class HubertMinimiser(MinimiserBase):
 
             # Stop while creepCount
 
-            # If creeping went OK, increase minimisation speed by increasing eta
-            # for a next creeping stage
-            eta *= dEta
-            resetCount = 0
+            # If creeping went OK (i.e. we did not just break out to restart
+            # the minimisation because eta got too small), increase
+            # minimisation speed by increasing eta for a next creeping stage,
+            # and clear the reset-failure counter. Note: resetCount must NOT
+            # be cleared on a restart, otherwise it can never accumulate past
+            # 1 and the resetMax limit is never enforced (matches MERRILL,
+            # where ResetCnt is only zeroed when the creep loop finishes
+            # normally, not on the `goto 10` restart path).
+            if not totalRestart:
+                eta *= dEta
+                resetCount = 0

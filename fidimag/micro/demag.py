@@ -130,7 +130,9 @@ class Demag(Energy):
                                self.mesh.dz *
                                self.mesh.unit_length ** 3.)
 
-        return energy * mu_0 * (self.mesh.dx *
-                                self.mesh.dy *
-                                self.mesh.dz *
-                                self.mesh.unit_length ** 3.)
+        self.total_energy = energy * mu_0 * (self.mesh.dx *
+                                             self.mesh.dy *
+                                             self.mesh.dz *
+                                             self.mesh.unit_length ** 3.)
+
+        return self.total_energy
