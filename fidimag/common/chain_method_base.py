@@ -250,6 +250,19 @@ class ChainMethodBase(object):
         # Only used when spring_force_ratio > 0.
         self.spring_weighting = 'energy'
 
+        # Divides the scaled max|G|/max|gradE|/max|F_k| values in the
+        # relax() debug log, purely for display readability: those are in
+        # Joules (SI) by default, which always looks like a tiny number
+        # for a per-spin-component energy gradient, regardless of how
+        # converged the band actually is. There is no single natural
+        # energy unit across systems, so this is left as 1 (raw Joules)
+        # by default; set it to whatever is meaningful for your system,
+        # e.g. fidimag.common.constant.eV (or .meV) for an atomistic
+        # simulation, or K_d * dV for a micromagnetic one, where
+        # K_d = mu_0 * Ms**2 / 2 is the demagnetising (shape anisotropy)
+        # energy constant and dV is the cell volume.
+        self.log_energy_scale = 1.0
+
         # Climbing Image ------------------------------------------------------
 
         # Set a list with the images where 1 is for climbing image and 0 for
@@ -766,16 +779,18 @@ class ChainMethodBase(object):
             # -----------------------------------------------------------------
 
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
+                      "(force units scaled by self.log_energy_scale={:.3g}) "
                       "step: {:.6g}, step_size: {:.3g}, "
                       "max dYdt: {:.3g} "
-                      "max|G| (scaled): {:.3g} "
-                      "max|gradE| (scaled): {:.3g} "
-                      "and max|F_k| (scaled): {:.3g}".format(self.iterations,
+                      "max|G|: {:.3g} "
+                      "max|gradE|: {:.3g} "
+                      "and max|F_k|: {:.3g}".format(self.log_energy_scale,
+                                                    self.iterations,
                                                     increment_dt,
                                                     max_dYdt,
-                                                    np.max(G_scaled_norms),
-                                                    np.max(gradE_scaled_norms),
-                                                    np.max(Fk_scaled_norms)
+                                                    np.max(G_scaled_norms) / self.log_energy_scale,
+                                                    np.max(gradE_scaled_norms) / self.log_energy_scale,
+                                                    np.max(Fk_scaled_norms) / self.log_energy_scale
                                                     )
                       )
 
