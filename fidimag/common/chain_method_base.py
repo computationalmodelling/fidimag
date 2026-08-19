@@ -244,9 +244,9 @@ class ChainMethodBase(object):
 
         # Which quantity spring_force_ratio weights the spacing by:
         # 'energy' (default) uses NEBM_Geodesic.compute_energy_weighted_spring_lengths
-        # (dE/d(path_distance) -- refines the flanks between critical points),
+        # (dE/d(path_distance), refines the flanks between critical points),
         # 'curvature' uses NEBM_Geodesic.compute_curvature_weighted_spring_lengths
-        # (d^2E/d(path_distance)^2 -- refines around critical points themselves).
+        # (d^2E/d(path_distance)^2, refines around critical points themselves).
         # Only used when spring_force_ratio > 0.
         self.spring_weighting = 'energy'
 
@@ -628,16 +628,30 @@ class ChainMethodBase(object):
 
         stopping_max_force :: Optional. If set, also stop once the largest
                               force norm on the band (max|G|, over the
-                              inner images) drops below this value. This is
-                              a physically meaningful, step-size-independent
-                              convergence check, unlike stopping_dYdt (which
-                              only measures how much the Cartesian
-                              coordinates changed in the last step, and can
-                              be small simply because the integrator took a
-                              tiny internal step, even far from a true force
-                              equilibrium). Off (None) by default, so the
-                              previous stopping_dYdt-only behaviour is
-                              unchanged unless this is explicitly requested.
+                              inner images, scaled by self.scale; see
+                              below) drops below this value. This is a
+                              physically meaningful, step-size-independent
+                              convergence check, unlike stopping_dYdt
+                              (which only measures how much the Cartesian
+                              coordinates changed in the last step, and
+                              can be small simply because the integrator
+                              took a tiny internal step, even far from a
+                              true force equilibrium). Off (None) by
+                              default, so the previous stopping_dYdt-only
+                              behaviour is unchanged unless this is
+                              explicitly requested.
+                              self.G is built from the raw effective
+                              field, not yet a true energy gradient, so it
+                              is scaled by self.scale (mu_0 * Ms * dV per
+                              dof for micromagnetics, mu_s per dof for
+                              atomistic, the same factor
+                              compute_energy_weighted_spring_lengths uses)
+                              before comparing to this threshold. Without
+                              that, the same numeric threshold would mean
+                              wildly different things for, e.g., a
+                              weak-anisotropy toy system (max|G| ~ 1)
+                              versus one with a strong Zeeman field
+                              (max|G| ~ 1e7).
 
         """
 
@@ -710,6 +724,32 @@ class ChainMethodBase(object):
             Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3),
                                       axis=1)
 
+            # self.G, self.gradientE and self.spring_force are all built
+            # from raw, unscaled quantities (the effective field, and
+            # k * geodesic-distance-differences respectively), so their
+            # absolute magnitude depends on the material/field scale and
+            # the chosen spring_constant of the particular system (e.g.
+            # max|G| can be ~1e7 for a system with a strong Zeeman field,
+            # and ~1 for a weak-anisotropy toy system), so comparing them
+            # directly to a fixed stopping_max_force, or to each other,
+            # would only be meaningful for one specific system. Scale them
+            # the same way compute_polynomial_factors and
+            # compute_energy_weighted_spring_lengths scale gradientE
+            # (self.scale = mu_0 * Ms * dV per dof for micromagnetics, mu_s
+            # per dof for atomistic), giving physically comparable
+            # energy-gradient-like quantities across systems, and letting
+            # the printed max|G|, max|gradE| and max|F_k| be sensibly
+            # compared against one another too.
+            G_scaled_norms = np.linalg.norm(
+                (self.scale * self.G[INNER_DOFS].reshape(-1, self.n_dofs_image)
+                 ).reshape(-1, 3), axis=1)
+            gradE_scaled_norms = np.linalg.norm(
+                (self.scale * self.gradientE[INNER_DOFS].reshape(-1, self.n_dofs_image)
+                 ).reshape(-1, 3), axis=1)
+            Fk_scaled_norms = np.linalg.norm(
+                (self.scale * self.spring_force[INNER_DOFS].reshape(-1, self.n_dofs_image)
+                 ).reshape(-1, 3), axis=1)
+
             # For DEBUGGING purposes: -----------------------------------------
             # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
             # print(mean_G_norms_per_image)
@@ -728,14 +768,14 @@ class ChainMethodBase(object):
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
                       "step: {:.6g}, step_size: {:.3g}, "
                       "max dYdt: {:.3g} "
-                      "max|G|: {:.3g} "
-                      "max|gradE|: {:.3g} "
-                      "and max|F_k|: {:.3g}".format(self.iterations,
+                      "max|G| (scaled): {:.3g} "
+                      "max|gradE| (scaled): {:.3g} "
+                      "and max|F_k| (scaled): {:.3g}".format(self.iterations,
                                                     increment_dt,
                                                     max_dYdt,
-                                                    np.max(G_norms),
-                                                    np.max(gradE_norms),
-                                                    np.max(Fk_norms)
+                                                    np.max(G_scaled_norms),
+                                                    np.max(gradE_scaled_norms),
+                                                    np.max(Fk_scaled_norms)
                                                     )
                       )
 
