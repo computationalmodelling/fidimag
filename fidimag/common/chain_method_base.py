@@ -776,11 +776,12 @@ class ChainMethodBase(object):
             # -----------------------------------------------------------------
 
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      f"step: {self.iterations:.6g}, step_size: {increment_dt:.3g}, " +
-                      f"max dYdt: {max_dYdt:.3g} " +
-                      "max|G|: {.3g} ".format(np.max(G_scaled_norms) / self.log_energy_scale) +
-                      "max|gradE|: {.3g} ".format(np.max(gradE_scaled_norms) / self.log_energy_scale) +
-                      "and max|F_k|: {.3g}".format(np.max(Fk_scaled_norms) / self.log_energy_scale)
+                      f"step: {self.iterations:>6d}, " +
+                      f"step_size: {increment_dt:>8.3g}, " +
+                      f"max dYdt: {max_dYdt:>8.3g} " +
+                      "max|G|: {:>8.3g} ".format(np.max(G_scaled_norms) / self.log_energy_scale) +
+                      "max|gradE|: {:>8.3g} ".format(np.max(gradE_scaled_norms) / self.log_energy_scale) +
+                      "and max|F_k|: {:>8.3g}".format(np.max(Fk_scaled_norms) / self.log_energy_scale)
                       )
 
             self.G_log.append(np.max(G_norms))
