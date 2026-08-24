@@ -668,12 +668,11 @@ class ChainMethodBase(object):
 
         """
 
-        log.debug("Relaxation parameters: "
-                  "stopping_dYdt={}, "
-                  "time_step={} s, "
-                  " max_iterations={}.".format(stopping_dYdt,
-                                               dt,
-                                               max_iterations))
+        log.debug("Relaxation parameters: " +
+                  f"stopping_dYdt={stopping_dYdt}, " +
+                  f"time_step={dt} s, " +
+                  f"max_iterations={max_iterations}, " +
+                  f"force units in energy scale={self.log_energy_scale}")
 
         if save_initial_state:
             self.save_VTKs(coordinates_function=self.files_convert_f)
@@ -732,10 +731,8 @@ class ChainMethodBase(object):
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
             G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)
-            gradE_norms = np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3),
-                                         axis=1)
-            Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3),
-                                      axis=1)
+            gradE_norms = np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)
+            Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1)
 
             # self.G, self.gradientE and self.spring_force are all built
             # from raw, unscaled quantities (the effective field, and
@@ -779,19 +776,11 @@ class ChainMethodBase(object):
             # -----------------------------------------------------------------
 
             log.debug(time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime()) +
-                      "(force units scaled by self.log_energy_scale={:.3g}) "
-                      "step: {:.6g}, step_size: {:.3g}, "
-                      "max dYdt: {:.3g} "
-                      "max|G|: {:.3g} "
-                      "max|gradE|: {:.3g} "
-                      "and max|F_k|: {:.3g}".format(self.log_energy_scale,
-                                                    self.iterations,
-                                                    increment_dt,
-                                                    max_dYdt,
-                                                    np.max(G_scaled_norms) / self.log_energy_scale,
-                                                    np.max(gradE_scaled_norms) / self.log_energy_scale,
-                                                    np.max(Fk_scaled_norms) / self.log_energy_scale
-                                                    )
+                      f"step: {self.iterations:.6g}, step_size: {increment_dt:.3g}, " +
+                      f"max dYdt: {max_dYdt:.3g} " +
+                      "max|G|: {.3g} ".format(np.max(G_scaled_norms) / self.log_energy_scale) +
+                      "max|gradE|: {.3g} ".format(np.max(gradE_scaled_norms) / self.log_energy_scale) +
+                      "and max|F_k|: {.3g}".format(np.max(Fk_scaled_norms) / self.log_energy_scale)
                       )
 
             self.G_log.append(np.max(G_norms))

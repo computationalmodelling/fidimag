@@ -34,6 +34,7 @@ class Energy(object):
 
         return 0
 
+    # WARNING:this should be time-dependent in compute_field
     def compute_energy(self):
 
         # since we are not always calling this function, so it's okay to call

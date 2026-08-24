@@ -85,6 +85,8 @@ class MinimiserBase(object):
 
     # -------------------------------------------------------------------------
 
+    # WARNING: obj.compute_field() is evaluated at t=0; if the simulation
+    #          has a time-dependent-field, this calc might be wrong
     def compute_effective_field(self, t=0):
         """
         Compute the effective field from the simulation interactions,
