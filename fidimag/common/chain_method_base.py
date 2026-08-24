@@ -173,6 +173,13 @@ class ChainMethodBase(object):
 
         self.openmp = openmp
 
+        # Whether relax() has been called on this object before. Used to
+        # only save the pre-loop initial-state entries once per object
+        # lifetime, since initialise_integrator() (e.g. when switching
+        # integrator mid-relaxation) resets self.iterations to 0 without
+        # the band actually returning to its original initial state.
+        self._relax_called = False
+
         # Degrees of Freedom per spin
         self.dof = dof
 
@@ -612,6 +619,24 @@ class ChainMethodBase(object):
         # Copy the updated energy band to our local array
         self.band[:] = self.integrator.y[:]
 
+        # CVODE's CV_NORMAL mode returns the solution at *t* by
+        # interpolating its internal (adaptive) steps, which can land past
+        # *t*. self.energies/self.gradientE (and, for NEBM subclasses that
+        # define it, self.tangents/self.spring_force/self.G) were last set
+        # by Sundials_RHS at that internal, generally different, y -- so
+        # they are stale here and must be refreshed against the actual
+        # self.band being returned, otherwise everything computed from them
+        # afterwards (logging, climbing-image selection, stopping_max_force)
+        # is off by a fraction of a step. This gap grows as the integrator
+        # takes larger internal steps (e.g. later in the relaxation), which
+        # is why it is barely noticeable early on but visibly compounds
+        # after several relax() calls.
+        nebm_step = getattr(self, 'nebm_step', None)
+        if nebm_step is not None:
+            nebm_step(self.band)
+        else:
+            self.compute_effective_field_and_energy(self.band)
+
         # Compute the maximum change in the integrator step
         max_dYdt = self.compute_maximum_dYdt(self.integrator.y, self.last_Y,
                                              t - self.t)
@@ -674,7 +699,15 @@ class ChainMethodBase(object):
                   f"max_iterations={max_iterations}, " +
                   f"force units in energy scale={self.log_energy_scale}")
 
-        if save_initial_state:
+        # Do not re-save the initial VTK/npy/table log entries on a
+        # restart (i.e. any relax() call after the first one on this
+        # object), since they were already saved as the last entries of
+        # the previous relax() call. Note self.iterations is not a
+        # reliable "first call" check on its own, since
+        # initialise_integrator() may reset it to 0 between relax() calls
+        # (e.g. when switching integrator or enabling climbing images)
+        # without the band returning to its original initial state.
+        if save_initial_state and not self._relax_called:
             self.save_VTKs(coordinates_function=self.files_convert_f)
             self.save_npys(coordinates_function=self.files_convert_f)
 
@@ -682,8 +715,11 @@ class ChainMethodBase(object):
         # Update self.distances and self.path_distances:
         self.compute_distances()
 
-        self.tablewriter.save()
-        self.tablewriter_dm.save()
+        if not self._relax_called:
+            self.tablewriter.save()
+            self.tablewriter_dm.save()
+
+        self._relax_called = True
 
         INNER_DOFS = slice(self.n_dofs_image, -self.n_dofs_image)
 
@@ -885,8 +921,7 @@ class ChainMethodBase(object):
         ds = self.path_distances
         # The arrays with the data points and the interpolated energy values
         x = np.linspace(0, ds[-1], n_points)
-        E_interp = np.array([self._compute_polynomial_approximation_energy(i)
-                             for i in x])
+        E_interp = np.array([self._compute_polynomial_approximation_energy(i) for i in x])
 
         return x, E_interp
 
