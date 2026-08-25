@@ -33,6 +33,9 @@ class StepIntegrator(BaseIntegrator):
     def set_options(self, rtol=1e-8, atol=1e-8):
         warnings.warn("Tolerances not available for StepIntegrator")
 
+    def get_current_step(self):
+        return self.stepsize
+
     def set_step(self, step):
         step_choices = {'euler': euler_step, 'rk4': runge_kutta_step}
         if step not in step_choices:
@@ -84,6 +87,9 @@ class VerletIntegrator(BaseIntegrator):
 
     def set_options(self, rtol=1e-8, atol=1e-8):
         warnings.warn("Tolerances not available for VerletIntegrator")
+
+    def get_current_step(self):
+        return self.stepsize
 
     def _step(self, t, y, h, f):
         """
