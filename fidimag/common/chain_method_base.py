@@ -685,30 +685,40 @@ class ChainMethodBase(object):
 
         stopping_max_force :: Optional. If set, also stop once the largest
                               force norm on the band (max|G|, over the
-                              inner images, scaled by self.scale; see
-                              below) drops below this value. This is a
-                              physically meaningful, step-size-independent
-                              convergence check, unlike stopping_dYdt
-                              (which only measures how much the Cartesian
-                              coordinates changed in the last step, and
-                              can be small simply because the integrator
-                              took a tiny internal step, even far from a
-                              true force equilibrium). Off (None) by
+                              inner images) drops below this value. This is
+                              a step-size-independent convergence check,
+                              unlike stopping_dYdt (which only measures how
+                              much the Cartesian coordinates changed in the
+                              last step, and can be small simply because the
+                              integrator took a tiny internal step, even far
+                              from a true force equilibrium). Off (None) by
                               default, so the previous stopping_dYdt-only
                               behaviour is unchanged unless this is
                               explicitly requested.
-                              self.G is built from the raw effective
-                              field, not yet a true energy gradient, so it
-                              is scaled by self.scale (mu_0 * Ms * dV per
-                              dof for micromagnetics, mu_s per dof for
-                              atomistic, the same factor
-                              compute_energy_weighted_spring_lengths uses)
-                              before comparing to this threshold. Without
-                              that, the same numeric threshold would mean
-                              wildly different things for, e.g., a
-                              weak-anisotropy toy system (max|G| ~ 1)
-                              versus one with a strong Zeeman field
-                              (max|G| ~ 1e7).
+
+                              The comparison uses the raw, unscaled |G|,
+                              i.e. the effective-field-like quantity in A/m
+                              for micromagnetics, and not an energy
+                              gradient. Its magnitude therefore depends on
+                              the material and field scale of the system (it
+                              can be ~1e7 for a system with a strong Zeeman
+                              field and ~1 for a weak-anisotropy toy
+                              system), so the threshold has to be chosen for
+                              each system rather than carried over between
+                              them.
+
+                              Note that the max|G| printed in the debug log
+                              is *not* this quantity: the logged value is
+                              multiplied by self.scale (and divided by
+                              self.log_energy_scale) to make it comparable
+                              with the logged max|gradE| and max|F_k|, which
+                              typically leaves it many orders of magnitude
+                              smaller, so it must not be used to pick this
+                              threshold. The unscaled values that this
+                              criterion does test are the ones collected in
+                              self.G_log and written to <name>_G_log.txt at
+                              the end of relax(); use those to choose a
+                              value.
 
         """
 
