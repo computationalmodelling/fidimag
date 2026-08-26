@@ -1,3 +1,4 @@
+import os
 import base64
 import struct
 import xml.etree.ElementTree as ET
@@ -80,3 +81,34 @@ def test_save_scalar_field_hexagonal_mesh(tmpdir):
     data_array = root.find(".//CellData/DataArray[@Name='s']")
     values = decode_data_array(data_array, np.float32)
     np.testing.assert_allclose(values, s.reshape(-1).astype(np.float32))
+
+
+def test_active_array_attributes_name_one_array(tmpdir):
+    """
+    The CellData Scalars/Vectors attributes name the array VTK makes active
+    for that attribute type, so each holds a single array name. Listing every
+    name space-separated matches no array and leaves nothing active, which is
+    what a reader falls back on when opening the file.
+    """
+    mesh = CuboidMesh(nx=3, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
+    vtk = VTK(mesh, directory=str(tmpdir), filename="active")
+    vtk.save_scalar(np.zeros(mesh.n), name="Ms")
+    vtk.save_scalar(np.zeros(mesh.n), name="mu_s")
+    vtk.save_vector(np.zeros((mesh.n, 3)), name="spins")
+    path = vtk.write_file()
+
+    cell_data = ET.parse(path).getroot().find(".//CellData")
+    assert cell_data.get("Scalars") == "Ms"
+    assert cell_data.get("Vectors") == "spins"
+    # the arrays that are not active are still written out
+    assert {d.get("Name") for d in cell_data.findall("DataArray")} == {
+        "Ms", "mu_s", "spins"}
+
+
+def test_write_file_creates_nested_directory(tmpdir):
+    mesh = CuboidMesh(nx=2, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
+    vtk = VTK(mesh, directory=str(tmpdir.join("a", "b")), filename="nested")
+    vtk.save_scalar(np.zeros(mesh.n), name="Ms")
+    path = vtk.write_file(step=7)
+    assert path.endswith(os.path.join("a", "b", "nested_000007.vti"))
+    assert os.path.isfile(path)

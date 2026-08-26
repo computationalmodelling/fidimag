@@ -70,13 +70,15 @@ class VTK(object):
         self.vectors.append((name, v))
 
     def _cell_data_block(self):
-        scalar_names = " ".join(name for name, _ in self.scalars)
-        vector_names = " ".join(name for name, _ in self.vectors)
+        # These attributes name the array VTK should make active for each
+        # attribute type, so each takes a single name. Listing several
+        # space-separated matches no array at all and leaves nothing active,
+        # so name the first of each and let the rest simply be present.
         attrs = ""
-        if scalar_names:
-            attrs += ' Scalars="{}"'.format(scalar_names)
-        if vector_names:
-            attrs += ' Vectors="{}"'.format(vector_names)
+        if self.scalars:
+            attrs += ' Scalars="{}"'.format(self.scalars[0][0])
+        if self.vectors:
+            attrs += ' Vectors="{}"'.format(self.vectors[0][0])
 
         block = '      <CellData{}>\n'.format(attrs)
         for name, s in self.scalars:
@@ -140,17 +142,19 @@ class VTK(object):
     def _render(self):
         return self._write_vti() if self.extension == "vti" else self._write_vtp()
 
-    def write_file(self, step=0):
-        if not os.path.isdir(self.directory):
-            os.makedirs(self.directory)
-
-        filename = "{}_{:06}.{}".format(self.filename, step, self.extension)
-        path = os.path.join(self.directory, filename)
+    def _write(self, path):
+        directory = os.path.dirname(path)
+        if directory and not os.path.isdir(directory):
+            os.makedirs(directory)
 
         with open(path, 'w') as f:
             f.write(self._render())
 
         return path
+
+    def write_file(self, step=0):
+        filename = "{}_{:06}.{}".format(self.filename, step, self.extension)
+        return self._write(os.path.join(self.directory, filename))
 
     def save_as(self, path):
         """
@@ -163,11 +167,4 @@ class VTK(object):
         if not path.endswith("." + self.extension):
             path = path + "." + self.extension
 
-        directory = os.path.dirname(path)
-        if directory and not os.path.isdir(directory):
-            os.makedirs(directory)
-
-        with open(path, 'w') as f:
-            f.write(self._render())
-
-        return path
+        return self._write(path)
