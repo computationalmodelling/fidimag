@@ -503,6 +503,63 @@ magnitude stopping criteria specified in the ``stopping_dYdt`` argument of
 ``relax``, the iterations of the integrator will stop if the difference with
 the previous step is smaller than ``stopping_dYdt``.
 
+Convergence criteria and force units
+------------------------------------
+
+``relax`` can stop on either of two criteria. ``stopping_dYdt`` compares how
+much the coordinates of the band moved in the last step, which is convenient
+but depends on the step the integrator happened to take: it can become small
+simply because CVODE shortened its step, even far from equilibrium.
+``stopping_max_force`` instead thresholds the largest residual force on the
+band, which does not have that weakness, and is off by default.
+
+The forces are reported and thresholded in the raw units of the effective
+field, and the first line that ``relax`` writes to the log states which those
+are for the simulation at hand::
+
+    Relaxation parameters: stopping_dYdt=0.0001, time_step=1e-06 s,
+    max_iterations=2, stopping_max_force=0.01,
+    forces in [A/m] over material sites
+
+- **micromagnetic** simulations: amperes per metre, as for any effective
+  field. This is the same kind of quantity as OOMMF's :math:`|m \times H
+  \times m|`, so a threshold of around ``1e-2`` means here what it means
+  there.
+- **atomistic** simulations: tesla, since the atomistic effective field is an
+  energy per magnetic moment (:math:`\mathbf{H} = -\partial E / \partial
+  (\mu_s \mathbf{m})`). Thresholds have to be chosen on that scale instead.
+
+The three quantities in the per-step log line, ``max|G|``, ``max|gradE|`` and
+``max|F_k|``, are all in those units, so they can be compared with one
+another: ``G`` is assembled from the energy gradient and the spring force, so
+the log shows directly whether the spring force is dominating the band.
+``max|G|`` is exactly the value that ``stopping_max_force`` is compared
+against, so a threshold can be read straight off a previous run. The same
+values are collected in ``self.G_log`` and written to ``<name>_G_log.txt``.
+
+Two points are worth keeping in mind when reading these numbers.
+
+Only the sites that carry material are included. In a patterned sample the
+surrounding cells have :math:`M_s = 0`, but they still see the stray field of
+the magnetised region: the exchange and anisotropy fields vanish there
+because they are scaled by the magnetisation, the demagnetising field does
+not. Nothing relaxes those cells, so their :math:`|G|` stays fixed for the
+whole relaxation and would hold ``max|G|`` at a floor that
+``stopping_max_force`` could never get below.
+
+The gradient is projected onto the tangent space of each spin before it is
+used, in ``nebm_step``. This matters most in the atomistic case, where the
+exchange field is the full molecular field, of the order of
+:math:`z J / \mu_s` and so hundreds of tesla, but points essentially along
+:math:`\mathbf{m}` and exerts no torque. What is left after the projection
+comes from the curvature of the texture, of order :math:`(J/\mu_s)(a /
+\lambda)^2` for a structure of width :math:`\lambda`, which is the part that
+actually competes with the anisotropy and Zeeman terms.
+
+``self.log_energy_scale`` divides the three logged values, for display only.
+It is 1 by default, and the log records the division in the units field when
+it is not, since the threshold then no longer matches the printed number.
+
 CVODE linear solver and memory usage
 ------------------------------------
 

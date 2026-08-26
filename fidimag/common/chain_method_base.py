@@ -716,11 +716,20 @@ class ChainMethodBase(object):
 
         """
 
+        # Units of the max|G| / max|gradE| / max|F_k| values reported below,
+        # and of the stopping_max_force threshold they are compared against:
+        # the effective field is in A/m for micromagnetics and in Tesla
+        # (energy per magnetic moment) for atomistic simulations.
+        force_unit = "A/m" if self.sim._micromagnetic else "T"
+        if self.log_energy_scale != 1.0:
+            force_unit += f"/{self.log_energy_scale:g}"
+
         log.debug("Relaxation parameters: " +
                   f"stopping_dYdt={stopping_dYdt}, " +
                   f"time_step={dt} s, " +
                   f"max_iterations={max_iterations}, " +
-                  f"log force scale={self.log_energy_scale}")
+                  f"stopping_max_force={stopping_max_force}, " +
+                  f"forces in [{force_unit}] over material sites")
 
         # Do not re-save the initial VTK/npy/table log entries on a
         # restart (i.e. any relax() call after the first one on this
