@@ -71,7 +71,7 @@ void compute_dipolar_tensors(fft_demag_plan *plan) {
       for (i = 0; i < lenx; i++) {
         id = k * lenxy + j * lenx + i;
 
-        if ((lenx % 2 == 0 && i == nx) || (leny % 2 == 0 && j == ny) || (lenz % 2 == 0 && k == nz)) {
+        if ((lenx % 2 == 0 && i == lenx / 2) || (leny % 2 == 0 && j == leny / 2) || (lenz % 2 == 0 && k == lenz / 2)) {
           plan->tensor_xx[id] = 0.0;
           plan->tensor_yy[id] = 0.0;
           plan->tensor_zz[id] = 0.0;
@@ -122,7 +122,7 @@ void compute_demag_tensors(fft_demag_plan *plan) {
       for (i = 0; i < lenx; i++) {
         id = k * lenxy + j * lenx + i;
 
-        if ((lenx % 2 == 0 && i == nx) || (leny % 2 == 0 && j == ny) || (lenz % 2 == 0 && k == nz)) {
+        if ((lenx % 2 == 0 && i == lenx / 2) || (leny % 2 == 0 && j == leny / 2) || (lenz % 2 == 0 && k == lenz / 2)) {
           plan->tensor_xx[id] = 0.0;
           plan->tensor_yy[id] = 0.0;
           plan->tensor_zz[id] = 0.0;
@@ -186,6 +186,32 @@ fft_demag_plan *create_plan(void) {
   return plan;
 }
 
+// Smallest even, 7-smooth (2^a 3^b 5^c 7^d) integer >= target.
+//
+// Why this number:
+//  - Cooley-Tukey splits an FFT into sub-transforms of size = the prime factors
+//    of N. FFTW has fast kernels ("codelets") only for small radices (2,3,5,7).
+//    A large prime factor forces a slow Bluestein/Rader fallback (~2-4x slower),
+//    so 2*127 = 254 = 2 x 127 is much slower than 256 = 2^8 despite being smaller.
+//    -> keep N 7-smooth so every step hits a fast codelet.
+//  - Round UP (>= 2n): the zero-padded linear convolution needs length >= 2n-1
+//    to avoid wraparound aliasing, so we can only grow; take the smallest valid
+//    smooth size to minimise work (a bigger smooth size beats a smaller prime one).
+//  - Even: the r2c Nyquist bin (lenx/2) is only well-defined for even sizes, and
+//    it keeps the tensor Nyquist-zeroing convention intact (2n maps to 2n unchanged).
+static int fft_pad_even(int target) {
+  int m = (target % 2) ? target + 1 : target;
+  while (1) {
+    int r = m;
+    while (r % 2 == 0) r /= 2;
+    while (r % 3 == 0) r /= 3;
+    while (r % 5 == 0) r /= 5;
+    while (r % 7 == 0) r /= 7;
+    if (r == 1) return m;
+    m += 2;
+  }
+}
+
 void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
                double dz, int nx, int ny, int nz) {
 
@@ -204,9 +230,9 @@ void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
 
   int critical_n = 8;
 
-  plan->lenx = nx > critical_n ? 2 * nx : 2 * nx - 1;
-  plan->leny = ny > critical_n ? 2 * ny : 2 * ny - 1;
-  plan->lenz = nz > critical_n ? 2 * nz : 2 * nz - 1;
+  plan->lenx = nx > critical_n ? fft_pad_even(2 * nx) : 2 * nx - 1;
+  plan->leny = ny > critical_n ? fft_pad_even(2 * ny) : 2 * ny - 1;
+  plan->lenz = nz > critical_n ? fft_pad_even(2 * nz) : 2 * nz - 1;
 
   plan->total_length = plan->lenx * plan->leny * plan->lenz;
 
@@ -294,14 +320,17 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
 
   int lenx = plan->lenx;
   int leny = plan->leny;
+  int lenz = plan->lenz;
   int lenxy = lenx * leny;
 
+#pragma omp parallel for
   for (i = 0; i < plan->total_length; i++) {
     plan->mx[i] = 0;
     plan->my[i] = 0;
     plan->mz[i] = 0;
   }
 
+#pragma omp parallel for collapse(2) private(i, id1, id2)
   for (k = 0; k < nz; k++) {
     for (j = 0; j < ny; j++) {
       for (i = 0; i < nx; i++) {
@@ -339,7 +368,12 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
 
   // print_c("Mx", Mx, plan->total_length);
 
-  for (i = 0; i < plan->total_length; i++) {
+  // The r2c spectrum only has lenz*leny*(lenx/2+1) valid complex points
+  // (the rest of the total_length allocation is unused), so iterate exactly
+  // those and parallelise this arithmetic-heavy loop.
+  int nfreq = lenz * leny * (lenx / 2 + 1);
+#pragma omp parallel for
+  for (i = 0; i < nfreq; i++) {
     Hx[i] = Nxx[i] * Mx[i] + Nxy[i] * My[i] + Nxz[i] * Mz[i];
     Hy[i] = Nxy[i] * Mx[i] + Nyy[i] * My[i] + Nyz[i] * Mz[i];
     Hz[i] = Nxz[i] * Mx[i] + Nyz[i] * My[i] + Nzz[i] * Mz[i];
@@ -355,7 +389,7 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
   // print_r("hz", plan->hz, plan->total_length);
 
   double scale = -1.0 / plan->total_length;
-#pragma omp parallel for private(j, i, id1, id2) schedule(dynamic, 32)
+#pragma omp parallel for collapse(2) private(i, id1, id2)
   for (k = 0; k < nz; k++) {
     for (j = 0; j < ny; j++) {
       for (i = 0; i < nx; i++) {
