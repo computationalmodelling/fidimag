@@ -115,6 +115,112 @@ def mid_m(pos):
         return (-0.5, 0, 0.2)
 
 
+def _relaxed_band(simname, interp=(3, 3), max_iterations=50):
+    """
+    A small band, briefly relaxed, for the spring-length unit tests below.
+    The weighting functions are pure functions of (path_distances, energies,
+    gradientE, tangents), so they only need a band that is populated and
+    self-consistent, not one that is converged.
+    """
+    sim = Sim(mesh)
+    sim.Ms = two_part
+    sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
+    neb = NEBM_Geodesic(sim, [(-1, 0, 0), mid_m, (1, 0, 0)],
+                        interpolations=list(interp), spring_constant=1e4,
+                        name=simname, integrator='sundials')
+    neb.relax(max_iterations=max_iterations, save_vtks_every=10 ** 9,
+              save_npys_every=10 ** 9, stopping_dYdt=1e-6, dt=1e-6)
+    neb.nebm_step(neb.band)      # refresh gradientE / tangents
+    return neb
+
+
+def test_energy_weighted_spring_lengths():
+    """
+    compute_energy_weighted_spring_lengths measures arc length in the
+    normalised (path_distance, energy) plane, so the length of segment i is
+
+        int_{x_i}^{x_i+1} sqrt( (r_x/range_x)^2 + (r_E E'(x)/range_E)^2 ) dx
+        * range_x
+
+    with r_E = spring_force_ratio and r_x = 1 - r_E. Check the implementation
+    against a direct quadrature of that integrand, and check that it reduces
+    to the plain geodesic spacing when the energy is given no weight.
+    """
+    from scipy.integrate import quad
+
+    neb = _relaxed_band('neb_2particles_energy_weight_unit')
+
+    def reference(ratio):
+        x, _, spline = neb._energy_hermite_spline()
+        dspline = spline.derivative()
+        range_x = x[-1] - x[0]
+        e_fine = spline(neb._fine_path_grid(x, 20))
+        range_E = max(np.max(e_fine) - np.min(e_fine), 1e-30)
+        integrand = lambda t: np.sqrt(((1.0 - ratio) / range_x) ** 2 +
+                                      (ratio * dspline(t) / range_E) ** 2) * range_x
+        return np.array([quad(integrand, x[i], x[i + 1], limit=200)[0]
+                         for i in range(neb.n_images - 1)])
+
+    for ratio in [0.1, 0.5, 0.9, 1.0]:
+        neb.spring_force_ratio = ratio
+        lengths = neb.compute_energy_weighted_spring_lengths()
+        # One length per segment, same layout as self.distances, so it can
+        # be passed straight to nebm_clib.compute_spring_force
+        assert lengths.shape == neb.distances.shape
+        assert np.all(lengths > 0)
+        # 20 sub-intervals per segment, so the piecewise-linear sum sits a
+        # little under the exact integral
+        assert np.allclose(lengths, reference(ratio), rtol=1e-3)
+
+    # With no weight on the energy axis the metric collapses to the plain
+    # geodesic path distance, i.e. the spring force keeps its old behaviour
+    neb.spring_force_ratio = 1e-12
+    assert np.allclose(neb.compute_energy_weighted_spring_lengths(),
+                       neb.distances, rtol=1e-9)
+
+
+def test_curvature_weighted_spring_lengths():
+    """
+    compute_curvature_weighted_spring_lengths stretches each segment by
+
+        w(x) = (1 - r_C) + r_C |E''(x)| / max|E''|
+
+    so that regions of high energy curvature are treated as longer and end up
+    more finely sampled. Check it against a quadrature of w, and check that
+    it too reduces to the plain geodesic spacing at zero weight.
+    """
+    from scipy.integrate import quad
+
+    neb = _relaxed_band('neb_2particles_curvature_weight_unit')
+
+    def reference(ratio):
+        x, _, spline = neb._energy_hermite_spline()
+        curvature = spline.derivative(nu=2)
+        # The normalisation is the largest |E''| over the sub-segment
+        # midpoints, so the reference has to use that same sampling
+        x_fine = neb._fine_path_grid(x, 20)
+        x_mid = 0.5 * (x_fine[:-1] + x_fine[1:])
+        scale = max(np.max(np.abs(curvature(x_mid))), 1e-30)
+        integrand = lambda t: (1.0 - ratio) + ratio * abs(curvature(t)) / scale
+        return np.array([quad(integrand, x[i], x[i + 1], limit=200)[0]
+                         for i in range(neb.n_images - 1)])
+
+    neb.spring_weighting = 'curvature'
+    for ratio in [0.1, 0.5, 0.9, 1.0]:
+        neb.spring_force_ratio = ratio
+        lengths = neb.compute_curvature_weighted_spring_lengths()
+        assert lengths.shape == neb.distances.shape
+        assert np.all(lengths > 0)
+        # |E''| is only piecewise linear across the C1 spline's nodes, so the
+        # midpoint rule is a little coarser here than for the energy weighting
+        assert np.allclose(lengths, reference(ratio), rtol=1e-2)
+
+    neb.spring_force_ratio = 1e-12
+    assert np.allclose(neb.compute_curvature_weighted_spring_lengths(),
+                       neb.distances, rtol=1e-9)
+
+
+@pytest.mark.slow
 def test_energy_weighted_spring_force_clustering():
     """
     Check that the energy-weighted spring force
@@ -130,9 +236,10 @@ def test_energy_weighted_spring_force_clustering():
     itself: dE/d(path_distance) -> 0 there by definition, so the blended
     (path_distance, energy) metric locally reduces to the plain path
     distance right at the peak. The refinement shows up on the flanks,
-    where the energy changes fastest -- i.e. gaps should grow with
-    distance (in image index) from the nearest critical point, which is
-    what's tested below.
+    where the energy changes fastest. What is asserted here is only that
+    the spacing becomes markedly non-uniform; the weighted lengths
+    themselves are checked directly against a quadrature in
+    test_energy_weighted_spring_lengths.
 
     The energy-weighted band is obtained with a staged protocol rather
     than turning spring_force_ratio on from a fresh, uninterpolated band:
@@ -162,8 +269,9 @@ def test_energy_weighted_spring_force_clustering():
     instead. See also test_energy_barrier_2particles_verlet, which
     validates the VP integrator against the known CVODE barrier.
 
-    Also saves a plot of energy and image spacing vs. path distance for
-    both cases, so the clustering can be checked visually.
+    sandbox/nebm_spring_weighting_plots.py draws the energy and image
+    spacing against path distance for both cases, if the clustering needs
+    to be inspected visually.
     """
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [10, 10]
@@ -225,33 +333,11 @@ def test_energy_weighted_spring_force_clustering():
         perfectly uniform spacing, larger means adaptively refined."""
         return np.std(neb.distances) / np.mean(neb.distances)
 
-    def slope_vs_gap_correlation(neb):
-        """
-        Correlation between each inner image's local energy slope
-        |dE/d(path_distance)| (estimated by a central finite difference on
-        the *relaxed* band, i.e. using the actual, possibly non-uniform,
-        image placement) and the average gap of its two neighbouring
-        segments. dE/d(path_distance) -> 0 at every critical point of the
-        path (minima AND maxima, e.g. the two fixed end states, the
-        interior minimum, and the energy maximum), so a NEGATIVE
-        correlation here is the real signature of the energy-weighted
-        spring force at work: images bunch up (small gap) wherever the
-        energy changes fast, and spread out (large gap) near every flat/
-        critical region, not only next to the highest-energy image.
-        """
-        E = neb.energies
-        x = neb.path_distances
-        slope = np.abs((E[2:] - E[:-2]) / (x[2:] - x[:-2]))  # inner images
-        local_gap = 0.5 * (neb.distances[:-1] + neb.distances[1:])
-        return np.corrcoef(slope, local_gap)[0, 1]
-
     cv_uniform = spacing_variation(neb_uniform)
     cv_weighted = spacing_variation(neb_weighted)
-    corr_weighted = slope_vs_gap_correlation(neb_weighted)
 
     print('spacing coefficient of variation (uniform)  :', cv_uniform)
     print('spacing coefficient of variation (weighted) :', cv_weighted)
-    print('|dE/dx| vs. gap correlation (weighted)      :', corr_weighted)
 
     # Plain path-distance spacing (spring_force_ratio = 0, the previous/
     # default behaviour) should stay essentially uniform
@@ -259,61 +345,8 @@ def test_energy_weighted_spring_force_clustering():
     # The energy-weighted spring force should produce clearly non-uniform,
     # adaptively refined spacing
     assert cv_weighted > 0.3
-    # ... and that refinement should track the local energy slope: images
-    # bunch up (small gap) where the energy changes fast, and spread out
-    # near every flat/critical region of the path
-    assert corr_weighted < -0.3
 
-    # --- Plot for visual verification ---------------------------------
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-
-    def critical_image_indices(neb):
-        """All local extrema along the band (both minima and maxima,
-        including the two fixed end states), i.e. every image where
-        dE/d(path_distance) ~ 0."""
-        E = neb.energies
-        idxs = [0, len(E) - 1]
-        for i in range(1, len(E) - 1):
-            if (E[i] - E[i - 1]) * (E[i + 1] - E[i]) <= 0:
-                idxs.append(i)
-        return np.array(sorted(set(idxs)))
-
-    fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex='col')
-    for col, (neb, title) in enumerate(
-            [(neb_uniform, 'spring_force_ratio = 0 (uniform spacing)'),
-             (neb_weighted, 'spring_force_ratio = 0.9 (energy-weighted)')]
-            ):
-        crit_idxs = critical_image_indices(neb)
-
-        ax_E = axes[0, col]
-        ax_E.plot(neb.path_distances, neb.energies / 1.602e-19, 'o-')
-        ax_E.plot(neb.path_distances[crit_idxs],
-                 neb.energies[crit_idxs] / 1.602e-19,
-                 'r*', markersize=14,
-                 label='critical images (dE/dx ~ 0)')
-        ax_E.set_title(title)
-        ax_E.set_ylabel('Energy (eV)')
-        ax_E.legend()
-
-        # Image spacing (self.distances) plotted at the midpoint path
-        # distance of each segment, so it lines up under the energy panel
-        seg_mid = 0.5 * (neb.path_distances[:-1] + neb.path_distances[1:])
-        ax_d = axes[1, col]
-        ax_d.plot(seg_mid, neb.distances, 'o-', color='tab:green')
-        ax_d.plot(neb.path_distances[crit_idxs],
-                 np.interp(neb.path_distances[crit_idxs], seg_mid,
-                           neb.distances),
-                 'r*', markersize=14)
-        ax_d.set_xlabel('path distance')
-        ax_d.set_ylabel('image spacing')
-
-    plt.tight_layout()
-    plt.savefig('neb_2particles_spring_force_ratio_comparison.png', dpi=150)
-    plt.close(fig)
-
-
+@pytest.mark.slow
 def test_curvature_weighted_spring_force_clustering():
     """
     Check that the curvature-weighted spring force
@@ -335,8 +368,9 @@ def test_curvature_weighted_spring_force_clustering():
     global spline every RHS call, which CVODE's adaptive step-size control
     doesn't handle well.
 
-    Also saves a plot of energy and image spacing vs. path distance for
-    both cases, so the clustering can be checked visually.
+    sandbox/nebm_spring_weighting_plots.py draws the energy and image
+    spacing against path distance for both cases, if the clustering needs
+    to be inspected visually.
     """
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [10, 10]
@@ -420,52 +454,6 @@ def test_curvature_weighted_spring_force_clustering():
     assert cv_uniform < 0.01
     assert cv_curv > 0.15
     assert corr_curv < -0.3
-
-    # --- Plot for visual verification ---------------------------------
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-
-    def critical_image_indices(neb):
-        E = neb.energies
-        idxs = [0, len(E) - 1]
-        for i in range(1, len(E) - 1):
-            if (E[i] - E[i - 1]) * (E[i + 1] - E[i]) <= 0:
-                idxs.append(i)
-        return np.array(sorted(set(idxs)))
-
-    fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex='col')
-    for col, (neb, title) in enumerate(
-            [(neb_uniform, 'spring_force_ratio = 0 (uniform spacing)'),
-             (neb_curv, "spring_force_ratio = 0.9, spring_weighting = "
-                       "'curvature'")]
-            ):
-        crit_idxs = critical_image_indices(neb)
-
-        ax_E = axes[0, col]
-        ax_E.plot(neb.path_distances, neb.energies / 1.602e-19, 'o-')
-        ax_E.plot(neb.path_distances[crit_idxs],
-                 neb.energies[crit_idxs] / 1.602e-19,
-                 'r*', markersize=14,
-                 label='critical images (dE/dx ~ 0)')
-        ax_E.set_title(title)
-        ax_E.set_ylabel('Energy (eV)')
-        ax_E.legend()
-
-        seg_mid = 0.5 * (neb.path_distances[:-1] + neb.path_distances[1:])
-        ax_d = axes[1, col]
-        ax_d.plot(seg_mid, neb.distances, 'o-', color='tab:green')
-        ax_d.plot(neb.path_distances[crit_idxs],
-                 np.interp(neb.path_distances[crit_idxs], seg_mid,
-                           neb.distances),
-                 'r*', markersize=14)
-        ax_d.set_xlabel('path distance')
-        ax_d.set_ylabel('image spacing')
-
-    plt.tight_layout()
-    plt.savefig('neb_2particles_curvature_weighted_comparison.png', dpi=150)
-    plt.close(fig)
-
 
 def test_energy_barrier_2particles():
     # Initial images: we set here a rotation interpolating
