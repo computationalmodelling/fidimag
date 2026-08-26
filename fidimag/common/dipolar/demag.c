@@ -2,6 +2,7 @@
 #include "dipolar.h"
 #include <math.h>
 #include <omp.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 inline double Nxxdipole(double x, double y, double z) {
@@ -236,8 +237,18 @@ void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
 
   plan->total_length = plan->lenx * plan->leny * plan->lenz;
 
-  int size1 = plan->total_length * sizeof(double);
-  int size2 = plan->total_length * sizeof(fftw_complex);
+  // An r2c transform of an (lenz, leny, lenx) real array produces only
+  // lenz * leny * (lenx/2 + 1) complex points, so the spectral arrays need
+  // about half of total_length, not all of it. compute_fields() already
+  // iterates exactly this many (nfreq).
+  plan->n_freq = plan->lenz * plan->leny * (plan->lenx / 2 + 1);
+
+  // size_t, not int: total_length * sizeof(fftw_complex) passes INT_MAX once
+  // the padded grid reaches ~1.3e8 points, which a 256^3 mesh does exactly.
+  // Computing these in int silently wrapped to a negative value there, and
+  // fftw_malloc would then be handed a huge size_t and fail.
+  size_t size1 = (size_t)plan->total_length * sizeof(double);
+  size_t size2 = (size_t)plan->n_freq * sizeof(fftw_complex);
 
   plan->tensor_xx = (double *)fftw_malloc(size1);
   plan->tensor_yy = (double *)fftw_malloc(size1);
@@ -267,6 +278,25 @@ void init_plan(fft_demag_plan *restrict plan, double dx, double dy,
   plan->Hx = (fftw_complex *)fftw_malloc(size2);
   plan->Hy = (fftw_complex *)fftw_malloc(size2);
   plan->Hz = (fftw_complex *)fftw_malloc(size2);
+
+  const void *allocs[] = {plan->tensor_xx, plan->tensor_yy, plan->tensor_zz,
+                          plan->tensor_xy, plan->tensor_xz, plan->tensor_yz,
+                          plan->mx,  plan->my,  plan->mz,
+                          plan->hx,  plan->hy,  plan->hz,
+                          plan->Nxx, plan->Nyy, plan->Nzz,
+                          plan->Nxy, plan->Nxz, plan->Nyz,
+                          plan->Mx,  plan->My,  plan->Mz,
+                          plan->Hx,  plan->Hy,  plan->Hz};
+  for (int a = 0; a < 24; a++) {
+    if (allocs[a] == NULL) {
+      fprintf(stderr,
+              "fidimag demag: out of memory allocating the %dx%dx%d FFT "
+              "workspace (%.2f GiB). Reduce the mesh size.\n",
+              plan->lenx, plan->leny, plan->lenz,
+              (12.0 * size1 + 12.0 * size2) / (1024.0 * 1024.0 * 1024.0));
+      exit(EXIT_FAILURE);
+    }
+  }
 }
 
 void create_fftw_plan(fft_demag_plan *restrict plan) {
@@ -281,14 +311,20 @@ void create_fftw_plan(fft_demag_plan *restrict plan) {
   plan->h_plan = fftw_plan_dft_c2r_3d(plan->lenz, plan->leny, plan->lenx,
                                       plan->Hx, plan->hx, FFTW_MEASURE | FFTW_DESTROY_INPUT);
 
-  for (int i = 0; i < plan->total_length; i++) {
+  // FFTW_MEASURE writes over its input and output arrays while planning, so
+  // clear everything afterwards. The spectral arrays hold n_freq complex
+  // points while the real-space ones hold total_length doubles (see
+  // init_plan), so the two cannot share a loop bound.
+  for (int i = 0; i < plan->n_freq; i++) {
     plan->Nxx[i] = 0;
     plan->Nyy[i] = 0;
     plan->Nzz[i] = 0;
     plan->Nxy[i] = 0;
     plan->Nxz[i] = 0;
     plan->Nyz[i] = 0;
+  }
 
+  for (int i = 0; i < plan->total_length; i++) {
     plan->mx[i] = 0;
     plan->my[i] = 0;
     plan->mz[i] = 0;
@@ -371,9 +407,8 @@ void compute_fields(fft_demag_plan *restrict plan, double *restrict spin, double
   // The r2c spectrum only has lenz*leny*(lenx/2+1) valid complex points
   // (the rest of the total_length allocation is unused), so iterate exactly
   // those and parallelise this arithmetic-heavy loop.
-  int nfreq = lenz * leny * (lenx / 2 + 1);
 #pragma omp parallel for
-  for (i = 0; i < nfreq; i++) {
+  for (i = 0; i < plan->n_freq; i++) {
     Hx[i] = Nxx[i] * Mx[i] + Nxy[i] * My[i] + Nxz[i] * Mz[i];
     Hy[i] = Nxy[i] * Mx[i] + Nyy[i] * My[i] + Nyz[i] * Mz[i];
     Hz[i] = Nxz[i] * Mx[i] + Nyz[i] * My[i] + Nzz[i] * Mz[i];

@@ -33,6 +33,10 @@ typedef struct {
   int lenz;
 
   int total_length;
+  // Number of complex points an r2c transform of the padded grid
+  // produces: lenz * leny * (lenx/2 + 1). The spectral arrays are
+  // sized to this rather than to total_length.
+  int n_freq;
 
   // TODO: free tensors after obtaining NXX to save memory?
   double *tensor_xx;
