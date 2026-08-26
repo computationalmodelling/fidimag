@@ -438,17 +438,36 @@ class ChainMethodBase(object):
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self, integrator='sundials', rtol=1e-6, atol=1e-6):
+    def initialise_integrator(self, integrator='sundials', rtol=1e-6, atol=1e-6,
+                              linear_solver='spgmr', maxl=30, maxrs=10):
+        """
+        linear_solver, maxl, maxrs :: Only used by the 'sundials' integrator.
+            'spgmr' (default) is restarted GMRES(maxl) with at most maxrs
+            restarts; 'diag' is CVODE's diagonal approximate Jacobian solver.
+            GMRES keeps a Krylov basis of (maxl + 1) copies of the whole
+            band, so maxl directly sets the integrator's memory footprint:
+            (maxl + 1) * n_images * n_dofs_image * 8 bytes. SUNDIALS reserves
+            that basis up front, but its pages are only faulted in as GMRES
+            actually uses the vectors, so an oversized maxl does not show up
+            as one large allocation: it shows up as resident memory that
+            keeps creeping upwards during a relaxation, which is easily
+            mistaken for a memory leak. The restarts keep the total iteration
+            reach at maxl * (1 + maxrs) while bounding the basis.
+        """
         self.t = 0
         self.iterations = 0
         self.ode_count = 1
 
         if integrator == 'sundials':
             if not self.openmp:
-                self.integrator = cvode.CvodeSolver(self.band, self.Sundials_RHS)
+                self.integrator = cvode.CvodeSolver(self.band, self.Sundials_RHS,
+                                                    linear_solver=linear_solver,
+                                                    maxl=maxl, maxrs=maxrs)
                 self.integrator.set_options(rtol, atol)
             else:
-                self.integrator = cvode.CvodeSolver_OpenMP(self.band, self.Sundials_RHS)
+                self.integrator = cvode.CvodeSolver_OpenMP(self.band, self.Sundials_RHS,
+                                                           linear_solver=linear_solver,
+                                                           maxl=maxl, maxrs=maxrs)
                 self.integrator.set_options(rtol, atol)
         # elif integrator == 'scipy':
         #     self.integrator = ScipyIntegrator(self.band, self.step_RHS)

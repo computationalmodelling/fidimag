@@ -503,6 +503,63 @@ magnitude stopping criteria specified in the ``stopping_dYdt`` argument of
 ``relax``, the iterations of the integrator will stop if the difference with
 the previous step is smaller than ``stopping_dYdt``.
 
+CVODE linear solver and memory usage
+------------------------------------
+
+The ``initialise_integrator`` method exposes the choice of linear solver that
+CVODE uses inside its Newton iteration, through the ``linear_solver``,
+``maxl`` and ``maxrs`` arguments:
+
+- ``linear_solver='spgmr'`` (default) uses restarted GMRES, i.e. SUNDIALS'
+  ``SUNLinSol_SPGMR``, with a Krylov subspace of dimension ``maxl`` and at
+  most ``maxrs`` restarts.
+- ``linear_solver='diag'`` uses CVODE's diagonal approximate Jacobian solver,
+  ``CVDiag``, which allocates no Krylov basis at all but converges more
+  slowly.
+
+The NEBM classes do not supply an analytical Jacobian-times-vector function,
+so GMRES runs unpreconditioned and CVODE approximates the Jacobian-vector
+products by difference quotients.
+
+**Memory.** GMRES keeps an orthonormal basis of the Krylov search space,
+which costs ``maxl + 1`` copies of the *whole band*::
+
+    memory = (maxl + 1) * n_images * n_dofs_image * 8 bytes
+
+SUNDIALS reserves this basis up front, on the first call to the integrator.
+The pages are only faulted in as GMRES actually uses the vectors, so an
+oversized ``maxl`` does *not* appear as a single large allocation: the
+resident memory of the process instead creeps upwards during a relaxation,
+in jumps of exactly one band, every time GMRES needs one more iteration than
+it has ever needed before. This is easily mistaken for a memory leak. The
+virtual size (``VmSize``) is the quantity that reveals the reservation, and
+it stays constant after the first integrator step.
+
+For reference, a band of 26 images over a :math:`200 \times 200` mesh has
+``n_dofs_image = 120000``, so each copy of the band is about 24 MB. The
+value ``maxl = 300`` that was hardcoded in the Cython wrapper until 2026
+therefore reserved about 7 GB for a single relaxation. The defaults are now
+``maxl = 30`` and ``maxrs = 10``, which bound the basis to about 740 MB for
+that band while keeping the same total iteration reach of
+``maxl * (1 + maxrs) = 330`` iterations.
+
+**Choosing maxl.** Restarting is not merely cheaper in memory. The
+orthogonalisation cost of a GMRES cycle of :math:`m` iterations grows as
+:math:`O(m^2)`, so a long cycle is also expensive in CPU time and memory
+bandwidth; restarted GMRES(30) reaches 300 iterations at roughly a tenth of
+the orthogonalisation work of a single full GMRES(300) cycle. The cost of
+restarting is that GMRES loses the residual-minimisation property over the
+discarded subspace, so it may need more iterations overall, and each
+iteration is one evaluation of the effective field over every image of the
+band. When GMRES converges within ``maxl`` iterations no restart is
+performed and the results are identical to those of full GMRES.
+
+If a system needs repeated restarts, and CVODE responds by cutting the step
+size, it is better to raise ``maxl`` than ``maxrs``, since a larger single
+cycle converges better than more restarts. Note, however, that the
+underlying issue in that regime is the absence of a preconditioner rather
+than the size of the subspace.
+
 Cartesian and spherical coordinates code
 ----------------------------------------
 

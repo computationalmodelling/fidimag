@@ -171,6 +171,7 @@ cdef extern from "sunlinsol/sunlinsol_spgmr.h":
     ctypedef _generic_SUNLinearSolver_Ops *SUNLinearSolver_Ops
 
     SUNLinearSolver SUNLinSol_SPGMR(N_Vector y, int pretype, int maxl, SUNContext sunctx)
+    int SUNLinSol_SPGMRSetMaxRestarts(SUNLinearSolver S, int maxrs)
     int SUNLinSolFree(SUNLinearSolver S)
 
     int CVSpgmr(void *cvode_mem, int pretype, int max1)
@@ -350,7 +351,9 @@ cdef class CvodeSolver(object):
     cdef str linear_solver
     cdef str parellel_solver
     cdef SUNLinearSolver LS
-    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
+    cdef int maxl
+    cdef int maxrs
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8, maxl=30, maxrs=10):
         self.t = 0
         self.y0 = spins
         self.dm_dt = np.copy(spins)
@@ -375,6 +378,9 @@ cdef class CvodeSolver(object):
         self.has_jtimes = 0
         if jtimes_fun is not None:
             self.has_jtimes = 1
+
+        self.maxl = maxl
+        self.maxrs = maxrs
 
         # New in version 6.0.0.
         # All of the SUNDIALS objects (vectors, linear and nonlinear solvers, matrices, etc.)
@@ -470,11 +476,25 @@ cdef class CvodeSolver(object):
                 # in CVDiag (only difference is CVDiag is a direct linear
                 # solver).
                 #
-                # maxl – the number of Krylov basis vectors to use.
-                # NOTE: 300 -> magic number?
-                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
+                # maxl – the number of Krylov basis vectors to use, i.e. the
+                # GMRES restart length. See the note on the restart setting
+                # below for why this is kept small rather than the 300 that
+                # was hardcoded here previously.
+                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, self.maxl, self.sunctx)
                 if self.LS == NULL:
                     raise ValueError('Error allocating linear solver')
+
+                # Restarted GMRES(maxl): the Krylov basis costs (maxl + 1)
+                # copies of the solution vector, which SUNDIALS reserves up
+                # front, so maxl sets the solver's memory footprint. The
+                # pages are only faulted in as GMRES actually uses the
+                # vectors, so an oversized maxl does not appear as one large
+                # allocation but as resident memory that keeps creeping up
+                # while integrating -- easily mistaken for a memory leak.
+                # Restarts give the same total iteration reach,
+                # maxl * (1 + maxrs), with a bounded basis.
+                flag = SUNLinSol_SPGMRSetMaxRestarts(self.LS, self.maxrs)
+                self.check_flag(flag, "SUNLinSol_SPGMRSetMaxRestarts")
 
                 # Call CVodeSetLinearSolver to attach the linear sovler to CVode
                 flag = CVodeSetLinearSolver(self.cvode_mem, self.LS, NULL);
@@ -590,8 +610,10 @@ cdef class CvodeSolver_OpenMP(object):
     cdef str parellel_solver
     cdef int num_threads
     cdef SUNLinearSolver LS
+    cdef int maxl
+    cdef int maxrs
 
-    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8):
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8, maxl=30, maxrs=10):
         self.num_threads = openmp.omp_get_max_threads()
         print("Number of threads (CVODE) = {}".format(self.num_threads))
         self.t = 0
@@ -618,6 +640,9 @@ cdef class CvodeSolver_OpenMP(object):
         self.has_jtimes = 0
         if jtimes_fun is not None:
             self.has_jtimes = 1
+
+        self.maxl = maxl
+        self.maxrs = maxrs
 
         SUNContext_Create(SUN_COMM_NULL, & self.sunctx);
         # Newton iterator is set by default now (Sundials 4.0)
@@ -686,9 +711,21 @@ cdef class CvodeSolver_OpenMP(object):
                 self.check_flag(flag, "CVodeSetPreconditioner")
 
             else:
-                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, 300, self.sunctx)
+                self.LS = SUNLinSol_SPGMR(self.u_y, SUN_PREC_NONE, self.maxl, self.sunctx)
                 if self.LS == NULL:
                     raise ValueError('Could not allocate linear solver')
+
+                # Restarted GMRES(maxl): the Krylov basis costs (maxl + 1)
+                # copies of the solution vector, which SUNDIALS reserves up
+                # front, so maxl sets the solver's memory footprint. The
+                # pages are only faulted in as GMRES actually uses the
+                # vectors, so an oversized maxl does not appear as one large
+                # allocation but as resident memory that keeps creeping up
+                # while integrating -- easily mistaken for a memory leak.
+                # Restarts give the same total iteration reach,
+                # maxl * (1 + maxrs), with a bounded basis.
+                flag = SUNLinSol_SPGMRSetMaxRestarts(self.LS, self.maxrs)
+                self.check_flag(flag, "SUNLinSol_SPGMRSetMaxRestarts")
 
                 # Call CVodeSetLinearSolver to attach the linear solver to CVode
                 flag = CVodeSetLinearSolver(self.cvode_mem, self.LS, NULL);
