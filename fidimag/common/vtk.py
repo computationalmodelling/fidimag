@@ -26,7 +26,7 @@ def _encode(array):
     leading UInt32 giving the size of the data in bytes, followed by the
     raw bytes, all base64-encoded together.
     """
-    data = np.ascontiguousarray(array).tobytes()
+    data = array if isinstance(array, bytes) else np.ascontiguousarray(array).tobytes()
     header = np.uint32(len(data)).tobytes()
     return base64.b64encode(header + data).decode('ascii')
 
@@ -39,6 +39,28 @@ def _data_array(name, array, n_components=1):
         '          {data}\n'
         '        </DataArray>\n'
     ).format(name=name, extra=extra, data=_encode(array))
+
+
+def _string_array(name, text):
+    """
+    A VTK String DataArray holding one value. VTK stores strings as a run of
+    null-terminated bytes, so the payload is the text plus a terminator,
+    framed and base64-encoded exactly like a numeric array. Going through
+    base64 also means the text needs no XML escaping.
+    """
+    return (
+        '      <DataArray type="String" Name="{name}" NumberOfTuples="1" format="binary">\n'
+        '        {data}\n'
+        '      </DataArray>\n'
+    ).format(name=name, data=_encode(text.encode('utf-8') + b'\x00'))
+
+
+def _fidimag_version():
+    try:
+        from importlib.metadata import version
+        return version('fidimag')
+    except Exception:
+        return 'unknown'
 
 
 class VTK(object):
@@ -58,6 +80,39 @@ class VTK(object):
 
         self.header = header
         self.reset_data()
+
+    def _default_header(self):
+        """
+        A one-line description of what wrote the file and of the mesh it was
+        written on, so a .vti/.vtp is still self-describing once it is sitting
+        in a vtks/ directory months later.
+        """
+        mesh = self.mesh
+        if isinstance(mesh, HexagonalMesh):
+            # A HexagonalMesh is two-dimensional. Its nz and dz exist only as
+            # placeholders (both 1), so report what actually defines it: the
+            # two lattice counts, the hexagon radius and the alignment.
+            geometry = "HexagonalMesh nx={} ny={} n={} radius={:g} alignment={}".format(
+                mesh.nx, mesh.ny, mesh.n, mesh.radius, mesh.alignment)
+        else:
+            geometry = "CuboidMesh nx={} ny={} nz={} n={} dx={:g} dy={:g} dz={:g}".format(
+                mesh.nx, mesh.ny, mesh.nz, mesh.n, mesh.dx, mesh.dy, mesh.dz)
+
+        return "fidimag {} | {} | unit_length={:g}".format(
+            _fidimag_version(), geometry, mesh.unit_length)
+
+    def _field_data_block(self):
+        """
+        Dataset-level metadata, which readers show alongside the file rather
+        than as a field on the mesh. The legacy .vtk format had a title line
+        for this; the XML formats use FieldData instead.
+        """
+        block = '    <FieldData>\n'
+        block += _string_array('fidimag', self._default_header())
+        if self.header:
+            block += _string_array('description', self.header)
+        block += '    </FieldData>\n'
+        return block
 
     def reset_data(self):
         self.scalars = []  # list of (name, array)
@@ -99,6 +154,7 @@ class VTK(object):
         xml += '<VTKFile type="ImageData" version="0.1" byte_order="LittleEndian" header_type="UInt32">\n'
         xml += '  <ImageData WholeExtent="{}" Origin="{}" Spacing="{}">\n'.format(
             extent, origin, spacing)
+        xml += self._field_data_block()
         xml += '    <Piece Extent="{}">\n'.format(extent)
         xml += self._cell_data_block()
         xml += '    </Piece>\n'
@@ -119,6 +175,7 @@ class VTK(object):
         xml = '<?xml version="1.0"?>\n'
         xml += '<VTKFile type="PolyData" version="0.1" byte_order="LittleEndian" header_type="UInt32">\n'
         xml += '  <PolyData>\n'
+        xml += self._field_data_block()
         xml += '    <Piece NumberOfPoints="{}" NumberOfPolys="{}">\n'.format(n_points, n_polys)
         xml += '      <Points>\n'
         xml += '        <DataArray type="Float32" NumberOfComponents="3" format="binary">\n'

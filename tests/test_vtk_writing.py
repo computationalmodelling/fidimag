@@ -112,3 +112,58 @@ def test_write_file_creates_nested_directory(tmpdir):
     path = vtk.write_file(step=7)
     assert path.endswith(os.path.join("a", "b", "nested_000007.vti"))
     assert os.path.isfile(path)
+
+
+def read_field_data(path):
+    """The dataset-level FieldData strings, as a {name: text} mapping."""
+    root = ET.parse(path).getroot()
+    out = {}
+    for array in root.findall(".//FieldData/DataArray"):
+        assert array.get("type") == "String"
+        text = decode_data_array(array, np.uint8).tobytes()
+        out[array.get("Name")] = text.rstrip(b"\x00").decode("utf-8")
+    return out
+
+
+def test_field_data_records_provenance(tmpdir):
+    mesh = CuboidMesh(nx=4, ny=3, nz=2, dx=1.0, dy=2.0, dz=3.0,
+                      unit_length=1e-9)
+    vtk = VTK(mesh, directory=str(tmpdir), filename="prov")
+    vtk.save_scalar(np.zeros(mesh.n), name="Ms")
+    fields = read_field_data(vtk.write_file())
+
+    assert set(fields) == {"fidimag"}
+    header = fields["fidimag"]
+    assert header.startswith("fidimag ")
+    assert "CuboidMesh nx=4 ny=3 nz=2 n=24" in header
+    assert "dx=1 dy=2 dz=3" in header
+    assert "unit_length=1e-09" in header
+
+
+def test_field_data_for_hexagonal_mesh_has_no_third_dimension(tmpdir):
+    """
+    A HexagonalMesh is two-dimensional and carries nz and dz only as
+    placeholders, so the description must not quote them.
+    """
+    mesh = HexagonalMesh(1.5, 4, 3)
+    vtk = VTK(mesh, directory=str(tmpdir), filename="prov_hex")
+    vtk.save_scalar(np.zeros(mesh.n), name="mu_s")
+    header = read_field_data(vtk.write_file())["fidimag"]
+
+    assert "HexagonalMesh nx=4 ny=3 n=12" in header
+    assert "radius=1.5" in header
+    assert "alignment=diagonal" in header
+    assert "nz" not in header
+    assert "dz" not in header
+
+
+def test_field_data_keeps_a_user_supplied_header(tmpdir):
+    mesh = CuboidMesh(nx=2, ny=2, nz=1, dx=1.0, dy=1.0, dz=1.0)
+    vtk = VTK(mesh, header="skyrmion collapse", directory=str(tmpdir),
+              filename="prov_desc")
+    vtk.save_scalar(np.zeros(mesh.n), name="Ms")
+    fields = read_field_data(vtk.write_file())
+
+    # the description is additional to the provenance, not a replacement
+    assert fields["description"] == "skyrmion collapse"
+    assert fields["fidimag"].startswith("fidimag ")
