@@ -257,17 +257,14 @@ class ChainMethodBase(object):
         # Only used when spring_force_ratio > 0.
         self.spring_weighting = 'energy'
 
-        # Divides the scaled max|G|/max|gradE|/max|F_k| values in the
-        # relax() debug log, purely for display readability: those are in
-        # Joules (SI) by default, which always looks like a tiny number
-        # for a per-spin-component energy gradient, regardless of how
-        # converged the band actually is. There is no single natural
-        # energy unit across systems, so this is left as 1 (raw Joules)
-        # by default; set it to whatever is meaningful for your system,
-        # e.g. fidimag.common.constant.eV (or .meV) for an atomistic
-        # simulation, or K_d * dV for a micromagnetic one, where
-        # K_d = mu_0 * Ms**2 / 2 is the demagnetising (shape anisotropy)
-        # energy constant and dV is the cell volume.
+        # Divides the max|G|/max|gradE|/max|F_k| values in the relax()
+        # debug log, purely for display. Those are reported in the raw units
+        # of the effective field (A/m for micromagnetics, Tesla for
+        # atomistic simulations), whose magnitude is already readable and is
+        # what stopping_max_force is compared against, so
+        # this is left at 1 by default. Set it only if some other unit is
+        # more convenient for a particular system, keeping in mind that it
+        # then no longer matches the stopping_max_force threshold.
         self.log_energy_scale = 1.0
 
         # Climbing Image ------------------------------------------------------
@@ -696,29 +693,26 @@ class ChainMethodBase(object):
                               behaviour is unchanged unless this is
                               explicitly requested.
 
-                              The comparison uses the raw, unscaled |G|,
-                              i.e. the effective-field-like quantity in A/m
-                              for micromagnetics, and not an energy
-                              gradient. Its magnitude therefore depends on
-                              the material and field scale of the system (it
-                              can be ~1e7 for a system with a strong Zeeman
-                              field and ~1 for a weak-anisotropy toy
-                              system), so the threshold has to be chosen for
-                              each system rather than carried over between
-                              them.
+                              The comparison uses the largest |G| over
+                              the sites that carry material, in the raw units
+                              of the effective field: A/m for micromagnetics,
+                              Tesla for atomistic simulations. For a
+                              micromagnetic system this is the same kind of
+                              quantity as OOMMF's |m x H x m|, so a value
+                              around 1e-2 means here what it means there; for
+                              an atomistic system the threshold is a field in
+                              Tesla and has to be chosen on that scale. In
+                              both cases it is exactly the max|G| written to
+                              the debug log, so a threshold can be read
+                              straight off a previous run. The same values
+                              are collected in self.G_log and written to
+                              <name>_G_log.txt at the end of relax().
 
-                              Note that the max|G| printed in the debug log
-                              is *not* this quantity: the logged value is
-                              multiplied by self.scale (and divided by
-                              self.log_energy_scale) to make it comparable
-                              with the logged max|gradE| and max|F_k|, which
-                              typically leaves it many orders of magnitude
-                              smaller, so it must not be used to pick this
-                              threshold. The unscaled values that this
-                              criterion does test are the ones collected in
-                              self.G_log and written to <name>_G_log.txt at
-                              the end of relax(); use those to choose a
-                              value.
+                              Cells with no material are excluded on purpose:
+                              they keep feeling the stray field of the
+                              magnetised region while nothing relaxes them,
+                              so including them would hold max|G| at a fixed
+                              floor and this criterion would never be met.
 
         """
 
@@ -726,7 +720,7 @@ class ChainMethodBase(object):
                   f"stopping_dYdt={stopping_dYdt}, " +
                   f"time_step={dt} s, " +
                   f"max_iterations={max_iterations}, " +
-                  f"force units in energy scale={self.log_energy_scale}")
+                  f"log force scale={self.log_energy_scale}")
 
         # Do not re-save the initial VTK/npy/table log entries on a
         # restart (i.e. any relax() call after the first one on this
@@ -751,6 +745,12 @@ class ChainMethodBase(object):
         self._relax_called = True
 
         INNER_DOFS = slice(self.n_dofs_image, -self.n_dofs_image)
+        # Per-spin mask selecting the sites that carry material, repeated for
+        # every inner image, to pick out the meaningful entries of the force
+        # norms reported below. self._material holds one entry per degree of
+        # freedom and the dof components of a spin share the same site.
+        INNER_MATERIAL = np.tile(self._material.reshape(-1, self.dof)[:, 0],
+                                 self.n_images - 2)
 
         for i in range(max_iterations):
 
@@ -795,35 +795,35 @@ class ChainMethodBase(object):
             # Print information about the simulation and the forces.
             # The last two terms are the largest gradient and spring
             # force norms from the spins (not counting the extrema)
-            G_norms = np.linalg.norm(self.G[INNER_DOFS].reshape(-1, 3), axis=1)
-            gradE_norms = np.linalg.norm(self.gradientE[INNER_DOFS].reshape(-1, 3), axis=1)
-            Fk_norms = np.linalg.norm(self.spring_force[INNER_DOFS].reshape(-1, 3), axis=1)
-
-            # self.G, self.gradientE and self.spring_force are all built
-            # from raw, unscaled quantities (the effective field, and
-            # k * geodesic-distance-differences respectively), so their
-            # absolute magnitude depends on the material/field scale and
-            # the chosen spring_constant of the particular system (e.g.
-            # max|G| can be ~1e7 for a system with a strong Zeeman field,
-            # and ~1 for a weak-anisotropy toy system), so comparing them
-            # directly to a fixed stopping_max_force, or to each other,
-            # would only be meaningful for one specific system. Scale them
-            # the same way compute_polynomial_factors and
-            # compute_energy_weighted_spring_lengths scale gradientE
-            # (self.scale = mu_0 * Ms * dV per dof for micromagnetics, mu_s
-            # per dof for atomistic), giving physically comparable
-            # energy-gradient-like quantities across systems, and letting
-            # the printed max|G|, max|gradE| and max|F_k| be sensibly
-            # compared against one another too.
-            G_scaled_norms = np.linalg.norm(
-                (self.scale * self.G[INNER_DOFS].reshape(-1, self.n_dofs_image)
-                 ).reshape(-1, 3), axis=1)
-            gradE_scaled_norms = np.linalg.norm(
-                (self.scale * self.gradientE[INNER_DOFS].reshape(-1, self.n_dofs_image)
-                 ).reshape(-1, 3), axis=1)
-            Fk_scaled_norms = np.linalg.norm(
-                (self.scale * self.spring_force[INNER_DOFS].reshape(-1, self.n_dofs_image)
-                 ).reshape(-1, 3), axis=1)
+            #
+            # Only the sites that carry material are taken into account. In a
+            # patterned sample the surrounding cells have Ms (or mu_s) equal
+            # to zero, but they still see the stray field of the magnetised
+            # region: the exchange and anisotropy fields vanish there because
+            # they are scaled by the magnetisation, while the demagnetising
+            # field does not. Nothing relaxes at those cells, so their |G|
+            # stays at whatever the stray field imposes for the whole
+            # relaxation, which would put a floor under max|G| that the
+            # stopping_max_force criterion could never get below.
+            #
+            # The norms are left in the raw units of the effective field:
+            # A/m for micromagnetics, and Tesla for atomistic simulations,
+            # where the field is an energy per magnetic moment, which is why
+            # self.scale is mu_s there rather than mu_0 * Ms * dV. For a
+            # micromagnetic system this is the same kind of quantity as
+            # OOMMF's |m x H x m|, so the values printed here mean the same as
+            # the mxHxm figures OOMMF reports and can be used as they are to
+            # choose stopping_max_force; for an atomistic system the numbers
+            # are fields in Tesla and live on a different scale. self.G,
+            # self.gradientE and self.spring_force are all in these units by
+            # construction, since G is assembled from the other two, so the
+            # three printed numbers can always be compared with one another.
+            G_norms = np.linalg.norm(
+                self.G[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
+            gradE_norms = np.linalg.norm(
+                self.gradientE[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
+            Fk_norms = np.linalg.norm(
+                self.spring_force[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
 
             # For DEBUGGING purposes: -----------------------------------------
             # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
@@ -844,9 +844,9 @@ class ChainMethodBase(object):
                       f"step: {self.iterations:>6d}, " +
                       f"step_size: {increment_dt:>8.3g}, " +
                       f"max dYdt: {max_dYdt:>8.3g} " +
-                      "max|G|: {:>8.3g} ".format(np.max(G_scaled_norms) / self.log_energy_scale) +
-                      "max|gradE|: {:>8.3g} ".format(np.max(gradE_scaled_norms) / self.log_energy_scale) +
-                      "and max|F_k|: {:>8.3g}".format(np.max(Fk_scaled_norms) / self.log_energy_scale)
+                      "max|G|: {:>8.3g} ".format(np.max(G_norms) / self.log_energy_scale) +
+                      "max|gradE|: {:>8.3g} ".format(np.max(gradE_norms) / self.log_energy_scale) +
+                      "and max|F_k|: {:>8.3g}".format(np.max(Fk_norms) / self.log_energy_scale)
                       )
 
             self.G_log.append(np.max(G_norms))
