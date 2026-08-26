@@ -200,15 +200,32 @@ void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors) {
             for (int i = 0; i < lenx; i++) {
                 index = k * len_xy + j * lenx + i;
 
-                x = abs(i - nx + 1);
-                y = abs(j - ny + 1);
-                z = abs(k - nz + 1);
+                // Wrap-around order, the layout compute_fields convolves
+                // against and the one compute_demag_tensors already uses:
+                // index i carries offset i for i < n, and i - len beyond
+                // that. Storing the kernel centred instead shifts it by
+                // n - 1 cells, which mixes in values from outside the sample.
+                int ox = (i < nx) ? i : i - lenx;
+                int oy = (j < ny) ? j : j - leny;
+                int oz = (k < nz) ? k : k - lenz;
 
-                // Padded wrap edge (x==nx / y==ny / z==nz at the last index):
-                // no physical counterpart, and indexing tensors[] here would
-                // read past the caller's 6*nx*ny*nz buffer (the source of the
-                // intermittent NaN in tensor_yz). Zero it, matching the Nyquist
-                // zeroing in compute_demag_tensors.
+                // tensors[] is indexed by |offset|, since the diagonal
+                // components are even in every coordinate. The off-diagonal
+                // ones are not: Nxy ~ x y / r^5 is odd in x and in y, so it
+                // has to pick up the sign of the offsets it is stored at,
+                // otherwise the quadrants add instead of cancelling and a
+                // spurious Nxy survives.
+                x = abs(ox);
+                y = abs(oy);
+                z = abs(oz);
+                double sxy = ((ox < 0) != (oy < 0)) ? -1.0 : 1.0;
+                double sxz = ((ox < 0) != (oz < 0)) ? -1.0 : 1.0;
+                double syz = ((oy < 0) != (oz < 0)) ? -1.0 : 1.0;
+
+                // Offsets the sample cannot produce (|offset| >= n) have no
+                // physical counterpart, and indexing tensors[] there would
+                // read past the caller's 6*nx*ny*nz buffer, which was the
+                // source of the intermittent NaN in tensor_yz. Zero them.
                 if (x >= nx || y >= ny || z >= nz) {
                     plan->tensor_xx[index] = 0.0;
                     plan->tensor_yy[index] = 0.0;
@@ -224,9 +241,9 @@ void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors) {
                 plan->tensor_xx[index] = tensors[id];
                 plan->tensor_yy[index] = tensors[id + nxyz];
                 plan->tensor_zz[index] = tensors[id + 2 * nxyz];
-                plan->tensor_xy[index] = tensors[id + 3 * nxyz];
-                plan->tensor_xz[index] = tensors[id + 4 * nxyz];
-                plan->tensor_yz[index] = tensors[id + 5 * nxyz];
+                plan->tensor_xy[index] = sxy * tensors[id + 3 * nxyz];
+                plan->tensor_xz[index] = sxz * tensors[id + 4 * nxyz];
+                plan->tensor_yz[index] = syz * tensors[id + 5 * nxyz];
                 // printf("%g  %g  %g  \n", tensors[id], tensors[id+nxyz], tensors[id+2*nxyz]);
             }
         }

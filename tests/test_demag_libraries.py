@@ -253,13 +253,30 @@ def test_demag_2d_pbc():
         assert np.isfinite(t).all()
     assert np.isfinite(sim.field).all(), "non-finite value in demag field"
 
-    # The padded wrap edge (last x/y plane of the FFT-padded tensor) has no
-    # physical counterpart and is now deterministically zeroed by the fill.
+    # The kernel is stored in wrap-around order, so index i carries offset i
+    # for i < n and i - len otherwise. The band in the middle, where |offset|
+    # would be >= n, has no physical counterpart and is deterministically
+    # zeroed by the fill.
     lenx, leny, lenz = demag.demag.lenx, demag.demag.leny, demag.demag.lenz
     for t in tensors:
         tp = t.reshape(lenz, leny, lenx)
-        assert np.all(tp[:, :, lenx - 1] == 0.0)
-        assert np.all(tp[:, leny - 1, :] == 0.0)
+        assert np.all(tp[:, :, n:lenx - n + 1] == 0.0)
+        assert np.all(tp[:, n:leny - n + 1, :] == 0.0)
+
+    # An infinite film has demag factors Nz = 1 and Nx = Ny = 0, with no
+    # off-diagonal terms. This is what the 2d_pbc tensor exists to reproduce,
+    # and it is what catches a kernel stored in the wrong order or with the
+    # signs dropped from the odd components.
+    N = np.empty((3, 3))
+    for col, m in enumerate([(1, 0, 0), (0, 1, 0), (0, 0, 1)]):
+        s2 = fidimag.micro.Sim(mesh, name="pbc_2d_demag_factors")
+        s2.set_Ms(Ms)
+        s2.set_m(m, normalise=True)
+        d2 = fidimag.micro.Demag(pbc_2d=True)
+        s2.add(d2)
+        H = d2.compute_field(0).reshape(-1, 3)
+        N[:, col] = -H[n * (n // 2) + n // 2] / Ms
+    assert np.allclose(N, np.diag([0.0, 0.0, 1.0]), atol=1e-6), N
 
 if __name__ == '__main__':
     test_hexagonal_demags_1Dchain()
