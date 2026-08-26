@@ -188,9 +188,9 @@ class HubertMinimiser(MinimiserBase):
         GSQUARE = 0.0
         # We might want to change this in the future to save memory:
         # pinsField = np.repeat(self._pins, 3).astype(bool)
-        # Only update site with magnetisation > 0 which are not pinned
+        # Only update sites with magnetisation > 0 which are not pinned
         _material = ~(np.repeat(self._pins, 3).astype(bool))
-        _material.reshape(-1, 3)[self._magnetisation > 0.0] = True
+        _material.reshape(-1, 3)[self._magnetisation <= 0.0] = False
 
         while not exitFlag:
 
@@ -268,7 +268,14 @@ class HubertMinimiser(MinimiserBase):
                 #     print('Creep: ', self.trailE)
                 #     print(f': eta = {eta}  maxgradE = {self.gradE.max()}')
 
-                if deltaE < stopping_dE:  # if mean E diff is too small
+                # Only trust a near-flat trailing energy as convergence if
+                # this step was actually accepted (the energy did not
+                # increase). trailE is filled on every evaluation, including
+                # rejected trial steps, so while eta is being shrunk the band
+                # can bounce back close to its nTrail-old energy and give a
+                # spuriously small deltaE while the true residual (mX∇E) is
+                # still large.
+                if self.totalE <= self.totalE_last and deltaE < stopping_dE:
                     print(f'Delta E = {deltaE} negligible. Stopping calculation.')
                     exitFlag = True
                     break  # creep loop
