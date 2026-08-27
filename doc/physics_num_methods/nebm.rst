@@ -279,9 +279,28 @@ phase space.
 Fidimag Code
 ============
 
-We have implemented three classes in Fidimag for the NEBM:
+The NEBM is not the only method that relaxes a chain of images, so the code is
+organised around what these methods have in common rather than around the NEBM
+alone. A ``ChainMethodBase`` class holds everything that does not depend on the
+coordinate system or on the method: the band and the arrays that go with it,
+the energies, the interpolations that generate the initial band, the
+integrators, the data saving and the ``relax`` loop. The methods themselves
+derive from it and supply the parts that do differ, which are the distance
+between two images, the tangents, the spring force and the step taken at every
+iteration.
 
-1. `NEBM_Spherical`: Using spherical coordinates for the spin directions and
+Three classes derive from it:
+
+1. `NEBM_Geodesic`: Using Cartesian coordinates for the spin directions and
+   Geodesic distances, with vectors projected in tangent space. This is the
+   optimised version of the NEBM, for which [3] is the main reference, and it
+   appears to work well with every system we have tried so far. Cartesian
+   coordinates have the advantage that they are well defined close to the poles
+   of the spin directions. Fabian and Shcherbakov [6] have also applied
+   geodesic distances, in a minimum action formulation. Prefer this class for
+   most calculations.
+
+2. `NEBM_Spherical`: Using spherical coordinates for the spin directions and
    Euclidean distances with no projections into spin space. The azimuthal and
    polar angles need to be redefined when performing differences or computing
    Euclidean distances, specially because the polar angle gets undefined when
@@ -289,38 +308,47 @@ We have implemented three classes in Fidimag for the NEBM:
    best approach to redefine the angles and when to do this, thus this class
    currently does not work properly.
 
-2. `NEBM_Cartesian`: Using Cartesian coordinates for the spin directions and
-   Euclidean distances with no projections into spin space. This method works
-   well for a variety of simple system. However, when the degree of complexity
-   increases, such as systems where vortexes or skyrmions can be stabilised,
-   the spring force interferes with the convergence of the band into a minimum
-   energy path. For this case it is necessary to find an optimal value of the
-   spring constant, which is difficult since the value depends on the system
-   size and interactions involved.
+3. `StringMethod`: Not a NEBM class. Instead of a spring force, the images are
+   redistributed along the path by interpolating it after every step, which
+   removes the spring constant from the problem altogether. See [5] for a
+   description of both methods side by side.
 
-3. `NEBM_Geodesic`: Using Cartesian coordinates for the spin directions and
-   Geodesic distances, with vectors projected in tangent space. This is the
-   optimised version of the NEBM [3] and appears to work well with every system
-   we have tried so far. Cartesian coordinates have the advantage that they are
-   well defined close to the poles of the spin directions.
+An earlier `NEBM_Cartesian` class, using Cartesian coordinates with Euclidean
+distances and no projections, has been removed. It worked for simple systems,
+but as soon as the system was complex enough to stabilise a vortex or a
+skyrmion the spring force interfered with the convergence of the band, and
+avoiding that required an optimal spring constant that depends on the system
+size and on the interactions involved. `NEBM_Geodesic` supersedes it. Some
+scripts under ``examples/`` still import it and have not been updated.
 
 The following diagram shows how the code is structured:
 
 .. image:: ../images/nebm_classes.png
    :scale: 60 %
 
-There is a ``fidimag.common.nebm_tools`` module with common functions for the
-NEBM classes:
+There is a ``fidimag.common.chain_method_tools`` module (formerly
+``nebm_tools``) with common functions for these classes:
 
 ::
 
-    fidimag.common.nebm_tools
+    fidimag.common.chain_method_tools
     |
     --> cartesian2spherical
         spherical2cartesian
         compute_norm
         interpolation_Rodrigues_rotation
         linear_interpolation_spherical
+        m_to_zero_nomaterial
+
+and a ``fidimag.common.chain_method_integrators`` module with the integrators
+that do not come from Sundials:
+
+::
+
+    fidimag.common.chain_method_integrators
+    |
+    --> StepIntegrator      # Euler and Runge-Kutta 4 steps
+        VerletIntegrator    # Velocity projection, see below
 
 
 Arrays
@@ -366,80 +394,86 @@ Cython Codes
 
 Most of the calculations are made using ``C`` code through Cython. The files
 for these libraries are located in ``fidimag/common/neb_method/``. Every library
-has a ``.c`` file, a ``.h`` header file and a ``.pyx`` Cython file (it can
-differ in name from the ``C`` files)  which is compiled using Fidimag's
-``setup.py`` file.
+has a ``.c`` file and a ``.h`` header file, and they are built through CMake,
+which is driven by ``pyproject.toml`` (the old ``setup.py`` build is gone, see
+``BUILD.md``).
 
-For example, there is a base module with common functions for every NEBM
-class called ``nebm_lib.c``
+There used to be one Cython module per coordinate system. They are now a single
+``nebm_clib.pyx``, exposed as ``fidimag.extensions.nebm_clib``, which wraps all
+of the ``C`` libraries below. The base one, with the functions that do not
+depend on the coordinate system, is ``nebm_lib.c``
 
 ::
 
     nebm_lib.c
+    nebm_lib.h
     |
-    --> compute_effective_force_C
-        compute_norm
+    --> compute_tangents_C
         compute_spring_force_C
-        compute_tangents_C
-        cross_product
-        dot_product
+        compute_effective_force_C
+        compute_dYdt_C
+        compute_dYdt_nc_C
+        compute_distance_cartesian
+        compute_image_distances
+        project_images_C
+        project_vector_C
         normalise
         normalise_images_C
+        normalise_spins_C
+        compute_norm
+        cross_product
+        dot_product
 
-Its corresponding header file ````nebm_lib.h`` contains the prototypes of these
-functions. The Cython file that link some of these functions to the Python code
-is called ``nebm_clib.pyx`` and can be called from the
-``fidimag.extensions.nebm_clib`` library:
+and the two coordinate-system-dependent ones only have to define what a
+distance is:
+
+::
+
+    nebm_geodesic_lib.c
+    nebm_geodesic_lib.h
+    |
+    --> compute_geodesic_GreatCircle
+        compute_geodesic_Vincenty
+
+
+    nebm_spherical_lib.c
+    nebm_spherical_lib.h
+    |
+    --> compute_distance_spherical
+        normalise_spherical
+        normalise_images_spherical_C
+
+There is also ``nebm_integrators.c``, with ``step_Verlet_C``, which is the
+velocity projection integrator described below.
+
+Note that the Cartesian library was removed together with the `NEBM_Cartesian`
+class. The spring force is still computed by the single
+``compute_spring_force_C`` of ``nebm_lib.c``, which takes the distances as an
+argument, so it is the distance definition, and not the spring force, that
+changes with the coordinate system.
+
+The functions that ``fidimag.extensions.nebm_clib`` exposes to the Python
+classes are
 
 ::
 
     fidimag.extensions.nebm_clib
     |
-    --> compute_effective_force
-        compute_tangents
-
-The other ``.pyx`` or ``.c`` files use some of the ``nebm_lib.h`` functions.
-They are separated according to the coordinate system used in the NEBM
-calculations. The following diagrams show the Cython functions for these
-libraries and the ``C`` files used to define them:
-
-::
-
-    nebm_cartesian_lib.c
-    nebm_cartesian_lib.h
-    nebm_cartesian_clib.pyx
-    fidimag.extensions.nebm_cartesian_clib
-    |
-    --> compute_dYdt
-        compute_effective_force
+    --> compute_tangents
         compute_spring_force
-        compute_tangents
-        normalise_images
+        compute_effective_force
+        compute_dYdt
+        compute_dYdt_nc
         project_images
-
-
-    nebm_geodesic_lib.c
-    nebm_geodesic_lib.h
-    nebm_geodesic_clib.pyx
-    fidimag.extensions.nebm_geodesic_clib
-    |
-    --> compute_spring_force
-        geodesic_distance
-
-
-    nebm_spherical_lib.c
-    nebm_spherical_lib.h
-    nebm_spherical_clib.pyx
-    fidimag.extensions.nebm_spherical_clib
-    |
-    --> compute_spring_force
+        project_vector
+        normalise_clib
         normalise_images
-
-Every library has its own ``compute_spring_force``, which is taken from the
-``nebm_lib.c`` file, since the spring force depends on the
-coordinate-system-dependent distance definition. For the Cartesian and
-spherical coordinates, the distance functions (Euclidean distances) are not
-exposed in the Cython file, as in the code for Geodesic distances.
+        normalise_spins
+        geodesic_distance_GreatCircle
+        geodesic_distance_Vincenty
+        image_distances_GreatCircle
+        image_distances_Spherical
+        normalise_images_spherical
 
 Geodesic distances code
 -----------------------
@@ -449,56 +483,78 @@ calling the following methods in this order:
 
 ::
 
-    1. generate_initial_band   # Using linear interpolations or Rodrigues rotation formulae    
+    1. generate_initial_band   # Using linear interpolations or Rodrigues rotation formulae
     |
-    --> nebm_tools.cartesian2spherical --> nebm_tools.linear_interpolation_spherical
+    --> chain_method_tools.cartesian2spherical
+        --> chain_method_tools.linear_interpolation_spherical
         # or
-        nebm_tools.interpolation_Rodrigues_rotation
+        chain_method_tools.interpolation_Rodrigues_rotation
 
     2. initialise_energies     # Fill the energies array
-    3. initialise_integrator   # Start CVODE
+    3. initialise_integrator   # Start the integrator
     4. create_tablewriter      # To pass data into .ndt files per every iteration of the integrator
 
 The linear interpolation function requires that the input array is in spherical
-coordinates. 
+coordinates.
 
-To relax the band, we use CVODE, as specified in step 3., using the
-``cvode.CvodeSolver`` (or ``cvode.CvodeSolver_OpenMP``) integrator. The
-integrator requires a ``Sundials_RHS`` function that is called on every
-iteration, which is the right hand side of the :math:`\partial \mathbf{Y} /
-\partial \tau` dynamical equation. Correspondingly, this function
-calculates the NEBM forces as
+The integrator of step 3. is chosen with the ``integrator`` argument of
+``initialise_integrator``. The default is ``'sundials'``, i.e. the
+``cvode.CvodeSolver`` (or ``cvode.CvodeSolver_OpenMP``) integrator, and the
+alternatives are ``'euler'`` and ``'rk4'``, which use the ``StepIntegrator``
+class, and ``'verlet'``, which uses the ``VerletIntegrator`` velocity
+projection scheme. All of them need a function giving the right hand side of
+the :math:`\partial \mathbf{Y} / \partial \tau` dynamical equation, which is
+``Sundials_RHS`` for CVODE and ``step_RHS`` for the others; both of them call
+``nebm_step``, where the NEBM forces are calculated as
 
 ::
 
-    Sundials_RHS
+    Sundials_RHS  /  step_RHS
     |
     --> nebm_step
         |
         --> compute_effective_field_and_energy  # Gradient = - Eff field
                                                 # Which we compute for every image
                                                 # using the sim class
+            nebm_clib.project_images(gradientE) # Project the gradient
             compute_tangents
             |
             --> nebm_clib.compute_tangents      #
-                nebm_cartesian.project_images   # Project tangents
-                nebm_cartesian.normalise_images #
+                nebm_clib.project_images        # Project tangents
+                nebm_clib.normalise_images      #
             compute_spring_force                # Using Geodesic distances
             nebm_clib.compute_effective_force
-            nebm_cartesian.project_images(G)    # Project effective (total) force
 
-        nebm_cartesian.compute_dYdt             # Add the correction factor to fix
-                                                # the spins length to 1
+        G[extrema] = 0                          # The force on the extreme images
+                                                # should already be zero
 
-Many methods come from the Cartesian Cython library ``nebm_cartesian`` since
-the Geodesic class uses Cartesian coordinates to describe the spins. If a
-climbing image was specified as an argument for the class, we compute its
+Notice that it is the energy gradient that is projected into tangent space,
+before the tangents and the spring force are computed, rather than the total
+force at the end. Projecting either one is equivalent, and the second form is
+left commented out in ``nebm_step``.
+
+What the two functions do with the resulting force differs, and this is where
+the spin length is kept equal to one. ``Sundials_RHS`` writes the total force
+:math:`\mathbf{G}` into ``ydot`` and then calls
+
+::
+
+    nebm_clib.compute_dYdt   # dY/dt = Y x Y x G - correction factor
+
+so the band is evolved with the :math:`\mathbf{Y}\times\mathbf{Y}\times\mathbf{G}`
+form of the equation together with the correction factor of the dynamical
+equation given above. ``step_RHS`` does not: the ``StepIntegrator`` normalises
+the spins after every Euler or Runge-Kutta step instead, and the
+``VerletIntegrator`` descends along the total force :math:`\mathbf{G}`
+directly.
+
+If a climbing image was specified as an argument for the class, we compute its
 modified force in the ``compute_effective_force`` method.
 
 The function that iterates the integrator is the ``relax`` method. On every
 iteration, we compute the difference with the previous step using a scaled
 Euclidean distance.  The definitions of this process are specified in the
-``compute_maximum_dYdt`` method from the ``nebm_base`` class. According to the
+``compute_maximum_dYdt`` method from the ``ChainMethodBase`` class. According to the
 magnitude stopping criteria specified in the ``stopping_dYdt`` argument of
 ``relax``, the iterations of the integrator will stop if the difference with
 the previous step is smaller than ``stopping_dYdt``.
@@ -617,15 +673,12 @@ cycle converges better than more restarts. Note, however, that the
 underlying issue in that regime is the absence of a preconditioner rather
 than the size of the subspace.
 
-Cartesian and spherical coordinates code
-----------------------------------------
+Spherical coordinates code
+--------------------------
 
-These classes follow the same process than the Geodesic distances code. The
-main difference is that in the ``nebm_step`` process, the projections are not
+This class follows the same process than the Geodesic distances code. The main
+difference is that in the ``nebm_step`` process, the projections are not
 performed and the distances are computed using the scaled Euclidean distance.
-
-Spherical
-^^^^^^^^^
 
 For spherical coordinates, the vectors are smaller, with ``n_dofs_image = 2 * n_spins``,
 where
@@ -658,3 +711,10 @@ this.
 
 .. [4] Cortés-Ortuño, D. et al. *Thermal stability and topological protection of
    skyrmions in nanotracks*. Preprint at arXiv:1611.07079.
+
+.. [5] Abert, C. *Micromagnetics and spintronics: models and numerical
+   methods*. Eur. Phys. J. B 92, 120 (2019)
+
+.. [6] Fabian, K. & Shcherbakov, V. P. *Energy barriers in three-dimensional
+   micromagnetic models and the physics of thermoviscous magnetization*.
+   Geophys. J. Int. 215, 314–324 (2018)
