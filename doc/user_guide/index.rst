@@ -19,3 +19,4 @@ User Guide
    ipynb/spin-waves-in-periodic-system
    ipynb/standard_problem_4
    ipynb/steepest_descent_atomistic
+   ipynb/hubert_minimiser_atomistic

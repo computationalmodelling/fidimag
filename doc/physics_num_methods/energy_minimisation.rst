@@ -59,8 +59,8 @@ guessed once and for all.
 The Hubert minimiser
 --------------------
 
-This is the ``hubert_minimiser`` driver, based on the works of Berkov [1,2] and
-implemented in MERRILL [3]. The spins are updated as
+This is the ``hubert_minimiser`` driver, based on the works of Berkov [1]_,
+[2]_, and implemented in MERRILL [3]_. The spins are updated as
 
 .. math::
     \mathbf{m}_{\text{new}} = \mathbf{m}_{\text{old}} - \eta \eta_{s} \mathbf{S}
@@ -93,7 +93,7 @@ the system has already shown us. If we call
     \mathbf{s} = \mathbf{m}_{k} - \mathbf{m}_{k-1} \qquad
     \mathbf{y} = \mathbf{g}_{k} - \mathbf{g}_{k-1}
 
-the two Barzilai-Borwein quotients [4] are
+the two Barzilai-Borwein quotients [4]_ are
 
 .. math::
     \eta_{\text{BB1}} = \frac{\mathbf{s}\cdot\mathbf{s}}{\mathbf{s}\cdot\mathbf{y}}
@@ -141,7 +141,7 @@ backtrack, i.e. we shorten it and try again from the same configuration. This
 is the non-monotone line search of Grippo, Lampariello and Lucidi, and together
 with the BB step lengths and the re-normalisation of the spins, which plays the
 role of the projection onto the constraint set, it is the spectral projected
-gradient method of Birgin, Martínez and Raydan [5]. Setting ``nTrail = 1``
+gradient method of Birgin, Martínez and Raydan [5]_. Setting ``nTrail = 1``
 recovers a monotone line search.
 
 There is a subtlety in the sufficient decrease term above, which compares a
@@ -188,7 +188,7 @@ translate directly into computing time.
 The steepest descent minimiser
 ------------------------------
 
-The ``steepest_descent`` driver implements the algorithm of Exl et al. [6], in
+The ``steepest_descent`` driver implements the algorithm of Exl et al. [6]_, in
 which the spins are updated with
 
 .. math::

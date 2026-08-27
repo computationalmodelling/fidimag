@@ -2,10 +2,10 @@ Nudged Elastic Band Method (NEBM)
 =================================
 
 The NEBM is an algorithm to find minimum energy transitions between equilibrium
-states. This method was developed by Henkelman and Jónsson [1] to solve
-molecular problems in Chemistry. Later, Dittrich et al. [2] applied the NEBM to
+states. This method was developed by Henkelman and Jónsson [1]_ to solve
+molecular problems in Chemistry. Later, Dittrich et al. [2]_ applied the NEBM to
 magnetic systems based on the micromagnetic theory. Recently, Bessarab et al.
-[3] have proposed an optimised version of the NEBM with improved control over
+[3]_ have proposed an optimised version of the NEBM with improved control over
 the behaviour of the algorithm. Their review of the method allows to apply the
 technique to systems described by either a micromagnetic or atomistic model.
 
@@ -64,7 +64,7 @@ It is also necessary to consider that:
   to specify the constraint to fix the spin length.
 
 
-For a thorough explanation of the method see references [3,4].
+For a thorough explanation of the method see references [3]_ and [4]_.
 
 
 NEBM relaxation
@@ -109,7 +109,7 @@ for a vector :math:`\mathbf{A}`
 .. math::
     \mathbf{A}|_{\perp} = \mathbf{A} - (\mathbf{A}\cdot\mathbf{t})\mathbf{t}
 
-The tangents are defined according to the energies of the neighbouring images [3]. The second term
+The tangents are defined according to the energies of the neighbouring images [3]_. The second term
 to the right hand side of the equation for :math:`\mathbf{G}` is the spring force that
 tries to keep images at equal distance and is defined using the distance between neighbouring
 images
@@ -120,7 +120,7 @@ images
 
 which is parallel to the band, i.e. in the direction of the tangent.
 
-According to Bessarab et al. [3], the tangents and the total force
+According to Bessarab et al. [3]_, the tangents and the total force
 :math:`\mathbf{G}` must be *projected* into the spin/magnetisation tangent
 space.
 
@@ -130,7 +130,7 @@ Climbing Image NEBM
 The climbing image technique is a modification of the NEBM where the forces of
 the image with largest energy in the band, are redefined so this image can
 climb up in energy along the band to get a better estimate of the saddle point
-energy [1,3]. The image with largest energy is chosen after relaxing the
+energy [1]_ and [3]_. The image with largest energy is chosen after relaxing the
 band with the usual NEBM algorithm. The total force on this climbing image is
 
 .. math::
@@ -202,7 +202,7 @@ images, :math:`d_{j,k}=|\mathbf{Y}_{j} - \mathbf{Y}_{k}|`.
 Geodesic
 ^^^^^^^^
 
-The optimised version of the NEBM [3] proposes a Geodesic distance based on
+The optimised version of the NEBM [3]_ proposes a Geodesic distance based on
 Vicenty's formulae:
 
 .. math::
@@ -249,7 +249,7 @@ The algorithm can be summarised as:
 
 2. Set up a band of images and an initial sequence between the extrema. We can
    use linear interpolations on the spherical angles that define the spin
-   directions [4] or Rodrigues formulae [3].
+   directions [4]_ or Rodrigues formulae [3]_.
 
 3. Evolve the system using the NEBM dynamical equation, which depends on the
    chosen coordinate system. This equation involves:
@@ -293,10 +293,10 @@ Three classes derive from it:
 
 1. `NEBM_Geodesic`: Using Cartesian coordinates for the spin directions and
    Geodesic distances, with vectors projected in tangent space. This is the
-   optimised version of the NEBM, for which [3] is the main reference, and it
+   optimised version of the NEBM, for which [3]_ is the main reference, and it
    appears to work well with every system we have tried so far. Cartesian
    coordinates have the advantage that they are well defined close to the poles
-   of the spin directions. Fabian and Shcherbakov [6] have also applied
+   of the spin directions. Fabian and Shcherbakov [6]_ have also applied
    geodesic distances, in a minimum action formulation. Prefer this class for
    most calculations.
 
@@ -310,7 +310,7 @@ Three classes derive from it:
 
 3. `StringMethod`: Not a NEBM class. Instead of a spring force, the images are
    redistributed along the path by interpolating it after every step, which
-   removes the spring constant from the problem altogether. See [5] for a
+   removes the spring constant from the problem altogether. See [5]_ for a
    description of both methods side by side.
 
 An earlier `NEBM_Cartesian` class, using Cartesian coordinates with Euclidean

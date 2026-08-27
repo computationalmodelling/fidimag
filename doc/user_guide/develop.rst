@@ -1,3 +1,10 @@
+:orphan:
+
+.. This page is an older copy of the installation instructions, kept out
+   of the toctree because ``install.rst`` supersedes it. It still
+   describes the pip build and dependencies that are no longer used, so
+   it should be deleted rather than linked to.
+
 Installation Instructions
 =========================
 
