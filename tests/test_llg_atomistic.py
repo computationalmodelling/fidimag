@@ -1,4 +1,3 @@
-from __future__ import print_function
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt

@@ -26,7 +26,7 @@ class Demag(Energy):
         self.calc_every = calc_every
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        super(Demag, self).setup(mesh, spin, Ms, Ms_inv)
+        super().setup(mesh, spin, Ms, Ms_inv)
 
         if self.pbc_2d is True:
             self.demag = clib.FFTDemag(self.dx, self.dy, self.dz,

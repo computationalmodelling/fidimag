@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 
 # We use the common/lib/llg.c file to calculate the LLG equation for
 # the micromagnetic case
@@ -37,7 +35,7 @@ class LLG(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLG, self).__init__(mesh, spin, Ms, Ms_inv, field,
+        super().__init__(mesh, spin, Ms, Ms_inv, field,
                                   pins, interactions, name,
                                   data_saver,
                                   integrator=integrator,

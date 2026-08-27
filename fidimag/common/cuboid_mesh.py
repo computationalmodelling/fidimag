@@ -26,14 +26,13 @@ N.B. This means that when iterating over the cells, the x-axis is traversed
 in the innermost loop, and the z-axis in the outermost loop!
 
 """
-from __future__ import print_function
 from psutil import virtual_memory
 import numpy as np
 from textwrap import dedent
 from six.moves import range
 
 
-class CuboidMesh(object):
+class CuboidMesh:
 
     def __init__(self, dx=1, dy=1, dz=1, nx=1, ny=1, nz=1, x0=0, y0=0, z0=0,
                  periodicity=(False, False, False), unit_length=1.0):

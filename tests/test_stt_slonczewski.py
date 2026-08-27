@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import numpy as np
 from fidimag.atomistic import Sim, DMI, UniformExchange, Zeeman, Anisotropy

@@ -31,7 +31,7 @@ def compute_energy(mx):
     res = integrate.quad(fun, 0, np.pi)
     Z = res[0]
 
-    print 'mu=', mu, 'Z=', Z
+    print('mu=', mu, 'Z=', Z)
 
     gl = (Dx * mx**2 + Dy * (1 - mx**2)) / 2.0
 
@@ -56,5 +56,5 @@ def plot_energy(name='out.pdf'):
 
 
 if __name__ == '__main__':
-    print compute_energy(0)
+    print(compute_energy(0))
     plot_energy()

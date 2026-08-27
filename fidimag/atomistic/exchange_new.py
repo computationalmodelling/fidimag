@@ -1,6 +1,6 @@
 from .field import scalar_field, vector_field
 
-class Exchange(object):
+class Exchange:
     """
     Uniform exchange interaction.
 

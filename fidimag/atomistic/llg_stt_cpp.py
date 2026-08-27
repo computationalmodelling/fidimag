@@ -1,4 +1,3 @@
-from __future__ import division
 
 import types
 
@@ -35,7 +34,7 @@ class LLG_STT_CPP(AtomisticDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLG_STT_CPP, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
+        super().__init__(mesh, spin, mu_s, mu_s_inv, field,
                                           pins, interactions, name,
                                           data_saver,
                                           use_jac,

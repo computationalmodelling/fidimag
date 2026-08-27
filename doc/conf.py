@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # pccp documentation build configuration file, created by
 # sphinx-quickstart on Tue Aug 27 19:41:06 2013.
@@ -41,8 +40,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Fidimag'
-copyright = u'2015-2020, Fidimag Team'
+project = 'Fidimag'
+copyright = '2015-2020, Fidimag Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -100,8 +99,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'fidimag.tex', u'fidimag Documentation',
-     u'Weiwei Wang', 'manual'),
+    ('index', 'fidimag.tex', 'fidimag Documentation',
+     'Weiwei Wang', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -113,8 +112,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'fidimag', u'Fidimag Documentation',
-     [u''], 1)
+    ('index', 'fidimag', 'Fidimag Documentation',
+     [''], 1)
 ]
 
 # -- Options for Texinfo output ------------------------------------------
@@ -123,7 +122,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'fidimag', u'Fidimag Documentation',
-     u'', 'fidimag', 'One line description of project.',
+    ('index', 'fidimag', 'Fidimag Documentation',
+     '', 'fidimag', 'One line description of project.',
      'Miscellaneous'),
 ]

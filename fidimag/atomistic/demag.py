@@ -46,7 +46,7 @@ class Demag(Energy):
         self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        super(Demag, self).setup(mesh, spin, mu_s, mu_s_inv)
+        super().setup(mesh, spin, mu_s, mu_s_inv)
 
         # Ryan Pepper 04/04/2019
         # We *do not* need to scale by mesh.unit_length**3 here!
@@ -120,7 +120,7 @@ class DemagFMM(Energy):
         self.theta = theta
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        super(DemagFMM, self).setup(mesh, spin, mu_s, mu_s_inv)
+        super().setup(mesh, spin, mu_s, mu_s_inv)
         self.coords = mesh.coordinates * mesh.unit_length
         self.m_temp = np.zeros_like(spin)
         self.fmm = fmm.FMM(self.n, self.ncrit, self.theta,

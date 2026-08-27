@@ -1,4 +1,3 @@
-from __future__ import print_function
 import pytest
 
 # Since we are testing this script for different versions, we need to rebuild

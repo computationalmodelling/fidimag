@@ -1,4 +1,3 @@
-from __future__ import division
 import numpy as np
 import fidimag.extensions.common_clib as clib
 # Change int he future to common clib:
@@ -62,7 +61,7 @@ class SteepestDescent(MinimiserBase):
                  ):
 
         # Define
-        super(SteepestDescent, self).__init__(mesh, spin,
+        super().__init__(mesh, spin,
                                               magnetisation, magnetisation_inv,
                                               field,
                                               pins,

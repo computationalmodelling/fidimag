@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 
 # Use the common C library for the LLG equation in the atomistic case
 import fidimag.extensions.common_clib as clib
@@ -37,7 +35,7 @@ class LLG(AtomisticDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
+        super().__init__(mesh, spin, mu_s, mu_s_inv, field,
                                   pins, interactions, name,
                                   data_saver,
                                   use_jac,

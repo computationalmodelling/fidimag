@@ -19,7 +19,7 @@ class DemagFull(Energy):
         self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        super(DemagFull, self).setup(mesh, spin, mu_s, mu_s_inv)
+        super().setup(mesh, spin, mu_s, mu_s_inv)
 
         unit_length = mesh.unit_length
         self.mu_s_scale = np.zeros(mesh.n, dtype=np.float64)

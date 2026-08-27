@@ -137,7 +137,7 @@ class NEBM_Spherical(ChainMethodBase):
                  openmp=False
                  ):
 
-        super(NEBM_Spherical, self).__init__(sim,
+        super().__init__(sim,
                                              initial_images,
                                              interpolations=interpolations,
                                              spring_constant=spring_constant,

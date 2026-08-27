@@ -1,4 +1,3 @@
-from __future__ import print_function
 import numpy as np
 from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh

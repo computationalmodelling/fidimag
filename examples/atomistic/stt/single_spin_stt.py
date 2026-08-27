@@ -24,7 +24,7 @@ def dynamic(mesh):
     for t in ts:
         sim.run_until(t)
         #sim.save_vtk()
-        print t
+        print(t)
 
 def plot_all():
 

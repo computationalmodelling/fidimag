@@ -51,7 +51,7 @@ class Anisotropy(Energy):
         self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        super(Anisotropy, self).setup(mesh, spin, mu_s, mu_s_inv)
+        super().setup(mesh, spin, mu_s, mu_s_inv)
 
         self._Ku = helper.init_scalar(self.Ku, self.mesh)
         self._axis = helper.init_vector(self.axis, self.mesh, norm=True)
@@ -86,7 +86,7 @@ class CubicAnisotropy(Energy):
         self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        super(CubicAnisotropy, self).setup(mesh, spin, mu_s, mu_s_inv)
+        super().setup(mesh, spin, mu_s, mu_s_inv)
         self._Kc = helper.init_scalar(self.Kc, self.mesh)
 
     def compute_field(self, t=0, spin=None):

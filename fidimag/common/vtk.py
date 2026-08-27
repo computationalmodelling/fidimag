@@ -63,7 +63,7 @@ def _fidimag_version():
         return 'unknown'
 
 
-class VTK(object):
+class VTK:
     def __init__(self, mesh, header="", directory=".", filename="unnamed"):
         self.mesh = mesh
         self.directory = directory

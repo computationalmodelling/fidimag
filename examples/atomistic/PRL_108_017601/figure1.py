@@ -63,5 +63,5 @@ if __name__ == '__main__':
 
     relax_system(mesh)
 
-    print 'relax system done'
+    print('relax system done')
     # spin_wave(mesh,m0)

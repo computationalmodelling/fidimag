@@ -288,7 +288,7 @@ def compute_llg_rhs_dw(double [:] dm,
 # -----------------------------------------------------------------------------
 
 
-cdef class rng_mt19937(object):
+cdef class rng_mt19937:
     cdef mt19937_state *_c_state
     cdef public int seed
     def __init__(self, seed=None):
@@ -324,7 +324,7 @@ cdef class rng_mt19937(object):
             finalize_mt19937_state(self._c_state)
             self._c_state = NULL
 
-cdef class monte_carlo(object):
+cdef class monte_carlo:
     cdef mt19937_state *_c_state
 
     def __init__(self, seed=-1):

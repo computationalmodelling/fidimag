@@ -3,7 +3,7 @@ import numpy as np
 #from constant import mu_0
 
 
-class Energy(object):
+class Energy:
 
     """
 

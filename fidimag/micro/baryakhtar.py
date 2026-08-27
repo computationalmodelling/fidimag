@@ -17,7 +17,7 @@ class LLBarFull(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLBarFull, self).__init__(mesh, spin, Ms, Ms_inv, field,
+        super().__init__(mesh, spin, Ms, Ms_inv, field,
                                         pins, interactions, name,
                                         data_saver,
                                         integrator=integrator,
@@ -85,7 +85,7 @@ class LLBar(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLBar, self).__init__(mesh, spin, Ms, field,
+        super().__init__(mesh, spin, Ms, field,
                                     pins, interactions, name,
                                     data_saver,
                                     integrator='sundials',

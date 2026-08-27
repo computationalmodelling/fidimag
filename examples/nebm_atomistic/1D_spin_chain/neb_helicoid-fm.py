@@ -148,7 +148,7 @@ f = open('timings.dat', 'w')
 t = Timer()
 
 for k in krange:
-    print 'Computing for k = {}'.format(k)
+    print('Computing for k = {}'.format(k))
     t.start()
     relax_neb(float(k),
               400,

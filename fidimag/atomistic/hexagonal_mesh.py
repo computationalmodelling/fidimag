@@ -44,7 +44,7 @@ from math import sqrt
 from six.moves import range
 
 
-class HexagonalMesh(object):
+class HexagonalMesh:
     def __init__(self, radius, nx, ny,
                  periodicity=(False, False),
                  unit_length=1.0,

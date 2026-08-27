@@ -1,4 +1,3 @@
-from __future__ import division
 
 import fidimag.extensions.common_clib as clib
 import numpy as np
@@ -72,7 +71,7 @@ class LLG_STT(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLG_STT, self).__init__(mesh, spin, Ms, Ms_inv, field,
+        super().__init__(mesh, spin, Ms, Ms_inv, field,
                                       pins, interactions, name,
                                       data_saver,
                                       integrator=integrator,

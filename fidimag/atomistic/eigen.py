@@ -1,12 +1,10 @@
-from __future__ import division
-from __future__ import print_function
 import os
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg  as la
 
 
-class EigenProblem(object):
+class EigenProblem:
 
 	def __init__(self, mesh, m0, mu_s=1.0, J=1, D=0, Kz=0, Kx=0, H=None, gamma=1.0):
 		self.mesh = mesh

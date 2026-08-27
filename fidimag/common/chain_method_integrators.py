@@ -14,7 +14,7 @@ class StepIntegrator(BaseIntegrator):
     Integrator options are Euler and RK4
     """
     def __init__(self, spins, rhs_fun, step="euler", stepsize=1e-15):
-        super(StepIntegrator, self).__init__(spins, rhs_fun)
+        super().__init__(spins, rhs_fun)
 
         self.set_step(step)
         self.stepsize = stepsize
@@ -63,7 +63,7 @@ class VerletIntegrator(BaseIntegrator):
     """
     def __init__(self, band, forces, rhs_fun, n_images, n_dofs_image,
                  mass=0.1, stepsize=1e-15):
-        super(VerletIntegrator, self).__init__(band, rhs_fun)
+        super().__init__(band, rhs_fun)
 
         self.n_images = n_images
         self.n_dofs_image = n_dofs_image

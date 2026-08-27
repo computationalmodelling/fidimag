@@ -21,7 +21,7 @@ def compute_jacobean_fd(sim, m, eps=1):
     # use 4th order FD scheme which should produce an exact result without demag
     # hence set eps to 1
     n = sim.mesh.n
-    print sim.mesh.coordinates
+    print(sim.mesh.coordinates)
     # compute the jacobean using the finite difference approximation
     jac = np.zeros((3 * n, 3 * n))
     w = np.array([1. / 12., -2. / 3., 2. / 3., -1. / 12.]) / eps
@@ -40,12 +40,12 @@ def compute_jacobean_fd(sim, m, eps=1):
         f3 = np.zeros(3 * n)
         sim.sundials_rhs(0, 0, f3)
         if not once:
-            print "m", m
-            print "m - 2 * eps * v", m - 2 * eps * v
-            print "f0", f0
-            print "f1", f1
-            print "f2", f2
-            print "f3", f3
+            print("m", m)
+            print("m - 2 * eps * v", m - 2 * eps * v)
+            print("f0", f0)
+            print("f1", f1)
+            print("f2", f2)
+            print("f3", f3)
             once = True
         jac[:, j] = w[0] * f0 + w[1] * f1 + w[2] * f2 + w[3] * f3
     return jac
@@ -75,10 +75,10 @@ def test_compute_jtimes():
     sim, m = setup_llg_params_near_one(node_count=2)
     fd = compute_jacobean_fd(sim, m)
     jtimes = compute_jacobean_jtimes(sim, m)
-    print "m"
-    print m
-    print "FD"
-    print fd
-    print "JTIMES"
-    print jtimes
+    print("m")
+    print(m)
+    print("FD")
+    print(fd)
+    print("JTIMES")
+    print(jtimes)
     assert np.max(np.abs(fd - jtimes)) < 1e-13

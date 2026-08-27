@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 
 from fidimag.common.driver_base import DriverBase
 
@@ -48,7 +46,7 @@ class MicroDriver(DriverBase):
                  use_jac=False
                  ):
 
-        super(MicroDriver, self).__init__()
+        super().__init__()
 
         # These are (ideally) references to arrays taken from the Simulation
         # class. Variables with underscore are arrays changed by a property in

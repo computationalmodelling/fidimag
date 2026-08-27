@@ -4,7 +4,7 @@ import fidimag.common.helper as helper
 import inspect
 
 
-class Zeeman(object):
+class Zeeman:
 
     """
     A time independent external magnetic field that can be space dependent.
@@ -120,7 +120,7 @@ class TimeZeeman(Zeeman):
         self.extra_args = extra_args
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        super(TimeZeeman, self).setup(mesh, spin, Ms, Ms_inv)
+        super().setup(mesh, spin, Ms, Ms_inv)
         self.H_init = self.field.copy()
 
     def compute_field(self, t=0, spin=None):

@@ -166,7 +166,7 @@ class DMI(Energy):
         #                          " as this material class has multiple DMI constants")
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        super(DMI, self).setup(mesh, spin, Ms, Ms_inv)
+        super().setup(mesh, spin, Ms, Ms_inv)
 
         if self.dmi_type == 'bulk':
             self.dmi_vector = np.array([-1., 0, 0,

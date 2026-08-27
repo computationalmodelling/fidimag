@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     Ts = np.linspace(0, 0.5, 11)
     Hs = np.linspace(0, 0.5, 11)
-    print Ts, Hs
+    print(Ts, Hs)
 
     task = BatchTasks(excite_system, 1, taskname='task')
     task.add_parameters('T', Ts)
@@ -113,8 +113,8 @@ if __name__ == '__main__':
 
     pars, res = task.get_res()
 
-    print pars
-    print res
+    print(pars)
+    print(res)
 
     np.save('res.npy', res)
 

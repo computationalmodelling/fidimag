@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 import numpy as np
 import os
 import time
@@ -19,7 +17,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
-class ChainMethodBase(object):
+class ChainMethodBase:
     """
 
     Base Class for chain methods, such as NEBM or String Method codes.

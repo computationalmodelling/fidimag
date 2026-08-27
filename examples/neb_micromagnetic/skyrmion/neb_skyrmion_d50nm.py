@@ -158,7 +158,7 @@ t = Timer()
 
 # Initiate the NEB realaxation and compute the timing of this simulation
 for k in krange:
-    print 'Computing for k = {}'.format(k)
+    print('Computing for k = {}'.format(k))
     t.start()
     relax_neb(float(k), 2000,
               'neb_nanodisk_d50nm_k{}'.format(k),

@@ -99,7 +99,7 @@ def excite_system(mesh):
         sim.run_until(t)
         sim.save_vtk()
         sim.save_m()
-        print 'sim t=%g' % t
+        print('sim t=%g' % t)
 
 
 if __name__ == '__main__':

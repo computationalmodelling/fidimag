@@ -28,7 +28,7 @@ def relax_system(mesh):
 
     ts = np.linspace(0, 1, 11)
     for t in ts:
-        print t, sim.spin_length() - 1
+        print(t, sim.spin_length() - 1)
         sim.run_until(t)
 
     sim.save_vtk()
@@ -41,5 +41,5 @@ if __name__ == '__main__':
     mesh = CuboidMesh(nx=20, ny=1, nz=1, pbc=None)
 
     m0 = relax_system(mesh)
-    print 'relax system done'
+    print('relax system done')
     # spin_wave(mesh,m0)

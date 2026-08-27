@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 import numpy as np
 import fidimag.extensions.nebm_clib as nebm_clib
 import fidimag.common.constant as const
@@ -81,7 +79,7 @@ class StringMethod(ChainMethodBase):
                  integrator='verlet'  # or scipy
                  ):
 
-        super(StringMethod, self).__init__(sim,
+        super().__init__(sim,
                                            initial_images,
                                            interpolations=interpolations,
                                            name=name,

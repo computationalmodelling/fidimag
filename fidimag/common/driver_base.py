@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 
 import os
 import numpy as np
@@ -9,7 +7,7 @@ from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
     StepIntegrator, ScipyIntegrator
 
 
-class DriverBase(object):
+class DriverBase:
     """
     Common methods for the micromagnetic and atomistic driver classes
     """

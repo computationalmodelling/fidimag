@@ -46,7 +46,7 @@ def excite_system(mesh):
     ts = np.linspace(0, 20000, 5001)
     for t in ts:
         sim.run_until(t)
-        print 'sim t=%g' % t
+        print('sim t=%g' % t)
 
 
 def deal_plot():
@@ -54,7 +54,7 @@ def deal_plot():
     ts = data['time']
     N = len(ts)
     dt = ts[1] - ts[0]
-    print 'dt=', dt
+    print('dt=', dt)
 
     freq = np.fft.fftshift(np.fft.fftfreq(N, dt))
 

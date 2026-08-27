@@ -74,6 +74,6 @@ if __name__ == '__main__':
     mesh.set_material(ni)
 
     m0 = relax_system(mesh, ni)
-    print 'relax system done'
+    print('relax system done')
     ni.alpha = 0.05
     dw_motion(mesh, m0, ni)

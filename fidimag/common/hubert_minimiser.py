@@ -84,7 +84,7 @@ class HubertMinimiser(MinimiserBase):
         """
 
         # Inherit from the base minimiser class
-        super(HubertMinimiser, self).__init__(mesh, spin,
+        super().__init__(mesh, spin,
                                               magnetisation, magnetisation_inv,
                                               field,
                                               pins,

@@ -63,7 +63,7 @@ class Sim(SimBase):
                  integrator='sundials', use_jac=False
                  ):
 
-        super(Sim, self).__init__(mesh, name)
+        super().__init__(mesh, name)
 
         self._micromagnetic = True
 

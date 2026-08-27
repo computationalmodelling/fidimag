@@ -1,8 +1,7 @@
-from __future__ import print_function
 import numpy as np
 
 
-class UnitMaterial(object):
+class UnitMaterial:
 
     def __init__(self):
         self.a = 1
@@ -16,7 +15,7 @@ class UnitMaterial(object):
         self.unit_length = 1
 
 
-class Nickel(object):
+class Nickel:
 
     def __init__(self):
         self.mu_0 = 4 * np.pi * 1e-7

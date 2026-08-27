@@ -1,4 +1,3 @@
-from __future__ import print_function
 import numpy as np
 from fidimag.common.cuboid_mesh import CuboidMesh
 

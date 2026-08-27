@@ -1,4 +1,3 @@
-from __future__ import division
 
 from .micro_driver import MicroDriver
 
@@ -39,7 +38,7 @@ class LLG_STT_CPP(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super(LLG_STT_CPP, self).__init__(mesh, spin, Ms, Ms_inv, field,
+        super().__init__(mesh, spin, Ms, Ms_inv, field,
                                           pins, interactions, name,
                                           data_saver,
                                           integrator=integrator,

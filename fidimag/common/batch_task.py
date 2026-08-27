@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import time
 import numpy as np
@@ -7,7 +6,7 @@ from multiprocessing import Process, Queue, Lock
 lock = Lock()
 
 
-class TaskState(object):
+class TaskState:
     """
     Each task has three states: "Done!", "Started!", "Unstarted!"
     """
@@ -31,7 +30,7 @@ class TaskState(object):
     def save_state(self):
         f = open(self.taskname, 'w')
         for (k, v) in self.state.items():
-            f.write(u'%s : %s\n' % (k, v))
+            f.write('%s : %s\n' % (k, v))
         f.close()
 
     def update_state(self, k, v, save=True):
@@ -79,7 +78,7 @@ class TaskState(object):
             res.append(str(d[k]))
         return '_'.join(res)
 
-class BatchTasks(object):
+class BatchTasks:
 
     def __init__(self, fun, processes=4, taskname='task', waiting_time=1):
         self.fun = fun

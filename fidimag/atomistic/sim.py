@@ -59,7 +59,7 @@ class Sim(SimBase):
                  use_jac=False
                  ):
 
-        super(Sim, self).__init__(mesh, name)
+        super().__init__(mesh, name)
 
         # We should change this:
         self._micromagnetic = False

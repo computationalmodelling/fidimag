@@ -4,7 +4,7 @@ from fidimag.common.fileio import DataSaver, DataReader
 import numpy as np
 
 
-class SimBase(object):
+class SimBase:
     """
 
     A class with common methods and definitions for both micromagnetic and

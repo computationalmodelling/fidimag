@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Energy(object):
+class Energy:
 
     """
     An abstract class to implement the basic functions such as setup in micromagnetics.

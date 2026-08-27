@@ -63,7 +63,7 @@ def dynamic(mesh):
     for t in ts:
         sim.run_until(t)
         sim.save_vtk()
-        print t
+        print(t)
 
 
 if __name__ == '__main__':

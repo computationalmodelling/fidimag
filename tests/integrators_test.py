@@ -2,7 +2,6 @@
 Sanity testing of the integrators in integrators.py.
 
 """
-from __future__ import print_function
 import matplotlib as mpl
 mpl.use('Agg')
 import pytest

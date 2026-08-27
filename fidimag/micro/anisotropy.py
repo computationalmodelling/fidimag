@@ -18,7 +18,7 @@ class UniaxialAnisotropy(Energy):
         self.axis = axis
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        super(UniaxialAnisotropy, self).setup(mesh, spin, Ms, Ms_inv)
+        super().setup(mesh, spin, Ms, Ms_inv)
 
         self._Ku = helper.init_scalar(self.Ku, self.mesh)
         self._axis = helper.init_vector(self.axis, self.mesh, 3, norm=True)
@@ -54,7 +54,7 @@ class UniaxialAnisotropy4(Energy):
         self.axis = axis
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        super(UniaxialAnisotropy4, self).setup(mesh, spin, Ms, Ms_inv)
+        super().setup(mesh, spin, Ms, Ms_inv)
 
         self._K1 = helper.init_scalar(self.K1, self.mesh)
         self._K2 = helper.init_scalar(self.K2, self.mesh)

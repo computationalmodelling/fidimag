@@ -2,7 +2,7 @@ import numpy as np
 import fidimag.common.helper as helper
 
 
-class Zeeman(object):
+class Zeeman:
 
     """
 
@@ -107,7 +107,7 @@ class TimeZeeman(Zeeman):
         self.jac = False
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        super(TimeZeeman, self).setup(mesh, spin, mu_s, mu_s_inv)
+        super().setup(mesh, spin, mu_s, mu_s_inv)
         self.H_init = self.field.copy()
 
     def compute_field(self, t=0):

@@ -3,7 +3,7 @@ import numpy as np
 from fidimag.common import CuboidMesh
 
 
-class DemagHexagonal(object):
+class DemagHexagonal:
     """
     This class allows to compute the Demag in a hexagonal mesh, using
     an equivalent cuboid mesh, where zeroes are appended between

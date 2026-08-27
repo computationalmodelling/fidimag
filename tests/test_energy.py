@@ -1,4 +1,3 @@
-from __future__ import print_function
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
@@ -12,7 +11,7 @@ from fidimag.common.fileio import DataReader
 import numpy as np
 
 
-class UnitMaterial(object):
+class UnitMaterial:
 
     def __init__(self):
         self.a = 1

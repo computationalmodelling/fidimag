@@ -1,4 +1,3 @@
-from __future__ import division
 import numpy as np
 import fidimag.extensions.clib as clib
 import fidimag.common.helper as helper
@@ -35,7 +34,7 @@ class SLLG(AtomisticDriver):
                  ):
 
         # Inherit from the driver class
-        super(SLLG, self).__init__(mesh, spin, mu_s, mu_s_inv, field,
+        super().__init__(mesh, spin, mu_s, mu_s_inv, field,
                                    pins, interactions, name,
                                    data_saver,
                                    use_jac=use_jac,

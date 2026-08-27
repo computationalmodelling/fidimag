@@ -1,4 +1,3 @@
-from __future__ import print_function
 import numpy as np
 import fidimag.extensions.dipolar as dipolar
 from fidimag.common import CuboidMesh

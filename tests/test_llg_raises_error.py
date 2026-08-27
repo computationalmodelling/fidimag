@@ -1,4 +1,3 @@
-from __future__ import print_function
 from fidimag.common import CuboidMesh
 from fidimag.micro import Sim
 from fidimag.micro import Zeeman

@@ -48,7 +48,7 @@ cdef extern from "dipolar.h":
     void compute_demag_tensors_2dpbc(fft_demag_plan *plan, double *tensors, double pbc_2d_error, int sample_repeat_nx, int sample_repeat_ny, double dipolar_radius)
     void fill_demag_tensors_c(fft_demag_plan *plan, double *tensors)
 
-cdef class FFTDemag(object):
+cdef class FFTDemag:
     cdef fft_demag_plan *_c_plan
     cdef public int total_length, lenx, leny, lenz, lenxy
     cdef np.float64_t[:] tensor_xx_p, tensor_xy_p, tensor_xz_p, tensor_yy_p, \

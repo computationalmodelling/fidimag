@@ -1,4 +1,3 @@
-from __future__ import division
 import numpy as np
 import fidimag.extensions.clib as clib
 # import fidimag.common.constant as const
@@ -27,7 +26,7 @@ class GradientDescentMinimiser(MinimiserBase):
                  ):
 
         # Inherit from the base minimiser class
-        super(GradientDescentMinimiser, self).__init__(mesh, spin,
+        super().__init__(mesh, spin,
                                                        magnetisation, magnetisation_inv,
                                                        field,
                                                        pins,

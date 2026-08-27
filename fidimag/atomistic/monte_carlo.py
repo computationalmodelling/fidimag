@@ -1,5 +1,3 @@
-from __future__ import division
-from __future__ import print_function
 import os
 import numpy as np
 import fidimag.extensions.clib as clib
@@ -8,7 +6,7 @@ import fidimag.common.helper as helper
 import fidimag.common.constant as const
 from fidimag.common.vtk import VTK
 
-class MonteCarlo(object):
+class MonteCarlo:
 
     def __init__(self, mesh, name='unnamed'):
         self.mesh = mesh

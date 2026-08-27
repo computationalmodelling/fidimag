@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division
 import numpy as np
 from scipy.interpolate import CubicHermiteSpline
 import fidimag.extensions.nebm_clib as nebm_clib
@@ -160,7 +158,7 @@ class NEBM_Geodesic(ChainMethodBase):
                  integrator='sundials'  # or scipy
                  ):
 
-        super(NEBM_Geodesic, self).__init__(sim,
+        super().__init__(sim,
                                             initial_images,
                                             interpolations=interpolations,
                                             spring_constant=spring_constant,

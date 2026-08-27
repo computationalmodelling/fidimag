@@ -3,7 +3,6 @@ This code reproduces a Fidimag simulation using OOMMF
 
 """
 
-from __future__ import print_function
 import os
 import logging
 import subprocess

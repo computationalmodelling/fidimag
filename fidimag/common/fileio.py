@@ -3,7 +3,7 @@ import numpy as np
 import re  # For cvode RHS output
 
 
-class DataSaver(object):
+class DataSaver:
 
     comment_symbol = '# '
 
@@ -100,7 +100,7 @@ class DataSaver(object):
             f.write('\n')
 
 
-class DataReader(object):
+class DataReader:
 
     # open ndt file
     def __init__(self, filename):

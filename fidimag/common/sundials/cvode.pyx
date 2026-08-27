@@ -328,7 +328,7 @@ cdef int psolve_openmp(double t, N_Vector y, N_Vector fy, N_Vector r, N_Vector z
     return 0
 
 
-cdef class CvodeSolver(object):
+cdef class CvodeSolver:
     cdef public double t
     cdef public np.ndarray y
     cdef double rtol, atol
@@ -586,7 +586,7 @@ cdef class CvodeSolver(object):
         CVodeFree(& self.cvode_mem)
         SUNContext_Free(& self.sunctx)
 
-cdef class CvodeSolver_OpenMP(object):
+cdef class CvodeSolver_OpenMP:
     cdef public double t
     cdef public np.ndarray y
     cdef double rtol, atol

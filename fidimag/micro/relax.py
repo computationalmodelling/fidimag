@@ -2,7 +2,7 @@ import fidimag.extensions.baryakhtar_clib as clib
 import numpy as np
 
 
-class Relaxation(object):
+class Relaxation:
 
     """
     compute the relaxation field related to exchange field.
@@ -44,7 +44,7 @@ class Relaxation(object):
         return 0.0
 
 
-class Laplace(object):
+class Laplace:
 
     """
         compute the laplace for given field.

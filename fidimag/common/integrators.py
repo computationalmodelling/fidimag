@@ -9,7 +9,7 @@ import warnings
 EPSILON = 1e-16
 
 
-class BaseIntegrator(object):
+class BaseIntegrator:
     def __init__(self, spins, rhs_fun):
         self.y = spins
         self.t = 0
@@ -32,7 +32,7 @@ class BaseIntegrator(object):
 
 class StepIntegrator(BaseIntegrator):
     def __init__(self, spins, rhs_fun, step="euler", stepsize=1e-15):
-        super(StepIntegrator, self).__init__(spins, rhs_fun)
+        super().__init__(spins, rhs_fun)
 
         self.set_step(step)
         self.stepsize = stepsize
@@ -58,7 +58,7 @@ class StepIntegrator(BaseIntegrator):
 
 class ScipyIntegrator(BaseIntegrator):
     def __init__(self, spins, rhs_fun):
-        super(ScipyIntegrator, self).__init__(spins, rhs_fun)
+        super().__init__(spins, rhs_fun)
         self.integrator_created = False
         self.internal_timesteps = [0]
 
