@@ -2,19 +2,22 @@ Installation
 ============
 
 
-Please use these instructions to build and run Fidimag on Linux, OS X, or Windows WSL. 
-Fidimag can work in Windows using a Python disctribution such as Anaconda or Mamba, with a C/C++ compiler. 
+Please use these instructions to build and run Fidimag on Linux, OS X, or Windows WSL.
+Fidimag can work in Windows using a Python disctribution such as Anaconda or Mamba, with a C/C++ compiler.
+
+Fidimag is built with `scikit-build-core` and CMake, and the Python environment
+is managed with `uv <https://docs.astral.sh/uv/>`. A more detailed description
+of the build, including how to pass options to CMake, is in ``BUILD.md``.
+
 
 Linux
 -----
 
-We recommend using `mamba <https://mamba.readthedocs.io/en/latest/>` (or conda). First create an environment with Python >= 3.10.
+Install `uv`, if it is not already available:
 
 .. code-block:: bash
 
-    mamba create -n fidimag python=3.13 -c conda-forge
-    mamba activate fidimag
-
+    curl -LsSf https://astral.sh/uv/install.sh | sh
 
 Now clone the repository and `cd` into it.
 
@@ -23,68 +26,87 @@ Now clone the repository and `cd` into it.
     git clone git@github.com:computationalmodelling/fidimag.git
     cd fidimag
 
-
-Install FFTW and Sundials. You will need a relatively recent installation of  (> version 3) to use the Sundials script. You may also need to install development versions of
+Fidimag needs FFTW and SUNDIALS, and you may also need the development versions
+of
 
 * BLAS
 * LAPACK
 
-though many Linux distributions come with these. Using the scripts provided in Fidimag:
+though many Linux distributions come with these. You will also need CMake (>=
+3.18) and a C/C++ compiler with OpenMP support. Using the scripts provided in
+Fidimag to build FFTW and SUNDIALS into ``local/``:
 
 .. code-block:: bash
 
     cd bin
     bash install-fftw.sh
     bash install-sundials.sh
+    cd ..
 
 The installation script will automatically download and build SUNDIALS v7.6.0.
 
-Python library dependencies are specified in the `pyproject.toml` file. We can install the `fidimag` library in editable mode, using `pip`:
+Python library dependencies are specified in the `pyproject.toml` file, and the
+versions that are known to work together are recorded in `uv.lock`. To create
+the environment and build the C/C++ modules into it:
 
 .. code-block:: bash
 
-    pip install -e .
+    uv sync
 
-This will build the C/C++ modules and setup `fidimag` in our Python environment. We can make any changes to the Python code and not install the library again, unless we modified the C/C++ modules, which requires building again. Now we can simply call
-
-.. code-block:: bash
-
-    python -c "import fidimag"
-
-
-If you want to check everything has worked correctly, try the command 'make test' from the fidimag directory - if all tests pass, then you have a working installation!
-
-Alternatively, for development, we can install the C/C++ modules
+This installs Fidimag in editable mode, so we can make any changes to the
+Python code and not install the library again. Modifying the C/Cython modules
+does require building again, which is the same command:
 
 .. code-block:: bash
 
-    make
+    uv sync --reinstall-package fidimag
 
-
-and link the Fidimag directory to the Python path
+The `Makefile` has this as ``make build``. Now we can call
 
 .. code-block:: bash
 
-    export PYTHONPATH=/path/to/fidimag:$PYTHONPATH
+    uv run python -c "import fidimag"
 
+Any command that needs the Fidimag environment is run in the same way, with
+``uv run``, and there is no environment to activate. If you prefer to activate
+it, ``uv`` creates it in ``.venv``.
 
-Any changes to the C/C++ modules will require building only the modified codes and not all of the modules using `make`.
+To also install the optional dependencies, which are the ones needed to run the
+tests (``dev``) and to build this documentation (``docs``):
+
+.. code-block:: bash
+
+    uv sync --all-extras
+
+Note that ``uv sync --reinstall-package fidimag`` only installs the main
+dependencies, so run ``uv sync --all-extras`` again after rebuilding if you
+need the extras.
+
+If you want to check everything has worked correctly, try the command ``make
+test`` from the fidimag directory - if all tests pass, then you have a working
+installation!
 
 
 OS X
 ----
 
-OS X has not shipped with GCC since the release of OS X Mavericks. You therefore need to install this, as the version of clang which ships does not support OpenMP. We advise that you use the brew package manager, and install gcc5. We also strongly advise that you install the Anaconda Python distribution - we do not test against the version of Python that comes with OS X.
-
-Once you have done this, you need to specify the compiler you are using
+The version of clang that ships with OS X does not support OpenMP, so a GCC
+installation is needed. We advise that you use the brew package manager:
 
 .. code-block:: bash
 
-    export CC=gcc-5
+    brew install cmake gcc@15
 
-You can then follow the same installation instructions as for 'Other Linux', but don't worry about BLAS and LAPACK as Anaconda takes care of these for you.
+Then specify the compilers when building, since the build has to use the same
+ones for the C and C++ modules:
 
-Then, follow the instructions in 'All Systems' below.
+.. code-block:: bash
+
+    CC=gcc-15 CXX=g++-15 CMAKE_GENERATOR="Unix Makefiles" uv sync
+
+You can then follow the same installation instructions as for Linux, but don't
+worry about BLAS and LAPACK as they are taken care of for you.
+
 
 Troubleshooting
 ---------------
@@ -94,6 +116,17 @@ If there is a problem with finding C/C++ sundials and fftw libraries, it is nece
 .. code-block:: bash
 
     export LD_LIBRARY_PATH=/path/to/fidimag/local/lib:$LD_LIBRARY_PATH
+
+The build looks in ``local/`` first and only then falls back to a system
+installation, so a system FFTW is not picked up by mistake when both are
+present.
+
+If a build fails after the C/Cython sources have changed, or after switching
+branches, the old artefacts can be removed with
+
+.. code-block:: bash
+
+    make clean
 
 
 OOMMF
