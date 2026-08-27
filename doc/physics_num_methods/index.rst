@@ -9,4 +9,5 @@ Magnetism and Numerical Methods
    core_eqs
    extended_eqs
    monte_carlo
+   energy_minimisation
    nebm
