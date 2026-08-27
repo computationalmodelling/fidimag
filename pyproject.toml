@@ -78,8 +78,13 @@ dev = [
     "nbval",
 ]
 docs = [
+    # Same set that doc/environment.yml installs for Read the Docs, but left
+    # unpinned: the versions pinned there need Python >= 3.12, while this
+    # project still supports 3.9
     "sphinx",
-    "sphinx-rtd-theme",
+    "nbsphinx",
+    "pydata-sphinx-theme",
+    "ipython",
 ]
 test = [
     "pytest>=6.0",

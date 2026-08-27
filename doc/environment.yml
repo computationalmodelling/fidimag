@@ -1,10 +1,19 @@
 # name of the conda environment
 name: fidimag_docs
 
+channels:
+  - conda-forge
+
 dependencies:
+  # Sphinx 9 requires Python >= 3.12
+  - python=3.13
+  # nbsphinx converts the markdown cells of the notebooks with pandoc
   - pandoc
-  - nbformat
+  - pip
   - pip:
       - ipython
-      - nbsphinx
-      - pydata-sphinx-theme
+      # Versions are pinned so that a build is reproducible: Read the Docs
+      # installs a Sphinx of its own choosing otherwise. Bump them deliberately
+      - sphinx==9.1.0
+      - nbsphinx==0.9.8
+      - pydata-sphinx-theme==0.21.0

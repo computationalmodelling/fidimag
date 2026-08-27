@@ -1,9 +1,14 @@
 version: 2
 
 build:
-  os: "ubuntu-20.04"
+  # ubuntu-20.04 is no longer offered by Read the Docs, and a build asking for
+  # it fails before it starts
+  os: "ubuntu-26.04"
   tools:
-    python: "mambaforge-22.9"
+    # mambaforge-* is deprecated and replaced by miniforge3. Pinned rather than
+    # `latest` so that a new release of the tool cannot break the build on its
+    # own; bump it deliberately
+    python: "miniforge3-26.3"
 
 conda:
   environment: doc/environment.yml

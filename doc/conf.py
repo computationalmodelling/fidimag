@@ -27,6 +27,12 @@ extensions = ['sphinx.ext.autodoc',
 
 autosummary_generate = True
 
+# The notebooks under user_guide/ipynb are stored with their outputs, and
+# Fidimag itself is not installed in the environment that builds these docs, so
+# they must be rendered as they are rather than re-executed. Without this,
+# nbsphinx executes any notebook it finds with no stored outputs.
+nbsphinx_execute = 'never'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -41,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Fidimag'
-copyright = '2015-2020, Fidimag Team'
+copyright = '2015-2026, Fidimag Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -67,10 +73,9 @@ pygments_style = 'sphinx'
 # html_theme = 'sphinx_rtd_theme'
 html_theme = "pydata_sphinx_theme"
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# There is no _static directory in this documentation. If custom static files
+# (such as style sheets) are added later, uncomment the following line:
+# html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'fidimagdoc'
