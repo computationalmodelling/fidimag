@@ -54,9 +54,9 @@ copyright = '2015-2026, Fidimag Team'
 # built documents.
 #
 # The short X.Y version.
-version = '3.0'
+version = '4.0'
 # The full version, including alpha/beta/rc tags.
-release = 'v3.0'
+release = 'v4.0'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

@@ -1,3 +1,45 @@
+Version 4.0
+-----------
+
+### Energy minimisation
+
+* **Hubert minimiser**: new `stepControl='BB'` argument to `minimise`, which
+  uses Barzilai-Borwein step lengths with a non-monotone line search instead of
+  the creep algorithm. It needs no `eta_scale`, which had to be matched by hand
+  to the units of the effective field, and reaches the same minimum in fewer
+  evaluations (139 against 649 on a 1D domain wall, 950 against more than 6000
+  on a skyrmion with demagnetising field). The default remains
+  `stepControl='hubert'`
+* **Steepest descent**: fixed the Barzilai-Borwein step size never reaching
+  Python from `sd_compute_step`, which took it by value and dropped it, so the
+  class had been running with a constant step and was sensitive to
+  `initial_t_step`
+* **Steepest descent**: a non-positive Barzilai-Borwein quotient no longer
+  produces a step up the energy, which could leave the iteration stalled in a
+  configuration that was not a minimum
+* **Steepest descent**: new optional `energy_guard` argument, which accepts a
+  step only if it passes a non-monotone sufficient-decrease test. It is what
+  makes an aggressive `tmax` usable
+* New `tests/test_steepest_descent.py`, and a new documentation section on
+  energy minimisation
+
+### Python 2 clean-up
+
+* Removed `from __future__` imports, `u''` string prefixes, `# -*- coding:
+  utf-8 -*-` headers, `class X(object)` bases and `super(X, self)` calls
+  throughout
+* Converted the remaining Python 2 `print` statements in `examples/` and
+  `tests/jacobian_computation.py`, which could not be run at all before
+* Updated the notebooks under `doc/user_guide/ipynb/` that still declared a
+  Python 2 kernel
+
+### Documentation
+
+* Read the Docs now builds on `ubuntu-26.04` with `miniforge3`: the configured
+  `ubuntu-20.04` is no longer offered and `mambaforge` is deprecated
+* The documentation dependencies are pinned in `doc/environment.yml`, and the
+  `docs` extra installs what the docs actually import
+
 Version 3.0
 -----------
 
