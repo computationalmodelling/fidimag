@@ -23,6 +23,52 @@ Version 4.0
 * New `tests/test_steepest_descent.py`, and a new documentation section on
   energy minimisation
 
+### Demagnetising field
+
+* **Faster FFT demag**: the `O(N)` glue loops around the FFTs are now
+  OpenMP-parallelised, and the spectral tensor multiply is bounded to the
+  `lenz * leny * (lenx/2 + 1)` points an r2c transform actually produces
+  instead of iterating over the whole padded grid, which was about twice the
+  necessary work. The padding now goes to the next even 7-smooth size above
+  `2n` rather than exactly `2n`, so awkward mesh sizes avoid FFTW's slow
+  large-prime path. Measured per demag field call, 2D and 4 threads: 2.1x at
+  `n = 32`, 2.5x at `n = 64`, 2.2x at `n = 128`, and 4.7x at `n = 127`, which
+  was large-prime bound. Field values are bit-for-bit unchanged
+* **Lower memory**: the twelve spectral arrays were allocated with
+  `total_length` entries, roughly twice what an r2c transform can fill. Sizing
+  them to the spectrum saves about 24% per `Demag` object, 44.1 -> 33.5 MB for
+  a 200x200x1 mesh and 135.6 -> 101.2 MB for 64x64x16. The allocation sizes are
+  also computed in `size_t` now: the product crossed `INT_MAX` and was
+  truncated for a padded grid of about 1.3e8 points, which a 256^3 mesh reaches
+  exactly
+* **Fixed the 2d_pbc demag**, which never reproduced an infinite film: for a
+  uniformly magnetised one it gave `Nzz = 0.329` and `Nxy = -0.365` where a
+  film must give `Nzz = 1` and `Nxy = 0`. The kernel was laid out with its zero
+  offset at index `n - 1` while the convolution expects it at index 0, and the
+  signs of the odd components were wrong. An out-of-bounds read in the same
+  tensor fill is also fixed
+* **FMM/BH demag restored**: the port to the uv build had dropped `DemagFMM`
+  and its C++ extension. It is back and wired into CMake, `compute_energy` no
+  longer returns 0, and `tests/test_demag_fmm.py` checks both the `fmm` and
+  `bh` methods against brute-force `DemagFull`
+
+### VTK output
+
+* The pyvtk dependency is gone, replaced by a pure-Python writer for the modern
+  XML formats: `.vti` (ImageData) for `CuboidMesh` and `.vtp` (PolyData) for
+  `HexagonalMesh`, with cell data inline-encoded as base64 float32. The
+  `SaveVTK` wrapper class was folded into direct `VTK` usage
+* `VTK.save_as()` writes a single file at an arbitrary path, and `save_vtk()`
+  takes an optional filename
+* The `Scalars` and `Vectors` attributes of `CellData` name one array each, and
+  the writer was joining every name with spaces, so a file with more than one
+  scalar named no valid array and readers fell back on a default. The first of
+  each is named now; the others are still written and selectable
+* Every file records what wrote it in `FieldData`, naming the Fidimag version
+  and describing the mesh, e.g. `fidimag 4.0 | CuboidMesh nx=4 ny=3 nz=2 n=24
+  dx=1 dy=2 dz=3 | unit_length=1e-09`. This is what makes a `.vti` still
+  readable as evidence once it is one of several hundred in a `vtks/` directory
+
 ### Python 2 clean-up
 
 * Removed `from __future__` imports, `u''` string prefixes, `# -*- coding:
@@ -39,6 +85,19 @@ Version 4.0
   `ubuntu-20.04` is no longer offered and `mambaforge` is deprecated
 * The documentation dependencies are pinned in `doc/environment.yml`, and the
   `docs` extra installs what the docs actually import
+* The installation instructions describe the `uv sync` build instead of
+  `pip install -e .` and `make`
+* The NEBM section describes the current code: the `ChainMethodBase` class that
+  the methods derive from, `StringMethod`, the removal of `NEBM_Cartesian`, the
+  single `nebm_clib` Cython module that replaced the one-per-coordinate-system
+  ones, the choice of integrator, and the renaming of `nebm_tools` to
+  `chain_method_tools`. The class diagram is regenerated, and references to
+  Abert, and to Fabian and Shcherbakov, are added
+* The `steepest_descent_atomistic` and `hubert_minimiser_atomistic` notebooks
+  are re-executed, since their stored outputs predate the fixes to both
+  minimisers. The steepest descent ones show the difference plainly: the one
+  dimensional relaxation goes from 711 steps to 176, and the two dimensional
+  one from not converging in 6000 steps to converging in 192
 
 Version 3.0
 -----------
