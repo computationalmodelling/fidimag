@@ -35,7 +35,7 @@ cdef extern from "common_clib.h":
                          double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                          int* pins, int n)
 
-    void sd_compute_step (double *spin, double *spin_last, double *magnetisation,
+    double sd_compute_step (double *spin, double *spin_last, double *magnetisation,
                           double *field,
                           double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                           int *pins, int n, int counter, double tmin, double tmax)
@@ -130,11 +130,11 @@ def compute_sd_step(double [:] spin,
                     int [:] pins,
                     n, counter, tmin, tmax):
 
-    sd_compute_step(&spin[0], &spin_last[0], &magnetisation[0],
-                    &field[0], &mxH[0],
-                    &mxmxH[0], &mxmxH_last[0], tau, &pins[0],
-                    n, counter, tmin, tmax
-                    )
+    return sd_compute_step(&spin[0], &spin_last[0], &magnetisation[0],
+                           &field[0], &mxH[0],
+                           &mxmxH[0], &mxmxH_last[0], tau, &pins[0],
+                           n, counter, tmin, tmax
+                           )
 
 def normalise(a):
     """

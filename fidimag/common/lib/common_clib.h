@@ -72,7 +72,7 @@ void sd_update_spin(double *spin, double *spin_last, double *magnetisation,
                     double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                     int *pins, int n);
 
-void sd_compute_step(double *spin, double *spin_last, double *magnetisation, double *field,
+double sd_compute_step(double *spin, double *spin_last, double *magnetisation, double *field,
                      double *mxH, double *mxmxH, double *mxmxH_last, double tau,
                      int *pins, int n, int counter, double tmin, double tmax);
 

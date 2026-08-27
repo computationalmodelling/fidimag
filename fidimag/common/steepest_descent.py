@@ -4,6 +4,7 @@ import fidimag.extensions.common_clib as clib
 # Change int he future to common clib:
 import fidimag.extensions.clib as atom_clib
 import sys
+from itertools import cycle
 from .minimiser_base import MinimiserBase
 
 
@@ -87,6 +88,24 @@ class SteepestDescent(MinimiserBase):
 
         # Scaling of the field
         self.scale = 1.
+
+        # ---------------------------------------------------------------------
+        # State for the optional energy guard (see `minimise`). These are only
+        # allocated/used when `energy_guard=True`.
+
+        # Energy of the accepted configuration, scaled by `energyScale`
+        self.totalE = 0.0
+        self.totalE_last = 0.0
+        self.energyScale = 1.
+        # Copy of the last accepted configuration, to roll back a rejected
+        # trial step. `spin_last` cannot be used for this, since the C update
+        # overwrites it with whatever `spin` held when it was called
+        self._spin_accepted = np.zeros_like(self.spin)
+        # Trailing energy window of the non-monotone acceptance test
+        self.trailE = np.zeros(1)
+        # Number of effective field evaluations, which is larger than `step`
+        # when trial steps are rejected
+        self.nEval = 0
 
     @property
     def tmax(self):
@@ -203,23 +222,164 @@ class SteepestDescent(MinimiserBase):
 
         self.compute_effective_field()
 
-        # Notice that the field is scaled (in the micro class we use Tesla)
-        clib.compute_sd_step(self.spin, self.spin_last,
-                             self._magnetisation,
-                             self.scale * self.field,
-                             self.mxH, self.mxmxH, self.mxmxH_last,
-                             self.tau, self._pins,
-                             self.n, self.step,
-                             self._tmin, self._tmax
-                             )
+        # Notice that the field is scaled (in the micro class we use Tesla).
+        # The Barzilai-Borwein step size for the next iteration is the return
+        # value of the C function, so it must be assigned back here: `tau` is
+        # passed by value into C and an update made there would be lost.
+        self.tau = clib.compute_sd_step(self.spin, self.spin_last,
+                                        self._magnetisation,
+                                        self.scale * self.field,
+                                        self.mxH, self.mxmxH, self.mxmxH_last,
+                                        self.tau, self._pins,
+                                        self.n, self.step,
+                                        self._tmin, self._tmax
+                                        )
+
+    # WARNING: obj.compute_energy() computes the energy by calling
+    #          compute_field() first, evaluated at t=0; if the simulation has a
+    #          time-dependent-field, the answer might be wrong
+    def compute_effective_field_and_energy(self, t=0):
+        """
+        Effective field and total energy from a single pass over the
+        interactions, so that the energy guard costs no extra field
+        computation. The energy is scaled by the `energyScale` parameter.
+        """
+
+        self.field[:] = 0
+        self.totalE = 0
+        for obj in self.interactions:
+            obj.compute_energy()
+            self.field += obj.field[:]
+            self.totalE += obj.total_energy / self.energyScale
+
+    def run_step_guarded(self, nTrail, gamma, maxBacktrack, dTau):
+        """
+        One *accepted* step of the guarded iteration
+
+        The plain `run_step_CLIB` applies the Barzilai-Borwein step size
+        unconditionally: the energy is never evaluated, so a step that
+        overshoots is only noticed (if at all) through the next BB quotient.
+        Here the trial step is instead tested against the non-monotone
+        Grippo-Lampariello-Lucidi condition over the trailing energies,
+
+            E(m_new) <= max(trailE) - γ τ ||m × m × H||^2
+
+        and `τ` is backtracked by `dTau ** 2` until it passes. Allowing the
+        energy to rise above the *previous* energy, as long as it falls below
+        the largest of the last `nTrail`, is what keeps the BB step lengths
+        intact -- a monotone test would reject precisely the non-monotone
+        behaviour that makes them fast.
+
+        Returns the number of rejected trial steps.
+        """
+
+        self._spin_accepted[:] = self.spin[:]
+        Eref = self.trailE.max()
+        # Squared norm of the tangential gradient. `mxmxH` = m × (m × H) is,
+        # up to the field scaling, the projection of δE/δm onto the tangent
+        # plane of the sphere
+        gradNorm2 = np.dot(self.mxmxH, self.mxmxH)
+
+        # `sd_compute_step` already guarantees a positive tau in [tmin, tmax]
+        tau = self.tau
+
+        nBacktrack = 0
+        while True:
+            self.spin[:] = self._spin_accepted[:]
+            clib.compute_sd_spin(self.spin, self.spin_last,
+                                 self._magnetisation,
+                                 self.mxH, self.mxmxH, self.mxmxH_last,
+                                 tau, self._pins,
+                                 self.n
+                                 )
+            self.compute_effective_field_and_energy()
+            self.nEval += 1
+
+            if self.totalE <= Eref - gamma * self._gradScale * tau * gradNorm2:
+                break
+            nBacktrack += 1
+            if nBacktrack > maxBacktrack or tau <= self._tmin:
+                # Give up backtracking and keep the last trial: the guard is a
+                # safeguard, not a hard constraint, and the BB quotient
+                # computed below will react to the step that was taken
+                break
+            tau = tau / (dTau * dTau)
+
+        # `mxH`, `mxmxH` and the next BB step size, all evaluated at the
+        # accepted configuration. Note that the C routine derives its secant
+        # pair from `spin - spin_last`, so it automatically sees the step that
+        # was actually taken, backtracking included
+        self.tau = clib.compute_sd_step(self.spin, self.spin_last,
+                                        self._magnetisation,
+                                        self.scale * self.field,
+                                        self.mxH, self.mxmxH, self.mxmxH_last,
+                                        tau, self._pins,
+                                        self.n, self.step,
+                                        self._tmin, self._tmax
+                                        )
+
+        # `mxmxH` is built from the effective field, so it is the true energy
+        # gradient only up to a constant carrying the units of the
+        # interactions, further divided by `energyScale`. Calibrate that
+        # constant from the decrease actually observed, rather than
+        # hard-coding a conversion that differs between the micromagnetic and
+        # the atomistic classes
+        if tau * gradNorm2 > 0.0:
+            self._gradScale = max(self._gradScale,
+                                  (self.totalE_last - self.totalE)
+                                  / (tau * gradNorm2))
+        self.totalE_last = self.totalE
+
+        self.trailE[self._nTrailIdx] = self.totalE
+        self._nTrailIdx = next(self._trailPool)
+
+        return nBacktrack
 
     def minimise(self, stopping_dm=1e-3, max_steps=5000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_every=1000, printing=True,
-                 initial_t_step=1e-2
+                 initial_t_step=1e-2,
+                 energy_guard=False, nTrail=10, gamma=1e-4, maxBacktrack=15,
+                 dTau=2
                  ):
         """
         Run the minimisation until meeting the stopping_dm criteria
+
+        Parameters
+        ----------
+        stopping_dm
+            Stop once no spin moves further than this in a single step
+        max_steps
+            Maximum number of accepted steps
+        save_data_steps, save_m_steps, save_vtk_steps
+            Multiple of steps at which data, spin field and VTK file is saved
+        log_every
+            Show log info every X steps
+        printing
+            Print the log line
+        initial_t_step
+            Step size of the first iteration. The Barzilai-Borwein quotient
+            replaces it from the second step onwards, so its influence is
+            short-lived
+        energy_guard
+            If True, every trial step is accepted only if it passes a
+            non-monotone sufficient-decrease test on the energy, backtracking
+            otherwise (see `run_step_guarded`). This costs the evaluation of
+            the total energy at every step -- which is obtained from the same
+            pass over the interactions as the effective field, so it adds no
+            field computation -- plus the occasional rejected step. In return
+            the iteration cannot run away when the BB step overshoots. The
+            energy is scaled by the `energyScale` attribute
+        nTrail
+            Width of the trailing energy window of the guard. `nTrail = 1`
+            makes the acceptance test monotone
+        gamma
+            Sufficient-decrease parameter of the guard
+        maxBacktrack
+            Maximum number of backtracks per step before the last trial is
+            kept anyway
+        dTau
+            The guard backtracks by a factor `dTau ** 2`
         """
 
         # Rewrite tmax and tmin arrays and variable
@@ -231,12 +391,30 @@ class SteepestDescent(MinimiserBase):
         self.tau = initial_t_step
 
         self.spin_last[:] = self.spin[:]
-        self.compute_effective_field()
+        self.nEval = 0
+        if energy_guard:
+            self.compute_effective_field_and_energy()
+            self.totalE_last = self.totalE
+            # Fill the whole window with E0, so max(trailE) is a valid -- and
+            # initially tight -- reference from the very first step
+            self.trailE = np.full(nTrail, self.totalE)
+            self._trailPool = cycle(range(nTrail))
+            self._nTrailIdx = next(self._trailPool)
+            self._gradScale = 0.0
+        else:
+            self.compute_effective_field()
+        self.nEval += 1
         self.mxH[:] = self.field_cross_product(self.spin, self.scale * self.field)[:]
         self.mxmxH[:] = self.field_cross_product(self.spin, self.mxH)[:]
         self.mxmxH_last[:] = self.mxmxH[:]
+        nBacktrack = 0
         while self.step < max_steps:
-            self.run_step_CLIB()
+            if energy_guard:
+                nBacktrack = self.run_step_guarded(nTrail, gamma,
+                                                   maxBacktrack, dTau)
+            else:
+                self.run_step_CLIB()
+                self.nEval += 1
             # Vectorised calculation with Numpy:
             # self.run_step()
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
@@ -247,7 +425,10 @@ class SteepestDescent(MinimiserBase):
                     # print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}
                     print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
                             np.max(np.abs(self.tau)),
-                            max_dm))
+                            max_dm)
+                          + (" E={:<12.6g} backtracks={}".format(self.totalE,
+                                                                 nBacktrack)
+                             if energy_guard else ""))
 
             if max_dm < stopping_dm and self.step > 0:
                 print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,

@@ -43,14 +43,17 @@ void sd_update_spin(double *spin, double *spin_last, double *magnetisation,
     normalise(spin, pins, n);
 }
 
-void sd_compute_step(double *spin, double *spin_last, double *magnetisation, double *field,
-                     double *mxH, double *mxmxH, double *mxmxH_last, double tau,
-                     int *pins, int n, int counter, double tmin, double tmax) {
+// Recomputes the torques at the current spin configuration and returns the
+// Barzilai-Borwein step size for the next iteration. NOTE: the step size is
+// the return value; `tau` is only the step that was just taken, and is used
+// as the fallback when the BB quotient is not defined.
+double sd_compute_step(double *spin, double *spin_last, double *magnetisation, double *field,
+                       double *mxH, double *mxmxH, double *mxmxH_last, double tau,
+                       int *pins, int n, int counter, double tmin, double tmax) {
 
     double res;
     double num = 0;
     double den = 0;
-    double sign;
 #pragma omp parallel for reduction(+ : num, den)
     for (int i = 0; i < n; i++) {
         if (magnetisation[i] > 0.0) {
@@ -117,11 +120,21 @@ void sd_compute_step(double *spin, double *spin_last, double *magnetisation, dou
         res = num / den;
     }
 
-    // Micromagnum criteria:
-    sign = (res > 0) ? 1 : ((res < 0) ? -1 : 0);
-    tau = fmax(fmin(fabs(res), tmax), tmin) * sign;
+    // A non-positive quotient means non-positive curvature along the last
+    // step, where the Barzilai-Borwein estimate carries no information: using
+    // it would step *against* -m x m x H, i.e. up the energy. Fall back to the
+    // largest allowed step, as in the den == 0 case above. (Micromagnum keeps
+    // the sign here, but it drives the iteration uphill and can leave it
+    // stalled in a configuration that is not a minimum.)
+    if (res <= 0.0) {
+        res = tmax;
+    }
+
+    tau = fmax(fmin(res, tmax), tmin);
 
     // In MuMax3 they only define a specific value:
     // https://github.com/mumax/3/blob/master/engine/minimizer.go
     // tau = res;
+
+    return tau;
 }
