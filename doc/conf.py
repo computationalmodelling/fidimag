@@ -13,6 +13,11 @@
 import sys
 import os
 
+# The API reference is generated with autodoc, which imports the modules it
+# documents. Fidimag is not installed in the environment that builds these
+# docs, so it is imported from the repository, one directory up
+sys.path.insert(0, os.path.abspath('..'))
+
 # -- General configuration -----------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -22,10 +27,36 @@ import os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
+              'sphinx.ext.napoleon',
               'sphinx.ext.mathjax', 'sphinx.ext.viewcode',
               'nbsphinx']
 
+# Generate the stub pages of the API reference from the autosummary directives
 autosummary_generate = True
+autosummary_imported_members = False
+
+# Docstrings in Fidimag are written in the NumPy style
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'show-inheritance': True,
+}
+# Keep the signatures readable: default values such as arrays are not useful
+autodoc_preserve_defaults = True
+
+# autodoc has to import each module, and these are either compiled extensions,
+# which are not built in the documentation environment, or dependencies that
+# only a few modules need. Mocking them keeps the docs buildable without a
+# compiler, and without installing the whole run time stack
+autodoc_mock_imports = [
+    'fidimag.extensions',
+    'psutil',
+    'six',
+    'finitedifferencefield',
+]
 
 # The notebooks under user_guide/ipynb are stored with their outputs, and
 # Fidimag itself is not installed in the environment that builds these docs, so

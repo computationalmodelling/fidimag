@@ -9,6 +9,12 @@ dependencies:
   - python=3.13
   # nbsphinx converts the markdown cells of the notebooks with pandoc
   - pandoc
+  # autodoc imports the Fidimag modules to read their docstrings, so what they
+  # import at module level has to be here. The compiled extensions are mocked
+  # in conf.py instead, which is what keeps this environment free of a compiler
+  - numpy
+  - scipy
+  - matplotlib-base
   - pip
   - pip:
       - ipython
