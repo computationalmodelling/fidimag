@@ -11,6 +11,7 @@ class UniformExchange(Energy):
     Compute the exchange field in micromagnetics.
     
     Inputs:
+
         A: float
             A is the exchange stiffness constant measured in 
             Joules / Meter (J / M)

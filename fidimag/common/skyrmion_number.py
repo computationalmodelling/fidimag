@@ -14,9 +14,11 @@ def skyrmion_number_slice(sim, at=None, zIndex=None):
     only include the x-y plane as previously described.
 
     Arguments:
+
       sim: LLG object with cuboidal mesh.
 
-    Optional Arguments:
+    Optional Arguments::
+
       If neither of these arguments are specified, this function raises a
       ValueError.
 
@@ -26,6 +28,7 @@ def skyrmion_number_slice(sim, at=None, zIndex=None):
           slice. Overrides "at" if not None. Bound by zIndex~[0, sim.mesh.nz-1]
 
     Returns:
+
       skyrmionNumber (a float)
     """
 
@@ -82,9 +85,11 @@ def skyrmion_number_lee(sim):
     MnSi under pressure". PRL.
 
     Arguments:
+
       sim: LLG object with cuboidal mesh.
 
     Returns:
+
       skyrmionNumber (a float)
     """
 

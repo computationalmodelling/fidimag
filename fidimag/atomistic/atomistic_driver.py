@@ -122,6 +122,7 @@ class AtomisticDriver(DriverBase):
         Default option for the integrator
 
         * The value of gamma (gyromagnetic ratio) for a free electron
+
         is 1.76e11
 
         """

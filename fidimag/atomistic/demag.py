@@ -10,14 +10,14 @@ import sys
 
 
 class Demag(Energy):
-    """
+    r"""
 
     Energy class for the demagnetising field (a.k.a. dipolar interactions,
     stray field), *only for Cuboid meshes* (i.e. a square lattice in the
     discrete spin model), since this class uses the OOMMF's FFT code to
     simplify the field calculations.
 
-    The field has the expression:
+    The field has the expression::
 
                                    ^      ^         ^        ^
        ->      mu0 mu_s    __    3 r_ij ( m_j \cdot r_ij ) - m_j

@@ -8,10 +8,10 @@ import fidimag.common.helper as helper
 
 class DMI(Energy):
 
-    """
+    r"""
 
     Compute the Dzyaloshinskii-Moriya interaction in the micromagnetic
-    framework. Currently, there are supported the following types of DMI:
+    framework. Currently, there are supported the following types of DMI::
 
         bulk    :: The energy density associated to this DMI type is:
 
@@ -125,19 +125,23 @@ class DMI(Energy):
 
     ARGUMENTS: ----------------------------------------------------------------
 
-    D       :: DMI vector norm which can be specified as an int, float, (X * n)
-               or spatially dependent scalar field function. The units are
-               Joules / ( meter **2 ).
+    ::
 
-               int, float: D will have the same magnitude for every NN of the
-               spins at every mesh node, given by this magnitude
+        D       :: DMI vector norm which can be specified as an int, float, (X * n)
+                   or spatially dependent scalar field function. The units are
+                   Joules / ( meter **2 ).
 
-               (n) array or list: D for every DMI constant
+                   int, float: D will have the same magnitude for every NN of the
+                   spins at every mesh node, given by this magnitude
+
+                   (n) array or list: D for every DMI constant
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
 
-    dmi_type        :: 'bulk' or 'interfacial' or 'D_2d'
-    name            :: Interaction name
+    ::
+
+        dmi_type        :: 'bulk' or 'interfacial' or 'D_2d'
+        name            :: Interaction name
 
     """
 

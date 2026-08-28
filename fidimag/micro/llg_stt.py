@@ -12,7 +12,7 @@ class LLG_STT(MicroDriver):
     """
 
     This class is the driver to solve the Landau Lifshitz Gilbert equation
-    with a Spin Transfer Torque term, which has the form:
+    with a Spin Transfer Torque term, which has the form::
 
 
       dm        -gamma
@@ -43,12 +43,14 @@ class LLG_STT(MicroDriver):
     sim.driver.jz_func = myfunc_z
 
     The function definition to set the current must be of the form:
+
         def myfunc_x(pos):
             x, y, z = pos
             jx = # some function of x, y, and z.
             return jx
 
     Or, if the current is time dependent:
+
         def myfunc_x(pos, t):
             x, y, z = pos
             jx = # some function of x, y, z and t.

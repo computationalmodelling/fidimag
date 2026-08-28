@@ -8,14 +8,15 @@ class ExchangeRKKY(Energy):
     """
     RKKYExchange(sigma, Delta, z_bottom=0, z_top = -1, name='RKKYExchange')
 
-    Compute the RKKY-style exchange interaction defined by
+    Compute the RKKY-style exchange interaction defined by::
 
-    E = sigma/Delta *(1-m_t * m_b)
+        E = sigma/Delta * (1 - m_t * m_b)
 
     where E is the energy density, sigma is the surface exchange coefficient between the two surfaces, 
     Delata is the space thickness. m_t and m_b are the unit vectors of the top and bottom layers, respectively.
     
     Inputs:
+
         sigma: float
             sigma is the surface exchange stiffness constant.
         Delta: float

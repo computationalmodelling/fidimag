@@ -14,7 +14,7 @@ class LLG_STT_CPP(AtomisticDriver):
 
     This class is the driver to solve the Landau Lifshitz Gilbert equation
     with a Current Perpendicular to the Plane, which follows the formalism
-    of Spin Transfer Torque. The equation is given by:
+    of Spin Transfer Torque. The equation is given by::
 
 
           ds        -gamma

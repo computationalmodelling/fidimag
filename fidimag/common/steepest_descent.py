@@ -17,7 +17,7 @@ class SteepestDescent(MinimiserBase):
 
         m_i+1 = FM * (FP * m_i - 4 * tau * (m_i X m_i x H))
 
-    where
+    where::
 
         FM = (1 - tau^2 * (m_i X H)^2)
         FP = (1 + tau^2 * (m_i X H)^2)
@@ -260,6 +260,8 @@ class SteepestDescent(MinimiserBase):
         overshoots is only noticed (if at all) through the next BB quotient.
         Here the trial step is instead tested against the non-monotone
         Grippo-Lampariello-Lucidi condition over the trailing energies,
+
+        ::
 
             E(m_new) <= max(trailE) - γ τ ||m × m × H||^2
 

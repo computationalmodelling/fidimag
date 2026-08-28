@@ -18,53 +18,55 @@ class NEBM_Geodesic(ChainMethodBase):
     r"""
     ARGUMENTS -----------------------------------------------------------------
 
-    sim                 :: An instance of a micromagnetic or an atomistic
-                           simulation. Every image in the band will be a copy
-                           of this simulation.
+    ::
 
-    initial_images      :: A list containing numpy arrays or space dependent
-                           functions to set the magnetisation fields for every
-                           image in the band. It is suggested that the first
-                           and last elements define stable states of the
-                           magnetic system. The arrays and functions are used
-                           to load the magnetisation/spin fields through the
-                           sim.set_m method from the Simulation object.
+        sim                 :: An instance of a micromagnetic or an atomistic
+                               simulation. Every image in the band will be a copy
+                               of this simulation.
 
-    interpolations      :: A list with 1 element less than the initial_images
-                           list, where every entry is an integer indicating the
-                           number of interpolations between consecutive images.
-                           For example, if we defined initial_images as
-                           [state_1, state_2, state_3], and we want 10
-                           interpolations between state_1 and state_2 and 5
-                           interpolations between state_2 and state_3, we set
-                           interpolations as [10, 5], making an energy band of
-                           17 images. If we do not want any interpolation, we
-                           leave this list as None or empty.
+        initial_images      :: A list containing numpy arrays or space dependent
+                               functions to set the magnetisation fields for every
+                               image in the band. It is suggested that the first
+                               and last elements define stable states of the
+                               magnetic system. The arrays and functions are used
+                               to load the magnetisation/spin fields through the
+                               sim.set_m method from the Simulation object.
 
-    interpolation_method:: In case that a number of interpolations were
-                           defined, it is possible to specify how the
-                           interpolation is performed using any of these
-                           methods:
+        interpolations      :: A list with 1 element less than the initial_images
+                               list, where every entry is an integer indicating the
+                               number of interpolations between consecutive images.
+                               For example, if we defined initial_images as
+                               [state_1, state_2, state_3], and we want 10
+                               interpolations between state_1 and state_2 and 5
+                               interpolations between state_2 and state_3, we set
+                               interpolations as [10, 5], making an energy band of
+                               17 images. If we do not want any interpolation, we
+                               leave this list as None or empty.
 
-                                'linear'   : A linear interpolation of the spin
-                                             directions using spherical
-                                             coordinates
+        interpolation_method:: In case that a number of interpolations were
+                               defined, it is possible to specify how the
+                               interpolation is performed using any of these
+                               methods:
 
-                                'rotation' : Interpolation of the spin
-                                             directions using Rodrigue's
-                                             rotation formulae
+                                    'linear'   : A linear interpolation of the spin
+                                                 directions using spherical
+                                                 coordinates
 
-    spring_constant     :: The spring constant magnitude
+                                    'rotation' : Interpolation of the spin
+                                                 directions using Rodrigue's
+                                                 rotation formulae
 
-    name                :: The NEBM simulation name. Folders for VTK and NPY
-                           files, and data tables are named according to this
-                           string.
+        spring_constant     :: The spring constant magnitude
 
-    openmp              :: Set this as True to use the parallelised version of
-                           CVODE, which is the integrator used to evolve the
-                           NEBM minimisation equation.
+        name                :: The NEBM simulation name. Folders for VTK and NPY
+                               files, and data tables are named according to this
+                               string.
 
-    ---------------------------------------------------------------------------
+        openmp              :: Set this as True to use the parallelised version of
+                               CVODE, which is the integrator used to evolve the
+                               NEBM minimisation equation.
+
+        ---------------------------------------------------------------------------
 
     The NEB Method (NEBM) class to find minimum energy paths between two stable
     states in a given magnetic system. This class works both for atomistic and
@@ -77,7 +79,7 @@ class NEBM_Geodesic(ChainMethodBase):
     magnetic configurations, and where the first and last state are the stable
     states used to find a minimum energy transition between them. Calling the
     images as Y_i, after relaxation an energy band of N+1 images usually looks
-    like:
+    like::
 
 
                  Energy                ...
@@ -95,7 +97,8 @@ class NEBM_Geodesic(ChainMethodBase):
     where Y_0 and Y_N are the stable states.
 
     The NEBM evolves an energy band [Y_0, Y_1, ... , Y_N]  according to the
-    equation
+    equation::
+
                                      _______
                                     /     2
         dY                         /( dY )           2
@@ -118,7 +121,7 @@ class NEBM_Geodesic(ChainMethodBase):
     use an Geodesic distance, normalised by the number of degrees of freedom,
     which is the sum of all spin components, so if we have P spins in the
     system, the number of dofs is 3 * P, i.e. the 3 directions per spin.  The
-    distance is defined as:
+    distance is defined as::
 
                                       ___________________
                                      / P
@@ -127,7 +130,8 @@ class NEBM_Geodesic(ChainMethodBase):
                                \  /   /__
                                 \/    a=1
 
-    where
+    where::
+
                                  ->       ->        ->       ->
          L(i,j)_a  =  arctan2( | m(i)_a x m(j)_a |, m(i)_a o m(j)_a )
 
@@ -302,7 +306,9 @@ class NEBM_Geodesic(ChainMethodBase):
         """
         For variable spring constant (which is more effective if we have
         a saddle point), see:
+
              J. Chem. Phys. 113, 9901 (2000);
+
         Seems to work when we only have a single saddle point
         (TESTING functionality)
         """
@@ -431,7 +437,7 @@ class NEBM_Geodesic(ChainMethodBase):
     def compute_curvature_weighted_spring_lengths(self, n_interpolations=20):
         """
         Weight the spring-force segment spacing by the local energy
-        curvature |d^2E/d(path_distance)^2| instead of by the energy value
+        curvature ``|d^2E/d(path_distance)^2|`` instead of by the energy value
         (c.f. compute_energy_weighted_spring_lengths). dE/d(path_distance)
         vanishes at every critical point of the path -- minima *and*
         maxima alike -- so the energy-value weighting above refines the
@@ -458,8 +464,8 @@ class NEBM_Geodesic(ChainMethodBase):
         of adding genuinely new information about the landscape.
 
         This uses the adaptive-mesh/equidistribution approach: a monitor
-        (weight) function w(x) = (1 - ratio_C) + ratio_C * |curvature(x)|
-        / max|curvature|, in [1 - ratio_C, 1], is integrated along the
+        (weight) function ``w(x) = (1 - ratio_C) + ratio_C * |curvature(x)|
+        / max|curvature|``, in [1 - ratio_C, 1], is integrated along the
         path (self.spring_force_ratio sets ratio_C, same convention as
         compute_energy_weighted_spring_lengths). Where w(x) is large, a
         given physical path-distance step accumulates more of this
@@ -575,7 +581,7 @@ class NEBM_Geodesic(ChainMethodBase):
 
     def compute_distances(self):
         """
-        Compute the distance between corresponding images of self.band
+        Compute the distance between corresponding images of self.band::
 
                 A                   B
             [ [image_0]         [ [image_0]

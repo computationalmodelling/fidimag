@@ -8,7 +8,7 @@ from .minimiser_base import MinimiserBase
 class SimpleMinimiser(MinimiserBase):
     """
     A simple minimisation algorithm, where the evolution of the magnetisation
-    follows the system's torque
+    follows the system's torque::
 
         CHECK:
 

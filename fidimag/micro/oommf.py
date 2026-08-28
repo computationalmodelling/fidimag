@@ -131,44 +131,47 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0,
 
     Generate an OOMMF simulation script using the base text at the beginning of
     this code. This script will generate a MIF file with the name of the field
-    specified in the field variable which must be a valid OOMMF field name
+    specified in the field variable, which must be a valid OOMMF field name.
 
+    Parameters
+    ----------
+    mesh
+        A Fidimag mesh which is going to be reproduced in OOMMF.
+    init_m0
+        The initial magnetisation profile, as a function in TCL language, in a
+        string. This string will be wrapped around::
 
-    mesh        :: A Fidimag mesh which is going to be reproduced
-                   in OOMMF
+            proc init_m0 { x y z} {
+                --init_m0--
+            }
 
-    init_m0     :: The initial magnetisation profile, as a function
-                   in TCL language, in a string. This string will be wrapped
-                   around
-                            proc init_m0 { x y z} {
-                                --init_m0--
-                            }
-                   Then we use $x, $y, $z to vary m spatially and return
-                   a list with the mx, my, mz components
-                   (see OOMMF manual for details)
+        Then we use $x, $y, $z to vary m spatially and return a list with the
+        mx, my, mz components (see the OOMMF manual for details).
+    A, D, Ms
+        Magnetic parameters (exchange, DMI, saturation magnetisation).
+    spatial_Ms
+        Instead of using a uniform Ms, a function (in TCL language) can be
+        passed to vary Ms spatially, as a string. This string will be wrapped
+        around::
 
-    A, D, Ms    :: Magnetic parameters (exchange, dmi, sat magnetisation)
+            proc init_Ms { x y z} {
+                --spatial_Ms--
+            }
 
-    spatial_Ms  :: Instead of using an uniform Ms, it can be passed
-                   a function (in TCL language) to vary Ms spatialy,
-                   as a STRING. This string will be wrapped around:
-                           proc init_Ms { x y z} {
-                               --spatial_Ms--
-                           }
-                   Then we can use $x, $y, $z for the spatial
-                   variables to modify Ms (see OOMMF manual for details),
-                   for example:
-                        spatial_Ms = \"\"\"
-                        if { $x * $x + $y * $y < 5e-9 * 5e-9 } {
-                            return 2e4
-                        } else {
-                            return 0
-                        }
-                        \"\"\"
+        Then we can use $x, $y, $z for the spatial variables to modify Ms (see
+        the OOMMF manual for details), for example::
 
-    field       :: A string with the name of one of the OOMMF fields
-                   used in the simulation. This name is used to save the field
-                   to an OHf file and the script to a MIF file.
+            spatial_Ms = \"\"\"
+            if { $x * $x + $y * $y < 5e-9 * 5e-9 } {
+                return 2e4
+            } else {
+                return 0
+            }
+            \"\"\"
+    field
+        A string with the name of one of the OOMMF fields used in the
+        simulation. This name is used to save the field to an OHf file and the
+        script to a MIF file.
 
     """
     conf_path = os.path.join(MODULE_DIR, field)

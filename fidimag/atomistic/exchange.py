@@ -5,8 +5,8 @@ from .energy import Energy
 
 class Exchange(Energy):
 
-    """
-    This class provides the Exchange Interaction energy term, defined as
+    r"""
+    This class provides the Exchange Interaction energy term, defined as::
 
                   __        ->      ->
          E =  -  \    J_ij  S_i  *  S_j
@@ -25,6 +25,8 @@ class Exchange(Energy):
 
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
+
+    ::
 
         J               :: The exchange tensor which can be:
 
@@ -71,12 +73,14 @@ class Exchange(Energy):
     DEV NOTES: ----------------------------------------------------------------
 
     * If a float or int is passed as the Exchange constant J, this class will
+
     use the *compute_exchange_field* C function (see lib/exch.c), which assumes
     a uniform exchange. This C function does not take J as an array thus it
     will not call array elements to compute the neighbours contribution but
     it will only use a constant, thus it should be faster
 
     * If option 3. is pecified for the J parameter, this class will call the
+
     full exchange calculation function from the C library
 
     """

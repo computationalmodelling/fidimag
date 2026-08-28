@@ -14,7 +14,7 @@ class LLG_STT(AtomisticDriver):
 
     This class is the driver to solve the Landau Lifshitz Gilbert equation with
     a current, which follows the Zhang-Li formalism to describe Spin Transfer
-    Torque. The equation is given by:
+    Torque. The equation is given by::
 
 
           ds        -gamma

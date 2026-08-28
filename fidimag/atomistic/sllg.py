@@ -10,7 +10,7 @@ class SLLG(AtomisticDriver):
     """
 
     This class is the driver to solve the Stochastic Landau Lifshitz Gilbert
-    equation.  The equation is given by:
+    equation.  The equation is given by::
 
 
           ds        -gamma

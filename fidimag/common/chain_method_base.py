@@ -24,6 +24,8 @@ class ChainMethodBase:
 
     Abstract Methods: ---------------------------------------------------------
 
+    ::
+
         compute_distances          :: Function to compute the distances between
                                       corresponding images of two bands. So the
                                       inputs are two arrays with at least one
@@ -49,6 +51,8 @@ class ChainMethodBase:
                                       Sundials
 
     Methods -------------------------------------------------------------------
+
+    ::
 
         compute_maximum_dYdt       :: Compute the maximum distance between the
                                       images (not counting the extremes) of the
@@ -89,18 +93,22 @@ class ChainMethodBase:
 
     ARGUMENTS -----------------------------------------------------------------
 
-    sim                 :: An instance of a micromagnetic or an atomistic
-                           simulation
+    ::
 
-    initial_images      :: A sequence of arrays or functions to set up the
-                           magnetisation field profile
+        sim                 :: An instance of a micromagnetic or an atomistic
+                               simulation
 
-    interpolations      ::
+        initial_images      :: A sequence of arrays or functions to set up the
+                               magnetisation field profile
 
-    dof                 :: Degrees of freedom per spin. Spherical coordinates
-                           have dof=2 and Cartesian have dof=3
+        interpolations      ::
+
+        dof                 :: Degrees of freedom per spin. Spherical coordinates
+                               have dof=2 and Cartesian have dof=3
 
     VARIABLES -----------------------------------------------------------------
+
+    ::
 
         self.dof              :: Degree of freedom for the coordinates used in
                                  the band (e.g. Spherical has self.dof=2)
@@ -371,6 +379,7 @@ class ChainMethodBase:
         (or .vtp for a hexagonal mesh)
 
         coordinates_function    :: A function to transform the coordinates of
+
                                    the band to Cartesian coordinates. For
                                    example, in spherical coordinates we need
                                    the spherical2cartesian function from
@@ -437,6 +446,7 @@ class ChainMethodBase:
                               linear_solver='spgmr', maxl=30, maxrs=10):
         """
         linear_solver, maxl, maxrs :: Only used by the 'sundials' integrator.
+
             'spgmr' (default) is restarted GMRES(maxl) with at most maxrs
             restarts; 'diag' is CVODE's diagonal approximate Jacobian solver.
             GMRES keeps a Krylov basis of (maxl + 1) copies of the whole
@@ -587,6 +597,7 @@ class ChainMethodBase:
         images, labeled from 0 to N, we start by
 
         dY = [A1_theta0 A1_phi0 A1_theta1 ... A(N-1)_theta0 A(N-1)_phi0 A(N-1)_theta1 ... ]
+
             - [B1_theta0 B1_phi0 B1_theta1 ... B(N-1)_theta0 B(N-1)_phi0 B(N-1)_theta1 ... ]
 
         where A(i)_theta(j) is the theta componenet of the j-th spin of the
@@ -596,6 +607,9 @@ class ChainMethodBase:
         only using mesh/lattice sites with material, i.e.  mu_s or Ms > 0):
 
         ||dY|| =  [ || dY1_theta0 dY1_phi0 dY1_theta1         ...       ||
+
+        ::
+
                                    ...
                     || dY(N-1)_theta0 dY(N-1)_phi0 dY(N-1)_theta1  ...  ||
                   ]
@@ -668,7 +682,7 @@ class ChainMethodBase:
               ):
 
         """
-        Relax the energy band according to the specified integrator
+        Relax the energy band according to the specified integrator::
 
             Sundials:        dt is the initial stepsize which is updated
                              by CVODE. Number of calls is given by CVODE
@@ -678,7 +692,8 @@ class ChainMethodBase:
                              You can update the integrator evolve step using:
                                 self.integrator.stepsize = 1e-4
 
-        stopping_max_force :: Optional. If set, also stop once the largest
+        stopping_max_force :: Optional. If set, also stop once the largest::
+
                               force norm on the band (max|G|, over the
                               inner images) drops below this value. This is
                               a step-size-independent convergence check,

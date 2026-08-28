@@ -59,38 +59,39 @@ class SimBase:
     def set_m(self, m0=(1, 0, 0),
               normalise=True):
         """
-
         Set the magnetisation/spin three dimensional vector field profile.
 
-        ARGUMENTS:
+        Parameters
+        ----------
+        m0
+            The profile, specified in any of these ways:
 
-        m0      :: * To set every spin with the same direction,
-                   set this value as a 3 elements tuple or list.
+            - A 3 element tuple or list, to give every spin the same
+              direction.
 
-                   * For a spatially dependent vector field, you can specify a
-                   function that returns a 3 element list depending on the
-                   spatial coordinates. For example, a magnetisation field that
-                   depends on the x position:
+            - A function returning a 3 element list, for a spatially
+              dependent vector field. For example, a magnetisation that
+              depends on the x position::
 
-                        def m_profile(r):
-                            for r[0] > 2:
-                                return (0, 0, 1)
-                            else:
-                                return (0, 0, -1)
+                  def m_profile(r):
+                      if r[0] > 2:
+                          return (0, 0, 1)
+                      else:
+                          return (0, 0, -1)
 
-                   * You can also manually specify an array with (3 * n)
-                   elements with the spins directions in the following order:
+            - An array with ``3 * n`` elements, holding the spin directions
+              in the order::
 
-                        [mx_0 my_0 mz_0 mx_1 my_1 ... mx_n, my_n, mz_n]
+                  [mx_0 my_0 mz_0 mx_1 my_1 ... mx_n my_n mz_n]
 
-                   where n is the number of mesh nodes and the order of the
-                   magnetisation vectors follow the same order than the mesh
-                   coordinates array.
+              where n is the number of mesh nodes, following the same order
+              as the mesh coordinates array.
 
-                   * Alternatively, if you previously saved the magnetisation
-                   field array to a numpy file, you can load it using
-                   numpy.load(my_array)
+            - An array previously saved to a numpy file, loaded with
+              ``numpy.load``.
 
+        normalise
+            Normalise the field to unit length after setting it.
         """
 
         self.spin[:] = helper.init_vector(m0, self.mesh, 3, normalise)
@@ -124,29 +125,29 @@ class SimBase:
 
     def set_pins(self, pin):
         """
+        A scalar field with values 1 or 0, to specify mesh/lattice sites with
+        pinned or unpinned magnetic moments, respectively.
 
-        An scalar field with values 1 or 0 to specify mesh/lattice sites
-        with pinned or unpinned magnetic moments, respectively
+        Parameters
+        ----------
+        pin
+            The pinned sites, specified in any of these ways:
 
-        ARGUMENTS:
+            - A function returning 1 or 0 depending on the spatial
+              coordinates. For example, to pin the spins in a range in the x
+              direction::
 
-        pin     :: * You can specify a function that returns 1 or 0 depending
-                   on the spatial coordinates. For example, to pin the spins
-                   in a range in the x direction:
+                  def pin_profile(r):
+                      if r[0] > 2 and r[0] < 4:
+                          return 1
+                      else:
+                          return 0
 
-                        def pin_profile(r):
-                            for r[0] > 2 and r[0] < 4:
-                                return 1
-                            else:
-                                return 0
+            - An array with n elements (1 or 0), holding the pinned/unpinned
+              values in the same order as the mesh coordinates array.
 
-                   * You can also manually specify an array with n elements (1
-                   or 0) with the pinned/unpinned values in the same order than
-                   the mesh coordinates array.
-
-                   * Alternatively, if you previously saved the pin
-                   field array to a numpy file, you can load it using
-                   numpy.load(my_array)
+            - An array previously saved to a numpy file, loaded with
+              ``numpy.load``.
         """
         self._pins[:] = helper.init_scalar(pin, self.mesh)
 
@@ -178,6 +179,7 @@ class SimBase:
         OPTIONAL ARGUMENTS:
 
         save_field      :: Set True to save the average values of this
+
                            interaction field when relaxing the system
 
         """
@@ -340,7 +342,9 @@ class SimBase:
         Returns the field array corresponding to the interaction given:
 
         e.g.
+
             compute_interaction_field('Demag')
+
         returns a numpy array containing the Demag field.
         """
         field = self.get_interaction(interaction)

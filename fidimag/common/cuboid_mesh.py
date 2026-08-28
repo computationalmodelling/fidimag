@@ -6,6 +6,8 @@ up to the next horizontal slice, as shown in the sketch below. We have
 chosen this indexing scheme because systems like thin films are usually
 longest along the x-axis.
 
+::
+
         +-------+
      .'       .:|
     +-------+:::|
@@ -47,6 +49,7 @@ class CuboidMesh:
         of entries set to True will enable periodicity along the given axes.
 
         Usage:
+
             mesh = CuboidMesh(2, 2, 2, 250, 25, 2, periodicity=(True, False, False))
             # create a mesh of dimensions 500 x 50 x 4 nm, with cellsize
             # of 2 nm in any direction and periodic along the x-axis.
@@ -241,6 +244,7 @@ class CuboidMesh:
         Return the appropriate shape for np.array for scalar field over the cells.
 
         Usage example:
+
             alpha = np.zeros(mesh.scalar_shape())
 
         """
@@ -251,6 +255,7 @@ class CuboidMesh:
         Return the appropriate shape for np.array for vector field over the cells.
 
         Usage example:
+
             m = np.zeros(mesh.vector_shape())
 
         """

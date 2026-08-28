@@ -7,7 +7,7 @@ class DemagHexagonal:
     """
     This class allows to compute the Demag in a hexagonal mesh, using
     an equivalent cuboid mesh, where zeroes are appended between
-    consecutive lattice sites in the original one
+    consecutive lattice sites in the original one::
 
         The original mesh looks like
 
@@ -183,6 +183,7 @@ class DemagHexagonal:
         scalar field array
 
         For this case, we:
+
             * Reshape both, the original and cuboid arrays with rows
               of nx and 2 * nx of length, respectively
             * For even rows [::2] , we copy the elements from the
@@ -217,6 +218,7 @@ class DemagHexagonal:
         the equivalent cuboid mesh system.
 
         A vector field array has the structure:
+
                 fx0, fy0, fz0, fx1, fy1, fz1, fx2, ...
 
         The cuboid vector field has 2 times the length of the original
@@ -231,9 +233,12 @@ class DemagHexagonal:
         For example, in a 2 * 3 system:
 
         Original: vector_field = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+
                                    11, 12, 13, 14, 15, 16, 17]
 
         Reshaped: [ [ [ 0,  1,  2], [ 3,  4,  5] ],
+
+        ::
 
                     [ [ 6,  7,  8], [ 9, 10, 11] ],
 

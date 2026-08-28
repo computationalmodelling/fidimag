@@ -6,9 +6,10 @@ import inspect
 
 class Zeeman:
 
-    """
+    r"""
     A time independent external magnetic field that can be space dependent.
-    The field energy in the micromagnetic theory reads:
+    The field energy in the micromagnetic theory reads::
+
                                  _
                                /   ->       ->
            E   =  - \mu_0     /    M  \cdot H   dV
@@ -16,7 +17,7 @@ class Zeeman:
 
     with H as the bias field in A / m, \mu_0 the vacuum permeability and M the
     magnetisation vector. Using finite differences, this quantity is computed
-    through the summation
+    through the summation::
 
                               __  ->        ->
          E =  - \mu_0 * dV   \    M_i \cdot H_i
@@ -33,7 +34,7 @@ class Zeeman:
 
     Otherwise, it can be specified as any Fidimag field, passing a function or
     an array. For example, a space dependent field function that changes
-    linearly in the x-direction, and only has a x-component, can be defined as:
+    linearly in the x-direction, and only has a x-component, can be defined as::
 
         def my_Zeeman_field(pos):
             H = 0.01 / (4 * np.pi * 1e-7)  # A / m

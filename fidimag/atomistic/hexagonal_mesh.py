@@ -1,12 +1,12 @@
 
-"""
+r"""
 Represent hexagonal 2D mesh.
 
 The hexagons are pointy topped (as against flat topped). We use axial
 coordinates, also known as trapezoidal coordinates (compared to cubic or
 offset coordinates).
 
-We have two different alignments of the hexagons:
+We have two different alignments of the hexagons::
 
     DIAGONAL                       and SQUARE
 
@@ -26,7 +26,7 @@ using different index orders. In particular, for the square
 arrangement, the ordering changes for even and odd numbered rows
 
 In both cases, every row of the neighbours matrix has the same order
-for the indexes:
+for the indexes::
 
     | left right top_right bottom_left top_left bottom_right |
 
@@ -52,7 +52,7 @@ class HexagonalMesh:
                  shells=1):
         """
         Create mesh with nx cells in x-direction and ny cells in the
-        y-direction. The size of a hexagon is given by
+        y-direction. The size of a hexagon is given by::
 
             height  = sqrt(3) * radius
             width = 2 * radius.
@@ -94,14 +94,17 @@ class HexagonalMesh:
         and stored in the *ngbs array. By default, a value of 1 indicates
         only nearest neighbours. The *ngbs array has the structure:
 
-        [ [ ngbs_1st_shell_0 negbs_2nd_shell_0 ...  ],      --> ngbs of spin 0
+        [ [ ngbs_1st_shell_0 negbs_2nd_shell_0 ...  ],      --> ngbs of spin 0::
+
           [ ngbs_1st_shell_1 negbs_2nd_shell_1 ...  ],      --> ngbs of spin 1
           ...
           [ ngbs_1st_shell_n negbs_2nd_shell_n ...  ]       --> ngbs of spin n
+
         ]
 
         where ngbs_1st_shell_i are the nearest neighbours of the i-th spin in
         the order:
+
             [ left right top_right bottom_left top_left bottom_right ]
 
         For the other shells see the *_ngbs_Xth_shell methods from this class
@@ -390,6 +393,7 @@ class HexagonalMesh:
         Return the appropriate shape for np.array for scalar field over the cells.
 
         Usage example:
+
             alpha = np.zeros(mesh.scalar_shape())
 
         """
@@ -400,6 +404,7 @@ class HexagonalMesh:
         Return the appropriate shape for np.array for vector field over the cells.
 
         Usage example:
+
             m = np.zeros(mesh.vector_shape())
 
         """

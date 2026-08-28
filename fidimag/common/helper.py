@@ -11,9 +11,11 @@ def extract_data(mesh, npys, pos, comp='x'):
     extract data of special positions for given npy data
 
     npys:
+
         the names of npys
 
     pos:
+
          something like [(1,0,0),...,(2,3,4)]
     """
     ids = []

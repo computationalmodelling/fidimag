@@ -4,16 +4,17 @@ import numpy as np
 def cartesian2spherical(y_cartesian):
     """
     For a system of P+1 spins, this function takes an image of a NEBM energy
-    band in Cartesian coordinates (3 * (P + 1) degrees of freedom):
+    band in Cartesian coordinates (3 * (P + 1) degrees of freedom)::
 
         y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ... y_zP]
 
     and returns an array in spherical[1] coordinates (2 * (P + 1) degrees of
-    freedom):
+    freedom)::
 
         y_spherical     :: [ y_theta0 y_phi0 y_theta1 y_phi1 ... y_phiP]
 
     [1]:
+
         theta ranges from 0 to PI (polar angle)
         phi ranges from 0 to 2PI (azimuthal angle)
     """
@@ -36,16 +37,17 @@ def cartesian2spherical(y_cartesian):
 def spherical2cartesian(y_spherical):
     """
     For a system of P+1 spins, this function takes an image of a NEBM energy
-    band in spherical[1] coordinates (2 * (P + 1) degrees of freedom):
+    band in spherical[1] coordinates (2 * (P + 1) degrees of freedom)::
 
         y_spherical     :: [ y_theta0 y_phi0 y_theta1 y_phi1 ... y_phiP]
 
     and returns and array in Cartesian coordinates (3 * (P + 1) degrees of
-    freedom):
+    freedom)::
 
         y_cartesian     :: [y_x0 y_y0 y_z0 y_x1 y_y1 ... y_zP]
 
     [1]:
+
         theta ranges from 0 to PI (polar angle)
         phi ranges from 0 to 2PI (azimuthal angle)
     """
@@ -95,6 +97,9 @@ def linear_interpolation_spherical(y_initial, y_final, n, pins=None):
     OPTIONAL:
 
     pins                    :: An array or list with 0s and 1s,
+
+    ::
+
                                representing unpinned/pinned coordinates of
                                any of the *y* arrays, respectively. Thus,
                                the *pins* array must have HALF the length
@@ -147,12 +152,16 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
     computed using the arccos of the dot products.
 
     y_initial, y_final      :: Given in Cartesian coordinates
+
                                     [mx1 my1 mz1, mx2 my2 ... ]
 
 
     OPTIONAL:
 
     pins                    :: An array or list with 0s and 1s,
+
+    ::
+
                                representing unpinned/pinned coordinates of
                                any of the *y* arrays, respectively. Thus,
                                the *pins* array must have HALF the length
@@ -221,6 +230,7 @@ def m_to_zero_nomaterial(image_cartesian, sim):
     direction to [0, 0, 0]
 
     Input is an image in Cartesian coordinates:
+
         [mx_0 my_0 mz_0 mx_1 my_1 ... mz_(P-1)]
 
     sim is a fidimag simulation object from which we extract

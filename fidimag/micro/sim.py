@@ -36,7 +36,8 @@ class Sim(SimBase):
     OPTIONAL ARGUMENTS:
 
     name    :: A string with the simulation name
-    driver  :: A string with one of the following drivers to evolve
+    driver  :: A string with one of the following drivers to evolve::
+
                the micromagnetic system:
 
                 llg               - (default) the Landau-Lifshitz-Gilbert
@@ -123,7 +124,8 @@ class Sim(SimBase):
 
         ARGUMENTS:
 
-        value     :: * For a homogeneous single material sample, specify a
+        value     :: * For a homogeneous single material sample, specify a::
+
                        float with a magnitude in A /m
 
                      * Alternatively, you can specify a function that returns

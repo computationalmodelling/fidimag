@@ -117,7 +117,8 @@ def runge_kutta_step(t, y, h, f):
 
     Given the initial value problem y'(t) = f(t, y(t)), y(t_0) = y_0 one step
     of size h is y_{n+1} = y_n + h/6 * (k_1 + 2k_2 + 2k_3 + k4), where the
-    weights are:
+    weights are::
+
         k_1 = f(t_n,       y_n)
         k_2 = f(t_n + h/2, y_n + h/2 * k_1)
         k_3 = f(t_n + h/2, y_n + h/2 * k_2)

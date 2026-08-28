@@ -6,10 +6,10 @@ import fidimag.common.helper as helper
 
 class Anisotropy(Energy):
 
-    """
+    r"""
 
     This class provides an anisotropy term to the system energy, which
-    is defined as
+    is defined as::
 
                   __         ->    ^     2
          E =  -  \    K_i  ( S_i * u_i )
@@ -21,6 +21,8 @@ class Anisotropy(Energy):
     axis can be space dependent.
 
     OPTIONAL ARGUMENTS --------------------------------------------------------
+
+    ::
 
         Ku          :: The anisotropy constant. Can be a constant or a space
                        dependent scalar field, given as a function or array.

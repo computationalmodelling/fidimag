@@ -4,10 +4,10 @@ import fidimag.common.helper as helper
 
 class Zeeman:
 
-    """
+    r"""
 
     A time independent external magnetic field that can be space dependent.
-    The field energy is computed as:
+    The field energy is computed as::
 
                   __   ->       ->
          E =  -  \    \mu_i  *  B_i
@@ -20,6 +20,9 @@ class Zeeman:
     site, given in Tesla units.
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
+
+    ::
+
         name            :: Interaction name
 
     USAGE: --------------------------------------------------------------------
@@ -32,7 +35,7 @@ class Zeeman:
     Otherwise, it can be specified as any Fidimag vector field, passing a
     function or an array. For example, a space dependent field function that
     changes linearly in the x-direction, and only has a x-component, can be
-    defined as:
+    defined as::
 
         def my_Zeeman_field(pos):
             B = 0.01  # T

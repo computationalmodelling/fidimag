@@ -135,11 +135,13 @@ def add(interaction, interactions_list, data_saver,
     Add an interaction to the interaction list.
     This function is based on the Sim class *add* method
     (it is likely that this function will be moved to the common
+
      helpers in the future)
 
     OPTIONAL ARGUMENTS:
 
     save_field      :: Set True to save the average values of this
+
                        interaction field when relaxing the system
 
     """

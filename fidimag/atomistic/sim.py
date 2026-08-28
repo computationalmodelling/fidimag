@@ -31,6 +31,7 @@ class Sim(SimBase):
     ARGUMENTS:
 
     mesh    :: For a square mesh, use an instance of CuboidMesh,
+
                from fidimag.common
 
                For a hexagonal mesh, use an instance of Hexagonalmesh
@@ -39,7 +40,8 @@ class Sim(SimBase):
     OPTIONAL ARGUMENTS:
 
     name    :: A string with the simulation name
-    driver  :: A string with one of the following drivers to evolve
+    driver  :: A string with one of the following drivers to evolve::
+
                the micromagnetic system:
 
                     llg         - (default) the Landau-Lifshitz-Gilbert
@@ -123,41 +125,39 @@ class Sim(SimBase):
         Samples with different materials can be specified with different
         magnetic moments in specific regions of the system.
 
-        ARGUMENTS:
+        Parameters
+        ----------
+        value
+            The magnetic moments, specified in any of these ways:
 
-        value     :: * For a homogeneous single material sample, specify a
-                       float with a magnitude in J / T. It is recommended to
-                       use Bohr magneton units taking the constant from the
-                       `constant` library in fidimag.common. For example:
+            - A float in J / T, for a homogeneous single material sample. It
+              is recommended to use Bohr magneton units, taking the constant
+              from the ``constant`` library in ``fidimag.common``::
 
-                            import fidimag.common.constant as const
+                  import fidimag.common.constant as const
 
-                            mu_s = 2 * const.mu_B
+                  mu_s = 2 * const.mu_B
 
-                     * In addition, you can specify a function that returns
-                       values in J / T, which depends on the spatial
-                       coordinates. For example, a 2 nm wide cylinder centered
-                       at (x, y) = (1, 1) can be specified with (if you set the
-                       unit_length to 1e-9 in the mesh):
+            - A function of the spatial coordinates returning values in
+              J / T. For example, a 2 nm wide cylinder centred at
+              (x, y) = (1, 1), with the mesh unit_length set to 1e-9::
 
-                            import fidimag.common.constant as const
-                            mu_s = 2 * const.mu_B
+                  import fidimag.common.constant as const
+                  mu_s = 2 * const.mu_B
 
-                            def mu_s_profile(r):
-                                for (r[0] - 1) ** 2 + (r[1] - 1) ** 2 <= 1 ** 2:
-                                    return mu_s
-                                else:
-                                    return 0
+                  def mu_s_profile(r):
+                      if (r[0] - 1) ** 2 + (r[1] - 1) ** 2 <= 1 ** 2:
+                          return mu_s
+                      else:
+                          return 0
 
-                            Sim.set_mu_s(mu_s_profile)
+                  Sim.set_mu_s(mu_s_profile)
 
-                     * You can also manually specify an array with n values
-                     with the magnetisation values, in the same order than the
-                     mesh coordinates array.
+            - An array with n values, in the same order as the mesh
+              coordinates array.
 
-                     * Alternatively, if you previously saved the magnetic
-                     moments array to a numpy file, you can load it using
-                     numpy.load(my_array).
+            - An array previously saved to a numpy file, loaded with
+              ``numpy.load``.
 
         """
 

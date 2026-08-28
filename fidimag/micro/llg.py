@@ -10,7 +10,7 @@ class LLG(MicroDriver):
     """
 
     This class is the driver to solve the Landau Lifshitz Gilbert equation
-    which has the form:
+    which has the form::
 
 
           dm        -gamma

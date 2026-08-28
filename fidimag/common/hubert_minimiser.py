@@ -409,6 +409,8 @@ class HubertMinimiser(MinimiserBase):
         a hand-tuned constant: it is estimated at every iteration from the
         secant pair of the last accepted step,
 
+        ::
+
             s = m_k - m_{k-1}     y = g_k - g_{k-1}
 
         with `g` the *tangential* gradient (see `_project_gradient`), through
@@ -669,6 +671,7 @@ class HubertMinimiser(MinimiserBase):
         Two step-length strategies are available through `stepControl`:
 
         `'hubert'` (default)
+
             The creep algorithm of [1, 2, 3]: a fixed `η * eta_scale` step
             along a Polak-Ribiere conjugate direction, with η grown or shrunk
             according to the sign of the energy change. See
@@ -676,6 +679,7 @@ class HubertMinimiser(MinimiserBase):
             to be chosen by hand to match the units of the effective field.
 
         `'BB'`
+
             Barzilai-Borwein spectral gradient descent with a non-monotone
             line search, which infers the step length from the curvature seen
             along the previous step and so needs no `eta_scale`. See

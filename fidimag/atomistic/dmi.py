@@ -5,9 +5,9 @@ import numpy as np
 
 class DMI(Energy):
 
-    """
+    r"""
     This class provides the Dzyaloshinskii-Moriya Interaction (DMI) energy
-    term, defined as
+    term, defined as::
 
                   __  ->         ->      ->
          E =     \    D_ij   * ( S_i  X  S_j )
@@ -24,13 +24,14 @@ class DMI(Energy):
     Dzyaloshinskii vector definition. Calling D_i the Dzyaloshinskii vector
     magnitude at the i-th site:
 
-    BULK:
+    BULK::
+
         ->         ^
         D_ij = D_i r_ij   with r_ij as the unit vector pointing from the i-th
                           towards the j-th site
                           (only working for square lattices)
 
-    INTERFACIAL:
+    INTERFACIAL::
 
         ->           ^       ^
         D_ij = D_i ( r_ij X  z ) with r_ij as the unit vector pointing from the
@@ -54,6 +55,8 @@ class DMI(Energy):
 
 
     OPTIONAL ARGUMENTS: -------------------------------------------------------
+
+    ::
 
         dmi_type        :: 'bulk' or 'interfacial'
         name            :: Interaction name
@@ -79,6 +82,7 @@ class DMI(Energy):
         Sim.add(DMI(my_DMI))
 
     NOTES:
+
     * The space dependence of the DMI strength is set in the self._D array,
       which is a N x 6 array, with N as the number of spins or lattice sites.
       This means self._D is the same shape as the mesh.neighbours array.
@@ -90,11 +94,12 @@ class DMI(Energy):
       method to achieve this [TO Be UPDATED: check for references]
 
     * The neighbours are dependent on the lattice type so, for example,
+
       - In a cubic lattice the 6 columns per lattice site refer to the lattice
-        sites in the -x,+x,-y,+y,-z,+z direction.
-        If the DMI is interfacial the last two columns of self._D are ignored
+        sites in the -x,+x,-y,+y,-z,+z direction. If the DMI is interfacial
+        the last two columns of self._D are ignored
       - In a 2D hexagonal lattice: east, west, north-east, south-west,
-                          north-west, south-east
+        north-west, south-east
     """
 
     def __init__(self, D, name='DMI', dmi_type='bulk'):
@@ -193,6 +198,7 @@ class DMI(Energy):
 
         Cubic       :: 4 NNs --> [-x, +x, -y, +y]
         Hexagonal   :: 6 NNs --> [right, left,
+
                                   top right, bottom left,
                                   top left, bottom right]
 
