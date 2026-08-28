@@ -171,16 +171,16 @@ class SimBase:
 
     def add(self, interaction, save_field=False):
         """
-
         Add an interaction from one of the Energy subclasses. By default,
         the average energy of the added interaction is saved to the
         data file when relaxing the system
 
-        OPTIONAL ARGUMENTS:
+        Parameters
+        ----------
+        save_field
+            Set True to save the average values of this
 
-        save_field      :: Set True to save the average values of this
-
-                           interaction field when relaxing the system
+            interaction field when relaxing the system
 
         """
 

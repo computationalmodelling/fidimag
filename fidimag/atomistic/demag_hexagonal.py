@@ -230,20 +230,15 @@ class DemagHexagonal:
         we have a 3 dimensional matrix where every row has still nx or 2 * nx
         values.
 
-        For example, in a 2 * 3 system:
+        For example, in a 2 * 3 system::
 
-        Original: vector_field = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+            Original: vector_field = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
+                                       11, 12, 13, 14, 15, 16, 17]
 
-                                   11, 12, 13, 14, 15, 16, 17]
-
-        Reshaped: [ [ [ 0,  1,  2], [ 3,  4,  5] ],
-
-        ::
-
-                    [ [ 6,  7,  8], [ 9, 10, 11] ],
-
-                    [ [12, 13, 14], [15, 16, 17] ]
-                  ]
+            Reshaped: [ [ [ 0,  1,  2], [ 3,  4,  5] ],
+                        [ [ 6,  7,  8], [ 9, 10, 11] ],
+                        [ [12, 13, 14], [15, 16, 17] ]
+                      ]
 
                   So we have 2 sites per row,as the original system, where
                   a 3-vector is associated to each entry, making a

@@ -25,33 +25,37 @@ KNOWN_DRIVERS = {'llg': LLG,
 
 class Sim(SimBase):
     """
-
     The Simulation class for an atomistic simulation
 
-    ARGUMENTS:
+    Parameters
+    ----------
+    mesh
+        For a square mesh, use an instance of CuboidMesh,
 
-    mesh    :: For a square mesh, use an instance of CuboidMesh,
+        from fidimag.common
 
-               from fidimag.common
+        For a hexagonal mesh, use an instance of Hexagonalmesh from
+        fidimag.atomistic
 
-               For a hexagonal mesh, use an instance of Hexagonalmesh
-               from fidimag.atomistic
+    Parameters
+    ----------
+    name
+        A string with the simulation name
+    driver
+        A string with one of the following drivers to evolve:
 
-    OPTIONAL ARGUMENTS:
+        the micromagnetic system:
 
-    name    :: A string with the simulation name
-    driver  :: A string with one of the following drivers to evolve::
+        ::
 
-               the micromagnetic system:
+            llg         - (default) the Landau-Lifshitz-Gilbert
+                          equation
+            llg_stt     - LLG w. spin transfer torque
+            llg_stt_cpp - LLG w. spin transfer torque perpendicular
+                          to the plane (?)
 
-                    llg         - (default) the Landau-Lifshitz-Gilbert
-                                  equation
-                    llg_stt     - LLG w. spin transfer torque
-                    llg_stt_cpp - LLG w. spin transfer torque perpendicular
-                                  to the plane (?)
-
-    ** Most of the methods inherit from the Base Simulation class that
-    can be found in the common folder
+        ** Most of the methods inherit from the Base Simulation
+        class that can be found in the common folder
 
     """
 

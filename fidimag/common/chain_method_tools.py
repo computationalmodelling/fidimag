@@ -83,29 +83,29 @@ def compute_norm(A, scale=None):
 
 def linear_interpolation_spherical(y_initial, y_final, n, pins=None):
     """
-
     This function returns a (n, len(y_initial)) array, where every row is
     an interpolation of the coordinates in y_initial to y_final. The
     interpolation is made in spherical coordinates
 
-    ARGUMENTS:
+    Parameters
+    ----------
+    y_initial, y_final
+        In Spherical coordinates with the structure:
 
-    y_initial, y_final      :: In Spherical coordinates with the structure:
+        [ theta0 phi0 theta1 phi1 ...]
 
-                                    [ theta0 phi0 theta1 phi1 ...]
+    Parameters
+    ----------
+    pins
+        An array or list with 0s and 1s,
 
-    OPTIONAL:
+        representing unpinned/pinned coordinates of any of the *y*
+        arrays, respectively. Thus, the *pins* array must have HALF
+        the length of *y*:
 
-    pins                    :: An array or list with 0s and 1s,
+        ::
 
-    ::
-
-                               representing unpinned/pinned coordinates of
-                               any of the *y* arrays, respectively. Thus,
-                               the *pins* array must have HALF the length
-                               of *y*:
-
-                                    [pin0 pin1  ...  ]
+            [pin0 pin1  ...  ]
 
     """
 
@@ -142,7 +142,6 @@ def linear_interpolation_spherical(y_initial, y_final, n, pins=None):
 
 def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
     """
-
     This function returns an array of shape (n, len(y_initial)), where every
     row is an interpolation of the coordinates from y_initial to y_final, in
     order to generate a sequence of nebm images.  The interpolation is made
@@ -155,19 +154,19 @@ def interpolation_Rodrigues_rotation(y_initial, y_final, n, pins=None):
 
                                     [mx1 my1 mz1, mx2 my2 ... ]
 
+    Parameters
+    ----------
+    pins
+        An array or list with 0s and 1s,
 
-    OPTIONAL:
+        representing unpinned/pinned coordinates of any of the *y*
+        arrays, respectively. Thus, the *pins* array must have HALF
+        the length of *y*:
 
-    pins                    :: An array or list with 0s and 1s,
+        ::
 
-    ::
+            [pin0 pin1  ...  ]
 
-                               representing unpinned/pinned coordinates of
-                               any of the *y* arrays, respectively. Thus,
-                               the *pins* array must have HALF the length
-                               of *y*:
-
-                                    [pin0 pin1  ...  ]
     """
 
     # We will generate n copies of the y_initial array, using rows

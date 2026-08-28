@@ -105,16 +105,12 @@ class NEBM_Spherical(ChainMethodBase):
     if we have P spins in the system, the number of dofs is 2 * P, i.e. the 2
     spherical angles per spin.  The distance is defined as::
 
-                                ______________________________________________
-                               /  P
-                      1       /  __                    2                      2
-
-   dist(Y_i, Y_j) =  ---     /  \   [ t(i,a) - t(j,a) ]  + [ p(i,a) - p(j,a) ]
-
-   ::
-
-                     2*P \  /   /__
-                          \/    a=1
+                                     ______________________________________________
+                                    /  P
+                           1       /  __                    2                      2
+        dist(Y_i, Y_j) =  ---     /  \   [ t(i,a) - t(j,a) ]  + [ p(i,a) - p(j,a) ]
+                          2*P \  /   /__
+                               \/    a=1
 
     where t(i,a) is the theta (polar) angle of the a-th spin in the image Y_i,
     and p refers to the phi (azimuthal) angle. Notice that in spherical
