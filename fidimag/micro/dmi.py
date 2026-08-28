@@ -123,25 +123,21 @@ class DMI(Energy):
 
                      For further examples, check the micro DMI class code
 
-    ARGUMENTS: ----------------------------------------------------------------
+    Parameters
+    ----------
+    D
+        DMI vector norm which can be specified as an int, float, (X * n) or
+        spatially dependent scalar field function. The units are
+        ``Joules / (meter ** 2)``.
 
-    ::
+        int, float: D will have the same magnitude for every NN of the spins
+        at every mesh node, given by this magnitude
 
-        D       :: DMI vector norm which can be specified as an int, float, (X * n)
-                   or spatially dependent scalar field function. The units are
-                   Joules / ( meter **2 ).
-
-                   int, float: D will have the same magnitude for every NN of the
-                   spins at every mesh node, given by this magnitude
-
-                   (n) array or list: D for every DMI constant
-
-    OPTIONAL ARGUMENTS: -------------------------------------------------------
-
-    ::
-
-        dmi_type        :: 'bulk' or 'interfacial' or 'D_2d'
-        name            :: Interaction name
+        (n) array or list: D for every DMI constant
+    dmi_type
+        'bulk' or 'interfacial' or 'D_2d'
+    name
+        Interaction name
 
     """
 

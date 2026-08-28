@@ -16,71 +16,67 @@ log = logging.getLogger(name="fidimag")
 
 class NEBM_Geodesic(ChainMethodBase):
     r"""
-    ARGUMENTS -----------------------------------------------------------------
+    The NEB Method (NEBM) class to find minimum energy paths between two
+    stable states in a given magnetic system.
 
-    ::
+    Parameters
+    ----------
+    sim
+        An instance of a micromagnetic or an atomistic simulation.
+        Every image in the band will be a copy of this simulation.
+    initial_images
+        A list containing numpy arrays or space dependent functions
+        to set the magnetisation fields for every image in the
+        band. It is suggested that the first and last elements
+        define stable states of the magnetic system. The arrays and
+        functions are used to load the magnetisation/spin fields
+        through the sim.set_m method from the Simulation object.
+    interpolations
+        A list with 1 element less than the initial_images list,
+        where every entry is an integer indicating the number of
+        interpolations between consecutive images. For example, if
+        we defined initial_images as [state_1, state_2, state_3],
+        and we want 10 interpolations between state_1 and state_2
+        and 5 interpolations between state_2 and state_3, we set
+        interpolations as [10, 5], making an energy band of 17
+        images. If we do not want any interpolation, we leave this
+        list as None or empty.
+    interpolation_method
+        In case that a number of interpolations were defined, it is
+        possible to specify how the interpolation is performed
+        using any of these methods:
 
-        sim                 :: An instance of a micromagnetic or an atomistic
-                               simulation. Every image in the band will be a copy
-                               of this simulation.
+        ::
 
-        initial_images      :: A list containing numpy arrays or space dependent
-                               functions to set the magnetisation fields for every
-                               image in the band. It is suggested that the first
-                               and last elements define stable states of the
-                               magnetic system. The arrays and functions are used
-                               to load the magnetisation/spin fields through the
-                               sim.set_m method from the Simulation object.
+            'linear'   : A linear interpolation of the spin
+                         directions using spherical
+                         coordinates
 
-        interpolations      :: A list with 1 element less than the initial_images
-                               list, where every entry is an integer indicating the
-                               number of interpolations between consecutive images.
-                               For example, if we defined initial_images as
-                               [state_1, state_2, state_3], and we want 10
-                               interpolations between state_1 and state_2 and 5
-                               interpolations between state_2 and state_3, we set
-                               interpolations as [10, 5], making an energy band of
-                               17 images. If we do not want any interpolation, we
-                               leave this list as None or empty.
+            'rotation' : Interpolation of the spin
+                         directions using Rodrigue's
+                         rotation formulae
+    spring_constant
+        The spring constant magnitude
+    name
+        The NEBM simulation name. Folders for VTK and NPY files,
+        and data tables are named according to this string.
+    openmp
+        Set this as True to use the parallelised version of CVODE,
+        which is the integrator used to evolve the NEBM
+        minimisation equation.
 
-        interpolation_method:: In case that a number of interpolations were
-                               defined, it is possible to specify how the
-                               interpolation is performed using any of these
-                               methods:
-
-                                    'linear'   : A linear interpolation of the spin
-                                                 directions using spherical
-                                                 coordinates
-
-                                    'rotation' : Interpolation of the spin
-                                                 directions using Rodrigue's
-                                                 rotation formulae
-
-        spring_constant     :: The spring constant magnitude
-
-        name                :: The NEBM simulation name. Folders for VTK and NPY
-                               files, and data tables are named according to this
-                               string.
-
-        openmp              :: Set this as True to use the parallelised version of
-                               CVODE, which is the integrator used to evolve the
-                               NEBM minimisation equation.
-
-        ---------------------------------------------------------------------------
-
-    The NEB Method (NEBM) class to find minimum energy paths between two stable
-    states in a given magnetic system. This class works both for atomistic and
-    micromagnetic simulations. The Geodesic NEBM describes the spins /
-    magnetisation vectors in Cartesian coordinates (m_x, m_y, m_z) and
-    distances in the energy landscape are measured by a geodesic distance (see
-    below). The NEBM is based on the definition of a so called band, which is
+    Notes
+    -----
+    This class works both for atomistic and micromagnetic simulations. The
+    Geodesic NEBM describes the spins / magnetisation vectors in Cartesian
+    coordinates (m_x, m_y, m_z) and distances in the energy landscape are
+    measured by a geodesic distance (see below). The NEBM is based on the definition of a so called band, which is
     just a sequence of replicas (in terms of geometry and magnetic parameters)
     of the same system (given by our simulation), called images, in different
     magnetic configurations, and where the first and last state are the stable
     states used to find a minimum energy transition between them. Calling the
     images as Y_i, after relaxation an energy band of N+1 images usually looks
     like::
-
 
                  Energy                ...
                    ^                                           _
@@ -142,12 +138,14 @@ class NEBM_Geodesic(ChainMethodBase):
     magnetisation/spin vectors length, since at 0 K this length is fixed. For
     now, we use the *c* factor as 6.
 
+    References
+    ----------
     For more details about the definition of the forces involved in the NEBM,
     see the following papers:
 
-        - Suess et al., Physical Review B 75, 174430 (2007)
-        - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
+    - Suess et al., Physical Review B 75, 174430 (2007)
+    - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
+    - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
     """
 

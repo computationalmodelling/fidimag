@@ -53,15 +53,15 @@ class DMI(Energy):
     For further details about the DMI calculations, take a look
     to the C library documentation (dmi.c)
 
+    Parameters
+    ----------
+    dmi_type
+        'bulk' or 'interfacial'
+    name
+        Interaction name
 
-    OPTIONAL ARGUMENTS: -------------------------------------------------------
-
-    ::
-
-        dmi_type        :: 'bulk' or 'interfacial'
-        name            :: Interaction name
-
-    USAGE: --------------------------------------------------------------------
+    Examples
+    --------
 
     If the DMI is homogeneous, it can be specified in a simulation object
     *Sim* as
@@ -100,6 +100,7 @@ class DMI(Energy):
         the last two columns of self._D are ignored
       - In a 2D hexagonal lattice: east, west, north-east, south-west,
         north-west, south-east
+
     """
 
     def __init__(self, D, name='DMI', dmi_type='bulk'):

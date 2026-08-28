@@ -29,33 +29,34 @@ class Sim(SimBase):
 
     The Simulation class for a micromagnetic simulation.
 
-    ARGUMENTS:
+    Parameters
+    ----------
+    mesh
+        A CuboidMesh instance, from fidimag.common
+    name
+        A string with the simulation name
+    driver
+        A string with one of the following drivers to evolve the
+        micromagnetic system::
 
-    mesh    :: A CuboidMesh instance, from fidimag.common
+            llg               - (default) the Landau-Lifshitz-Gilbert
+                                equation
 
-    OPTIONAL ARGUMENTS:
+            llg_stt           - LLG w. spin transfer torque
 
-    name    :: A string with the simulation name
-    driver  :: A string with one of the following drivers to evolve::
+            llg_stt_cpp       - LLG w. spin transfer torque perpendicular
+                                to the plane (?)
 
-               the micromagnetic system:
+            llbar             - Landau-Lifshitz-Baryakhtar equation
+            llbar_full
 
-                llg               - (default) the Landau-Lifshitz-Gilbert
-                                    equation
+            steepest_descent  - Optimised steepest descent minimisation
+                                [JAP 115, 17D118 (2014)]
 
-                llg_stt           - LLG w. spin transfer torque
-
-                llg_stt_cpp       - LLG w. spin transfer torque perpendicular
-                                    to the plane (?)
-
-                llbar             - Landau-Lifshitz-Baryakhtar equation
-                llbar_full
-
-                steepest_descent  - Optimised steepest descent minimisation
-                                    [JAP 115, 17D118 (2014)]
-
-    ** Most of the methods inherit from the Base Simulation class that
-    can be found in the common folder
+    Notes
+    -----
+    Most of the methods inherit from the Base Simulation class that can be
+    found in the common folder.
 
     """
 

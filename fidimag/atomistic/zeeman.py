@@ -5,7 +5,6 @@ import fidimag.common.helper as helper
 class Zeeman:
 
     r"""
-
     A time independent external magnetic field that can be space dependent.
     The field energy is computed as::
 
@@ -19,13 +18,13 @@ class Zeeman:
     spin vector at the i-th site and B_i the bias field vector at the i-th
     site, given in Tesla units.
 
-    OPTIONAL ARGUMENTS: -------------------------------------------------------
+    Parameters
+    ----------
+    name
+        Interaction name
 
-    ::
-
-        name            :: Interaction name
-
-    USAGE: --------------------------------------------------------------------
+    Examples
+    --------
 
     If the field is homogeneous, it can be specified in a simulation object
     *Sim* as
@@ -43,7 +42,6 @@ class Zeeman:
 
         # Add field to Simulation object
         Sim.add(Zeeman(my_Zeeman_field))
-
 
     For a hysteresis loop, the field can be updated using the *update_field*
     function. For an already defined simulation object *Sim*, it is updated as

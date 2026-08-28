@@ -7,7 +7,6 @@ import fidimag.common.helper as helper
 class Anisotropy(Energy):
 
     r"""
-
     This class provides an anisotropy term to the system energy, which
     is defined as::
 
@@ -20,20 +19,20 @@ class Anisotropy(Energy):
     direction of the anisotropy vector at the i-th site, thus the magnitude and
     axis can be space dependent.
 
-    OPTIONAL ARGUMENTS --------------------------------------------------------
+    Parameters
+    ----------
+    Ku
+        The anisotropy constant. Can be a constant or a space
+        dependent scalar field, given as a function or array.
+    axis
+        The unitary axis vector. It can be a 3 tuple, list or array
+        (uniaxial anisotropy), or a space dependent vector field,
+        gicen as a function or array.
+    name
+        Interaction name
 
-    ::
-
-        Ku          :: The anisotropy constant. Can be a constant or a space
-                       dependent scalar field, given as a function or array.
-
-        axis        :: The unitary axis vector. It can be a 3 tuple, list
-                       or array (uniaxial anisotropy), or a space dependent
-                       vector field, gicen as a function or array.
-
-        name        :: Interaction name
-
-    USAGE ---------------------------------------------------------------------
+    Examples
+    --------
 
     Considering a simulation object *Sim*, an uniaxial anisotropy along
     the z direction can be defined as

@@ -12,51 +12,46 @@ log = logging.getLogger(name="fidimag")
 
 class NEBM_Spherical(ChainMethodBase):
     r"""
+    The NEB Method (NEBM) class to find minimum energy paths between two
+    stable states in a given magnetic system, in spherical coordinates.
 
-    ARGUMENTS -----------------------------------------------------------------
+    Parameters
+    ----------
+    sim
+        An instance of a micromagnetic or an atomistic simulation.
+        Every image in the band will be a copy of this simulation.
+    initial_images
+        A list containing numpy arrays or space dependent functions
+        to set the magnetisation fields for every image in the
+        band. It is suggested that the first and last elements
+        define stable states of the magnetic system. The arrays and
+        functions are used to load the magnetisation/spin fields
+        through the sim.set_m method from the Simulation object.
+    interpolations
+        A list with 1 element less than the initial_images list,
+        where every entry is an integer indicating the number of
+        interpolations between consecutive images. For example, if
+        we defined initial_images as [state_1, state_2, state_3],
+        and we want 10 interpolations between state_1 and state_2
+        and 5 interpolations between state_2 and state_3, we set
+        interpolations as [10, 5], making an energy band of 17
+        images. If we do not want any interpolation, we leave this
+        list as None or empty.
+    spring_constant
+        The spring constant magnitude
+    name
+        The NEBM simulation name. Folders for VTK and NPY files,
+        and data tables are named according to this string.
+    openmp
+        Set this as True to use the parallelised version of CVODE,
+        which is the integrator used to evolve the NEBM
+        minimisation equation.
 
-    ::
-
-        sim                 :: An instance of a micromagnetic or an atomistic
-                               simulation. Every image in the band will be a copy
-                               of this simulation.
-
-        initial_images      :: A list containing numpy arrays or space dependent
-                               functions to set the magnetisation fields for every
-                               image in the band. It is suggested that the first
-                               and last elements define stable states of the
-                               magnetic system. The arrays and functions are used
-                               to load the magnetisation/spin fields through the
-                               sim.set_m method from the Simulation object.
-
-        interpolations      :: A list with 1 element less than the initial_images
-                               list, where every entry is an integer indicating the
-                               number of interpolations between consecutive images.
-                               For example, if we defined initial_images as
-                               [state_1, state_2, state_3], and we want 10
-                               interpolations between state_1 and state_2 and 5
-                               interpolations between state_2 and state_3, we set
-                               interpolations as [10, 5], making an energy band of
-                               17 images. If we do not want any interpolation, we
-                               leave this list as None or empty.
-
-        spring_constant     :: The spring constant magnitude
-
-        name                :: The NEBM simulation name. Folders for VTK and NPY
-                               files, and data tables are named according to this
-                               string.
-
-        openmp              :: Set this as True to use the parallelised version of
-                               CVODE, which is the integrator used to evolve the
-                               NEBM minimisation equation.
-
-        ---------------------------------------------------------------------------
-
-    The NEB Method (NEBM) class to find minimum energy paths between two stable
-    states in a given magnetic system. This class works both for atomistic and
-    micromagnetic simulations. The NEBM in Spherical coordinates describes the
-    spins / magnetisation vectors using the polar and azimuthal angles in
-    spherical coordinates
+    Notes
+    -----
+    This class works both for atomistic and micromagnetic simulations. The
+    NEBM in Spherical coordinates describes the spins / magnetisation vectors
+    using the polar and azimuthal angles in spherical coordinates
 
         (m_x, m_y, m_z) - > (theta, phi)
 
@@ -68,7 +63,6 @@ class NEBM_Spherical(ChainMethodBase):
     configurations, and where the first and last state are the stable states
     used to find a minimum energy transition between them. Calling the images
     as Y_i, after relaxation an energy band of N+1 images usually looks like::
-
 
                  Energy                ...
                    ^                                           _
@@ -122,12 +116,14 @@ class NEBM_Spherical(ChainMethodBase):
     when computing a difference between two spins or when computing the
     distance. This way the differences for both angles have the same range.
 
+    References
+    ----------
     For more details about the definition of the forces involved in the NEBM,
     see the following papers:
 
-        - Dittrich et al., JMMM 250 (2002) L12-L19
-        - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
+    - Dittrich et al., JMMM 250 (2002) L12-L19
+    - Henkelman et al., Journal of Chemical Physics 113, 22 (2000)
+    - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
 
     """
 
@@ -408,7 +404,6 @@ def redefine_angles(A):
 
 def energygradient2spherical(Hxyz, spin):
     """
-
     Transform the gradient of the energy (with respect to the
     magnetisation) in Cartesian coordinates, into the gradient in spherical
     coordinates (r, t, p) using the transformation matrix:
@@ -432,11 +427,12 @@ def energygradient2spherical(Hxyz, spin):
     The function only returns the (t, p) = (theta, phi) coordinates of
     dE/dm since we asume that the r component is fixed
 
-
-    INPUTS:
-
-    Hxyz    :: Effective field in Cartesian coordinates
-    spin    :: The magnetisation/spin field in Spherical coordinates
+    Parameters
+    ----------
+    Hxyz
+        Effective field in Cartesian coordinates
+    spin
+        The magnetisation/spin field in Spherical coordinates
 
     """
     Hxyz = Hxyz.reshape(-1, 3)
