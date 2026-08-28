@@ -32,6 +32,14 @@ uv sync
 source .venv/bin/activate
 ```
 
+A script does not have to live in the repository, and the environment does not
+have to be activated. From anywhere, `--project` points `uv` at the Fidimag
+checkout:
+
+```bash
+uv --project /path/to/fidimag run python myscript.py
+```
+
 For detailed installation instructions and troubleshooting, see:
 - **Build documentation**: [BUILD.md](BUILD.md)
 - **Migration guide**: [MIGRATION.md](MIGRATION.md)

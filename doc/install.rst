@@ -71,6 +71,18 @@ Any command that needs the Fidimag environment is run in the same way, with
 ``uv run``, and there is no environment to activate. If you prefer to activate
 it, ``uv`` creates it in ``.venv``.
 
+Simulation scripts do not have to live in the Fidimag directory. From anywhere,
+``--project`` points ``uv`` at the checkout, so a script kept with the rest of
+a project can still be run against it:
+
+.. code-block:: bash
+
+    uv --project /path/to/fidimag run python myscript.py
+
+The files that the simulation writes, the ``<name>.txt`` data table and the
+``<name>_npys`` and ``<name>_vtks`` directories, are created in the directory
+the command is run from, not in the Fidimag one.
+
 To also install the optional dependencies, which are the ones needed to run the
 tests (``dev``) and to build this documentation (``docs``):
 
