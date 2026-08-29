@@ -4,6 +4,7 @@ cimport numpy as np  # import special compile-time information about numpy
 cimport openmp
 np.import_array()  # don't remove or you'll segfault
 from libc.string cimport memcpy
+from libc.math cimport sqrt
 import sys
 
 cdef extern from "sundials/sundials_context.h":
@@ -201,6 +202,8 @@ cdef extern from "arkode/arkode.h":
     int ARKodeSetFixedStep(void *arkode_mem, double hfixed)
     int ARKodeEvolve(void *arkode_mem, double tout, N_Vector yout,
                      double *tret, int itask) nogil
+    ctypedef int (*ARKPostProcessFn)(double t, N_Vector y, void *user_data)
+    int ARKodeSetPostprocessStepFn(void *arkode_mem, ARKPostProcessFn fn)
     int ARKodeGetNumSteps(void *arkode_mem, long int *nsteps)
     int ARKodeGetCurrentStep(void *arkode_mem, double *hcur)
     int ARKodeGetNumRhsEvals(void *arkode_mem, int partition_index,
@@ -659,6 +662,33 @@ cdef class CvodeSolver:
         CVodeFree(& self.cvode_mem)
         SUNContext_Free(& self.sunctx)
 
+cdef int erk_normalise_step(double t, N_Vector y, void *user_data) noexcept:
+    """Rescale every spin to unit length, after each accepted step.
+
+    ARKODE calls this through ARKodeSetPostprocessStepFn. It is the
+    alternative to the `c * (1 - m^2) * m` correction term that the LLG right
+    hand side adds: that keeps |m| near one by making it an attracting
+    solution of the equation itself, whereas this imposes it exactly, outside
+    the integrator. The two can be used together or separately, which is what
+    the `normalise` argument and the driver's `default_c` select between.
+
+    Sites with no material have a spin of zero length and are left alone.
+    """
+    cdef long int n = (< N_VectorContent_Serial > y.content).length // 3
+    cdef double *data = (< N_VectorContent_Serial > y.content).data
+    cdef long int i
+    cdef double norm
+    for i in range(n):
+        norm = sqrt(data[3 * i] * data[3 * i]
+                    + data[3 * i + 1] * data[3 * i + 1]
+                    + data[3 * i + 2] * data[3 * i + 2])
+        if norm > 0:
+            data[3 * i] /= norm
+            data[3 * i + 1] /= norm
+            data[3 * i + 2] /= norm
+    return 0
+
+
 cdef class ErkSolver:
     """
     Explicit Runge-Kutta integration, through ARKODE's ERKStep module.
@@ -707,9 +737,11 @@ cdef class ErkSolver:
     cdef int max_num_steps
     cdef bytes table
     cdef int arkode_already_initialised
+    cdef public bint normalise
 
     def __cinit__(self, spins, rhs_fun, rtol=1e-8, atol=1e-8,
-                  table="ARKODE_DORMAND_PRINCE_7_4_5", max_num_steps=100000):
+                  table="ARKODE_DORMAND_PRINCE_7_4_5", max_num_steps=100000,
+                  normalise=False):
         self.t = 0
         self.y0 = spins
         self.dm_dt = np.copy(spins)
@@ -722,6 +754,7 @@ cdef class ErkSolver:
         self.table = table.encode('utf-8') if isinstance(table, str) else table
         self.arkode_mem = NULL
         self.arkode_already_initialised = 0
+        self.normalise = normalise
 
         SUNContext_Create(SUN_COMM_NULL, & self.sunctx)
 
@@ -755,6 +788,11 @@ cdef class ErkSolver:
 
         flag = ARKodeSetUserData(self.arkode_mem, <void*> &self.user_data)
         self.check_flag(flag, "ARKodeSetUserData")
+
+        if self.normalise:
+            flag = ARKodeSetPostprocessStepFn(self.arkode_mem,
+                                              <ARKPostProcessFn> erk_normalise_step)
+            self.check_flag(flag, "ARKodeSetPostprocessStepFn")
 
         flag = ERKStepSetTableName(self.arkode_mem, self.table)
         self.check_flag(flag, "ERKStepSetTableName: unknown Butcher table "

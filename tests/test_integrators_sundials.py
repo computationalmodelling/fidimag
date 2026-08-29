@@ -13,7 +13,8 @@ import fidimag
 from fidimag.common import CuboidMesh
 from fidimag.micro import Sim, UniformExchange, Zeeman
 
-INTEGRATORS = ['sundials', 'sundials_adams', 'dopri5', 'rkf45']
+INTEGRATORS = ['sundials', 'sundials_adams', 'dopri5', 'rkf45',
+               'dopri5_normalised']
 
 
 def _precession_sim(integrator):
@@ -57,6 +58,35 @@ def test_integrators_agree():
         deviation = np.abs(traj[integrator] - ref).max()
         assert deviation < 1e-6, \
             '{} deviates from sundials by {:.2e}'.format(integrator, deviation)
+
+
+def test_normalised_variant_conserves_the_spin_length_better():
+    """`_normalised` rescales the spins after every accepted step.
+
+    The length of m is otherwise kept near one by the `c * (1 - m^2) * m`
+    correction term of the LLG right hand side, which makes |m| = 1 an
+    attracting solution rather than imposing it. Projecting as well is more
+    accurate, and should cost close to nothing: the projection is O(n)
+    arithmetic once per step, against the effective field evaluations, with
+    their demagnetising transforms, that each step already pays for.
+    """
+    plain = _precession_sim('dopri5')
+    plain.driver.run_until(2e-10)
+
+    projected = _precession_sim('dopri5_normalised')
+    projected.driver.run_until(2e-10)
+
+    err_plain = abs(np.linalg.norm(plain.spin) - 1.0)
+    err_projected = abs(np.linalg.norm(projected.spin) - 1.0)
+    assert err_projected < err_plain
+
+    # and it is the same trajectory
+    assert np.abs(projected.spin - plain.spin).max() < 1e-6
+
+    # for the same work, to within the step controller's discretion
+    steps_plain = plain.driver.stat()[0]
+    steps_projected = projected.driver.stat()[0]
+    assert steps_projected <= 1.2 * steps_plain
 
 
 def test_unknown_butcher_table_is_rejected():

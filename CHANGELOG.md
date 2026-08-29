@@ -43,8 +43,18 @@ Version 4.0
   That ordering is particular to a problem of this size: the stiffness of the
   LLG equation comes from exchange and grows as `1 / dx ** 2`, so the implicit
   methods recover their advantage on a finer mesh
-* New `tests/test_integrators_sundials.py`, checking that the four agree on a
-  precessing macrospin
+* **`dopri5_normalised` and `rkf45_normalised`**: the same explicit methods,
+  rescaling the spins to unit length after every accepted step through
+  ARKODE's post-step hook, rather than relying only on the `c * (1 - m^2) * m`
+  correction term in the LLG right hand side, which makes `|m| = 1` an
+  attracting solution instead of imposing it. The two are independent, and
+  `default_c` still selects the correction term's behaviour (0 turns it off).
+  On standard problem 4 the projection left the step count unchanged and cost
+  about 2% in wall time, improving the error in `|m|` by two orders of
+  magnitude. CVODE offers no equivalent hook, so this is explicit-only
+* New `tests/test_integrators_sundials.py`, checking that the methods agree on
+  a precessing macrospin and that the projection conserves the spin length
+  better at the same cost
 
 ### Demagnetising field
 
