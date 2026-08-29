@@ -23,6 +23,29 @@ Version 4.0
 * New `tests/test_steepest_descent.py`, and a new documentation section on
   energy minimisation
 
+### Time integration
+
+* **`sundials_adams`**: CVODE with Adams-Moulton and a fixed point iteration,
+  the non-stiff arm of the solver Fidimag already wraps, with no linear solve
+  at all. `CV_ADAMS` had been declared in the Cython wrapper since it was
+  written but never used, `CVodeCreate` being called with `CV_BDF`
+  unconditionally
+* **`dopri5` and `rkf45`**: explicit Runge-Kutta 5(4) pairs, through ARKODE's
+  `ERKStep`. `dopri5` uses the Dormand and Prince tableau, which is the method
+  OOMMF calls `rkf54m`, so the two codes can now be compared directly; `rkf45`
+  is the genuine Fehlberg one. (OOMMF's own default, `rkf54`, is RK5(4)7FC,
+  another member of the Dormand and Prince family rather than the Fehlberg
+  tableau the name suggests.) ARKODE is now linked, and the Butcher table is
+  selected by name, so any of the tables it ships can be reached
+* On muMAG standard problem 4 at rtol = atol = 1e-10, all four agree to within
+  2e-8 and put the crossing of `<m_x> = 0` in the same place. Relative to the
+  BDF default, Adams took 0.66 of the wall time and the explicit methods 0.47.
+  That ordering is particular to a problem of this size: the stiffness of the
+  LLG equation comes from exchange and grows as `1 / dx ** 2`, so the implicit
+  methods recover their advantage on a finer mesh
+* New `tests/test_integrators_sundials.py`, checking that the four agree on a
+  precessing macrospin
+
 ### Demagnetising field
 
 * **Faster FFT demag**: the `O(N)` glue loops around the FFTs are now

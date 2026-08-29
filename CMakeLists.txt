@@ -86,7 +86,7 @@ message(STATUS "FFTW3 OpenMP: ${FFTW3_OMP_LIBRARY}")
 message(STATUS "FFTW3 include: ${FFTW3_INCLUDE_DIR}")
 
 # SUNDIALS (ODE/DAE solver) - Custom find module
-find_package(SUNDIALS 7.6 REQUIRED COMPONENTS cvodes nvecserial nvecopenmp)
+find_package(SUNDIALS 7.6 REQUIRED COMPONENTS cvodes arkode nvecserial nvecopenmp)
 message(STATUS "SUNDIALS ${SUNDIALS_VERSION} found")
 message(STATUS "  Include: ${SUNDIALS_INCLUDE_DIRS}")
 message(STATUS "  Libraries: ${SUNDIALS_LIBRARIES}")

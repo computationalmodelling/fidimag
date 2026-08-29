@@ -64,6 +64,16 @@ cdef extern from "nvector/nvector_openmp.h":
     ctypedef _N_VectorContent_OpenMP *N_VectorContent_OpenMP
 
 
+cdef extern from "sundials/sundials_nonlinearsolver.h":
+    struct _generic_SUNNonlinearSolver:
+        pass
+    ctypedef _generic_SUNNonlinearSolver *SUNNonlinearSolver
+    int SUNNonlinSolFree(SUNNonlinearSolver NLS)
+
+cdef extern from "sunnonlinsol/sunnonlinsol_fixedpoint.h":
+    SUNNonlinearSolver SUNNonlinSol_FixedPoint(N_Vector y, int m,
+                                               SUNContext sunctx)
+
 cdef extern from "cvode/cvode.h":
     int CV_ADAMS
     int CV_BDF
@@ -118,6 +128,7 @@ cdef extern from "cvode/cvode.h":
     int CVodeSetMaxErrTestFails(void *cvode_mem, int maxnef)
     int CVodeSetMaxNonlinIters(void *cvode_mem, int maxcor)
     int CVodeSetMaxConvFails(void *cvode_mem, int maxncf)
+    int CVodeSetNonlinearSolver(void *cvode_mem, SUNNonlinearSolver NLS)
     int CVodeSetNonlinConvCoef(void *cvode_mem, double nlscoef)
     int CVodeSetIterType(void *cvode_mem, int iter)
     int CVodeSetRootDirection(void *cvode_mem, int *rootdir)
@@ -175,6 +186,31 @@ cdef extern from "sunlinsol/sunlinsol_spgmr.h":
     int SUNLinSolFree(SUNLinearSolver S)
 
     int CVSpgmr(void *cvode_mem, int pretype, int max1)
+
+cdef extern from "arkode/arkode.h":
+    int ARK_NORMAL
+    int ARK_ONE_STEP
+    int ARK_SUCCESS
+    ctypedef int (*ARKRhsFn)(double t, N_Vector y, N_Vector ydot,
+                             void *user_data)
+    int ARKodeSStolerances(void *arkode_mem, double reltol, double abstol)
+    int ARKodeSetUserData(void *arkode_mem, void *user_data)
+    int ARKodeSetMaxNumSteps(void *arkode_mem, long int mxsteps)
+    int ARKodeSetInitStep(void *arkode_mem, double hin)
+    int ARKodeSetMaxStep(void *arkode_mem, double hmax)
+    int ARKodeSetFixedStep(void *arkode_mem, double hfixed)
+    int ARKodeEvolve(void *arkode_mem, double tout, N_Vector yout,
+                     double *tret, int itask) nogil
+    int ARKodeGetNumSteps(void *arkode_mem, long int *nsteps)
+    int ARKodeGetCurrentStep(void *arkode_mem, double *hcur)
+    int ARKodeGetNumRhsEvals(void *arkode_mem, int partition_index,
+                             long int *nfevals)
+    void ARKodeFree(void **arkode_mem)
+
+cdef extern from "arkode/arkode_erkstep.h":
+    void *ERKStepCreate(ARKRhsFn f, double t0, N_Vector y0, SUNContext sunctx)
+    int ERKStepReInit(void *arkode_mem, ARKRhsFn f, double t0, N_Vector y0)
+    int ERKStepSetTableName(void *arkode_mem, const char *etable)
 
 cdef extern from "cvode/cvode_diag.h":
     int CVDiag(void *cvode_mem)
@@ -351,9 +387,11 @@ cdef class CvodeSolver:
     cdef str linear_solver
     cdef str parellel_solver
     cdef SUNLinearSolver LS
+    cdef SUNNonlinearSolver NLS
+    cdef str lmm
     cdef int maxl
     cdef int maxrs
-    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8, maxl=30, maxrs=10):
+    def __cinit__(self, spins, rhs_fun, jtimes_fun=None, linear_solver="spgmr", rtol=1e-8, atol=1e-8, maxl=30, maxrs=10, lmm="bdf"):
         self.t = 0
         self.y0 = spins
         self.dm_dt = np.copy(spins)
@@ -362,6 +400,12 @@ cdef class CvodeSolver:
         self.Jmp = np.copy(spins)
 
         self.LS = NULL
+        self.NLS = NULL
+
+        if lmm not in ("bdf", "adams"):
+            raise ValueError(
+                "lmm is {}, should be bdf or adams".format(lmm))
+        self.lmm = lmm
 
         self.callback_fun = rhs_fun
         self.jtimes_fun = jtimes_fun
@@ -392,7 +436,15 @@ cdef class CvodeSolver:
         # stiff problems. The default Newton iteration is recommended for stiff problems, and
         # the fixed-point solver (previously referred to as the functional iteration in this guide) is
         # recommended for nonstiff problems.
-        self.cvode_mem = CVodeCreate(CV_BDF, self.sunctx)
+        # BDF with a Newton iteration for the stiff case, which is what the
+        # exchange interaction makes of the LLG on a fine mesh, and Adams with
+        # a fixed point iteration for the non-stiff one, which is closer to
+        # what weakly damped precession is. Adams needs no linear solver at
+        # all: see set_initial_value
+        if self.lmm == "adams":
+            self.cvode_mem = CVodeCreate(CV_ADAMS, self.sunctx)
+        else:
+            self.cvode_mem = CVodeCreate(CV_BDF, self.sunctx)
 
         self.user_data = cv_userdata(< void * >self.callback_fun,
                                      < void * >self.y0, < void * >self.dm_dt,
@@ -436,8 +488,20 @@ cdef class CvodeSolver:
         if self.LS != NULL:
             SUNLinSolFree(self.LS)
             self.LS = NULL
+        if self.NLS != NULL:
+            SUNNonlinSolFree(self.NLS)
+            self.NLS = NULL
 
-        if self.linear_solver == "diag":
+        if self.lmm == "adams":
+            # Fixed point (functional) iteration: no Jacobian, no Krylov
+            # space, and no linear solve. The acceleration subspace is the
+            # second argument; 0 is plain functional iteration
+            self.NLS = SUNNonlinSol_FixedPoint(self.u_y, 0, self.sunctx)
+            if self.NLS == NULL:
+                raise ValueError('Error allocating nonlinear solver')
+            flag = CVodeSetNonlinearSolver(self.cvode_mem, self.NLS)
+            self.check_flag(flag, "CVodeSetNonlinearSolver")
+        elif self.linear_solver == "diag":
             flag = CVDiag(self.cvode_mem)
             self.check_flag(flag, "CVDiag")
         elif self.linear_solver == "spgmr":
@@ -556,7 +620,13 @@ cdef class CvodeSolver:
     def stat(self):
         CVodeGetNumSteps(self.cvode_mem, & self.nsteps)
         CVodeGetNumRhsEvals(self.cvode_mem, & self.nfevals)
-        CVodeGetNumJtimesEvals(self.cvode_mem, & self.njevals)
+        # Adams runs a fixed point iteration, with no linear solver attached,
+        # so there is no Jacobian-times-vector counter to ask for: querying it
+        # makes SUNDIALS report that the linear solver memory is NULL
+        if self.lmm == "adams":
+            self.njevals = 0
+        else:
+            CVodeGetNumJtimesEvals(self.cvode_mem, & self.njevals)
         return self.nsteps, self.nfevals, self.njevals
 
     def get_current_step(self):
@@ -582,9 +652,175 @@ cdef class CvodeSolver:
         if self.LS != NULL:
             SUNLinSolFree(self.LS)
             self.LS = NULL
+        if self.NLS != NULL:
+            SUNNonlinSolFree(self.NLS)
+            self.NLS = NULL
         N_VDestroy_Serial(self.u_y)
         CVodeFree(& self.cvode_mem)
         SUNContext_Free(& self.sunctx)
+
+cdef class ErkSolver:
+    """
+    Explicit Runge-Kutta integration, through ARKODE's ERKStep module.
+
+    CVODE, which the other classes in this file wrap, is a linear multistep
+    solver: BDF for stiff problems, needing a Newton iteration and a linear
+    solve at every step, or Adams for non-stiff ones. This is the other
+    family, a one step explicit Runge-Kutta pair with an embedded lower order
+    method for the step size control, and no algebraic system to solve at all.
+
+    Which is faster depends on the mesh. The stiffness of the LLG equation
+    comes from the exchange interaction, whose fastest timescale grows as
+    1 / dx^2, so an explicit method's stable step shrinks quadratically as the
+    cells get smaller, while a BDF one's does not. On a coarse mesh, and for
+    weakly damped precession, a step here costs only the stages of the tableau
+    in right hand side evaluations, against several per Newton iteration plus
+    the Krylov solve that CVODE pays.
+
+    The method is chosen by the name of its Butcher table, as ARKODE knows
+    them. `ARKODE_DORMAND_PRINCE_7_4_5` is the default and is the classical
+    DOPRI5; it is the same tableau as OOMMF's `rkf54m`, which makes the two
+    codes directly comparable. Note that OOMMF's default, `rkf54`, is
+    RK5(4)7FC, a different member of the same Dormand and Prince family rather
+    than the Fehlberg tableau its name suggests. The genuine Fehlberg one is
+    available here as `ARKODE_FEHLBERG_6_4_5`.
+
+    Explicit methods do not preserve the length of the spins. Fidimag
+    normalises them anyway, but the error controller does not know about that
+    constraint, so a tolerance here does not mean quite what it means under
+    CVODE.
+    """
+    cdef public double t
+    cdef public np.ndarray y
+    cdef double rtol, atol
+    cdef np.ndarray y0
+    cdef np.ndarray dm_dt
+    cdef np.ndarray mp
+    cdef np.ndarray Jmp
+    cdef SUNContext sunctx
+    cdef N_Vector u_y
+    cdef void *arkode_mem
+    cdef void *rhs_fun
+    cdef callback_fun
+    cdef cv_userdata user_data
+    cdef long int nsteps, nfevals
+    cdef int max_num_steps
+    cdef bytes table
+    cdef int arkode_already_initialised
+
+    def __cinit__(self, spins, rhs_fun, rtol=1e-8, atol=1e-8,
+                  table="ARKODE_DORMAND_PRINCE_7_4_5", max_num_steps=100000):
+        self.t = 0
+        self.y0 = spins
+        self.dm_dt = np.copy(spins)
+        self.y = np.copy(spins)
+        self.mp = np.copy(spins)
+        self.Jmp = np.copy(spins)
+
+        self.callback_fun = rhs_fun
+        self.rhs_fun = <void *>cv_rhs
+        self.table = table.encode('utf-8') if isinstance(table, str) else table
+        self.arkode_mem = NULL
+        self.arkode_already_initialised = 0
+
+        SUNContext_Create(SUN_COMM_NULL, & self.sunctx)
+
+        self.u_y = N_VMake_Serial(self.y.size, <double *> self.y.data,
+                                  self.sunctx)
+
+        self.user_data = cv_userdata(< void * >self.callback_fun,
+                                     < void * >self.y0, < void * >self.dm_dt,
+                                     < void * >NULL,
+                                     < void * >self.mp, < void * >self.Jmp)
+
+        self.set_initial_value(spins, self.t)
+        self.set_options(rtol, atol, max_num_steps)
+
+    def set_initial_value(self, double[:] spin, t):
+        self.t = t
+        self.y[:] = spin[:]
+        copy_arr2nv(self.y, self.u_y)
+
+        if self.arkode_already_initialised:
+            flag = ERKStepReInit(self.arkode_mem, <ARKRhsFn> self.rhs_fun,
+                                 t, self.u_y)
+            self.check_flag(flag, "ERKStepReInit")
+            return
+
+        self.arkode_mem = ERKStepCreate(<ARKRhsFn> self.rhs_fun, t, self.u_y,
+                                        self.sunctx)
+        if self.arkode_mem == NULL:
+            raise ValueError('Error allocating the ARKODE integrator')
+        self.arkode_already_initialised = 1
+
+        flag = ARKodeSetUserData(self.arkode_mem, <void*> &self.user_data)
+        self.check_flag(flag, "ARKodeSetUserData")
+
+        flag = ERKStepSetTableName(self.arkode_mem, self.table)
+        self.check_flag(flag, "ERKStepSetTableName: unknown Butcher table "
+                              "{}".format(self.table.decode()))
+
+    def reset(self, double[:] spin, t):
+        copy_arr2nv(spin, self.u_y)
+        ERKStepReInit(self.arkode_mem, <ARKRhsFn> self.rhs_fun, t, self.u_y)
+        self.t = t
+
+    def set_options(self, rtol, atol, max_num_steps=100000, max_ord=None):
+        # max_ord is accepted so that the drivers can pass it through, but a
+        # Runge-Kutta method's order is fixed by its tableau
+        if max_ord is not None:
+            raise ValueError(
+                "max_ord does not apply to an explicit Runge-Kutta method; "
+                "the order is set by the Butcher table")
+        self.rtol = rtol
+        self.atol = atol
+        self.max_num_steps = max_num_steps
+        flag = ARKodeSStolerances(self.arkode_mem, rtol, atol)
+        self.check_flag(flag, "ARKodeSStolerances")
+        flag = ARKodeSetMaxNumSteps(self.arkode_mem, max_num_steps)
+        self.check_flag(flag, "ARKodeSetMaxNumSteps")
+
+    cpdef int run_until(self, double t_final) except -1:
+        cdef int flag
+        cdef double t_returned
+        flag = ARKodeEvolve(self.arkode_mem, t_final, self.u_y, & t_returned,
+                            ARK_NORMAL)
+        self.check_flag(flag, "{}".format(flag))
+        self.t = t_returned
+        return 0
+
+    def rhs_evals(self):
+        # partition 0 is the only right hand side an explicit method has
+        ARKodeGetNumRhsEvals(self.arkode_mem, 0, & self.nfevals)
+        return self.nfevals
+
+    def stat(self):
+        ARKodeGetNumSteps(self.arkode_mem, & self.nsteps)
+        ARKodeGetNumRhsEvals(self.arkode_mem, 0, & self.nfevals)
+        return self.nsteps, self.nfevals, 0
+
+    def get_current_step(self):
+        cdef double step
+        ARKodeGetCurrentStep(self.arkode_mem, & step)
+        return step
+
+    def check_flag(self, flag, fun_name):
+        if flag < 0:
+            raise RuntimeError("{} failed with flag {}".format(fun_name, flag))
+
+    def __dealloc__(self):
+        self.user_data.rhs_fun = NULL
+        self.user_data.y = NULL
+        self.user_data.jv_fun = NULL
+        self.user_data.dm_dt = NULL
+        self.user_data.v = NULL
+        self.user_data.jv = NULL
+        N_VDestroy_Serial(self.u_y)
+        if self.arkode_mem != NULL:
+            ARKodeFree(& self.arkode_mem)
+        SUNContext_Free(& self.sunctx)
+
+
 
 cdef class CvodeSolver_OpenMP:
     cdef public double t

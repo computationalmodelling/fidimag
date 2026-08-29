@@ -4,7 +4,7 @@ import numpy as np
 import zipfile
 import fidimag.common.helper as helper
 from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
-    StepIntegrator, ScipyIntegrator
+    ErkSolver, StepIntegrator, ScipyIntegrator
 
 
 class DriverBase:
@@ -70,12 +70,58 @@ class DriverBase:
     alpha = property(get_alpha, set_alpha)
 
     def set_integrator(self, integrator, use_jac):
-        # Integrator options --------------------------------------------------
+        """
+        Choose the method used to evolve the equation in time.
 
-        # Here we set up the CVODE integrator from Sundials to evolve a
-        # specific micromagnetic equation. The equations are specified in the
-        # sundials_rhs function from any of the micromagnetic drivers in the
-        # micromagnetic folder (LLG, LLG_STT, etc.)
+        The right hand side comes from the `sundials_rhs` of the driver in
+        use (LLG, LLG_STT, and so on); this only selects what integrates it.
+
+        Parameters
+        ----------
+        integrator
+            One of:
+
+            - ``'sundials'`` (default): CVODE with backward differentiation
+              formulae and a Newton iteration, solved with restarted GMRES.
+              The implicit choice, and the one to keep on a fine mesh: the
+              stiffness of the LLG equation comes from the exchange
+              interaction, whose fastest timescale grows as ``1 / dx ** 2``.
+            - ``'sundials_diag'``: the same, with CVODE's diagonal
+              approximate Jacobian instead of GMRES.
+            - ``'sundials_adams'``: CVODE with Adams-Moulton and a fixed
+              point iteration. The non-stiff arm of the same solver, with no
+              linear solve at all.
+            - ``'dopri5'``: explicit Runge-Kutta 5(4) through ARKODE, using
+              the Dormand and Prince tableau. This is the same method OOMMF
+              calls ``rkf54m``, so the two codes can be compared directly.
+              Note that OOMMF's own default, ``rkf54``, is RK5(4)7FC, another
+              member of that family rather than the Fehlberg tableau its name
+              suggests.
+            - ``'rkf45'``: explicit Runge-Kutta through ARKODE with the
+              genuine Fehlberg 5(4) tableau.
+            - ``'euler'``, ``'rk4'``: fixed step, mostly for debugging.
+            - ``'scipy'``: SciPy's integrator.
+            - the ``_openmp`` variants of the sundials ones, which use the
+              OpenMP N_Vector.
+        use_jac
+            Supply the analytical Jacobian-times-vector product to CVODE.
+            Only used by the ``'sundials'`` and ``'sundials_openmp'`` options.
+
+        Notes
+        -----
+        On muMAG standard problem 4, all four of the SUNDIALS options agree
+        to within 2e-8 of each other and put the crossing of ``<m_x> = 0`` at
+        the same place, at rtol = atol = 1e-10. Their cost differs: taking
+        the BDF default as 1, Adams ran in 0.66 of the time and the two
+        explicit methods in 0.47. The explicit ones evaluate the right hand
+        side more often, but a step costs only its stages, with no Newton
+        iteration and no Krylov solve.
+
+        That ordering is not general. It reflects a problem whose dynamics
+        are worth resolving anyway; on a finer mesh, or when relaxing to
+        equilibrium rather than following the dynamics, the implicit methods
+        recover their advantage. For equilibrium, prefer the minimisers.
+        """
 
         if integrator == "sundials" and use_jac:
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
@@ -85,6 +131,20 @@ class DriverBase:
                                           linear_solver="diag")
         elif integrator == "sundials":
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
+        elif integrator == "sundials_adams":
+            # Adams-Moulton with a fixed point iteration: the non-stiff arm of
+            # CVODE, with no linear solve at all
+            self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
+                                          lmm="adams")
+        elif integrator in ("dopri5", "rkf45", "erk"):
+            # Explicit Runge-Kutta, through ARKODE. `dopri5` is the tableau
+            # OOMMF calls rkf54m, so the two codes can be compared directly;
+            # `rkf45` is the genuine Fehlberg one
+            table = {"dopri5": "ARKODE_DORMAND_PRINCE_7_4_5",
+                     "erk": "ARKODE_DORMAND_PRINCE_7_4_5",
+                     "rkf45": "ARKODE_FEHLBERG_6_4_5"}[integrator]
+            self.integrator = ErkSolver(self.spin, self.sundials_rhs,
+                                        table=table)
         elif integrator == "euler" or integrator == "rk4":
             self.integrator = StepIntegrator(self.spin, self.step_rhs, step=integrator)
         elif integrator == "scipy":
@@ -102,7 +162,10 @@ class DriverBase:
             self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
                                                  integrator)
         else:
-            raise NotImplemented("integrator must be sundials, euler or rk4")
+            raise NotImplementedError(
+                "integrator is {}, should be one of sundials, "
+                "sundials_diag, sundials_adams, dopri5, rkf45, euler, "
+                "rk4, scipy, or their _openmp variants".format(integrator))
 
     # ------------------------------------------------------------------------
 
