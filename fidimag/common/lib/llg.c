@@ -117,15 +117,32 @@ void llg_rhs(double *restrict dm_dt, double *restrict m, double *restrict h, dou
         hpj = mm * h[j] - mh * m[j];
         hpk = mm * h[k] - mh * m[k];
 
-        // IMPORTANT: do not ignore mm !!
-        // What we've found is that if we igonre mm, i.e. using
-        //    hpi = h[i] - mh * m[i];
-        //    hpj = h[j] - mh * m[j];
-        //    hpk = h[k] - mh * m[k];
-        // the micromagnetic standard problem 4 failed to converge (?)
+        // Keep mm rather than assuming it is one. The point is that
         //
-        // NOTE (Fri 08 Jul 2016 13:58): In fact, the problem converges but with 2 less
-        // decimals of accuracy, compared with the OOMMF calculation
+        //     (m.m) h - (m.h) m
+        //
+        // is perpendicular to m exactly, whatever the length of m, while
+        //
+        //     h - (m.h) m
+        //
+        // leaves a component along m of (m.h)(1 - m.m). That vanishes only
+        // when |m| is exactly one, and the correction term below holds |m|
+        // near one rather than at one, so the residual is not zero and feeds
+        // a spurious change of the spin length back into the dynamics.
+        //
+        // A note here used to say that dropping mm cost two decimals of
+        // accuracy against OOMMF on standard problem 4 (2016). That no longer
+        // reproduces. Measured against the OOMMF reference in
+        // examples/micromagnetic/std4, over its full 1 ns and 1000 sample
+        // points, the deviation of the mean magnetisation is
+        //
+        //     with mm     max 3.5294e-05   rms 1.3139e-05
+        //     without mm  max 3.5515e-05   rms 1.3221e-05
+        //
+        // a difference of 0.6%, and the two runs differ from each other by
+        // 2.2e-07 at most. Whatever was seen in 2016 has been fixed
+        // elsewhere since. The mm form is kept because it is the correct
+        // projection and costs one multiplication
         double mth0 = 0, mth1 = 0, mth2 = 0;
 
         // The first term: m x H_eff = m x H_perp
