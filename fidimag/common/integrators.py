@@ -3,7 +3,8 @@ Implement the time integrators used in the simulation of magnetisation dynamics.
 
 """
 from scipy.integrate import ode
-from fidimag.extensions.cvode import CvodeSolver, CvodeSolver_OpenMP, ErkSolver
+from fidimag.extensions.cvode import CvodeSolver, CvodeSolver_OpenMP, \
+    ErkSolver, ErkSolver_OpenMP
 import warnings
 
 EPSILON = 1e-16

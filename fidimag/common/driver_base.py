@@ -5,7 +5,7 @@ import warnings
 import zipfile
 import fidimag.common.helper as helper
 from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
-    ErkSolver, StepIntegrator, ScipyIntegrator
+    ErkSolver, ErkSolver_OpenMP, StepIntegrator, ScipyIntegrator
 
 
 class DriverBase:
@@ -18,8 +18,14 @@ class DriverBase:
     ARKODE_TABLES = {
         "arkode_dopri5": "ARKODE_DORMAND_PRINCE_7_4_5",
         "arkode_rkf45": "ARKODE_FEHLBERG_6_4_5",
-        "arkode_dopri5_normalised": "ARKODE_DORMAND_PRINCE_7_4_5",
-        "arkode_rkf45_normalised": "ARKODE_FEHLBERG_6_4_5",
+    }
+    # every arkode name, with its table, whether it projects and whether it
+    # uses the OpenMP vector
+    ARKODE_TABLES = {
+        name + normalised + openmp: table
+        for name, table in ARKODE_TABLES.items()
+        for normalised in ("", "_normalised")
+        for openmp in ("", "_openmp")
     }
 
     #: Every integrator name that `set_integrator` accepts
@@ -28,6 +34,8 @@ class DriverBase:
         "cvode_bdf_openmp", "cvode_bdf_diag_openmp",
         "arkode_dopri5", "arkode_rkf45",
         "arkode_dopri5_normalised", "arkode_rkf45_normalised",
+        "arkode_dopri5_openmp", "arkode_rkf45_openmp",
+        "arkode_dopri5_normalised_openmp", "arkode_rkf45_normalised_openmp",
         "euler", "rk4", "euler_openmp", "rk4_openmp", "scipy",
     )
 
@@ -159,6 +167,14 @@ class DriverBase:
               time, while improving the error in ``|m|`` by two orders of
               magnitude. CVODE has no equivalent hook, so this is only
               available for the explicit methods.
+            - the ``_openmp`` variants of the ``arkode_`` names, which use
+              the OpenMP N_Vector. That threads the integrator's own vector
+              arithmetic only; the right hand side is already parallel inside
+              Fidimag's C code whichever vector is used. It is worth less to
+              an explicit method than to CVODE, whose Krylov solver does far
+              more vector work: on standard problem 4 with four threads it
+              took ``arkode_dopri5`` from 4.05 s to 3.74 s, against 8.63 s to
+              6.67 s for ``cvode_bdf``.
             - ``'euler'``, ``'rk4'``: fixed step, implemented in Fidimag
               rather than taken from a library, and mostly for debugging.
             - ``'scipy'``: SciPy's integrator.
@@ -181,6 +197,10 @@ class DriverBase:
         explicit methods in 0.47. The explicit ones evaluate the right hand
         side more often, but a step costs only its stages, with no Newton
         iteration and no Krylov solve.
+
+        With four threads and the OpenMP vector, the fastest combination on
+        that problem was ``arkode_dopri5_openmp`` at 3.74 s against 8.63 s
+        for the ``cvode_bdf`` default, a factor of 2.3.
 
         That ordering is not general. It reflects a problem whose dynamics
         are worth resolving anyway; on a finer mesh, or when relaxing to
@@ -222,10 +242,12 @@ class DriverBase:
             # also rescale the spins after every accepted step, rather than
             # relying only on the correction term of the right hand side; see
             # `default_c`
-            self.integrator = ErkSolver(
+            solver = (ErkSolver_OpenMP if integrator.endswith("_openmp")
+                      else ErkSolver)
+            self.integrator = solver(
                 self.spin, self.sundials_rhs,
                 table=self.ARKODE_TABLES[integrator],
-                normalise=integrator.endswith("_normalised"))
+                normalise="_normalised" in integrator)
 
         elif integrator == "euler" or integrator == "rk4":
             self.integrator = StepIntegrator(self.spin, self.step_rhs,

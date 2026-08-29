@@ -30,7 +30,7 @@ Version 4.0
   well, and did not say which method was being run. The names are
   `cvode_bdf` (the default), `cvode_bdf_diag`, `cvode_adams`,
   `cvode_bdf_openmp`, `cvode_bdf_diag_openmp`, `arkode_dopri5`,
-  `arkode_rkf45` and their `_normalised` variants. `euler` and `rk4` keep
+  `arkode_rkf45`, and their `_normalised` and `_openmp` variants. `euler` and `rk4` keep
   their bare names, since they are implemented here rather than taken from a
   library. The pre-4.0 names `sundials`, `sundials_diag`, `sundials_openmp`
   and `sundials_diag_openmp` still work and raise a `DeprecationWarning`
@@ -64,7 +64,18 @@ Version 4.0
   On standard problem 4 the projection left the step count unchanged and cost
   about 2% in wall time, improving the error in `|m|` by two orders of
   magnitude. CVODE offers no equivalent hook, so this is explicit-only
-* New `tests/test_integrators_sundials.py`, checking that the methods agree on
+* **`_openmp` variants of the arkode integrators**, using the OpenMP
+  N_Vector. This threads only the integrator's own vector arithmetic, the
+  stage combinations and the error norms; the right hand side is already
+  parallel inside Fidimag's C code whichever vector is used. It is therefore
+  worth less to an explicit method than to CVODE, whose Krylov solver does
+  much more vector work: on standard problem 4 with four threads,
+  `arkode_dopri5` went from 4.05 s to 3.74 s (1.08x) while `cvode_bdf` went
+  from 8.63 s to 6.67 s (1.29x). At one thread they are indistinguishable
+  from the serial classes, so the vector carries no overhead of its own. The
+  fastest combination measured was `arkode_dopri5_openmp`, 3.74 s against
+  8.63 s for the old default, a factor of 2.3
+* New `tests/test_integrators.py`, checking that the methods agree on
   a precessing macrospin and that the projection conserves the spin length
   better at the same cost
 

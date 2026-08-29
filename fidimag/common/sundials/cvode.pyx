@@ -689,6 +689,24 @@ cdef int erk_normalise_step(double t, N_Vector y, void *user_data) noexcept:
     return 0
 
 
+cdef int erk_normalise_step_openmp(double t, N_Vector y,
+                                   void *user_data) noexcept:
+    """`erk_normalise_step` for the OpenMP N_Vector."""
+    cdef long int n = (< N_VectorContent_OpenMP > y.content).length // 3
+    cdef double *data = (< N_VectorContent_OpenMP > y.content).data
+    cdef long int i
+    cdef double norm
+    for i in range(n):
+        norm = sqrt(data[3 * i] * data[3 * i]
+                    + data[3 * i + 1] * data[3 * i + 1]
+                    + data[3 * i + 2] * data[3 * i + 2])
+        if norm > 0:
+            data[3 * i] /= norm
+            data[3 * i + 1] /= norm
+            data[3 * i + 2] /= norm
+    return 0
+
+
 cdef class ErkSolver:
     """
     Explicit Runge-Kutta integration, through ARKODE's ERKStep module.
@@ -865,6 +883,198 @@ cdef class ErkSolver:
         self.user_data.v = NULL
         self.user_data.jv = NULL
         N_VDestroy_Serial(self.u_y)
+        if self.arkode_mem != NULL:
+            ARKodeFree(& self.arkode_mem)
+        SUNContext_Free(& self.sunctx)
+
+
+
+
+
+cdef class ErkSolver_OpenMP:
+    """
+    `ErkSolver` on the OpenMP N_Vector.
+
+    Only the integrator's own vector arithmetic is threaded by this: the
+    combinations of the stages and the error norms. The right hand side is
+    already parallel inside Fidimag's own C code whichever vector is used, and
+    it is the larger share of the work, so the gain here is bounded by what
+    is left over.
+
+    CVODE, which the other classes in this file wrap, is a linear multistep
+    solver: BDF for stiff problems, needing a Newton iteration and a linear
+    solve at every step, or Adams for non-stiff ones. This is the other
+    family, a one step explicit Runge-Kutta pair with an embedded lower order
+    method for the step size control, and no algebraic system to solve at all.
+
+    Which is faster depends on the mesh. The stiffness of the LLG equation
+    comes from the exchange interaction, whose fastest timescale grows as
+    1 / dx^2, so an explicit method's stable step shrinks quadratically as the
+    cells get smaller, while a BDF one's does not. On a coarse mesh, and for
+    weakly damped precession, a step here costs only the stages of the tableau
+    in right hand side evaluations, against several per Newton iteration plus
+    the Krylov solve that CVODE pays.
+
+    The method is chosen by the name of its Butcher table, as ARKODE knows
+    them. `ARKODE_DORMAND_PRINCE_7_4_5` is the default and is the classical
+    DOPRI5; it is the same tableau as OOMMF's `rkf54m`, which makes the two
+    codes directly comparable. Note that OOMMF's default, `rkf54`, is
+    RK5(4)7FC, a different member of the same Dormand and Prince family rather
+    than the Fehlberg tableau its name suggests. The genuine Fehlberg one is
+    available here as `ARKODE_FEHLBERG_6_4_5`.
+
+    An explicit method does not preserve the length of the spins by itself.
+    Nothing on this path renormalises them either: what keeps |m| at one is
+    the `c * (1 - m^2) * m` term that the LLG right hand side adds, which
+    makes |m| = 1 an attracting solution of the equation rather than imposing
+    it, and which the drivers control through `default_c` (0 turns it off, a
+    negative value uses 6 * |dm/dt|, a positive one is taken as it stands).
+
+    Passing `normalise=True` projects as well, rescaling every spin to unit
+    length after each accepted step through ARKODE's post-step hook. The two
+    are independent and can be used together or separately. CVODE has no
+    equivalent hook, so the option exists only here. Note that the error
+    controller does not know about the constraint in either case, so a
+    tolerance does not mean quite what it means for an unconstrained problem,
+    and that projecting an equation whose solution genuinely leaves the unit
+    sphere will make the error test fail rather than fix anything.
+    """
+    cdef public double t
+    cdef public np.ndarray y
+    cdef double rtol, atol
+    cdef np.ndarray y0
+    cdef np.ndarray dm_dt
+    cdef np.ndarray mp
+    cdef np.ndarray Jmp
+    cdef SUNContext sunctx
+    cdef N_Vector u_y
+    cdef void *arkode_mem
+    cdef void *rhs_fun
+    cdef callback_fun
+    cdef cv_userdata user_data
+    cdef long int nsteps, nfevals
+    cdef int max_num_steps
+    cdef bytes table
+    cdef int arkode_already_initialised
+    cdef public bint normalise
+    cdef int num_threads
+
+    def __cinit__(self, spins, rhs_fun, rtol=1e-8, atol=1e-8,
+                  table="ARKODE_DORMAND_PRINCE_7_4_5", max_num_steps=100000,
+                  normalise=False):
+        self.t = 0
+        self.y0 = spins
+        self.dm_dt = np.copy(spins)
+        self.y = np.copy(spins)
+        self.mp = np.copy(spins)
+        self.Jmp = np.copy(spins)
+
+        self.callback_fun = rhs_fun
+        self.rhs_fun = <void *>cv_rhs
+        self.table = table.encode('utf-8') if isinstance(table, str) else table
+        self.arkode_mem = NULL
+        self.arkode_already_initialised = 0
+        self.normalise = normalise
+        self.num_threads = openmp.omp_get_max_threads()
+
+        SUNContext_Create(SUN_COMM_NULL, & self.sunctx)
+
+        self.u_y = N_VMake_OpenMP(self.y.size, <double *> self.y.data,
+                                  self.num_threads, self.sunctx)
+
+        self.user_data = cv_userdata(< void * >self.callback_fun,
+                                     < void * >self.y0, < void * >self.dm_dt,
+                                     < void * >NULL,
+                                     < void * >self.mp, < void * >self.Jmp)
+
+        self.set_initial_value(spins, self.t)
+        self.set_options(rtol, atol, max_num_steps)
+
+    def set_initial_value(self, double[:] spin, t):
+        self.t = t
+        self.y[:] = spin[:]
+        copy_arr2nv(self.y, self.u_y)
+
+        if self.arkode_already_initialised:
+            flag = ERKStepReInit(self.arkode_mem, <ARKRhsFn> self.rhs_fun,
+                                 t, self.u_y)
+            self.check_flag(flag, "ERKStepReInit")
+            return
+
+        self.arkode_mem = ERKStepCreate(<ARKRhsFn> self.rhs_fun, t, self.u_y,
+                                        self.sunctx)
+        if self.arkode_mem == NULL:
+            raise ValueError('Error allocating the ARKODE integrator')
+        self.arkode_already_initialised = 1
+
+        flag = ARKodeSetUserData(self.arkode_mem, <void*> &self.user_data)
+        self.check_flag(flag, "ARKodeSetUserData")
+
+        if self.normalise:
+            flag = ARKodeSetPostprocessStepFn(self.arkode_mem,
+                                              <ARKPostProcessFn> erk_normalise_step_openmp)
+            self.check_flag(flag, "ARKodeSetPostprocessStepFn")
+
+        flag = ERKStepSetTableName(self.arkode_mem, self.table)
+        self.check_flag(flag, "ERKStepSetTableName: unknown Butcher table "
+                              "{}".format(self.table.decode()))
+
+    def reset(self, double[:] spin, t):
+        copy_arr2nv(spin, self.u_y)
+        ERKStepReInit(self.arkode_mem, <ARKRhsFn> self.rhs_fun, t, self.u_y)
+        self.t = t
+
+    def set_options(self, rtol, atol, max_num_steps=100000, max_ord=None):
+        # max_ord is accepted so that the drivers can pass it through, but a
+        # Runge-Kutta method's order is fixed by its tableau
+        if max_ord is not None:
+            raise ValueError(
+                "max_ord does not apply to an explicit Runge-Kutta method; "
+                "the order is set by the Butcher table")
+        self.rtol = rtol
+        self.atol = atol
+        self.max_num_steps = max_num_steps
+        flag = ARKodeSStolerances(self.arkode_mem, rtol, atol)
+        self.check_flag(flag, "ARKodeSStolerances")
+        flag = ARKodeSetMaxNumSteps(self.arkode_mem, max_num_steps)
+        self.check_flag(flag, "ARKodeSetMaxNumSteps")
+
+    cpdef int run_until(self, double t_final) except -1:
+        cdef int flag
+        cdef double t_returned
+        flag = ARKodeEvolve(self.arkode_mem, t_final, self.u_y, & t_returned,
+                            ARK_NORMAL)
+        self.check_flag(flag, "{}".format(flag))
+        self.t = t_returned
+        return 0
+
+    def rhs_evals(self):
+        # partition 0 is the only right hand side an explicit method has
+        ARKodeGetNumRhsEvals(self.arkode_mem, 0, & self.nfevals)
+        return self.nfevals
+
+    def stat(self):
+        ARKodeGetNumSteps(self.arkode_mem, & self.nsteps)
+        ARKodeGetNumRhsEvals(self.arkode_mem, 0, & self.nfevals)
+        return self.nsteps, self.nfevals, 0
+
+    def get_current_step(self):
+        cdef double step
+        ARKodeGetCurrentStep(self.arkode_mem, & step)
+        return step
+
+    def check_flag(self, flag, fun_name):
+        if flag < 0:
+            raise RuntimeError("{} failed with flag {}".format(fun_name, flag))
+
+    def __dealloc__(self):
+        self.user_data.rhs_fun = NULL
+        self.user_data.y = NULL
+        self.user_data.jv_fun = NULL
+        self.user_data.dm_dt = NULL
+        self.user_data.v = NULL
+        self.user_data.jv = NULL
+        N_VDestroy_OpenMP(self.u_y)
         if self.arkode_mem != NULL:
             ARKodeFree(& self.arkode_mem)
         SUNContext_Free(& self.sunctx)

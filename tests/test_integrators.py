@@ -14,7 +14,8 @@ from fidimag.common import CuboidMesh
 from fidimag.micro import Sim, UniformExchange, Zeeman
 
 INTEGRATORS = ['cvode_bdf', 'cvode_adams', 'arkode_dopri5', 'arkode_rkf45',
-               'arkode_dopri5_normalised']
+               'arkode_dopri5_normalised', 'arkode_dopri5_openmp',
+               'arkode_dopri5_normalised_openmp']
 
 
 def _precession_sim(integrator):
@@ -87,6 +88,22 @@ def test_normalised_variant_conserves_the_spin_length_better():
     steps_plain = plain.driver.stat()[0]
     steps_projected = projected.driver.stat()[0]
     assert steps_projected <= 1.2 * steps_plain
+
+
+def test_openmp_matches_serial():
+    """The OpenMP N_Vector only threads the integrator's own arithmetic.
+
+    It changes how the vector operations are executed, not what they compute,
+    so the two must follow the same trajectory step for step.
+    """
+    serial = _precession_sim('arkode_dopri5')
+    serial.driver.run_until(2e-10)
+
+    threaded = _precession_sim('arkode_dopri5_openmp')
+    threaded.driver.run_until(2e-10)
+
+    assert np.abs(threaded.spin - serial.spin).max() < 1e-9
+    assert threaded.driver.stat()[0] == serial.driver.stat()[0]
 
 
 def test_unknown_butcher_table_is_rejected():
