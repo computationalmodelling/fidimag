@@ -715,10 +715,21 @@ cdef class ErkSolver:
     than the Fehlberg tableau its name suggests. The genuine Fehlberg one is
     available here as `ARKODE_FEHLBERG_6_4_5`.
 
-    Explicit methods do not preserve the length of the spins. Fidimag
-    normalises them anyway, but the error controller does not know about that
-    constraint, so a tolerance here does not mean quite what it means under
-    CVODE.
+    An explicit method does not preserve the length of the spins by itself.
+    Nothing on this path renormalises them either: what keeps |m| at one is
+    the `c * (1 - m^2) * m` term that the LLG right hand side adds, which
+    makes |m| = 1 an attracting solution of the equation rather than imposing
+    it, and which the drivers control through `default_c` (0 turns it off, a
+    negative value uses 6 * |dm/dt|, a positive one is taken as it stands).
+
+    Passing `normalise=True` projects as well, rescaling every spin to unit
+    length after each accepted step through ARKODE's post-step hook. The two
+    are independent and can be used together or separately. CVODE has no
+    equivalent hook, so the option exists only here. Note that the error
+    controller does not know about the constraint in either case, so a
+    tolerance does not mean quite what it means for an unconstrained problem,
+    and that projecting an equation whose solution genuinely leaves the unit
+    sphere will make the error test fail rather than fix anything.
     """
     cdef public double t
     cdef public np.ndarray y
