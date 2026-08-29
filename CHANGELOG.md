@@ -75,6 +75,12 @@ Version 4.0
   from the serial classes, so the vector carries no overhead of its own. The
   fastest combination measured was `arkode_dopri5_openmp`, 3.74 s against
   8.63 s for the old default, a factor of 2.3
+* New `tests/test_std_problem_4.py`, marked slow, which runs muMAG standard
+  problem 4 against the OOMMF reference in `examples/micromagnetic/std4`. That
+  comparison existed only inside the example, so nothing ran it. The deviation
+  of the mean magnetisation over the full nanosecond is max 3.5e-05 and rms
+  1.3e-05; a second test checks that the explicit method reproduces the same
+  reference
 * New `tests/test_integrators.py`, checking that the methods agree on
   a precessing macrospin and that the projection conserves the spin length
   better at the same cost
