@@ -131,6 +131,21 @@ Version 4.0
   dx=1 dy=2 dz=3 | unit_length=1e-09`. This is what makes a `.vti` still
   readable as evidence once it is one of several hundred in a `vtks/` directory
 
+### Removals
+
+* The Python 2 era install scripts are gone: `bin/ubuntu_install_script.sh`,
+  which built through `make` and wrote PYTHONPATH into `/etc/profile.d`,
+  together with the `bin/install-ubuntu-packages.sh` and
+  `bin/install-python-packages.sh` it called, which installed `python-numpy`,
+  `python-pyvtk` and the rest of the Python 2 packages.
+  `bin/install-scikit-odes.sh`, written for SUNDIALS 2.6.2 and cloning over the
+  `git://` protocol GitHub disabled in 2021, and `bin/fix_load_path_mac.py`,
+  referenced by nothing, go with them. `bin/install-fftw.sh` and
+  `bin/install-sundials.sh` remain, and are still what the Dockerfiles, CI and
+  the install instructions use
+* `doc/user_guide/develop.rst`, a superseded copy of the installation
+  instructions that still described the pip build and listed pyvtk
+
 ### Python 2 clean-up
 
 * Removed `from __future__` imports, `u''` string prefixes, `# -*- coding:
