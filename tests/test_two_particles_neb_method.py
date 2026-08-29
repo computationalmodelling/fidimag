@@ -92,7 +92,7 @@ def relax_neb(k, maxst, simname, init_im, interp, save_every=10000,
                             interpolations=interpolations,
                             spring_constant=k,
                             name=simname,
-                            integrator='sundials'
+                            integrator='cvode_bdf'
                             )
 
     neb.relax(max_iterations=2000,
@@ -126,7 +126,7 @@ def _relaxed_band(simname, interp=(3, 3), max_iterations=50):
     sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
     neb = NEBM_Geodesic(sim, [(-1, 0, 0), mid_m, (1, 0, 0)],
                         interpolations=list(interp), spring_constant=1e4,
-                        name=simname, integrator='sundials')
+                        name=simname, integrator='cvode_bdf')
     neb.relax(max_iterations=max_iterations, save_vtks_every=10 ** 9,
               save_npys_every=10 ** 9, stopping_dYdt=1e-6, dt=1e-6)
     neb.nebm_step(neb.band)      # refresh gradientE / tangents
@@ -284,7 +284,7 @@ def test_energy_weighted_spring_force_clustering():
         sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
         return NEBM_Geodesic(sim, init_im, interpolations=interp,
                              spring_constant=1e4, name=simname,
-                             integrator='sundials')
+                             integrator='cvode_bdf')
 
     # --- Baseline: plain, distance-only spring force (spring_force_ratio
     # = 0), CVODE converges this reliably on its own -----------------------
@@ -305,7 +305,7 @@ def test_energy_weighted_spring_force_clustering():
     # pull it exactly onto the saddle point
     peak = int(np.argmax(neb_weighted.energies))
     neb_weighted.climbing_image = [peak]
-    neb_weighted.initialise_integrator(integrator='sundials')
+    neb_weighted.initialise_integrator(integrator='cvode_bdf')
     neb_weighted.relax(max_iterations=30, save_vtks_every=50000,
                        save_npys_every=50000, stopping_dYdt=1e-6,
                        dt=1e-6, save_initial_state=False)
@@ -383,7 +383,7 @@ def test_curvature_weighted_spring_force_clustering():
         sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
         return NEBM_Geodesic(sim, init_im, interpolations=interp,
                              spring_constant=1e4, name=simname,
-                             integrator='sundials')
+                             integrator='cvode_bdf')
 
     # --- Baseline: plain, distance-only spring force -----------------------
     neb_uniform = make_neb('neb_2particles_curvature_uniform')
@@ -402,7 +402,7 @@ def test_curvature_weighted_spring_force_clustering():
     # Stage 2: climbing image on the peak
     peak = int(np.argmax(neb_curv.energies))
     neb_curv.climbing_image = [peak]
-    neb_curv.initialise_integrator(integrator='sundials')
+    neb_curv.initialise_integrator(integrator='cvode_bdf')
     neb_curv.relax(max_iterations=30, save_vtks_every=50000,
                    save_npys_every=50000, stopping_dYdt=1e-6,
                    dt=1e-6, save_initial_state=False)

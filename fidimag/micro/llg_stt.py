@@ -68,7 +68,7 @@ class LLG_STT(MicroDriver):
                  interactions,
                  name,
                  data_saver,
-                 integrator='sundials',
+                 integrator='cvode_bdf',
                  use_jac=False
                  ):
 

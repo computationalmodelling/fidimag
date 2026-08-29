@@ -5,6 +5,7 @@ import time
 import fidimag.extensions.cvode as cvode
 from .chain_method_integrators import VerletIntegrator, StepIntegrator
 from fidimag.common.vtk import VTK
+from .driver_base import DriverBase
 from .chain_method_tools import compute_norm
 # from .chain_method_tools import linear_interpolation_spherical
 from .fileio import DataSaver
@@ -442,7 +443,7 @@ class ChainMethodBase:
                 np.save(name, self.band[i])
         self.band.shape = (-1)
 
-    def initialise_integrator(self, integrator='sundials', rtol=1e-6, atol=1e-6,
+    def initialise_integrator(self, integrator='cvode_bdf', rtol=1e-6, atol=1e-6,
                               linear_solver='spgmr', maxl=30, maxrs=10):
         """
         linear_solver, maxl, maxrs :: Only used by the 'sundials' integrator.
@@ -463,7 +464,9 @@ class ChainMethodBase:
         self.iterations = 0
         self.ode_count = 1
 
-        if integrator == 'sundials':
+        integrator = DriverBase._canonical_integrator(integrator)
+
+        if integrator == 'cvode_bdf':
             if not self.openmp:
                 self.integrator = cvode.CvodeSolver(self.band, self.Sundials_RHS,
                                                     linear_solver=linear_solver,
@@ -495,7 +498,9 @@ class ChainMethodBase:
             # In Verlet algorithm we only use the total force G and not YxYxG:
             self._llg_evolve = False
         else:
-            raise Exception('No valid integrator specified. Available: "sundials", "scipy"')
+            raise Exception(
+                'No valid integrator specified. Available: "cvode_bdf", '
+                '"euler", "rk4", "verlet"')
 
     def create_tablewriter(self):
         entities_energy = {

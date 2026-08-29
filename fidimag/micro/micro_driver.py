@@ -42,7 +42,7 @@ class MicroDriver(DriverBase):
                  interactions,
                  name,
                  data_saver,
-                 integrator='sundials',
+                 integrator='cvode_bdf',
                  use_jac=False
                  ):
 

@@ -25,15 +25,27 @@ Version 4.0
 
 ### Time integration
 
-* **`sundials_adams`**: CVODE with Adams-Moulton and a fixed point iteration,
+* **The integrator names now say what they run.** `sundials` named the suite
+  rather than the solver, which distinguished nothing once ARKODE was used as
+  well, and did not say which method was being run. The names are
+  `cvode_bdf` (the default), `cvode_bdf_diag`, `cvode_adams`,
+  `cvode_bdf_openmp`, `cvode_bdf_diag_openmp`, `arkode_dopri5`,
+  `arkode_rkf45` and their `_normalised` variants. `euler` and `rk4` keep
+  their bare names, since they are implemented here rather than taken from a
+  library. The pre-4.0 names `sundials`, `sundials_diag`, `sundials_openmp`
+  and `sundials_diag_openmp` still work and raise a `DeprecationWarning`
+  naming their replacement, so scripts written against earlier versions keep
+  running
+
+* **`cvode_adams`**: CVODE with Adams-Moulton and a fixed point iteration,
   the non-stiff arm of the solver Fidimag already wraps, with no linear solve
   at all. `CV_ADAMS` had been declared in the Cython wrapper since it was
   written but never used, `CVodeCreate` being called with `CV_BDF`
   unconditionally
-* **`dopri5` and `rkf45`**: explicit Runge-Kutta 5(4) pairs, through ARKODE's
-  `ERKStep`. `dopri5` uses the Dormand and Prince tableau, which is the method
-  OOMMF calls `rkf54m`, so the two codes can now be compared directly; `rkf45`
-  is the genuine Fehlberg one. (OOMMF's own default, `rkf54`, is RK5(4)7FC,
+* **`arkode_dopri5` and `arkode_rkf45`**: explicit Runge-Kutta 5(4) pairs, through ARKODE's
+  `ERKStep`. `arkode_dopri5` uses the Dormand and Prince tableau, which is the method
+  OOMMF calls `rkf54m`, so the two codes can now be compared directly;
+  `arkode_rkf45` is the genuine Fehlberg one. (OOMMF's own default, `rkf54`, is RK5(4)7FC,
   another member of the Dormand and Prince family rather than the Fehlberg
   tableau the name suggests.) ARKODE is now linked, and the Butcher table is
   selected by name, so any of the tables it ships can be reached
@@ -43,7 +55,7 @@ Version 4.0
   That ordering is particular to a problem of this size: the stiffness of the
   LLG equation comes from exchange and grows as `1 / dx ** 2`, so the implicit
   methods recover their advantage on a finer mesh
-* **`dopri5_normalised` and `rkf45_normalised`**: the same explicit methods,
+* **`arkode_dopri5_normalised` and `arkode_rkf45_normalised`**: the same explicit methods,
   rescaling the spins to unit length after every accepted step through
   ARKODE's post-step hook, rather than relying only on the `c * (1 - m^2) * m`
   correction term in the LLG right hand side, which makes `|m| = 1` an

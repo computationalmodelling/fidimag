@@ -1,6 +1,7 @@
 
 import os
 import numpy as np
+import warnings
 import zipfile
 import fidimag.common.helper as helper
 from fidimag.common.integrators import CvodeSolver, CvodeSolver_OpenMP, \
@@ -11,6 +12,48 @@ class DriverBase:
     """
     Common methods for the micromagnetic and atomistic driver classes
     """
+
+    #: Butcher tables reachable through the `arkode_` integrators. ARKODE
+    #: knows many more by name; these are the ones with a Fidimag alias
+    ARKODE_TABLES = {
+        "arkode_dopri5": "ARKODE_DORMAND_PRINCE_7_4_5",
+        "arkode_rkf45": "ARKODE_FEHLBERG_6_4_5",
+        "arkode_dopri5_normalised": "ARKODE_DORMAND_PRINCE_7_4_5",
+        "arkode_rkf45_normalised": "ARKODE_FEHLBERG_6_4_5",
+    }
+
+    #: Every integrator name that `set_integrator` accepts
+    INTEGRATORS = (
+        "cvode_bdf", "cvode_bdf_diag", "cvode_adams",
+        "cvode_bdf_openmp", "cvode_bdf_diag_openmp",
+        "arkode_dopri5", "arkode_rkf45",
+        "arkode_dopri5_normalised", "arkode_rkf45_normalised",
+        "euler", "rk4", "euler_openmp", "rk4_openmp", "scipy",
+    )
+
+    #: Names used before Fidimag 4.0. They said "sundials" for what is only
+    #: one of the two SUNDIALS solvers now in use, and did not say which
+    #: method was being run. They still work, with a warning
+    LEGACY_INTEGRATORS = {
+        "sundials": "cvode_bdf",
+        "sundials_diag": "cvode_bdf_diag",
+        "sundials_openmp": "cvode_bdf_openmp",
+        "sundials_diag_openmp": "cvode_bdf_diag_openmp",
+    }
+
+    @classmethod
+    def _canonical_integrator(cls, integrator):
+        """Translate a pre-4.0 integrator name, warning about it."""
+        if integrator in cls.LEGACY_INTEGRATORS:
+            new = cls.LEGACY_INTEGRATORS[integrator]
+            warnings.warn(
+                "The integrator name '{}' was replaced in Fidimag 4.0 by "
+                "'{}', which says both which SUNDIALS solver is used and "
+                "which method it runs. The old name still works."
+                .format(integrator, new),
+                DeprecationWarning, stacklevel=3)
+            return new
+        return integrator
 
     def __init__(self):
         pass
@@ -81,49 +124,57 @@ class DriverBase:
         integrator
             One of:
 
-            - ``'sundials'`` (default): CVODE with backward differentiation
-              formulae and a Newton iteration, solved with restarted GMRES.
-              The implicit choice, and the one to keep on a fine mesh: the
-              stiffness of the LLG equation comes from the exchange
-              interaction, whose fastest timescale grows as ``1 / dx ** 2``.
-            - ``'sundials_diag'``: the same, with CVODE's diagonal
+            - ``'cvode_bdf'`` (default): CVODE with backward
+              differentiation formulae and a Newton iteration, solved with
+              restarted GMRES. The implicit choice, and the one to keep on a
+              fine mesh: the stiffness of the LLG equation comes from the
+              exchange interaction, whose fastest timescale grows as
+              ``1 / dx ** 2``.
+            - ``'cvode_bdf_diag'``: the same, with CVODE's diagonal
               approximate Jacobian instead of GMRES.
-            - ``'sundials_adams'``: CVODE with Adams-Moulton and a fixed
-              point iteration. The non-stiff arm of the same solver, with no
-              linear solve at all.
-            - ``'dopri5'``: explicit Runge-Kutta 5(4) through ARKODE, using
-              the Dormand and Prince tableau. This is the same method OOMMF
-              calls ``rkf54m``, so the two codes can be compared directly.
-              Note that OOMMF's own default, ``rkf54``, is RK5(4)7FC, another
-              member of that family rather than the Fehlberg tableau its name
-              suggests.
-            - ``'rkf45'``: explicit Runge-Kutta through ARKODE with the
-              genuine Fehlberg 5(4) tableau.
-            - ``'dopri5_normalised'``, ``'rkf45_normalised'``: the same, but
-              rescaling every spin to unit length after each accepted step,
-              through ARKODE's post-step hook. The length of m is otherwise
-              kept near one by the ``c * (1 - m ** 2) * m`` term that the LLG
-              right hand side adds, which makes it an attracting solution of
-              the equation rather than imposing it; see ``default_c``, where
-              0 turns that term off, a negative value uses ``6 * |dm/dt|``
-              and a positive one is used as it stands. The two mechanisms are
-              independent and can be used together or separately. Projecting
-              costs little: on standard problem 4 it left the step count
-              unchanged and added about 2% to the wall time, while improving
-              the error in \|m\| by two orders of magnitude. CVODE has no
-              equivalent hook, so this is only available for the explicit
-              methods.
-            - ``'euler'``, ``'rk4'``: fixed step, mostly for debugging.
+            - ``'cvode_adams'``: CVODE with Adams-Moulton and a fixed point
+              iteration. The non-stiff arm of the same solver, with no linear
+              solve at all.
+            - ``'cvode_bdf_openmp'``, ``'cvode_bdf_diag_openmp'``: the same,
+              using the OpenMP N_Vector.
+            - ``'arkode_dopri5'``: explicit Runge-Kutta 5(4) through ARKODE,
+              using the Dormand and Prince tableau. This is the same method
+              OOMMF calls ``rkf54m``, so the two codes can be compared
+              directly. Note that OOMMF's own default, ``rkf54``, is
+              RK5(4)7FC, another member of that family rather than the
+              Fehlberg tableau its name suggests.
+            - ``'arkode_rkf45'``: explicit Runge-Kutta through ARKODE with
+              the genuine Fehlberg 5(4) tableau.
+            - ``'arkode_dopri5_normalised'``, ``'arkode_rkf45_normalised'``:
+              the same, but rescaling every spin to unit length after each
+              accepted step, through ARKODE's post-step hook. The length of m
+              is otherwise kept near one by the ``c * (1 - m ** 2) * m`` term
+              that the LLG right hand side adds, which makes it an attracting
+              solution of the equation rather than imposing it; see
+              ``default_c``, where 0 turns that term off, a negative value
+              uses ``6 * |dm/dt|`` and a positive one is used as it stands.
+              The two mechanisms are independent and can be used together or
+              separately. Projecting costs little: on standard problem 4 it
+              left the step count unchanged and added about 2% to the wall
+              time, while improving the error in ``|m|`` by two orders of
+              magnitude. CVODE has no equivalent hook, so this is only
+              available for the explicit methods.
+            - ``'euler'``, ``'rk4'``: fixed step, implemented in Fidimag
+              rather than taken from a library, and mostly for debugging.
             - ``'scipy'``: SciPy's integrator.
-            - the ``_openmp`` variants of the sundials ones, which use the
-              OpenMP N_Vector.
+
+            The names used before Fidimag 4.0 still work, with a warning:
+            ``'sundials'``, ``'sundials_diag'``, ``'sundials_openmp'`` and
+            ``'sundials_diag_openmp'``. They named the suite rather than the
+            solver, which no longer distinguishes anything now that ARKODE is
+            used too, and did not say which method was being run.
         use_jac
             Supply the analytical Jacobian-times-vector product to CVODE.
-            Only used by the ``'sundials'`` and ``'sundials_openmp'`` options.
+            Only used by ``'cvode_bdf'`` and ``'cvode_bdf_openmp'``.
 
         Notes
         -----
-        On muMAG standard problem 4, all four of the SUNDIALS options agree
+        On muMAG standard problem 4, the SUNDIALS options agree
         to within 2e-8 of each other and put the crossing of ``<m_x> = 0`` at
         the same place, at rtol = atol = 1e-10. Their cost differs: taking
         the BDF default as 1, Adams ran in 0.66 of the time and the two
@@ -137,54 +188,57 @@ class DriverBase:
         recover their advantage. For equilibrium, prefer the minimisers.
         """
 
-        if integrator == "sundials" and use_jac:
-            self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
-                                          self.sundials_jtimes)
-        elif integrator == "sundials_diag":
+        integrator = self._canonical_integrator(integrator)
+
+        if integrator == "cvode_bdf":
+            if use_jac:
+                self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
+                                              self.sundials_jtimes)
+            else:
+                self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
+        elif integrator == "cvode_bdf_diag":
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
                                           linear_solver="diag")
-        elif integrator == "sundials":
-            self.integrator = CvodeSolver(self.spin, self.sundials_rhs)
-        elif integrator == "sundials_adams":
+        elif integrator == "cvode_adams":
             # Adams-Moulton with a fixed point iteration: the non-stiff arm of
             # CVODE, with no linear solve at all
             self.integrator = CvodeSolver(self.spin, self.sundials_rhs,
                                           lmm="adams")
-        elif integrator.split("_normalised")[0] in ("dopri5", "rkf45", "erk"):
-            # Explicit Runge-Kutta, through ARKODE. `dopri5` is the tableau
-            # OOMMF calls rkf54m, so the two codes can be compared directly;
-            # `rkf45` is the genuine Fehlberg one. The `_normalised` variants
-            # rescale the spins after every accepted step, instead of relying
-            # only on the correction term in the right hand side; see
-            # `default_c`
-            normalise = integrator.endswith("_normalised")
-            table = {"dopri5": "ARKODE_DORMAND_PRINCE_7_4_5",
-                     "erk": "ARKODE_DORMAND_PRINCE_7_4_5",
-                     "rkf45": "ARKODE_FEHLBERG_6_4_5"}[
-                         integrator.split("_normalised")[0]]
-            self.integrator = ErkSolver(self.spin, self.sundials_rhs,
-                                        table=table, normalise=normalise)
-        elif integrator == "euler" or integrator == "rk4":
-            self.integrator = StepIntegrator(self.spin, self.step_rhs, step=integrator)
-        elif integrator == "scipy":
-            self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
 
-        elif integrator == "sundials_openmp" and use_jac:
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
-                                                 self.sundials_jtimes)
-        elif integrator == "sundials_diag_openmp":
+        elif integrator == "cvode_bdf_openmp":
+            if use_jac:
+                self.integrator = CvodeSolver_OpenMP(self.spin,
+                                                     self.sundials_rhs,
+                                                     self.sundials_jtimes)
+            else:
+                self.integrator = CvodeSolver_OpenMP(self.spin,
+                                                     self.sundials_rhs)
+        elif integrator == "cvode_bdf_diag_openmp":
             self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs,
                                                  linear_solver="diag")
-        elif integrator == "sundials_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.sundials_rhs)
+
+        elif integrator in self.ARKODE_TABLES:
+            # Explicit Runge-Kutta, through ARKODE. The `_normalised` variants
+            # also rescale the spins after every accepted step, rather than
+            # relying only on the correction term of the right hand side; see
+            # `default_c`
+            self.integrator = ErkSolver(
+                self.spin, self.sundials_rhs,
+                table=self.ARKODE_TABLES[integrator],
+                normalise=integrator.endswith("_normalised"))
+
+        elif integrator == "euler" or integrator == "rk4":
+            self.integrator = StepIntegrator(self.spin, self.step_rhs,
+                                             step=integrator)
         elif integrator == "euler_openmp" or integrator == "rk4_openmp":
             self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
                                                  integrator)
+        elif integrator == "scipy":
+            self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
         else:
             raise NotImplementedError(
-                "integrator is {}, should be one of sundials, "
-                "sundials_diag, sundials_adams, dopri5, rkf45, euler, "
-                "rk4, scipy, or their _openmp variants".format(integrator))
+                "integrator is {}, should be one of: {}".format(
+                    integrator, ", ".join(self.INTEGRATORS)))
 
     # ------------------------------------------------------------------------
 

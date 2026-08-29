@@ -28,7 +28,7 @@ def pin_fun(pos):
 
 def test_sim_pin():
     mesh = CuboidMesh(nx=3, ny=2, nz=1)
-    sim = Sim(mesh, integrator='sundials_openmp')
+    sim = Sim(mesh, integrator='cvode_bdf_openmp')
     sim.set_m((0, 0.8, 0.6))
     sim.alpha = 0.1
     sim.driver.gamma = 1.0
@@ -92,7 +92,7 @@ def test_sim_single_spin(do_plot=False):
 
     mesh = CuboidMesh(nx=80, ny=3, nz=3)
 
-    sim = Sim(mesh, name='spin', integrator='sundials_openmp')
+    sim = Sim(mesh, name='spin', integrator='cvode_bdf_openmp')
 
     alpha = 0.1
     gamma = 2.21e5

@@ -61,7 +61,7 @@ class Sim(SimBase):
 
     def __init__(self, mesh, name='unnamed', driver='llg',
                  # Integrator arguments:
-                 integrator='sundials',
+                 integrator='cvode_bdf',
                  use_jac=False
                  ):
 

@@ -33,7 +33,7 @@ class LLG_STT_CPP(MicroDriver):
                  interactions,
                  name,
                  data_saver,
-                 integrator='sundials',
+                 integrator='cvode_bdf',
                  use_jac=False
                  ):
 

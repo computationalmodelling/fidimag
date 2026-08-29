@@ -30,7 +30,7 @@ class SLLG(AtomisticDriver):
                  name,
                  data_saver,
                  use_jac=False,
-                 integrator='sundials'
+                 integrator='cvode_bdf'
                  ):
 
         # Inherit from the driver class

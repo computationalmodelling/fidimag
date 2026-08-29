@@ -11,7 +11,7 @@ class LLBarFull(MicroDriver):
                  interactions,
                  name,
                  data_saver,
-                 integrator='sundials',
+                 integrator='cvode_bdf',
                  use_jac=False,
                  chi=1e-3
                  ):
@@ -80,7 +80,7 @@ class LLBar(MicroDriver):
                  interactions,
                  name,
                  data_saver,
-                 integrator='sundials',
+                 integrator='cvode_bdf',
                  use_jac=False,
                  ):
 
@@ -88,7 +88,7 @@ class LLBar(MicroDriver):
         super().__init__(mesh, spin, Ms, field,
                                     pins, interactions, name,
                                     data_saver,
-                                    integrator='sundials',
+                                    integrator='cvode_bdf',
                                     use_jac=False
                                     )
 

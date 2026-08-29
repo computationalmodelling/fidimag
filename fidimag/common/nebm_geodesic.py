@@ -157,7 +157,7 @@ class NEBM_Geodesic(ChainMethodBase):
                  name='unnamed',
                  climbing_image=None,
                  openmp=False,
-                 integrator='sundials'  # or scipy
+                 integrator='cvode_bdf'  # or scipy
                  ):
 
         super().__init__(sim,

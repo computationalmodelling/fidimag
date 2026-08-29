@@ -30,7 +30,7 @@ class LLG_STT_CPP(AtomisticDriver):
                  name,
                  data_saver,
                  use_jac,
-                 integrator='sundials'
+                 integrator='cvode_bdf'
                  ):
 
         # Inherit from the driver class

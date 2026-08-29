@@ -41,7 +41,7 @@ class AtomisticDriver(DriverBase):
                  name,
                  data_saver,
                  use_jac,
-                 integrator='sundials'
+                 integrator='cvode_bdf'
                  ):
 
         super().__init__()
