@@ -190,9 +190,12 @@ class DriverBase:
 
         Notes
         -----
-        On muMAG standard problem 4, the SUNDIALS options agree
-        to within 2e-8 of each other and put the crossing of ``<m_x> = 0`` at
-        the same place, at rtol = atol = 1e-10. Their cost differs: taking
+        On muMAG standard problem 4, the SUNDIALS options agree to within
+        2e-8 of each other and put the crossing of ``<m_x> = 0`` at the same
+        place, at rtol = atol = 1e-10. That figure is the largest difference,
+        over all sample times and the three components, of the spatially
+        averaged magnetisation: a worst case along the trajectory rather than
+        an average, and not a per cell error. Their cost differs: taking
         the BDF default as 1, Adams ran in 0.66 of the time and the two
         explicit methods in 0.47. The explicit ones evaluate the right hand
         side more often, but a step costs only its stages, with no Newton

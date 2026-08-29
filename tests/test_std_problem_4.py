@@ -75,8 +75,12 @@ def test_std_problem_4_matches_oommf():
     mesh = _mesh()
     m = _reversal(mesh, _s_state(mesh), ts)
 
+    # The deviation is of the spatially averaged magnetisation, which is what
+    # the reference reports: max is the worst case over all sample times and
+    # the three components, rms the root mean square over that same set. A per
+    # cell error would be larger than either
     deviation = np.abs(m - m_oommf)
-    print('deviation from OOMMF: max {:.3e}, rms {:.3e}, last {}'.format(
+    print('deviation of <m> from OOMMF: max {:.3e}, rms {:.3e}, last {}'.format(
         deviation.max(), np.sqrt((deviation ** 2).mean()), deviation[-1]))
 
     # Measured 3.53e-05 and 1.31e-05 when this was written. The thresholds

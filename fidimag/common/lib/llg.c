@@ -70,13 +70,68 @@
  * must be sufficiently strong to affect the solution. Accordingly, we can
  * think of dm/dt as a kind of velocity that is proportional to the change of
  * rate of m, hence using its magnitude, the correction is stronger for large
- * deviations and weak for small deviations.  The factor 6 is added ad-hoc,
-* which seems to work well when computing the solutions, but its specification
-* stills requires a more strict proof.  It is worth mentioning that the norm of
-* dm/dt changes the time scaling by a factor proportional to 1/t, therefore in
-* the future we could try to estimate its
- * influence with more mathematical/numerical rigour and analyse an optimal
- * value for the prefactor (6).
+ * deviations and weak for small deviations.
+ *
+ * What c does, and how to choose it
+ * ---------------------------------
+ *
+ * There is no physics in this term. It is a numerical stabilisation of the
+ * invariant |m| = 1, of the kind Baumgarte introduced for constrained
+ * mechanics. Writing rho = |m|, and using that the transverse field above is
+ * exactly perpendicular to m, so that the LLG part contributes nothing to
+ * d|m|/dt,
+ *
+ *      d rho / dt = c * rho * ( 1 - rho^2 )
+ *
+ * which is the normal form of the supercritical pitchfork bifurcation:
+ * rho = 0 is unstable and rho = 1 is stable. Linearising about rho = 1 with
+ * rho = 1 + eps gives
+ *
+ *      d eps / dt = -2 c eps
+ *
+ * so c is nothing more than the decay rate of length errors, with time
+ * constant 1 / (2c). That is the whole content of the term, and it is what
+ * sets the two competing limits: too small and errors are not removed within
+ * a step, too large and the equation is stiffened by an eigenvalue -2c.
+ *
+ * The factor 6 in c = 6 |dm/dt| therefore means that length errors relax
+ * twelve times faster than the magnetisation rotates, which is why it is
+ * written against |dm/dt| rather than as an absolute rate: it is scale free.
+ * The micromagnetic driver instead defaults to a fixed 1e11, i.e. a time
+ * constant of 5 ps, against a precession period of about 35 ps at gamma Ms.
+ *
+ * Measured on standard problem 4, against the OOMMF reference in
+ * examples/micromagnetic/std4. The deviation quoted is the largest difference,
+ * over all sample times and the three components, between the spatially
+ * averaged magnetisation and the reference: a worst case along the
+ * trajectory, not an average, and an error of the averaged magnetisation
+ * rather than a per cell one. The drift is the largest ||m_i| - 1| over every
+ * cell and sample time.
+ *
+ *  - At rtol = atol = 1e-10 the choice makes no difference to the answer at
+ *    all. Sweeping c over 0, 1e9 ... 1e13 and 6|dm/dt| gives a deviation of
+ *    3.20e-05 in every case, including with the term switched off. Only the
+ *    length drift responds, falling as 1/c from 5.8e-09 to 5.2e-11, and at
+ *    1e13 the step count rises by 15%, which is the stiffening above.
+ *  - At rtol = atol = 1e-6, where it earns its keep, the term nearly halves
+ *    the error: 6.36e-05 with c = 0 against 3.58e-05 at 1e11.
+ *  - For the explicit ARKODE methods it does nothing useful at any tolerance,
+ *    and at 1e-8 it makes the drift worse, 3.0e-10 with c = 0 against 1.8e-08
+ *    with 6|dm/dt|, since the term is itself a perturbation. Those integrators
+ *    can project instead; see the normalise option of ErkSolver.
+ *
+ * So the value is not an accuracy knob to be tuned. Anything from about 1e11
+ * to 1e12, or the 6|dm/dt| rule, behaves the same; it only has to be large
+ * enough to remove drift within a step and small enough not to stiffen the
+ * equation.
+ *
+ * The same term, and the same pitchfork analysis, are in A. E. Botha,
+ * Stabilisation of the Landau-Lifshitz-Gilbert equation for numerical solution
+ * via standard methods, Sci. Rep. 15, 15775 (2025),
+ * doi:10.1038/s41598-025-99966-x, which argues the coefficient should be unity
+ * once the equation is in a suitable dimensionless form. That paper attributes
+ * the |dm/dt| rule used here to Sec. 2.4 of D. Chernyshenko, Computational
+ * Methods in Micromagnetics, PhD thesis, University of Southampton (2016).
  */
 
 void llg_rhs(double *restrict dm_dt, double *restrict m, double *restrict h, double *restrict alpha, int *restrict pins,
