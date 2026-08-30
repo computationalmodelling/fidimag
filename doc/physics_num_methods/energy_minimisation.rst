@@ -56,6 +56,83 @@ do with the length of a spin, so the step length carries units and cannot be
 guessed once and for all.
 
 
+The configuration space is a manifold
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The projection above is worth stating in its proper setting, because it is
+what tells us which vectors may legitimately appear inside an inner product,
+and the step length rules of the next sections are built entirely out of inner
+products.
+
+A state of the system is :math:`N` unit vectors, each of which lives on a
+sphere, so the set of all states is
+
+.. math::
+    \mathcal{M} = S^{2}\times S^{2}\times\cdots\times S^{2}
+    \qquad (N \text{ copies})
+
+a smooth manifold of dimension :math:`2N` embedded in
+:math:`\mathbb{R}^{3N}`. It becomes a *Riemannian* manifold once each tangent
+space is given an inner product, and the one we use is simply the restriction
+of the Euclidean dot product of the ambient space, which is what every
+``np.dot`` in the minimisers computes. The energy is a function on
+:math:`\mathcal{M}`, and the minimiser has to walk on :math:`\mathcal{M}`,
+not in :math:`\mathbb{R}^{3N}`.
+
+The tangent space at :math:`\mathbf{m}` is the set of displacements
+:math:`\delta\mathbf{m}` with
+:math:`\mathbf{m}\cdot\delta\mathbf{m}=0` at every site. The Riemannian
+gradient is defined as the unique tangent vector :math:`\mathbf{g}` with
+:math:`\langle\mathbf{g},\mathbf{v}\rangle = \mathrm{d}E(\mathbf{v})` for
+every tangent :math:`\mathbf{v}`, and because the metric is the restricted
+Euclidean one, that vector is precisely the tangential part of
+:math:`\delta E/\delta\mathbf{m}` written above. In other words, projecting
+the field onto the tangent plane and taking the gradient of the energy on the
+manifold are the same operation, and
+:math:`-\mathbf{m}\times(\mathbf{m}\times\mathbf{H}_{\text{eff}})` is
+just the projector :math:`\mathbb{1}-\mathbf{m}\mathbf{m}^{\mathsf{T}}`
+written with cross products. This is what ``_project_gradient`` computes in
+the Hubert class, and what ``mxmxH`` holds in the steepest descent one.
+
+The part that is thrown away is the Lagrange multiplier of the first section:
+a constraint force, not a descent direction.
+
+The distinction is optional for the *direction* and mandatory for the *step
+length*. For the direction it makes no difference, since the radial component
+is annihilated by the re-normalisation and the iteration ends in the same
+place. For the step length it is essential, because the Barzilai-Borwein
+quotients are built from a difference of gradients taken at two different
+points,
+
+.. math::
+    \mathbf{y} = \mathbf{g}_{k}-\mathbf{g}_{k-1}
+
+and the radial components at those two points lie along two different
+:math:`\mathbf{m}` vectors, so they do not cancel in the difference. They
+leak into :math:`\mathbf{s}\cdot\mathbf{y}` and
+:math:`\mathbf{y}\cdot\mathbf{y}` and corrupt the curvature estimate. The
+secant condition the quotients solve is a statement about the Hessian *on the
+manifold*, so both members of the pair have to be quantities on the manifold.
+
+The same reasoning explains why :math:`\mathbf{s}` is the difference of the
+spins after re-normalisation rather than the displacement
+:math:`-\eta\mathbf{g}` that was attempted. Moving on a manifold means, in
+principle, following a geodesic, and comparing tangent vectors at two
+different points requires parallel transport. Fidimag does neither: it uses
+the retraction "step in the ambient space, then project back", and compares
+:math:`\mathbf{g}_{k}` with :math:`\mathbf{g}_{k-1}` as though they lived in
+the same space. This is the standard approximation of Riemannian
+optimisation [7]_, exact to first order in the step length, which is all the
+secant model claims in any case. The update of the steepest descent class is
+the more careful version of the same idea, being an exact rotation that stays
+on the sphere by construction rather than leaving it and being pulled back.
+
+The word carries the same meaning in the :doc:`nebm`, where the distance
+between images is measured along the manifold rather than through the ambient
+space, and where the two answers start to differ once the images are far
+apart.
+
+
 The Hubert minimiser
 --------------------
 
@@ -316,3 +393,6 @@ what makes the calculation repeatable.
 .. [6] Exl, L. et al. *LaBonte's method revisited: An effective steepest
    descent method for micromagnetic energy minimization*. J. Appl. Phys. 115,
    17D118 (2014)
+
+.. [7] Absil, P.-A., Mahony, R. & Sepulchre, R. *Optimization Algorithms on
+   Matrix Manifolds*. Princeton University Press (2008)
