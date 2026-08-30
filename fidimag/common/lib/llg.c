@@ -243,21 +243,11 @@ void llg_rhs_jtimes(double *restrict jtn, double *restrict m, double *restrict h
         int j = i + 1;
         int k = i + 2;
 
-        if (pins[i] > 0) {
+        if (pins[id] > 0) {
             continue;
         }
 
-        double coeff = -gamma / (1.0 + alpha[i] * alpha[i]);
-
-        if (do_precession) {
-            jtn[i] = coeff * (cross_x(mp[i], mp[j], mp[k], h[i], h[j], h[k]) + cross_x(m[i], m[j], m[k], hp[i], hp[j], hp[k]));
-            jtn[j] = coeff * (cross_y(mp[i], mp[j], mp[k], h[i], h[j], h[k]) + cross_y(m[i], m[j], m[k], hp[i], hp[j], hp[k]));
-            jtn[k] = coeff * (cross_z(mp[i], mp[j], mp[k], h[i], h[j], h[k]) + cross_z(m[i], m[j], m[k], hp[i], hp[j], hp[k]));
-        } else {
-            jtn[i] = 0;
-            jtn[j] = 0;
-            jtn[k] = 0;
-        }
+        double coeff = -gamma / (1.0 + alpha[id] * alpha[id]);
 
         double mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
         double mh = m[i] * h[i] + m[j] * h[j] + m[k] * h[k];
@@ -265,9 +255,35 @@ void llg_rhs_jtimes(double *restrict jtn, double *restrict m, double *restrict h
         double mph = mp[i] * h[i] + mp[j] * h[j] + mp[k] * h[k];
         double mmp = m[i] * mp[i] + m[j] * mp[j] + m[k] * mp[k];
 
-        jtn[i] += alpha[i] * coeff * ((mph + mhp) * m[i] + mh * mp[i] - 2 * mmp * h[i] - mm * hp[i]);
-        jtn[j] += alpha[i] * coeff * ((mph + mhp) * m[j] + mh * mp[j] - 2 * mmp * h[j] - mm * hp[j]);
-        jtn[k] += alpha[i] * coeff * ((mph + mhp) * m[k] + mh * mp[k] - 2 * mmp * h[k] - mm * hp[k]);
+        // The precession term of the right hand side is m x H, with the
+        // transverse field H = (m.m) h - (m.h) m, so its derivative in the
+        // direction mp is
+        //
+        //     mp x H + m x dH
+        //       = mm (mp x h) + mm (m x hp) + 2 mmp (m x h)
+        //
+        // the two mh (m x mp) contributions having cancelled. Dropping the mm
+        // factors is only right where |m| is exactly one, and the last term
+        // was missing altogether
+        if (do_precession) {
+            jtn[i] = coeff * (mm * cross_x(mp[i], mp[j], mp[k], h[i], h[j], h[k])
+                              + mm * cross_x(m[i], m[j], m[k], hp[i], hp[j], hp[k])
+                              + 2 * mmp * cross_x(m[i], m[j], m[k], h[i], h[j], h[k]));
+            jtn[j] = coeff * (mm * cross_y(mp[i], mp[j], mp[k], h[i], h[j], h[k])
+                              + mm * cross_y(m[i], m[j], m[k], hp[i], hp[j], hp[k])
+                              + 2 * mmp * cross_y(m[i], m[j], m[k], h[i], h[j], h[k]));
+            jtn[k] = coeff * (mm * cross_z(mp[i], mp[j], mp[k], h[i], h[j], h[k])
+                              + mm * cross_z(m[i], m[j], m[k], hp[i], hp[j], hp[k])
+                              + 2 * mmp * cross_z(m[i], m[j], m[k], h[i], h[j], h[k]));
+        } else {
+            jtn[i] = 0;
+            jtn[j] = 0;
+            jtn[k] = 0;
+        }
+
+        jtn[i] += alpha[id] * coeff * ((mph + mhp) * m[i] + mh * mp[i] - 2 * mmp * h[i] - mm * hp[i]);
+        jtn[j] += alpha[id] * coeff * ((mph + mhp) * m[j] + mh * mp[j] - 2 * mmp * h[j] - mm * hp[j]);
+        jtn[k] += alpha[id] * coeff * ((mph + mhp) * m[k] + mh * mp[k] - 2 * mmp * h[k] - mm * hp[k]);
 
         if (default_c > 0) {
             jtn[i] += default_c * ((1 - mm) * mp[i] - 2 * mmp * m[i]);

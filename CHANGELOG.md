@@ -133,6 +133,35 @@ Version 4.0
 
 ### Fixes
 
+* **The analytical Jacobian works** (issue #21, open since 2016). Passing
+  `use_jac=True` appeared to hang. It did not: the Jacobian-times-vector
+  product was wrong, so GMRES never converged and spent its whole iteration
+  budget on every solve, half a million evaluations for one picosecond of
+  simulated time. Three faults: the routine was handed `dm/dt` where it wanted
+  the effective field at m, and the field at m had already been overwritten by
+  the field at m'; `alpha` and `pins` were indexed per component rather than
+  per site, reading past the end of both arrays; and the precession term
+  dropped the factors of `m.m` and one term entirely. Against a finite
+  difference of the right hand side the product now agrees to 2e-8, where it
+  was out by a factor of 6e4 and did not even point the same way. The example
+  the issue cites runs in 0.7 s, the same as the default path
+* **The atomistic Jacobian path never ran at all.** It defined
+  `sundials_jtn`, which nothing calls, referenced `compute_llg_jtimes` through
+  the atomistic `clib`, which does not export it, and carried a leftover debug
+  `print`. It is now `sundials_jtimes`, calls `common_clib`, and is tested
+* **The preconditioner is gone.** Its solve was the identity, so it only added
+  a copy per GMRES iteration, and its setup function was attached with the
+  wrong signature: a method whose C signature takes `self` first, cast to a
+  plain `CVLsPrecSetupFn`, so CVODE called it with every argument shifted.
+  Removing it does not change any result. A real preconditioner is worth
+  having and is noted as future work
+* New `tests/test_jacobian.py`, comparing the analytical product against a
+  finite difference of the right hand side, which is the one reference that
+  cannot be wrong in the same way. It also records two gaps that are design
+  questions rather than bugs: interactions are in the Jacobian only if they
+  set `jac = True`, and the flags disagree between the two models, and the
+  stabilisation term is differentiated only for a positive `default_c`, while
+  a negative one selects `c = 6|dm/dt|` and is the atomistic default
 * **`relax()` says when the system has not relaxed** (issue #118). Reaching
   `max_steps` with `dmdt` still above `stopping_dmdt` used to return quietly,
   and the result is indistinguishable from a relaxed one: the caller gets a

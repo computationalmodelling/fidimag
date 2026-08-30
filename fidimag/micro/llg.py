@@ -70,11 +70,18 @@ class LLG(MicroDriver):
         return 0
 
     def sundials_jtimes(self, mp, Jmp, t, m, fy):
+        # The C routine wants the effective field at m and the effective field
+        # at mp, and `fy` is neither: it is dm/dt at m. Compute the field at m
+        # first, and keep it, because compute_effective_field_jac overwrites
+        # self.field with the field at mp
+        self.compute_effective_field(t)
+        field_m = self.field.copy()
+
         # From the micro_driver class:
         self.compute_effective_field_jac(t, mp)
 
         clib.compute_llg_jtimes(Jmp,
-                                m, fy,
+                                m, field_m,
                                 mp, self.field,
                                 self.alpha,
                                 self._pins,

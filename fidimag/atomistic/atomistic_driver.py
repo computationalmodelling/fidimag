@@ -2,6 +2,9 @@
 from fidimag.common.driver_base import DriverBase
 
 import fidimag.extensions.clib as clib
+# compute_llg_jtimes lives in common_clib, not in the atomistic clib,
+# which is one of the reasons the Jacobian path here never ran
+import fidimag.extensions.common_clib as common_clib
 import fidimag.extensions.cvode as cvode
 from fidimag.common.vtk import VTK
 import fidimag.common.constant as const
@@ -75,9 +78,6 @@ class AtomisticDriver(DriverBase):
 
         # Integrator options --------------------------------------------------
 
-        # In the old code, it seemed that self.sundials_jtn was not defined
-        # anywhere else. Here, we will use the same integrators than in the
-        # micromagnetic code, where we have self.sundials_jtimes instead of jtn
         self.set_integrator(integrator, use_jac)
 
         self.set_tols()
@@ -151,20 +151,27 @@ class AtomisticDriver(DriverBase):
         """
         pass
 
-    def sundials_jtn(self, mp, Jmp, t, m, fy):
+    def sundials_jtimes(self, mp, Jmp, t, m, fy):
         # we can not copy mp to self.spin since m and self.spin is one object.
         #self.spin[:] = mp[:]
-        print('NO jac...........')
+
+        # The C routine wants the effective field at m and the effective field
+        # at mp, and `fy` is neither: it is dm/dt at m. Compute the field at m
+        # first, and keep it, because compute_effective_field_jac overwrites
+        # self.field with the field at mp
+        self.compute_effective_field(t)
+        field_m = self.field.copy()
+
         self.compute_effective_field_jac(t, mp)
-        clib.compute_llg_jtimes(Jmp,
-                                m, fy,
-                                mp, self.field,
-                                self.alpha,
-                                self._pins,
-                                self.gamma,
-                                self.n,
-                                self.do_precession,
-                                self.default_c)
+        common_clib.compute_llg_jtimes(Jmp,
+                                       m, field_m,
+                                       mp, self.field,
+                                       self._alpha,
+                                       self._pins,
+                                       self.gamma,
+                                       self.n,
+                                       self.do_precession,
+                                       self.default_c)
 
         return 0
 

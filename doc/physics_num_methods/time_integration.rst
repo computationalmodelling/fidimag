@@ -189,6 +189,84 @@ methods recover their advantage. To find an equilibrium state rather than to
 follow the dynamics, use the minimisers described in
 :doc:`energy_minimisation` instead of integrating at all.
 
+The analytical Jacobian
+-----------------------
+
+The implicit methods solve a linear system at every Newton iteration, and
+GMRES needs only the product of the Jacobian with a vector, never the matrix.
+By default CVODE forms that product by a difference quotient of the right hand
+side. Passing ``use_jac=True`` to the simulation supplies it analytically
+instead, through ``sundials_jtimes``, which differentiates
+
+.. math::
+    \frac{\partial \vec{m}}{\partial t} = \frac{-\gamma}{1 + \alpha^{2}}
+    \left( \vec{m}\times\vec{H}_{\perp}
+            - \alpha \vec{H}_{\perp} \right)
+    + c \left( 1 - \vec{m}^{2} \right) \vec{m}
+
+in a direction :math:`\vec{m}'`, with
+:math:`\vec{H}_{\perp} = (\vec{m}\cdot\vec{m})\vec{h} -
+(\vec{m}\cdot\vec{h})\vec{m}`. Because the effective field is linear in
+:math:`\vec{m}` for exchange and for the demagnetising field, its derivative
+in that direction is just the field evaluated at :math:`\vec{m}'`, which is
+what ``compute_effective_field_jac`` computes.
+
+This did not work for a decade, and the failure was not obvious. It looked
+like a hang: the product being wrong, GMRES never converged and spent its
+whole iteration budget on every solve, half a million evaluations for a single
+picosecond of simulated time. There were three faults, all now fixed. The
+routine was given ``dm/dt`` where it wanted the effective field. It indexed
+the damping and the pinned sites per component rather than per site, reading
+past the end of both arrays. And the precession term omitted the factors of
+:math:`\vec{m}\cdot\vec{m}` and a whole term: the derivative of
+:math:`\vec{m}\times\vec{H}_{\perp}` is
+
+.. math::
+    (\vec{m}\cdot\vec{m})(\vec{m}'\times\vec{h})
+    + (\vec{m}\cdot\vec{m})(\vec{m}\times\vec{h}')
+    + 2(\vec{m}\cdot\vec{m}')(\vec{m}\times\vec{h})
+
+the two :math:`(\vec{m}\cdot\vec{h})(\vec{m}\times\vec{m}')` terms having
+cancelled. Only the first two were present, and without their prefactors,
+which is correct only where :math:`|\vec{m}|` is exactly one.
+
+``tests/test_jacobian.py`` now compares the product against a finite
+difference of the right hand side, which is the one reference that cannot be
+wrong in the same way, and it agrees to about :math:`10^{-8}`. On the example
+in ``examples/micromagnetic/nmag_example_2_box``, which is what the original
+report was about, ``use_jac=True`` finishes in the same time as the default.
+
+There is no preconditioner
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+GMRES runs unpreconditioned. There used to be a preconditioner, and it was
+presumably meant to speed up the convergence that the analytical Jacobian was
+supposed to improve, but it never did anything: its solve was
+:math:`\vec{z} = \vec{r}`, the identity, so it only added a copy per
+iteration, and its setup function was attached with the wrong signature, so
+CVODE called it with every argument shifted by one. Both are removed. A real
+preconditioner is still worth having, and would be the next thing to try for
+the stiff case.
+
+Two known gaps
+^^^^^^^^^^^^^^
+
+Both are recorded in the tests rather than hidden:
+
+- Interactions are included in the Jacobian only if they set ``jac = True``.
+  For a constant Zeeman field that is right, since it does not vary with
+  :math:`\vec{m}`. For the demagnetising field it is not, since that field is
+  linear in :math:`\vec{m}` and does contribute to the derivative. CVODE
+  tolerates an approximate Jacobian, so leaving it out is defensible as a way
+  of avoiding a transform per evaluation, but the flags are not consistent
+  about it: the micromagnetic ``Demag`` sets False where the atomistic one
+  sets True, and the micromagnetic exchange sets True where the atomistic one
+  sets False.
+- The stabilisation term is differentiated only when ``default_c`` is
+  positive. A negative value selects :math:`c = 6\,|dm/dt|`, which the right
+  hand side applies and the Jacobian then ignores. That is the default of the
+  atomistic driver.
+
 .. [1] Botha, A. E. *Stabilisation of the Landau-Lifshitz-Gilbert equation for
    numerical solution via standard methods*. Sci. Rep. 15, 15775 (2025)
 
