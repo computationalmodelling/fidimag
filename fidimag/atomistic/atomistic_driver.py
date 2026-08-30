@@ -156,11 +156,11 @@ class AtomisticDriver(DriverBase):
         #self.spin[:] = mp[:]
 
         # The C routine wants the effective field at m and the effective field
-        # at mp, and `fy` is neither: it is dm/dt at m. Compute the field at m
+        # at mp, and `fy` is neither: it is dm/dt at m. Take the field at m
         # first, and keep it, because compute_effective_field_jac overwrites
-        # self.field with the field at mp
-        self.compute_effective_field(t)
-        field_m = self.field.copy()
+        # self.field with the field at mp. effective_field_at reuses the same
+        # field for every product of one linear solve
+        field_m = self.effective_field_at(t, m)
 
         self.compute_effective_field_jac(t, mp)
         common_clib.compute_llg_jtimes(Jmp,

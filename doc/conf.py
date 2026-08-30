@@ -91,7 +91,7 @@ release = 'v4.0'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', '**.ipynb_checkpoints']
+exclude_patterns = ['_build', 'build', '**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'

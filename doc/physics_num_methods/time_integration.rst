@@ -230,19 +230,21 @@ the two :math:`(\vec{m}\cdot\vec{h})(\vec{m}\times\vec{m}')` terms having
 cancelled. Only the first two were present, and without their prefactors,
 which is correct only where :math:`|\vec{m}|` is exactly one.
 
-One thing is worth knowing before turning ``use_jac`` on: as it stands the
-product recomputes the effective field at :math:`\vec{m}` on every call,
-although :math:`\vec{m}` does not change through the GMRES iterations of a
-single Newton solve and the right hand side has just computed that field.
-Caching it halves the time on the mesh above, 11.7 s to 5.95 s for the same
-562 steps, which is what would make the analytical product faster than the
-difference quotient rather than slower. That is not done yet.
+The product also needs the effective field at :math:`\vec{m}`, and
+:math:`\vec{m}` does not change through the GMRES iterations of one Newton
+solve, so that field is computed once for the whole batch and reused, by
+``effective_field_at``. The cache is keyed on the time and on the state
+itself, and is dropped at the start of every ``run_until`` in case the
+interactions have been changed in between. It is what makes the analytical
+product worth using: on a 30x30x10 mesh of 1 nm cells with exchange and the
+demagnetising field, 20 ps of dynamics take 2.21 s with the difference
+quotient and 2.42 s with the analytical product recomputing the field every
+call, but 1.70 s once it is reused, for the same 361 steps. The field is
+evaluated 1798, 1814 and 913 times respectively.
 
-``tests/test_jacobian.py`` now compares the product against a finite
-difference of the right hand side, which is the one reference that cannot be
-wrong in the same way, and it agrees to about :math:`10^{-8}`. On the example
-in ``examples/micromagnetic/nmag_example_2_box``, which is what the original
-report was about, ``use_jac=True`` finishes in the same time as the default.
+``tests/test_jacobian.py`` compares the product against a finite difference
+of the right hand side, which is the one reference that cannot be wrong in
+the same way, and it agrees to about :math:`10^{-8}`.
 
 There is no preconditioner
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -275,10 +277,10 @@ Both are recorded in the tests rather than hidden:
   term, so leaving it out is expensive: on a 30x30x4 atomistic lattice,
   including it took the integration from 150 steps to 18. The demagnetising
   field is the opposite case, costing a transform per evaluation: on a
-  30x30x10 mesh of 1 nm cells, leaving it out runs in 5.95 s against 11.22 s
-  with it in, for 562 steps against 612. So exchange is in for both models
-  and the demagnetising field is out, which is a deliberate trade rather than
-  an oversight.
+  30x30x10 mesh of 1 nm cells, the run above takes 1.70 s with it left out
+  against 2.84 s with it in, for the same 361 steps. So exchange is in for
+  both models and the demagnetising field is out, which is a deliberate trade
+  rather than an oversight.
 - The stabilisation term is differentiated only when ``default_c`` is
   positive. A negative value selects :math:`c = 6\,|dm/dt|`, which the right
   hand side applies and the Jacobian then ignores. That is the default of the

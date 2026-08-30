@@ -198,3 +198,60 @@ def test_use_jac_reaches_the_same_solution():
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         assert np.abs(run(True) - run(False)).max() < 1e-6
+
+
+def test_the_effective_field_is_computed_once_per_state():
+    """
+    The field at `m` is computed once per state, not once per product.
+
+    CVODE asks for many Jacobian-vector products at the same time and state,
+    and every one of them needs the effective field at that state. Computing
+    it each time costs a demag transform per GMRES iteration, which is what
+    made `use_jac=True` slower than the difference quotient it replaces.
+    """
+    mesh = CuboidMesh(3, 3, 10 / 3.0, 6, 6, 6, unit_length=1e-9)
+    sim = MicroSim(mesh, name='jac_cache', integrator='cvode_bdf',
+                   driver='llg', use_jac=True)
+    sim.Ms = 0.86e6
+    sim.driver.alpha = 0.5
+    sim.set_m((1, 0, 1))
+    sim.add(UniformExchange(A=13e-12))
+    driver = sim.driver
+
+    calls = []
+    original = driver.compute_effective_field
+    driver.compute_effective_field = lambda t: (calls.append(t), original(t))[1]
+
+    first = driver.effective_field_at(0.0, driver.spin).copy()
+    for _ in range(5):
+        assert np.array_equal(driver.effective_field_at(0.0, driver.spin),
+                              first)
+    assert len(calls) == 1, 'the field was recomputed for the same state'
+
+    # A different time, or a different state, is a different field
+    driver.effective_field_at(1e-12, driver.spin)
+    assert len(calls) == 2
+
+    driver.spin[0] += 0.1
+    moved = driver.effective_field_at(1e-12, driver.spin)
+    assert len(calls) == 3
+    assert not np.array_equal(moved, first)
+
+
+def test_the_field_cache_does_not_outlive_a_run():
+    """A change to the interactions between runs has to be picked up."""
+    mesh = CuboidMesh(3, 3, 10 / 3.0, 6, 6, 6, unit_length=1e-9)
+    sim = MicroSim(mesh, name='jac_cache_drop', integrator='cvode_bdf',
+                   driver='llg', use_jac=True)
+    sim.Ms = 0.86e6
+    sim.driver.alpha = 0.5
+    sim.set_m((1, 0, 1))
+    sim.add(UniformExchange(A=13e-12))
+
+    sim.driver.effective_field_at(0.0, sim.driver.spin)
+    assert sim.driver._jac_field_cache is not None
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        sim.driver.run_until(1e-11)
+    assert sim.driver._jac_field_cache is None

@@ -80,6 +80,10 @@ class DriverBase:
         self.integrator_tolerances_set = False
         self.step = 0
 
+        # (t, m, field) of the last effective field computed for a
+        # Jacobian-vector product, see effective_field_at
+        self._jac_field_cache = None
+
     def get_alpha(self):
         """
         Returns the array with the spatially dependent Gilbert damping
@@ -301,6 +305,40 @@ class DriverBase:
         for obj in self.interactions:
             self.field += obj.compute_field(t)
 
+    def effective_field_at(self, t, m):
+        """
+        Effective field at `m`, reused across Jacobian-vector products.
+
+        The Jacobian-vector product needs the full effective field at the
+        state the Krylov solver is linearising around, and CVODE asks for
+        many products per linear solve, all at the same `t` and `m`. The
+        field only has to be computed once for the whole batch, which for a
+        system with a demagnetising field means one FFT instead of dozens.
+
+        Parameters
+        ----------
+        t : float
+            Simulation time, passed on to the interactions.
+        m : numpy.ndarray
+            The state to evaluate the field at. This is `self.spin`, which
+            CVODE has already synchronised with the state it is asking
+            about, so the field is computed from the interactions as usual.
+
+        Returns
+        -------
+        numpy.ndarray
+            The effective field at `m`. This is the cached array itself, so
+            treat it as read only, and do not hold on to it across a call
+            that changes `self.spin`.
+        """
+        cache = self._jac_field_cache
+        if cache is not None and cache[0] == t and np.array_equal(cache[1], m):
+            return cache[2]
+
+        self.compute_effective_field(t)
+        self._jac_field_cache = (t, m.copy(), self.field.copy())
+        return self._jac_field_cache[2]
+
     def compute_effective_field_jac(self, t, spin):
         self.field[:] = 0
         for obj in self.interactions:
@@ -333,6 +371,9 @@ class DriverBase:
                 raise ValueError("t must be >= sim.t")
 
         ode = self.integrator
+
+        # The interactions may have been changed between runs
+        self._jac_field_cache = None
 
         self.spin_last[:] = self.spin[:]
 

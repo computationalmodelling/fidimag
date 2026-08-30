@@ -162,8 +162,16 @@ Version 4.0
   field being linear in the spins, so its contribution is the field evaluated
   at the direction of differentiation. The micromagnetic class already did
   this. The demagnetising field stays out of the Jacobian, which is a
-  deliberate trade: it costs a transform per evaluation, 11.22 s against
-  5.95 s on a 30x30x10 mesh of 1 nm cells, for 612 steps against 562
+  deliberate trade: it costs a transform per evaluation, 2.84 s against
+  1.70 s on a 30x30x10 mesh of 1 nm cells, for the same 361 steps
+* **The effective field is reused across a Newton solve.** The
+  Jacobian-vector product recomputed the field at m on every call, although
+  CVODE asks for many products at the same time and state; it is now computed
+  once per state, by `DriverBase.effective_field_at`. This is what makes the
+  analytical Jacobian worth turning on: 20 ps on the mesh above take 2.21 s
+  with the difference quotient, 2.42 s with the analytical product
+  recomputing the field, and 1.70 s with it reused. `use_jac` stays `False`
+  by default
 * New `tests/test_jacobian.py`, comparing the analytical product against a
   finite difference of the right hand side, which is the one reference that
   cannot be wrong in the same way. It also records two gaps that are design
