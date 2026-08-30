@@ -7,6 +7,16 @@ calculation, which sums the dipolar contribution of every pair of spins and
 is therefore used here as the ground truth (the same role DemagFull plays in
 test_demag_libraries.py for the FFT-based Demag).
 
+DemagFMM is also compared directly against the FFT-based Demag class, since
+that is the interaction most atomistic simulations actually use day to day --
+DemagFull is brute force and only practical at the small system sizes used
+here, whereas Demag and DemagFMM are the two options meant for production
+use. At theta=0.0 the FMM/BH tree traversal falls back to an exact pairwise
+sum (no multipole approximation), so it should agree with the FFT result to
+near machine precision, the same way it agrees with DemagFull. A further test
+at theta > 0 exercises the actual multipole approximation, at a looser
+tolerance appropriate to that order/theta combination.
+
 Both the demag field and the total demag energy are compared. DemagFMM
 computes the energy lazily in its compute_energy method (like the FFT Demag
 class), using the same convention as DemagFull.
@@ -16,7 +26,7 @@ import pytest
 
 from fidimag.atomistic import Sim
 from fidimag.common import CuboidMesh
-from fidimag.atomistic import DemagFull
+from fidimag.atomistic import Demag, DemagFull
 import fidimag.common.constant as const
 
 # The FMM/BH extension (fidimag.extensions.fmm) is an optional C++ module.
@@ -65,29 +75,33 @@ def _demag_field_and_energy(mesh_kwargs, m_init, interaction):
     return field, energy
 
 
-def _run_comparison(mesh_kwargs, m_init, demag_kwargs, tol):
+def _run_comparison(mesh_kwargs, m_init, demag_kwargs, tol, reference=None):
     """
-    Compare the DemagFMM (fmm or bh) field and energy against the brute-force
-    DemagFull calculation on identical simulations.
+    Compare the DemagFMM (fmm or bh) field and energy against a reference
+    interaction (DemagFull, the brute-force sum, by default) on identical
+    simulations.
     """
+    if reference is None:
+        reference = DemagFull()
+    ref_name = type(reference).__name__
     kind = demag_kwargs.get('type', 'fmm')
 
-    full_field, full_energy = _demag_field_and_energy(
-        mesh_kwargs, m_init, DemagFull())
+    ref_field, ref_energy = _demag_field_and_energy(
+        mesh_kwargs, m_init, reference)
     fmm_field, fmm_energy = _demag_field_and_energy(
         mesh_kwargs, m_init, DemagFMM(**demag_kwargs))
 
-    field_err = _relative_l2_error(fmm_field, full_field)
+    field_err = _relative_l2_error(fmm_field, ref_field)
     assert field_err < tol, (
-        "DemagFMM (%s) field differs from DemagFull: relative L2 error "
-        "%.3e >= tol %.3e" % (kind, field_err, tol)
+        "DemagFMM (%s) field differs from %s: relative L2 error "
+        "%.3e >= tol %.3e" % (kind, ref_name, field_err, tol)
     )
 
     # atol covers the near-zero-energy uniform states, where a relative
     # comparison would be meaningless.
-    assert np.isclose(fmm_energy, full_energy, rtol=tol, atol=1e-9), (
-        "DemagFMM (%s) energy %.6e differs from DemagFull %.6e"
-        % (kind, fmm_energy, full_energy)
+    assert np.isclose(fmm_energy, ref_energy, rtol=tol, atol=1e-9), (
+        "DemagFMM (%s) energy %.6e differs from %s %.6e"
+        % (kind, fmm_energy, ref_name, ref_energy)
     )
 
 
@@ -144,7 +158,72 @@ def test_cuboid_demag_bh_3D():
     )
 
 
+def test_cuboid_demag_fmm_vs_fft_2D():
+    """
+    FMM demag field (theta=0.0, exact tree evaluation) compared directly
+    against the FFT-based Demag class, rather than the brute-force
+    DemagFull. Demag is what atomistic simulations actually use day to
+    day, so this checks the two production paths agree with each other
+    and not just each against the (impractical at scale) ground truth.
+    """
+    N = 15
+    a = 0.4
+    mesh_kwargs = dict(dx=a, dy=a, dz=a, nx=N, ny=N, nz=1, unit_length=1e-9)
+    xc = yc = N * a * 0.5
+
+    _run_comparison(
+        mesh_kwargs,
+        lambda pos: m_init_2Dvortex(pos, (xc, yc)),
+        demag_kwargs=dict(order=8, ncrit=48, theta=0.0, type='fmm'),
+        tol=1e-6,
+        reference=Demag(),
+    )
+
+
+def test_cuboid_demag_fmm_vs_fft_3D():
+    """
+    Same as test_cuboid_demag_fmm_vs_fft_2D for a 3D cuboid block.
+    """
+    N = 6
+    a = 0.4
+    mesh_kwargs = dict(dx=a, dy=a, dz=a, nx=N, ny=N, nz=N, unit_length=1e-9)
+
+    _run_comparison(
+        mesh_kwargs,
+        (0, 0, 1),
+        demag_kwargs=dict(order=8, ncrit=48, theta=0.0, type='fmm'),
+        tol=1e-6,
+        reference=Demag(),
+    )
+
+
+def test_cuboid_demag_fmm_vs_fft_theta_2D():
+    """
+    Same comparison with theta > 0, which actually exercises the multipole
+    acceptance criterion -- every other test in this module uses theta=0.0,
+    where the tree traversal falls back to an exact pairwise sum and never
+    approximates a cell as a single expansion. The tolerance is looser to
+    match the accuracy expected at this order/theta/ncrit combination, not
+    because the comparison itself is any less exact.
+    """
+    N = 15
+    a = 0.4
+    mesh_kwargs = dict(dx=a, dy=a, dz=a, nx=N, ny=N, nz=1, unit_length=1e-9)
+    xc = yc = N * a * 0.5
+
+    _run_comparison(
+        mesh_kwargs,
+        lambda pos: m_init_2Dvortex(pos, (xc, yc)),
+        demag_kwargs=dict(order=8, ncrit=8, theta=0.2, type='fmm'),
+        tol=1e-3,
+        reference=Demag(),
+    )
+
+
 if __name__ == '__main__':
     test_cuboid_demag_fmm_2D()
     test_cuboid_demag_fmm_3D()
     test_cuboid_demag_bh_3D()
+    test_cuboid_demag_fmm_vs_fft_2D()
+    test_cuboid_demag_fmm_vs_fft_3D()
+    test_cuboid_demag_fmm_vs_fft_theta_2D()
