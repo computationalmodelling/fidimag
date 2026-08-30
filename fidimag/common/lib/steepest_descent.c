@@ -91,7 +91,17 @@ double sd_compute_step(double *spin, double *spin_last, double *magnetisation, d
             mxmxH[spin_idx + 2] = cross_z(spin[spin_idx], spin[spin_idx + 1], spin[spin_idx + 2],
                                           mxH[spin_idx], mxH[spin_idx + 1], mxH[spin_idx + 2]);
 
-            // Compute terms for the calculation of the time step tau
+            // Compute terms for the calculation of the time step tau.
+            // `ds` is the step just taken and `dy` the change of the gradient
+            // over it, -m x m x H being the gradient of the energy on the
+            // sphere. The Barzilai-Borwein step is the scalar that best makes
+            // the secant condition ds / tau = dy hold, and the two ways of
+            // fitting it, alternated on `counter`, are
+            //
+            //     tau_BB1 = (ds.ds) / (ds.dy)     tau_BB2 = (ds.dy) / (dy.dy)
+            //
+            // Both denominators measure the curvature along the step, since
+            // ds.dy is ds^T (d^2 E) ds to first order
             for (int j = 0; j < 3; j++) {
                 ds[j] = spin[spin_idx + j] - spin_last[spin_idx + j];
                 dy[j] = mxmxH[spin_idx + j] - mxmxH_last[spin_idx + j];
@@ -112,8 +122,16 @@ double sd_compute_step(double *spin, double *spin_last, double *magnetisation, d
         } // Close if Ms or mu_s > 0
     }     // close for
 
-    // Criteria for the evaluation of tau is in line 96 of:
+    // A zero denominator means the curvature along the last step is zero, so
+    // the quadratic model is flat and puts its minimum at infinity: there is
+    // no step to compute. In practice this is the first iteration, where
+    // spin_last == spin so ds and dy vanish and there is no secant pair yet.
+    // Falling back to the largest allowed step is a heuristic, taken from line
+    // 96 of:
     // https://github.com/MicroMagnum/MicroMagnum/blob/minimizer/src/magnum/micromagnetics/micro_magnetics_solver.py
+    // Note this exact comparison only catches the degenerate case; a merely
+    // small denominator gives a huge tau, and it is the clamp below that
+    // handles it
     if (den == 0.0) {
         res = tmax;
     } else {

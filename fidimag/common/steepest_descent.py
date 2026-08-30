@@ -182,6 +182,16 @@ class SteepestDescent(MinimiserBase):
         # ---------------------------------------------------------------------
         # Define the time step tau
 
+        # `ds` is the step just taken and `dy` the change of the gradient over
+        # it, -m x m x H being the gradient of the energy on the sphere. The
+        # Barzilai-Borwein step is the scalar that best makes the secant
+        # condition ds / tau = dy hold, and the two ways of fitting it,
+        # alternated on the step number, are
+        #
+        #     tau_BB1 = (ds.ds) / (ds.dy)      tau_BB2 = (ds.dy) / (dy.dy)
+        #
+        # Both denominators measure the curvature along the step, ds.dy being
+        # ds^T (d^2 E) ds to first order
         ds = (self.spin - self.spin_last).reshape(-1, 3)
         dy = (self.mxmxH - self.mxmxH_last).reshape(-1, 3)
 
@@ -192,7 +202,13 @@ class SteepestDescent(MinimiserBase):
             num = np.sum(ds * dy)
             den = np.sum(dy * dy)
 
-        # The criteria is taken from the Micromagnum code
+        # A zero denominator means zero curvature along the last step, so the
+        # quadratic model is flat and puts its minimum at infinity: there is no
+        # step to compute. In practice this is the first iteration, where
+        # `spin_last` is still `spin` so `ds` and `dy` vanish and there is no
+        # secant pair yet. The fallback to the largest allowed step is a
+        # heuristic taken from the Micromagnum code. See the C version in
+        # common/lib/steepest_descent.c, which also guards a negative quotient
         if den == 0:
             self.tau = self._tmax
         else:

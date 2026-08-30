@@ -217,6 +217,56 @@ the curvature they are extrapolating from is not representative the iteration
 can end up far from where it should be. This is controlled by ``tmax``, which
 bounds :math:`\tau` from above and which is set conservatively by default.
 
+
+When the quotient carries no information
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Both quotients divide by a measure of the curvature along the step just taken,
+:math:`\mathbf{s}\cdot\mathbf{y}` for BB1 and
+:math:`\mathbf{y}\cdot\mathbf{y}` for BB2, and neither is guaranteed to be
+usable. The code therefore reads
+
+.. code-block:: c
+
+    if (den == 0.0) {
+        res = tmax;
+    } else {
+        res = num / den;
+    }
+
+A vanishing denominator says that the secant model sees a *flat* direction:
+the gradient did not change over the step, so the quadratic it is fitting has
+its minimum infinitely far away and there is no step to compute. In practice
+this branch is the first iteration, where ``spin_last`` is still ``spin``, so
+both :math:`\mathbf{s}` and :math:`\mathbf{y}` vanish identically and no
+secant pair exists yet: Barzilai-Borwein needs two points and only one has
+been visited. Falling back to the largest permitted step is a heuristic rather
+than a result, taken from the MicroMagnum implementation, and it rests on the
+observation that the next iteration will have a real secant pair to correct
+it. The Hubert minimiser reaches the same point differently, using the
+trust-region step :math:`\Delta m_{\text{max}}/\max||\mathbf{g}||` of its
+``maxDeltaM`` argument, which is a length rather than a ceiling.
+
+The exact comparison against zero only catches that degenerate case. A merely
+*small* denominator is far more common and gives a large but finite
+:math:`\tau`, which is handled not here but by the clamp on the following
+line, ``tau = fmax(fmin(res, tmax), tmin)``. The two are the same safeguard
+written twice.
+
+A *negative* quotient is a third case, and a different one. It means negative
+curvature along the last step, where the secant model is not uninformative but
+wrong, and using it would reverse the sign of the update, driving the
+iteration against :math:`-\mathbf{m}\times\mathbf{m}\times\mathbf{H}` and
+up the energy. MicroMagnum keeps the sign; we fall back to ``tmax`` as above.
+This is why the minimiser used to stall in configurations that were not
+minima. The BB path of the Hubert class makes the same test as
+:math:`\mathbf{s}\cdot\mathbf{y} > 0`, which is the standard condition for
+accepting a secant pair.
+
+
+The energy guard
+^^^^^^^^^^^^^^^^
+
 The same acceptance test used in the BB path can be enabled here with the
 ``energy_guard`` argument::
 
