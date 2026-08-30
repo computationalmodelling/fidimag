@@ -233,7 +233,9 @@ def test_skx_num_micromagnetic():
     sim.add(microUniaxialAnisotropy(Ku,
                                     (0, 0, 1), name='Ku'))
 
-    sim.relax(stopping_dmdt=1e-2, max_steps=1000,
+    # 1000 was not enough: this needs about 1123 steps, and until relax()
+    # warned about it the test was quietly measuring an unrelaxed state
+    sim.relax(stopping_dmdt=1e-2, max_steps=2000,
               save_m_steps=None,
               save_vtk_steps=None)
 

@@ -363,7 +363,16 @@ class DriverBase:
         With `save_m_steps` and `save_vtk_steps` the magnetisation will be
         saved every given number of integrator steps to npy resp. vtk files.
 
+        If `max_steps` is reached before `dmdt` falls below `stopping_dmdt`,
+        the system has not relaxed, and a RuntimeWarning says so rather than
+        returning quietly: a state that merely ran out of steps looks exactly
+        like a relaxed one from the outside. Use
+        ``warnings.simplefilter('error', RuntimeWarning)`` to turn it into an
+        exception.
+
         """
+        dmdt = None
+        relaxed = False
         while self.step < max_steps:
             _dt = max(dt, self.integrator.get_current_step())
             self.run_until(self.t + _dt)
@@ -386,7 +395,29 @@ class DriverBase:
                     _dt,
                     dmdt / self._dmdt_factor))
             if dmdt < stopping_dmdt * self._dmdt_factor:
+                relaxed = True
                 break
+
+        if not relaxed:
+            if dmdt is None:
+                # the loop never ran: self.step is counted from the start of
+                # the simulation, not from the start of this call
+                warnings.warn(
+                    "relax() did nothing: the simulation is already at step "
+                    "{}, which is not below max_steps={}. Raise max_steps, or "
+                    "reset the driver, to relax further."
+                    .format(self.step, max_steps),
+                    RuntimeWarning, stacklevel=2)
+            else:
+                warnings.warn(
+                    "The system did not relax: max_steps={} was reached with "
+                    "max_dmdt={:.3g}, still above stopping_dmdt={:.3g}. The "
+                    "magnetisation is whatever the last step left, not an "
+                    "equilibrium state. Raise max_steps, or loosen "
+                    "stopping_dmdt, or use one of the minimisers."
+                    .format(max_steps, dmdt / self._dmdt_factor,
+                            stopping_dmdt),
+                    RuntimeWarning, stacklevel=2)
 
         if save_m_steps is not None:
             self.save_m()

@@ -133,6 +133,16 @@ Version 4.0
 
 ### Fixes
 
+* **`relax()` says when the system has not relaxed** (issue #118). Reaching
+  `max_steps` with `dmdt` still above `stopping_dmdt` used to return quietly,
+  and the result is indistinguishable from a relaxed one: the caller gets a
+  magnetisation either way. It now raises a `RuntimeWarning` naming both
+  numbers, which `warnings.simplefilter('error', RuntimeWarning)` turns into
+  an exception. A second warning covers the case where `max_steps` is below
+  the current step, so the loop never runs at all. This immediately caught
+  `test_skx_num_micromagnetic`, which was capped at 1000 steps but needs about
+  1123, so it had been measuring an unrelaxed state; its cap is raised and the
+  skyrmion number it asserts is unchanged
 * **Hexagonal meshes with a square arrangement can be periodic in x again**
   (issue #129, open since 2019). `init_grid` asks which neighbouring hexagons
   have already been built, so that a shared corner is not created twice, and
