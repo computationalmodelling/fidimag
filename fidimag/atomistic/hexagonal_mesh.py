@@ -276,15 +276,25 @@ class HexagonalMesh:
 
                 # Here we define the neighbours indexes to check if vertexes
                 # were already created
+                # These lookups ask which neighbours have already been built,
+                # so that a corner they share is not created twice. They must
+                # not wrap around a periodic boundary: the periodic partner of
+                # the first column is the last one, which is built later in
+                # this same row, and asking for it here indexes past the end
+                # of `hexagons`. It would be wrong even if it were available,
+                # since these are the drawn positions of the hexagons and the
+                # two edges of a periodic mesh are far apart in space, sharing
+                # no corner. `_index` is the lookup that does not wrap, and is
+                # what the diagonal arrangement below already uses
                 if self.alignment == 'square':
                     if j % 2 == 0:
-                        W = self.index(i - 1, j)        # left   west
-                        SW = self.index(i, j - 1)       # down   south-west
-                        SE = self.index(i + 1, j - 1)   #        south-east
+                        W = self._index(i - 1, j)       # left   west
+                        SW = self._index(i, j - 1)      # down   south-west
+                        SE = self._index(i + 1, j - 1)  #        south-east
                     else:
-                        W = self.index(i - 1, j)        # left   west
-                        SW = self.index(i - 1, j - 1)   # down   south-west
-                        SE = self.index(i, j - 1)       #        south-east
+                        W = self._index(i - 1, j)       # left   west
+                        SW = self._index(i - 1, j - 1)  # down   south-west
+                        SE = self._index(i, j - 1)      #        south-east
 
                 elif self.alignment == 'diagonal':
                     W = self._index(i - 1, j)

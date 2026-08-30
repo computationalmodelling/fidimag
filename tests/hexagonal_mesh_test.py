@@ -340,11 +340,50 @@ def test_iterate_over_cells_and_neighbours():
             print("\tAnd I am its neighbour, cell #{}!".format(c_j))
 
 
-@pytest.mark.xfail(reason="Skipping because this is not supported")
 def test_hexagonal_mesh_creation_periodic_x():
+    # Was expected to fail until issue #129 was fixed: see
+    # test_square_lattice_periodic_in_x below
     mesh = HexagonalMesh(1, 2, 2, alignment='square', periodicity=(True, False, False))
+    assert mesh.n == 4
 
 
 @pytest.mark.xfail(reason="Skipping because this is not supported")
 def test_hexagonal_mesh_creation_periodic_square_y():
     mesh = HexagonalMesh(1, 2, 2, alignment='square', periodicity=(False, True, False))
+
+
+def test_square_lattice_periodic_in_x():
+    """Issue #129: a square arrangement periodic in x failed to build.
+
+    `init_grid` asks which neighbours have already been built, so that a
+    shared corner is not created twice. Those lookups used the periodic index,
+    so for the first column they pointed at the last one, which is built later
+    in the same row: the lookup ran off the end of the list of hexagons. The
+    non-periodic lookup is also the right one geometrically, since the two
+    edges of a periodic mesh are far apart in space and share no corner.
+    """
+    mesh = HexagonalMesh(1.25, 22, 21, alignment='square',
+                         unit_length=1e-10, periodicity=(True, False))
+
+    assert mesh.n == 22 * 21
+    assert len(mesh.hexagons) == mesh.n
+
+    # the connectivity must still wrap, which is the point of the periodicity
+    first, last = mesh.index(0, 0), mesh.index(21, 0)
+    assert last in mesh.neighbours[first]
+    assert first in mesh.neighbours[last]
+
+
+def test_square_lattice_periodic_in_y_is_rejected():
+    """Periodicity in y is not defined for this arrangement, and says so."""
+    with pytest.raises(Exception, match='not well defined'):
+        HexagonalMesh(1.25, 4, 4, alignment='square', periodicity=(False, True))
+
+
+def test_periodicity_does_not_change_the_drawn_geometry():
+    """The vertices are the drawn corners, and do not wrap."""
+    plain = HexagonalMesh(1.25, 22, 21, alignment='square')
+    periodic = HexagonalMesh(1.25, 22, 21, alignment='square',
+                             periodicity=(True, False))
+    assert len(plain.vertices) == len(periodic.vertices)
+    assert np.allclose(plain.coordinates, periodic.coordinates)

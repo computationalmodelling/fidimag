@@ -131,6 +131,21 @@ Version 4.0
   dx=1 dy=2 dz=3 | unit_length=1e-09`. This is what makes a `.vti` still
   readable as evidence once it is one of several hundred in a `vtks/` directory
 
+### Fixes
+
+* **Hexagonal meshes with a square arrangement can be periodic in x again**
+  (issue #129, open since 2019). `init_grid` asks which neighbouring hexagons
+  have already been built, so that a shared corner is not created twice, and
+  those lookups used the periodic index: for the first column they pointed at
+  the last one, which is built later in the same row, so the lookup ran off
+  the end of the list and raised `IndexError`. The non-periodic lookup is also
+  the correct one geometrically, since the two edges of a periodic mesh are
+  far apart in space and share no corner, and it is what the diagonal
+  arrangement already used. The connectivity still wraps, so the physics is
+  unchanged, and non-periodic meshes are unaffected. The repository's own
+  `test_hexagonal_mesh_creation_periodic_x`, marked `xfail` as unsupported,
+  now passes and the marker is removed
+
 ### Removals
 
 * The Python 2 era install scripts are gone: `bin/ubuntu_install_script.sh`,
