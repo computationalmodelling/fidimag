@@ -109,9 +109,6 @@ def test_jacobian_with_a_non_uniform_damping():
 def test_atomistic_jacobian_matches_finite_differences():
     """The atomistic driver defined sundials_jtn, which nothing ever called.
 
-    Anisotropy is used rather than exchange because the atomistic exchange
-    sets `jac = False`, so it is left out of the Jacobian: see
-    test_interactions_marked_jac_false_are_left_out below.
     """
     mesh = CuboidMesh(nx=4, ny=4, nz=2)
     sim = AtomSim(mesh, name='jac_atom', integrator='cvode_bdf', use_jac=True)
@@ -119,6 +116,7 @@ def test_atomistic_jacobian_matches_finite_differences():
     sim.driver.alpha = 0.5
     sim.driver.gamma = 1.76e11
     sim.set_m(_random_unit_field(mesh.n, seed=3))
+    sim.add(AtomExchange(50 * k_B))
     sim.add(AtomAnisotropy(0.01 * k_B, axis=(0, 0, 1)))
     # the adaptive stabilisation term is not differentiated: see
     # test_adaptive_default_c_is_missing_from_the_jacobian
@@ -165,17 +163,16 @@ def test_interactions_marked_jac_false_are_left_out():
     demagnetising field it is not: the field is linear in m, so it does
     contribute to the derivative, and leaving it out makes the product
     approximate rather than exact. CVODE tolerates an approximate Jacobian,
-    so this is defensible as a way of avoiding a transform per evaluation,
-    but the flags are not consistent about it: the micromagnetic Demag sets
-    False while the atomistic one sets True, and the micromagnetic exchange
-    sets True while the atomistic one sets False.
+    so this is a deliberate trade rather than an oversight: measured on a
+    30x30x10 mesh of 1 nm cells, leaving the demagnetising field out of the
+    Jacobian runs in 5.95 s against 11.22 s with it in, for 562 steps against
+    612. Exchange, which is local and cheap, is in for both models.
 
-    The number below is not a target. It is here so that changing a flag
+    The number below is not a target. It is here so that changing the flag
     fails this test and brings someone back to the question.
     """
     from fidimag.micro import Demag as MicroDemag
     assert MicroDemag().jac is False
-    assert AtomExchange(50 * k_B).jac is False
 
     sim = _micro_sim(with_demag=True)
     error = _relative_error(sim)

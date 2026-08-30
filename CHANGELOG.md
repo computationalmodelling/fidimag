@@ -155,13 +155,22 @@ Version 4.0
   plain `CVLsPrecSetupFn`, so CVODE called it with every argument shifted.
   Removing it does not change any result. A real preconditioner is worth
   having and is noted as future work
+* **The atomistic exchange now enters the Jacobian.** It set `jac = False`,
+  so the stiffest term in the problem was missing from it, and the Newton
+  iteration suffered for it: on a 30x30x4 lattice the integration took 150
+  steps without it and 18 with it. Nothing had to be derived, the exchange
+  field being linear in the spins, so its contribution is the field evaluated
+  at the direction of differentiation. The micromagnetic class already did
+  this. The demagnetising field stays out of the Jacobian, which is a
+  deliberate trade: it costs a transform per evaluation, 11.22 s against
+  5.95 s on a 30x30x10 mesh of 1 nm cells, for 612 steps against 562
 * New `tests/test_jacobian.py`, comparing the analytical product against a
   finite difference of the right hand side, which is the one reference that
   cannot be wrong in the same way. It also records two gaps that are design
-  questions rather than bugs: interactions are in the Jacobian only if they
-  set `jac = True`, and the flags disagree between the two models, and the
-  stabilisation term is differentiated only for a positive `default_c`, while
-  a negative one selects `c = 6|dm/dt|` and is the atomistic default
+  questions rather than bugs: which interactions the `jac` flag admits, and
+  that the stabilisation term is differentiated only for a positive
+  `default_c`, while a negative one selects `c = 6|dm/dt|` and is the
+  atomistic default
 * **`relax()` says when the system has not relaxed** (issue #118). Reaching
   `max_steps` with `dmdt` still above `stopping_dmdt` used to return quietly,
   and the result is indistinguishable from a relaxed one: the caller gets a

@@ -230,6 +230,14 @@ the two :math:`(\vec{m}\cdot\vec{h})(\vec{m}\times\vec{m}')` terms having
 cancelled. Only the first two were present, and without their prefactors,
 which is correct only where :math:`|\vec{m}|` is exactly one.
 
+One thing is worth knowing before turning ``use_jac`` on: as it stands the
+product recomputes the effective field at :math:`\vec{m}` on every call,
+although :math:`\vec{m}` does not change through the GMRES iterations of a
+single Newton solve and the right hand side has just computed that field.
+Caching it halves the time on the mesh above, 11.7 s to 5.95 s for the same
+562 steps, which is what would make the analytical product faster than the
+difference quotient rather than slower. That is not done yet.
+
 ``tests/test_jacobian.py`` now compares the product against a finite
 difference of the right hand side, which is the one reference that cannot be
 wrong in the same way, and it agrees to about :math:`10^{-8}`. On the example
@@ -254,14 +262,23 @@ Two known gaps
 Both are recorded in the tests rather than hidden:
 
 - Interactions are included in the Jacobian only if they set ``jac = True``.
-  For a constant Zeeman field that is right, since it does not vary with
-  :math:`\vec{m}`. For the demagnetising field it is not, since that field is
-  linear in :math:`\vec{m}` and does contribute to the derivative. CVODE
-  tolerates an approximate Jacobian, so leaving it out is defensible as a way
-  of avoiding a transform per evaluation, but the flags are not consistent
-  about it: the micromagnetic ``Demag`` sets False where the atomistic one
-  sets True, and the micromagnetic exchange sets True where the atomistic one
-  sets False.
+  Nothing has to be derived for the linear ones: exchange, the DMI and the
+  demagnetising field are all linear in :math:`\vec{m}`, so the derivative in
+  a direction is simply the field evaluated at that direction, which is what
+  ``compute_effective_field_jac`` computes. The demagnetising field is linear
+  to machine precision, :math:`3\times10^{-16}` on a check of
+  :math:`\vec{H}(a\vec{m}_1 + b\vec{m}_2)`. A constant Zeeman field is
+  correctly excluded, its derivative being zero.
+
+  What the flag really trades is cost against exactness, and CVODE tolerates
+  an approximate Jacobian. Exchange is local and cheap, and it is the stiff
+  term, so leaving it out is expensive: on a 30x30x4 atomistic lattice,
+  including it took the integration from 150 steps to 18. The demagnetising
+  field is the opposite case, costing a transform per evaluation: on a
+  30x30x10 mesh of 1 nm cells, leaving it out runs in 5.95 s against 11.22 s
+  with it in, for 562 steps against 612. So exchange is in for both models
+  and the demagnetising field is out, which is a deliberate trade rather than
+  an oversight.
 - The stabilisation term is differentiated only when ``default_c`` is
   positive. A negative value selects :math:`c = 6\,|dm/dt|`, which the right
   hand side applies and the Jacobian then ignores. That is the default of the

@@ -86,7 +86,12 @@ class Exchange(Energy):
     def __init__(self, J, name='Exchange'):
         self.J = J
         self.name = name
-        self.jac = False
+        # The exchange field is linear in the spins, so its contribution to a
+        # Jacobian-times-vector product is just the field evaluated at the
+        # direction of differentiation, and it is local, with no transform to
+        # pay for. It belongs in the Jacobian, as it already does in the
+        # micromagnetic class
+        self.jac = True
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super().setup(mesh, spin, mu_s, mu_s_inv)
