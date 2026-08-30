@@ -4,6 +4,7 @@ from fidimag.atomistic.energy import Energy
 from libcpp.vector cimport vector
 from libcpp.utility cimport pair
 from libcpp.algorithm cimport sort
+from libcpp cimport bool
 cimport numpy as np
 import numpy as np
 import sys
@@ -15,6 +16,12 @@ cdef extern from "operators.h":
     cdef int FMMGEN_MAXORDER
 
 MAXORDER = FMMGEN_MAXORDER
+
+cdef extern from "variant.hpp":
+    bool fmm_have_compressed() except +
+    void fmm_select(bool compressed) except +
+
+HAVE_COMPRESSED = fmm_have_compressed()
 
 cdef extern from "tree.hpp":
     cdef cppclass Tree:
@@ -40,7 +47,7 @@ cdef class FMM:
     cdef public int calc_type
     cdef Tree tree
 
-    def __cinit__(self, size_t n, size_t ncrit, double theta, size_t order, double [:, :] r, double [:] mu, double [:] mu_s, calc_type=0):
+    def __cinit__(self, size_t n, size_t ncrit, double theta, size_t order, double [:, :] r, double [:] mu, double [:] mu_s, calc_type=0, compressed=True):
         if order > MAXORDER:
             raise ValueError(f"Order needs to be < {MAXORDER}")
         self.calc_type = calc_type
@@ -55,6 +62,9 @@ cdef class FMM:
         self.mu_s = mu_s
         self.Mu = np.zeros(3*self.n)
 
+        # Selection is process-global and must happen before build_tree,
+        # which sizes the multipole/local coefficient arrays from it.
+        fmm_select(compressed)
         self.tree = build_tree(&self.r[0, 0], &self.Mu[0], self.n, self.ncrit, self.order, self.theta)
 
     cdef _scale(self):

@@ -103,7 +103,7 @@ class Demag(Energy):
 
 
 class DemagFMM(Energy):
-    def __init__(self, order, ncrit, theta, name="DemagFMM", type='fmm'):
+    def __init__(self, order, ncrit, theta, name="DemagFMM", type='fmm', compressed=True):
         self.type = type
         if self.type == 'fmm':
             self._type = 0
@@ -118,6 +118,11 @@ class DemagFMM(Energy):
         self.ncrit = ncrit
         assert theta >= 0.0, "theta must be >= 0.0"
         self.theta = theta
+        # Use the harmonic (trace-free) compressed multipole/local operators,
+        # which are algebraically identical but substantially cheaper at the
+        # M2L step. Falls back to the uncompressed path if the extension was
+        # not built with the compressed operators generated.
+        self.compressed = compressed
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super().setup(mesh, spin, mu_s, mu_s_inv)
@@ -127,7 +132,8 @@ class DemagFMM(Energy):
                            self.order,
                            self.coords,
                            self.m_temp,
-                           self.mu_s, self._type
+                           self.mu_s, self._type,
+                           self.compressed
                            )
 
     def compute_field(self, t=0, spin=None):
