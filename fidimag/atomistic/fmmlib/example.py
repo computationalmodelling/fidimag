@@ -22,4 +22,14 @@ fmmgen.generate_code(order, "operators",
                      field=True,
                      source_order=source_order,
                      atomic=atomic,
+                     # Horner-form the coordinate-polynomial arrays (S2M,
+                     # M2M, L2L, L2P, M2P, and M2L's D) before CSE. Measured
+                     # 1.6-3.7x faster at runtime on the compiled operators
+                     # (M2M/L2L/L2P/M2P; M2L's own contraction is
+                     # deliberately excluded, see fmmgen.writer's `horner`
+                     # docstring) for ~20 minutes of extra one-time
+                     # generation time at this order -- worth it since this
+                     # script runs once to produce the checked-in
+                     # operators.h/operators.cpp, not on every build.
+                     horner=True,
                      language='c++')
