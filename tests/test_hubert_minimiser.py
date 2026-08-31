@@ -125,3 +125,87 @@ def test_hubert_minimiser_BB_unknown_step_control():
 if __name__ == "__main__":
     test_hubert_minimiser_1D_DW()
     test_hubert_minimiser_1D_DW_BB()
+
+
+def _max_torque(driver):
+    """max ||m x (m x H)||, the residual OOMMF reports as `Max mxHxm`"""
+    m = driver.spin.reshape(-1, 3)
+    h = driver.field.reshape(-1, 3)
+    return np.linalg.norm(np.cross(m, np.cross(m, h)), axis=1).max()
+
+
+def test_energy_change_matches_the_difference_of_totals():
+    """
+    The trapezoid is the same number as the difference of two totals.
+
+    It is only worth using where the difference of totals has lost its
+    precision, so check it against that difference over a step large enough
+    that the difference is still trustworthy. Demag is included because the
+    identity rests on the field operator being symmetric, which is least
+    obvious there.
+    """
+    mesh = fidimag.common.CuboidMesh(nx=12, ny=6, nz=2, dx=4, dy=4, dz=4,
+                                     unit_length=1e-9)
+    sim = fidimag.micro.Sim(mesh, name='dE_id', driver='hubert_minimiser')
+    sim.set_Ms(Ms)
+    np.random.seed(17)
+    sim.set_m(lambda pos: tuple(np.random.rand(3) - 0.5))
+    sim.add(fidimag.micro.UniformExchange(A))
+    sim.add(fidimag.micro.Demag())
+    sim.add(fidimag.micro.UniaxialAnisotropy(Ku, axis=(0, 0, 1)))
+    sim.add(fidimag.micro.Zeeman((0, 0, 1e4)))
+
+    driver = sim.driver
+    driver.compute_effective_field()
+    E_ref = driver.totalE
+    m_ref = driver.spin.copy()
+    h_ref = driver.field.copy()
+
+    np.random.seed(23)
+    driver.spin[:] = m_ref + 0.05 * (np.random.rand(len(m_ref)) - 0.5)
+    driver._normalise_spin(driver.spin)
+    driver.compute_effective_field()
+
+    from_totals = driver.totalE - E_ref
+    from_trapezoid = driver._energy_change(m_ref, h_ref)
+
+    # `_energy_change` carries an arbitrary constant, the one `_minimise_BB`
+    # calibrates, so compare the two up to a single factor
+    scale = from_totals / from_trapezoid
+    assert abs(from_trapezoid * scale - from_totals) < 1e-9 * abs(from_totals)
+    # and that factor is a constant of the problem, not of the step
+    driver.spin[:] = m_ref + 0.01 * (np.random.rand(len(m_ref)) - 0.5)
+    driver._normalise_spin(driver.spin)
+    driver.compute_effective_field()
+    scale2 = (driver.totalE - E_ref) / driver._energy_change(m_ref, h_ref)
+    assert abs(scale2 - scale) < 1e-6 * abs(scale)
+
+
+def test_BB_converges_past_the_energy_difference_floor():
+    """
+    The minimisation is not stopped by the precision of the total energy.
+
+    Taking the energy change as the difference of two totals put a floor on
+    how far this could converge: the decrease to be detected falls below the
+    spacing of the doubles around the total, every trial step then looks like
+    a failure and the restarts are used up. On this problem that happened
+    between 2e-7 and 2e-4 A/m of torque, the spread being the last bits of
+    the demagnetising field deciding where it gave up. Summing the change
+    instead reaches 3e-11.
+    """
+    mesh = fidimag.common.CuboidMesh(nx=40, ny=10, nz=1, dx=5, dy=5, dz=3,
+                                     unit_length=1e-9)
+    sim = fidimag.micro.Sim(mesh, name='dE_floor', driver='hubert_minimiser')
+    sim.set_Ms(8e5)
+    sim.set_m((1, 1, 1))
+    sim.add(fidimag.micro.UniformExchange(A=1.3e-11))
+    sim.add(fidimag.micro.Demag())
+
+    driver = sim.driver
+    driver.minimise(stepControl='BB', max_steps=1500, mXgradE_tol=1e-14,
+                    stopping_dE=-1.0, log_steps=10 ** 9)
+    driver.compute_effective_field()
+
+    assert _max_torque(driver) < 1e-8
+    # the s-state, whatever route was taken to it
+    assert abs(driver.totalE - 2.221975441011e-19) < 1e-30

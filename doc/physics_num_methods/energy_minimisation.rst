@@ -365,11 +365,255 @@ while the guarded one took 130 steps with 12 rejected trial steps in every
 single repetition. For comparison, the same wall at the default ceiling takes
 around 305 steps.
 
-The spread of the unguarded runs is not physics. The Barzilai-Borwein quotients
-are accumulated with an OpenMP reduction, whose summation order is not fixed
-from one run to the next, and an overshooting step amplifies those last-bit
+The spread of the unguarded runs is not physics. The effective field is not
+bit-reproducible from one run to the next, for the reason given under
+:ref:`reproducibility` below, and an overshooting step amplifies those last-bit
 differences into completely different trajectories. Rejecting those steps is
 what makes the calculation repeatable.
+
+How this compares with OOMMF
+----------------------------
+
+OOMMF minimises with ``Oxs_CGEvolve``, a nonlinear conjugate gradient with a
+proper line search: it brackets a minimum along the search direction and
+refines it by interpolation, using the directional derivative as well as the
+energy. That is a more careful step rule than anything here, so the comparison
+worth making is not per iteration but per *effective field evaluation*, which
+is what dominates the cost and which counts a line search honestly.
+
+The problem below is the standard problem 4 film, 500 x 125 x 3 nm of
+permalloy with :math:`M_{s} = 8\times10^{5}` A/m and
+:math:`A = 1.3\times10^{-11}` J/m, exchange and demagnetising field, relaxed
+from a uniform :math:`\mathbf{m}=(1,1,1)` to the s-state. Both codes report the
+same convergence measure, the largest
+:math:`||\mathbf{m}\times(\mathbf{m}\times\mathbf{H})||` over the mesh, in
+A/m; OOMMF calls it ``Max mxHxm`` and publishes the evaluation count as
+``Energy calc count``. All three minimisers reach the same s-state, at the same
+energy to ten digits.
+
+Evaluations needed to first reach a given torque, on 2500 cells of 5 nm:
+
+===================  =====  =====  =====  =====  =====  =====
+torque (A/m)          1e-1   1e-2   1e-3   1e-4   1e-5   1e-6
+===================  =====  =====  =====  =====  =====  =====
+OOMMF CG               343    409    457    507    551    614
+Fidimag BB             226    259    305    321    377    413
+Fidimag SD            6264   7475   8686   9896  11107  12318
+===================  =====  =====  =====  =====  =====  =====
+
+and on 10000 cells of 2.5 nm:
+
+===================  =====  =====  =====  =====  =====  =====
+torque (A/m)          1e-1   1e-2   1e-3   1e-4   1e-5   1e-6
+===================  =====  =====  =====  =====  =====  =====
+OOMMF CG               728    826    936   1050   1156   1278
+Fidimag BB             731    792    894    929    989   1038
+Fidimag SD            9467  11296  13124  14953  16781  18610
+===================  =====  =====  =====  =====  =====  =====
+
+Two things follow. The Barzilai-Borwein path is not merely competitive with a
+line-searched conjugate gradient, it needs fewer field evaluations than one at
+every tolerance, by about a third on the coarse mesh and a fifth on the fine
+one, and it keeps going well past the last row, to
+:math:`2\times10^{-10}` A/m on the coarse mesh. The steepest descent needs ten
+to thirty times as many, which is the price of never looking at the energy.
+Wall clock does not change the picture: measured per evaluation, 0.23 ms
+against 0.80 ms for OOMMF on the coarse mesh and 0.99 ms against 1.07 ms on
+the fine one, both codes being bound by the same transform.
+
+The counts move by about ten per cent from one run to the next, for the reason
+under :ref:`reproducibility`.
+
+
+The energy precision floor
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The numbers above are what the Barzilai-Borwein path does now. Until recently
+it stopped at :math:`1.5\times10^{-6}` A/m on the coarse mesh and
+:math:`5\times10^{-4}` A/m on the fine one, with
+``Could not decrease the energy along the gradient``, and the reason is worth
+recording because it was not the step rule.
+
+The acceptance test compares the energy of a trial step against the trailing
+window. Near a minimum the decrease it has to detect becomes smaller than the
+gap between neighbouring doubles at the size of the total energy:
+
+.. math::
+    E \approx 6.31\times10^{-19}\,\text{J} \qquad
+    \varepsilon\,|E| \approx 1.40\times10^{-34}\,\text{J} \qquad
+    \Delta E \approx 1.93\times10^{-35}\,\text{J}
+
+The decrease is a seventh of the smallest representable difference. Every
+trial step then looks like a failure, the restarts are used up and the
+iteration gives up, at a torque that depends on the last bits of the field and
+so is not even repeatable.
+
+The cure is to sum the change rather than subtract two totals. Write the
+energy of the interactions that are quadratic in the magnetisation as
+
+.. math::
+    E = -\frac{1}{2}\sum_{i} w_{i}\,\vec{m}_{i}\cdot\vec{H}_{i}
+
+where :math:`i` runs over the sites and :math:`w_{i}` is the weight that turns
+:math:`\vec{m}\cdot\vec{H}` into an energy there, :math:`\mu_{0}VM_{s,i}` for
+the micromagnetic classes and :math:`\mu_{s,i}` for the atomistic ones. Label
+the two configurations the acceptance test compares by :math:`r`, the
+reference, which is the last accepted step, and :math:`n`, the new trial
+point, so that :math:`\vec{H}_{r}` is the effective field evaluated at
+:math:`\vec{m}_{r}` and :math:`\vec{H}_{n}` the field at :math:`\vec{m}_{n}`.
+The field being linear in the magnetisation with a symmetric operator gives
+the reciprocity
+:math:`\vec{m}_{n}\cdot\vec{H}_{r}=\vec{m}_{r}\cdot\vec{H}_{n}`, so that the
+two mixed terms of
+
+.. math::
+    (\vec{m}_{n}-\vec{m}_{r})\cdot(\vec{H}_{n}+\vec{H}_{r}) =
+    \vec{m}_{n}\cdot\vec{H}_{n} + \vec{m}_{n}\cdot\vec{H}_{r}
+    - \vec{m}_{r}\cdot\vec{H}_{n} - \vec{m}_{r}\cdot\vec{H}_{r}
+
+cancel, leaving :math:`\vec{m}_{n}\cdot\vec{H}_{n} -
+\vec{m}_{r}\cdot\vec{H}_{r}`, which is :math:`-2\Delta E / w`. Hence
+
+.. math::
+    \Delta E = -\frac{1}{2}\sum_{i} w_{i}\,
+               (\vec{m}_{n}-\vec{m}_{r})_{i}\cdot
+               (\vec{H}_{n}+\vec{H}_{r})_{i}
+
+This is a trapezoid, evaluated at both ends of the step, and the reciprocity
+makes it exact rather than first order, so it holds at any step length. Every
+term carries the small factor :math:`\vec{m}_{n}-\vec{m}_{r}`, the distance
+actually moved, so nothing large is ever formed and nothing large is ever
+subtracted: the result is accurate relative to :math:`\Delta E` rather than to
+:math:`E`.
+
+A constant Zeeman field is covered by the same expression even though its
+energy :math:`-\sum_{i}w_{i}\vec{m}_{i}\cdot\vec{H}_{\text{ext}}` carries no
+factor of a half, because its two fields are equal and the half is restored by
+:math:`\vec{H}_{n}+\vec{H}_{r}=2\vec{H}_{\text{ext}}`. This is why the code
+can use the total effective field and needs to know nothing about which
+interactions are present. The exchange, the DMI, the demagnetising field and a
+uniaxial anisotropy all have the required symmetry. An energy that is not
+quadratic does not, a cubic anisotropy being the case to watch, and there the
+expression degrades to the usual first order estimate.
+
+Scaling the energy does not help, and it is worth saying why, since
+``energyScale`` looks like exactly the knob for the job. What decides whether
+the difference survives is :math:`\Delta E/E` against :math:`\varepsilon`, and
+dividing both by a constant leaves that ratio alone: here
+:math:`\Delta E/E = 3.1\times10^{-17}` is below
+:math:`\varepsilon = 2.2\times10^{-16}`, at any scale. The subtraction
+``(E - dE) - E`` returns exactly zero for :math:`E` of
+:math:`6\times10^{-19}`, of one, and of :math:`10^{12}` alike. Nor is the
+algorithm supposed to care: the gradient is never divided by ``energyScale``,
+and ``gradScale`` is calibrated from the decrease, so the scale cancels out of
+the acceptance test in exact arithmetic.
+
+What a different scale does change is the rounding, and so the sequence of
+accepted steps and the point at which the iteration gives up. On the problem
+above, five values of ``energyScale`` that all put the total within an order
+of magnitude of one stopped at torques of
+:math:`4.5\times10^{-8}`, :math:`2.9\times10^{-6}`,
+:math:`9.5\times10^{-6}`, :math:`4.5\times10^{-6}` and
+:math:`3.1\times10^{-7}` A/m. That is a spread of two hundred with no trend:
+a good value is luck rather than a cure, and there is no way to recognise one
+in advance.
+
+``_minimise_BB`` therefore carries :math:`E-E_{0}`, accumulated from the
+accepted steps, instead of reading totals. The one constant it cannot get from
+the identity, which differs between the micromagnetic and atomistic classes,
+is calibrated once against a difference of totals taken on the first accepted
+step, while that difference is still well resolved; it is needed only to keep
+``stopping_dE`` and the log in units of energy, since the acceptance test
+itself is invariant under it.
+
+With that in place the same problem reaches :math:`2.4\times10^{-10}` A/m
+instead of :math:`1.5\times10^{-6}`, in fewer evaluations than OOMMF needs to
+reach :math:`10^{-6}`, and it returns the same answer to the last bit for
+every ``energyScale`` from one to :math:`10^{-31}`, the scale having dropped
+out of a subtraction that is no longer performed. The steepest descent never
+had the problem, since it does not evaluate the energy at all.
+
+
+What OOMMF does about it
+
+
+None of this is new, and ``Oxs_CGEvolve`` is worth reading on the point. It
+solves the same problem the other way, by summing the *per cell* energy
+differences against the best state so far,
+
+.. code-block:: c
+
+    work_etemp.Accum((stenergy[j] - sbenergy[j]));
+
+which is the approach Fidimag cannot take, because ``energy`` means an energy
+density in most of its interaction classes, is already weighted in
+``micro/demag.py``, and is never filled in at all by ``micro/zeeman.py``. The
+identity above needs no per cell energy, only the two fields, which is why it
+is the cheaper route here.
+
+OOMMF is also more careful than either version of Fidimag has been. It
+accumulates in extended precision rather than in doubles, it carries an error
+bar with every bracket point,
+``E_error_estimate = fabs(relenergy)*OC_REAL8m_EPSILON*8`` plus a density
+term, and ``EstimateEnergySlack`` turns those into a threshold below which,
+in its own words, two energies "should be considered equal". When a bracket
+falls inside that slack ``BadPrecisionTest`` stops trusting the energies and
+brackets on the slope instead, which comes from the field and does not
+cancel. The comment attributes the analysis to notes from 2002.
+
+The identity used here is not free of cancellation either: it subtracts
+:math:`\vec{m}_{n}-\vec{m}_{r}`, two nearly equal vectors of order one, so
+the displacement carries an absolute error of order
+:math:`\varepsilon` and a relative one of
+:math:`\varepsilon/|\vec{m}_{n}-\vec{m}_{r}|`, which grows as the steps
+shrink. That floor was not reached on any problem tried here, but it is there,
+and a compensated sum with a fallback on the slope, as OOMMF does, is the more
+robust arrangement if it ever matters.
+
+Note that ``stopping_dE`` is an absolute energy, so its default of
+:math:`10^{-6}` is meaningless against a micromagnetic energy of
+:math:`10^{-17}` J and will stop the iteration immediately. Set
+``energyScale`` to bring the energy near unity, or pass a sensible
+``stopping_dE``, and lean on ``mXgradE_tol`` instead. This is long standing
+and unrelated to the above.
+
+.. _reproducibility:
+
+Reproducibility
+^^^^^^^^^^^^^^^
+
+Repeating one of these minimisations does not always give the same number of
+steps or the same final torque. The minimisers are deterministic, and contain
+no random numbers; what varies is the demagnetising field, in its last bits.
+Over six identical runs on the mesh above the largest difference between any
+two evaluations of the same field was :math:`2.9\times10^{-10}` A/m against a
+field of :math:`4.5\times10^{5}` A/m, a relative :math:`6.4\times10^{-16}`, or
+three units in the last place.
+
+The cause is the FFTW planner. The demagnetising transforms are created with
+``FFTW_MEASURE``, which benchmarks several algorithms at plan time and keeps
+whichever ran fastest, so timing noise on a loaded machine selects a different
+algorithm and therefore a different summation order. Each is equally correct.
+The plan is cached for the lifetime of the process, which is why repeated runs
+inside one process agree exactly while the first run of a fresh process may
+not.
+
+Given a fixed plan the whole minimisation is reproducible to the last digit,
+so what one actually observes is a handful of discrete trajectories rather
+than a continuous spread. On the coarse mesh above, three plans gave 848, 1906
+and 844 evaluations and final torques of
+:math:`1.5`, :math:`4.2` and :math:`2.8 \times 10^{-6}` A/m. Note what does
+*not* vary: every run finds the same s-state at the same energy, and the work
+needed to reach any useful tolerance agrees to within about 20%. What varies is
+where the iteration gives up, which is the energy precision floor of the
+previous section being decided by those last bits.
+
+For a calculation that must be repeatable to the bit, build against a planner
+that does not measure, or arrange for fixed FFTW wisdom to be loaded. For a
+scientific result the distinction does not usually matter, since the minimum
+is well defined and the difference is far below the accuracy at which a
+micromagnetic answer is compared with an analytical prediction.
+
 
 .. [1] Berkov, D. *Numerical calculation of the energy barrier distribution in
    disordered many-particle systems: The path integral method*. J. Magn. Magn.
