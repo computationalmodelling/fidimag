@@ -40,6 +40,17 @@ Version 4.0
   evaluations it spent, and the energy and torque it finished at. There was
   previously no way to tell a converged run from one that ran out of steps
   except by reading the printed output
+* **The chain method classes no longer configure the root logger.**
+  `chain_method_base.py`, `nebm_spherical.py`, `nebm_geodesic.py` and
+  `string_method.py` each called `logging.basicConfig(level=logging.DEBUG)` at
+  import, so importing any of them turned DEBUG on globally, for every library
+  in the process, not only for Fidimag. Configuring logging belongs to the
+  application, not to a library. The NEBM relaxation output is at DEBUG and
+  its closing summary at INFO, so both are now silent by default; a script
+  that wants them asks for them::
+
+      logging.basicConfig(level=logging.DEBUG)
+
 * **Hubert minimiser**: progress goes to the `fidimag` logger rather than to
   `print`, as the NEBM classes already did. The per step lines are at DEBUG
   and the reason it stopped at INFO, so a converged run is now silent; raise

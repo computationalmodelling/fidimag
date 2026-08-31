@@ -10,7 +10,6 @@ from .chain_method_tools import m_to_zero_nomaterial
 from .chain_method_base import ChainMethodBase
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 

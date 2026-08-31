@@ -6,7 +6,6 @@ from .chain_method_tools import linear_interpolation_spherical
 from .chain_method_base import ChainMethodBase
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 

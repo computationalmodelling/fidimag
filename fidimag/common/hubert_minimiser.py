@@ -300,7 +300,11 @@ class HubertMinimiser(MinimiserBase):
                 deltaE = abs(self.trailE[nStart] - self.totalE) / nTrail
 
                 # Statistics and saving:
-                if self.step % log_steps == 0:
+                # `mXgradE.max()` is a pass over the sites, so the message is
+                # only built when it will be seen. `log_steps` throttles it
+                # further, for a run logged at DEBUG
+                if (self.step % log_steps == 0
+                        and log.isEnabledFor(logging.DEBUG)):
                     log.debug(f'Step = {self.step:>4} Creep n = {creepCount:>3}  reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(|mX∇E|) = {self.mXgradE.max():.4e}')
                 # Note that step == 0 is never saved
                 if self.step % save_data_steps == 0:
@@ -715,7 +719,9 @@ class HubertMinimiser(MinimiserBase):
             self.gradE_last[:] = self.gradE
             self.totalE_last = self.totalE
 
-            if self.step % log_steps == 0:
+            # See the note in `_minimise_hubert`: the message costs a pass
+            # over the sites, so it is only built when it will be seen
+            if self.step % log_steps == 0 and log.isEnabledFor(logging.DEBUG):
                 log.debug(f'Step = {self.step:>4}  '
                           f'backtracks = {nBacktrack:>2}  '
                           f'reset = {resetCount:>3}  eta = {eta:>5.4e}  '

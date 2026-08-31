@@ -14,7 +14,6 @@ import fidimag.common.constant as const
 import scipy.interpolate as si
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 

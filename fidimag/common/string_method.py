@@ -12,7 +12,6 @@ from .chain_method_base import ChainMethodBase
 import scipy.interpolate as si
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(name="fidimag")
 
 
