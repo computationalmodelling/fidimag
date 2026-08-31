@@ -144,9 +144,45 @@ branches, the old artefacts can be removed with
 OOMMF
 -----
 
-Some additional tests check Fidimag against OOMMF. To run these, you need a working OOMMF installation, and you need need to tell the system where to
-find it. You can do this by setting the environment variable to the directory containing oommf.tcl
+Some additional tests check Fidimag against OOMMF. To run these you need a
+working OOMMF installation, and you need to tell Fidimag where to find it, by
+setting an environment variable to the directory containing ``oommf.tcl``
 
 .. code-block:: bash
 
     export OOMMF_PATH=/path/to/folder/containing/OOMMF
+
+These tests are marked, so they are skipped unless asked for
+
+.. code-block:: bash
+
+    pytest tests/test_oommf.py            # only the OOMMF comparisons
+    pytest tests/ -m "not run_oommf"      # everything else
+
+Each comparison writes a MIF script, runs ``boxsi`` on it and reads the field
+back from the OVF file it produces, in a directory under the system temporary
+directory that is removed afterwards. Set ``OOMMF_WORK_DIR`` to put those
+files somewhere else, which is the way to keep them and look at what OOMMF was
+actually asked to do.
+
+
+How closely the two codes can agree
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Not indefinitely closely, and the limit is a definition rather than a
+numerical error. Fidimag uses the pre-2019 :math:`\mu_{0}=4\pi\times10^{-7}`,
+which was exact until the SI redefinition made it a measured quantity, while
+OOMMF 2.x uses the CODATA value ``12.5663706127e-7`` (``pkg/nb/evoc.h``). The
+two differ by :math:`1.32\times10^{-10}` in relative terms.
+
+Any field carrying a factor of :math:`1/\mu_{0}` inherits that difference
+exactly: the ratio of the two exchange fields is
+:math:`1 + 1.3203\times10^{-10}`, constant to :math:`1.7\times10^{-13}` across
+the mesh. This applies to the exchange and the DMI, and the corresponding
+tests are held to :math:`1.4\times10^{-10}` for that reason. The
+demagnetising field carries no such factor and still agrees to
+:math:`10^{-11}` or better.
+
+The difference is far below any modelling error, so it is recorded rather than
+fixed. Adopting the CODATA value would close it, at the cost of changing every
+result in the last few digits.

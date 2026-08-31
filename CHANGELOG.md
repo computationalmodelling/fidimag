@@ -133,6 +133,26 @@ Version 4.0
 
 ### Fixes
 
+* **The OOMMF comparison tests run again.** The file was named
+  `tes_oommf.py`, so pytest never collected it and it had drifted: `DMI` had
+  been renamed to take `dmi_type`, the harness wrote its MIF scripts and OOMMF
+  output *inside the installed package*, and it looked for the saved field
+  under a fixed stage index, which OOMMF 2.1 numbers from zero rather than
+  one. It is now `test_oommf.py`, writes to a temporary directory
+  (`OOMMF_WORK_DIR` to override), and takes whatever stage file OOMMF wrote.
+  The two tests that call OOMMF but were not marked now carry the
+  `run_oommf` mark, so a run without OOMMF still skips them
+* **Fidimag and OOMMF cannot agree beyond 1.3e-10 on any field carrying a
+  factor of 1/mu_0.** Fidimag uses the pre-2019 exact `mu_0 = 4 pi x 1e-7` and
+  OOMMF 2.x uses the CODATA value `12.5663706127e-7`, which differ by
+  1.32033e-10 relatively. The ratio of the two exchange fields is measured at
+  1 + 1.3203e-10, constant to 1.7e-13 across the mesh, so this accounts for
+  the whole disagreement. The exchange and DMI tolerances are set from it; the
+  demagnetising field has no such factor and still matches to 1e-11
+* **`pytest.ini` is gone.** It shadowed the configuration in `pyproject.toml`,
+  so the `run_oommf` marker was reported as unknown. Removing it exposed that
+  `pyproject.toml` collected only `test_*.py`, dropping the five `*_test.py`
+  files; both patterns are now listed
 * **The analytical Jacobian works** (issue #21, open since 2016). Passing
   `use_jac=True` appeared to hang. It did not: the Jacobian-times-vector
   product was wrong, so GMRES never converged and spent its whole iteration

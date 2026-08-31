@@ -3,10 +3,12 @@ This code reproduces a Fidimag simulation using OOMMF
 
 """
 
+import glob
 import os
 import logging
 import subprocess
 import sys
+import tempfile
 import numpy as np
 
 from . import omf
@@ -42,6 +44,32 @@ OOMMF_TKTCL_VERSION = os.environ.get('OOMMF_TKTCL_VERSION', '')
 
 # The path where the script is being executed
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Where the MIF scripts and the OOMMF output are written. This used to be
+# MODULE_DIR, which put them inside the installed package, so a comparison run
+# left files in the source tree. Set OOMMF_WORK_DIR to keep them somewhere
+# else, or to look at them after a test has finished
+OOMMF_WORK_DIR = os.environ.get(
+    'OOMMF_WORK_DIR', os.path.join(tempfile.gettempdir(), 'fidimag_oommf'))
+
+
+def work_path(field):
+    """
+    Directory holding the MIF script and the OOMMF output for `field`
+
+    Parameters
+    ----------
+    field
+        Name of the OOMMF field, which is also the name of the directory
+
+    Returns
+    -------
+    str
+        The path, which is created if it does not exist
+    """
+    path = os.path.join(OOMMF_WORK_DIR, field)
+    os.makedirs(path, exist_ok=True)
+    return path
 
 """
 Here we create a block of text with an OOMMF simulation
@@ -174,9 +202,7 @@ def gen_oommf_conf(mesh, init_m0, A=1.3e-11, Ms=8e5, D=0,
         script to a MIF file.
 
     """
-    conf_path = os.path.join(MODULE_DIR, field)
-    if not os.path.exists(conf_path):
-        os.makedirs(conf_path)
+    conf_path = work_path(field)
 
     # Specify the mesh with a Fidimag's mesh object
     dx = mesh.dx * mesh.unit_length
@@ -240,7 +266,7 @@ def run_oommf(field='Demag'):
     print(("About to execute '{}'".format(cmd)))
 
     save_path = os.getcwd()
-    new_path = os.path.join(MODULE_DIR, field)
+    new_path = work_path(field)
 
     os.chdir(new_path)
 
@@ -279,10 +305,18 @@ def get_field(mesh,  field='Demag'):
     data from an OVF file which is named with a valid
     OOMMF field (Demag by default)
     """
-    new_path = os.path.join(MODULE_DIR, field)
-    file_name = '%s-Oxs_%s-Field-00-0000001.ohf' % (field.lower(), field)
-    ovf_file = os.path.join(new_path, file_name)
-    ovf = omf.OMF2(ovf_file)
+    new_path = work_path(field)
+    # The index of the saved stage is not the same in every OOMMF release:
+    # 2.1 numbers it from zero and earlier versions from one, so take whatever
+    # is there rather than naming it
+    pattern = '%s-Oxs_%s-Field-*.ohf' % (field.lower(), field)
+    matches = sorted(glob.glob(os.path.join(new_path, pattern)))
+    if not matches:
+        raise RuntimeError(
+            'OOMMF wrote no field file matching {} in {}. Check that '
+            'OOMMF_PATH points at an OOMMF installation and look at its '
+            'boxsi.log'.format(pattern, new_path))
+    ovf = omf.OMF2(matches[-1])
 
     return ovf.get_all_mags()
 
@@ -299,7 +333,7 @@ def compute_demag_field(mesh, init_m0, Ms=8e5, spatial_Ms=None, field='Demag'):
 
     m = get_field(mesh, field=field)
 
-    new_path = os.path.join(MODULE_DIR, field)
+    new_path = work_path(field)
 
     command = ('rm',
                '-rf',
@@ -319,7 +353,7 @@ def compute_exch_field(mesh, init_m0, Ms=8e5, A=1.3e-11,
 
     m = get_field(mesh, field=field)
 
-    new_path = os.path.join(MODULE_DIR, field)
+    new_path = work_path(field)
 
     command = ('rm',
                '-rf',
@@ -337,7 +371,7 @@ def compute_dmi_field(mesh, init_m0, Ms=8e5, D=4e-3, field='DMExchange6Ngbr'):
 
     m = get_field(mesh, field=field)
 
-    new_path = os.path.join(MODULE_DIR, field)
+    new_path = work_path(field)
 
     command = ('rm',
                '-rf',

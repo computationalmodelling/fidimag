@@ -1,5 +1,13 @@
 from math import pi
 
+# The pre-2019 definition, which was exact until the SI redefinition turned
+# mu_0 into a measured quantity. OOMMF 2.x uses the CODATA value instead,
+# 12.5663706127e-7 (pkg/nb/evoc.h), which is smaller by 1.32033e-10 in
+# relative terms. Every field carrying a factor of 1 / mu_0 inherits that
+# difference exactly, so it is the floor on how closely the two codes can
+# agree; see the OOMMF section of the installation docs. It is far below any
+# modelling error, and changing it here would move every result in the last
+# few digits
 mu_0 = 4 * pi * 1e-7
 mu_B = 9.27400949e-24
 k_B = 1.3806505e-23

@@ -53,6 +53,16 @@ def compare_fields(v1, v2):
     return max0, max1, max2
 
 
+# Any field carrying a factor of 1 / mu_0 -- the exchange and the DMI, but not
+# the demagnetising field -- can only agree with OOMMF to about 1.4e-10.
+# Fidimag uses the pre-2019 definition mu_0 = 4 pi x 1e-7, while OOMMF 2.x uses
+# the CODATA value, 12.5663706127e-7 (pkg/nb/evoc.h), and the two differ by
+# 1.32033e-10 in relative terms. The measured ratio of the two exchange fields
+# is 1 + 1.3203e-10, constant to 1.7e-13 across the mesh, so this is the whole
+# of the disagreement and neither code is wrong.
+MU0_TOL = 1.4e-10
+
+
 def test_oommf_coefficient():
 
     res = dipolar.compute_Nxx(10, 1, 1, 1, 2, 3)
@@ -97,7 +107,7 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
 
     # Test if the maximum relative errors between both simulations
     # is small enough, for every field component
-    assert max([mx0, mx1, mx2]) < 1e-12
+    assert max([mx0, mx1, mx2]) < MU0_TOL
 
 
 @pytest.mark.run_oommf
@@ -148,7 +158,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
         mesh, init_m0=init_m0, A=A, spatial_Ms=init_Ms)
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
 
-    assert max([mx0, mx1, mx2]) < 1e-12
+    assert max([mx0, mx1, mx2]) < MU0_TOL
 
     field = demag.compute_field()
     field_oommf = compute_demag_field(
@@ -156,6 +166,8 @@ def test_with_oommf_spatial_Ms(A=1e-11):
 
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
 
+    # The demagnetising field carries no factor of mu_0, so it is held to the
+    # original tolerance
     assert max([mx0, mx1, mx2]) < 1e-11
 
 
@@ -167,7 +179,7 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
     sim = Sim(mesh)
     sim.Ms = Ms
 
-    dmi = DMI(D=D, type='interfacial')
+    dmi = DMI(D=D, dmi_type='interfacial')
     sim.add(dmi)
 
     def init_m(pos):
@@ -190,7 +202,7 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
     mx0, mx1, mx2 = compare_fields(field_oommf, field)
 
-    assert max([mx0, mx1, mx2]) < 1e-12
+    assert max([mx0, mx1, mx2]) < MU0_TOL
 
 
 @pytest.mark.run_oommf
@@ -280,12 +292,13 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
 
     mx0, mx1, mx2 = compare_fields(exch_oommf, exch_field)
     #print mx0, mx1, mx2
-    assert max([mx0, mx1, mx2]) < 1e-11
+    assert max([mx0, mx1, mx2]) < MU0_TOL
 
     #mx0,mx1,mx2 = compare_fields(demag_oommf, exact)
     # print mx0,mx1,mx2
 
 
+@pytest.mark.run_oommf
 def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
 
     mesh = CuboidMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
@@ -326,6 +339,7 @@ def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
     assert abs(demag_energy - demag_energy_oommf) / demag_energy_oommf < 1e-10
 
 
+@pytest.mark.run_oommf
 def test_energy_dmi(Ms=8e5, D=1.32e-3):
 
     mesh = CuboidMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
@@ -333,8 +347,8 @@ def test_energy_dmi(Ms=8e5, D=1.32e-3):
 
     sim.Ms = Ms
 
-    dmi = DMI(D=D, type='interfacial')
-    #dmi = DMI(D=D, type='bulk')
+    dmi = DMI(D=D, dmi_type='interfacial')
+    #dmi = DMI(D=D, dmi_type='bulk')
     sim.add(dmi)
 
     def init_m(pos):

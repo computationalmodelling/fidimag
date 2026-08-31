@@ -184,7 +184,7 @@ fidimag = ["*.pyx", "*.pxd", "*.h"]
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = ["tests"]
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "*_test.py"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "run_oommf: marks tests that require OOMMF (deselect with '-m \"not run_oommf\"')",
