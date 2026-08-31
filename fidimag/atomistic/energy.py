@@ -48,7 +48,20 @@ class Energy:
         return 0
 
     def compute_energy(self):
+        """
+        Energy of the whole system, and of every site
 
+        Fills `self.energy` with the energy of each site, in joules, and sets
+        `self.total_energy` to their sum. The two are kept in that relation by
+        every interaction class, atomistic and micromagnetic, so that a per
+        site energy can be summed or differenced without knowing which
+        interaction produced it.
+
+        Returns
+        -------
+        float
+            `self.total_energy`
+        """
         # since we are not always calling this function, so it's okay to call
         # compute_field again
         self.compute_field()

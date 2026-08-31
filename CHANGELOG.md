@@ -159,6 +159,29 @@ Version 4.0
 
 ### Fixes
 
+* **Minimising an atomistic system with a demagnetising field was wrong.**
+  The minimisers build the effective field by asking each interaction for its
+  energy and then reading its `field`, and neither atomistic demagnetising
+  class recomputed the field when asked for the energy, so the field belonged
+  to whatever configuration came before. `Demag` is an `Energy` subclass, so
+  it also left `total_energy` at zero and contributed nothing to the energy;
+  the failure was silent, and on a 24x24 lattice with exchange and a field it
+  relaxed to a mean m_z of 0.88 where the answer is 0.00. `DemagHexagonal` is
+  not, so it raised `AttributeError` instead and could not be used with a
+  minimiser at all. Results of atomistic minimisation with either class will
+  change. Time integration was never affected, since it builds the field from
+  `compute_field` and never asks for an energy
+* **Per cell energies now mean the same thing in every interaction.**
+  `energy[i]` is the energy of cell or site `i` in joules and `total_energy`
+  is their sum, in both the micromagnetic and the atomistic classes. It used
+  to be an energy density in most of the micromagnetic ones, an already
+  weighted energy in `micro/demag.py`, and nothing at all in
+  `micro/zeeman.py`, which never wrote to the array; `SimpleDemag` returned
+  the array in place of a total and scaled it by a `mesh.cellsize` that does
+  not exist, so any call raised. Both `Zeeman` classes and `DemagHexagonal`
+  reimplemented the base class setup by hand, which is how they drifted, and
+  now inherit it. `Relaxation` reports zero rather than nothing. No energy
+  that was previously correct has changed value
 * **The OOMMF comparison tests run again.** The file was named
   `tes_oommf.py`, so pytest never collected it and it had drifted: `DMI` had
   been renamed to take `dmi_type`, the harness wrote its MIF scripts and OOMMF

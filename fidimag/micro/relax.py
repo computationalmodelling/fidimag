@@ -40,8 +40,13 @@ class Relaxation:
         return self.field
 
     def compute_energy(self):
+        # Not an energy term: this relaxes |m| towards Ms and contributes
+        # nothing to the energy. The attributes follow the same convention as
+        # the interaction classes
+        self.energy = np.zeros(self.mesh.n)
+        self.total_energy = 0.0
 
-        return 0.0
+        return self.total_energy
 
 
 class Laplace:

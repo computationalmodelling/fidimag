@@ -36,11 +36,29 @@ class Energy:
 
     # WARNING:this should be time-dependent in compute_field
     def compute_energy(self):
+        """
+        Energy of the whole sample, and of every cell
 
+        Fills `self.energy` with the energy of each cell, in joules, and sets
+        `self.total_energy` to their sum. The two are kept in that relation by
+        every interaction class, micromagnetic and atomistic, so that a per
+        cell energy can be summed or differenced without knowing which
+        interaction produced it.
+
+        The `compute_field` routines write an energy *density* into
+        `self.energy`, since that is what the finite difference expressions
+        give, so the cell volume is applied here.
+
+        Returns
+        -------
+        float
+            `self.total_energy`
+        """
         # since we are not always calling this function, so it's okay to call
         # compute_field again
         self.compute_field()
 
-        self.total_energy = np.sum(self.energy) * self.dxyz
+        self.energy *= self.dxyz
+        self.total_energy = np.sum(self.energy)
 
         return self.total_energy

@@ -1,4 +1,5 @@
 import numpy as np
+from fidimag.common.constant import mu_0
 from .energy import Energy
 
 
@@ -31,9 +32,12 @@ class SimpleDemag(Energy):
         return self.field
 
     def compute_energy(self):
+        self.compute_field()
 
-        mu_0 = 4*np.pi*1e-7
         sf = -0.5 * self.field * self.spin * mu_0
-        energy = np.sum(sf.reshape(-1, 3), axis=1) * self.Ms
+        energy_density = np.sum(sf.reshape(-1, 3), axis=1) * self.Ms
 
-        return energy * self.mesh.cellsize
+        self.energy[:] = energy_density * self.dxyz
+        self.total_energy = np.sum(self.energy)
+
+        return self.total_energy

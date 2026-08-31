@@ -94,12 +94,19 @@ class Demag(Energy):
         return field
 
     def compute_energy(self):
-        energy = self.demag.compute_energy(
+        # The C routine takes the field as an input, so it has to be the
+        # field at the current spins. The drivers also read `field` straight
+        # after asking for the energy
+        self.compute_field()
+        self.demag.compute_energy(
             self.spin, self.mu_s_scale, self.field, self.energy)
 
+        # The C routine fills `energy` per site and returns their sum; the
+        # scaling is undone here and the total kept, as the base class does
         self.energy /= self.scale
+        self.total_energy = np.sum(self.energy)
 
-        return energy / self.scale
+        return self.total_energy
 
 
 class DemagFMM(Energy):

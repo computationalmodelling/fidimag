@@ -1,8 +1,9 @@
 import numpy as np
 import fidimag.common.helper as helper
+from .energy import Energy
 
 
-class Zeeman:
+class Zeeman(Energy):
 
     r"""
     A time independent external magnetic field that can be space dependent.
@@ -60,15 +61,11 @@ class Zeeman:
         self.jac = False
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
-        self.mesh = mesh
-        self.spin = spin
-        self.n = mesh.n
+        # The base class provides `energy` and the rest of the common
+        # attributes; only the field is particular to this class
+        super().setup(mesh, spin, mu_s, mu_s_inv)
 
-        self.mu_s = mu_s
-
-        self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.B0, self.mesh)
-        self.energy = np.zeros(mesh.n)
 
     def update_field(self, B0):
         self.B0 = B0

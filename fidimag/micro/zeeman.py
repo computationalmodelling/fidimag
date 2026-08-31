@@ -2,9 +2,10 @@ import numpy as np
 from fidimag.common.constant import mu_0
 import fidimag.common.helper as helper
 import inspect
+from .energy import Energy
 
 
-class Zeeman:
+class Zeeman(Energy):
 
     r"""
     A time independent external magnetic field that can be space dependent.
@@ -66,16 +67,13 @@ class Zeeman:
         self.jac = False
 
     def setup(self, mesh, spin, Ms, Ms_inv):
-        self.mesh = mesh
-        self.spin = spin
-        self.n = mesh.n
-
-        self.Ms = Ms
+        # The base class provides `energy`, the cell volume and the rest of
+        # the common attributes; only the field is particular to this class
+        super().setup(mesh, spin, Ms, Ms_inv)
 
         # TODO: Check if it is necessary to define a 3D matrix for
         # the Ms vectors. Maybe there is a way that uses less memory
         # (see the calculation in the *compute_energy* function)
-        self.field = np.zeros(3 * self.n)
         self.field[:] = helper.init_vector(self.H0, self.mesh, 3)
         # print self.field
 
@@ -100,9 +98,9 @@ class Zeeman:
 
         energy_density = -np.sum(sf.reshape(-1, 3), axis=1) * self.Ms
 
-        self.total_energy = np.sum(energy_density) * (
-            self.mesh.dx * self.mesh.dy * self.mesh.dz * 
-            self.mesh.unit_length ** 3.)
+        # Per cell energy and its sum, the convention of the base class
+        self.energy[:] = energy_density * self.dxyz
+        self.total_energy = np.sum(self.energy)
 
         return self.total_energy
 

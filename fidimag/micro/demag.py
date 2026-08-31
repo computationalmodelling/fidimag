@@ -122,17 +122,12 @@ class Demag(Energy):
     def compute_energy(self):
 
         self.compute_field()
-        energy = self.demag.compute_energy(self.spin, self.Ms,
-                                           self.field, self.energy)
+        self.demag.compute_energy(self.spin, self.Ms,
+                                  self.field, self.energy)
 
-        self.energy *= mu_0 * (self.mesh.dx *
-                               self.mesh.dy *
-                               self.mesh.dz *
-                               self.mesh.unit_length ** 3.)
-
-        self.total_energy = energy * mu_0 * (self.mesh.dx *
-                                             self.mesh.dy *
-                                             self.mesh.dz *
-                                             self.mesh.unit_length ** 3.)
+        # The C routine fills `energy` per cell as a density; the cell volume
+        # and mu_0 bring it to the convention of the base class
+        self.energy *= mu_0 * self.dxyz
+        self.total_energy = np.sum(self.energy)
 
         return self.total_energy

@@ -1,9 +1,10 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
 from fidimag.common import CuboidMesh
+from .energy import Energy
 
 
-class DemagHexagonal:
+class DemagHexagonal(Energy):
     """
     This class allows to compute the Demag in a hexagonal mesh, using
     an equivalent cuboid mesh, where zeroes are appended between
@@ -57,35 +58,33 @@ class DemagHexagonal:
             raise Exception('This interaction is only defined'
                             'for hexagonal meshes'
                             )
-        self.mesh = mesh
 
+        # `mesh`, `spin`, `n`, `field`, `energy` and `total_energy` come from
+        # the base class, so that this reports an energy the same way as every
+        # other interaction
+        super().setup(mesh, spin, mu_s, mu_s_inv)
+
+        # The equivalent cuboid mesh is built in mesh units rather than in
+        # metres, the unit length being carried by `scale` below, so the
+        # spacings the base class stores in metres are replaced here
         self.dx = mesh.dx
         self.dx_c = 0.5 * mesh.dx
 
         self.dy = mesh.dy
         self.dz = mesh.dz
 
-        self.nx = mesh.nx
         self.nx_c = 2 * mesh.nx
 
-        self.ny = mesh.ny
-        self.nz = mesh.nz
-
-        self.spin = spin
         self.spin_c = np.zeros(2 * len(spin))
 
-        self.n = mesh.n
         self.n_c = mesh.n * 2
         # self.n_c = self.mesh_c.n
 
-        self.field = np.zeros(3 * self.n, dtype=np.float64)
         self.field_c = np.zeros(3 * self.n_c, dtype=np.float64)
 
-        self.energy = np.zeros(self.n, dtype=np.float64)
         self.energy_c = np.zeros(self.n_c, dtype=np.float64)
 
         unit_length = mesh.unit_length
-        self.mu_s_scale = np.zeros(mesh.n, dtype=np.float64)
         self.mu_s_scale_c = np.zeros(2 * self.n, dtype=np.float64)
 
         # note that the 1e-7 comes from \frac{\mu_0}{4\pi}
@@ -142,17 +141,23 @@ class DemagHexagonal:
         # energy = self.demag.compute_energy(
         #     self.spin, self.mu_s_scale, self.field)
 
+        # The C routine takes the field as an input, so it has to be the
+        # field at the current spins. The drivers also read `field` straight
+        # after asking for the energy
+        self.compute_field()
+
         # We don't need to convert since energy is only a scalar
         self.vector2cuboid(self.field, self.field_c)
         self.vector2cuboid(self.spin, self.spin_c)
 
-        energy = self.demag.compute_energy(
+        self.demag.compute_energy(
             self.spin_c, self.mu_s_scale_c, self.field_c, self.energy_c)
 
         self.scalar2cuboid(self.energy, self.energy_c, invert=True)
         self.energy /= self.scale
+        self.total_energy = np.sum(self.energy)
 
-        return energy / self.scale
+        return self.total_energy
 
     def create_cuboid_mesh(self):
         """
