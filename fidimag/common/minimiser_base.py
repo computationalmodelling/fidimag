@@ -13,33 +13,29 @@ class MinimiserResult:
 
     The stopping criteria are otherwise only visible in the log, which leaves
     a caller no way to tell a converged run from one that ran out of steps.
-
-    Attributes
-    ----------
-    converged : bool
-        Whether a convergence criterion was met, as opposed to the iteration
-        running out of steps or restarts.
-    reason : str
-        Which criterion ended it: `'mXgradE_tol'`, `'stopping_dE'`,
-        `'zero_gradient'`, `'max_steps'` or `'resets'`.
-    n_evaluations : int
-        Evaluations of the effective field, including those of trial steps
-        that were rejected. This is the cost of the minimisation, and the
-        quantity to compare between methods.
-    total_energy : float
-        Energy at the final configuration, scaled by `energyScale`.
-    max_torque : float
-        Largest `||m x dE/dm||` over the sites, the residual that vanishes at
-        a minimum.
-    mean_torque : float
-        The same, averaged over the sites, which is what `mXgradE_tol` tests.
     """
 
+    #: Whether a convergence criterion was met, as opposed to the iteration
+    #: running out of steps or restarts
     converged: bool
+
+    #: Which criterion ended it: `'mXgradE_tol'`, `'stopping_dE'`,
+    #: `'zero_gradient'`, `'max_steps'` or `'resets'`
     reason: str
+
+    #: Evaluations of the effective field, including those of trial steps that
+    #: were rejected. This is the cost of the minimisation, and the quantity to
+    #: compare between methods
     n_evaluations: int
+
+    #: Energy at the final configuration, scaled by `energyScale`
     total_energy: float
+
+    #: Largest `||m x dE/dm||` over the sites, the residual that vanishes at a
+    #: minimum
     max_torque: float
+
+    #: The same, averaged over the sites, which is what `mXgradE_tol` tests
     mean_torque: float
 
 

@@ -179,8 +179,8 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
             cmap_edited = plt.get_cmap(cmap)
             cmap_edited.set_bad(color=bgcolor, alpha=1.0)
             if scale_by_mag is True:
-                vmin = -np.max(Ms)
-                vmax = np.max(Ms)
+                vmin = -np.max(np.abs(mu_s))
+                vmax = np.max(np.abs(mu_s))
             else:
                 vmin = -1.0
                 vmax = 1.0
@@ -206,8 +206,8 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
                          )
 
         if scale_by_mag is True:
-            vmin = -np.max(Ms)
-            vmax = np.max(Ms)
+            vmin = -np.max(np.abs(mu_s))
+            vmax = np.max(np.abs(mu_s))
         else:
             vmin = -1.0
             vmax = 1.0
@@ -244,7 +244,6 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
 
         if scale_by_mag:
             cbar.ax.set_ylabel('A / m', rotation=0)
-        ax.cax.toggle_label(True)
 
     if filename:
         fig.savefig(filename, dpi=1)
@@ -477,7 +476,6 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
 
         if scale_by_mag:
             cbar.ax.set_ylabel('J / T', rotation=0)
-        ax.cax.toggle_label(True)
 
     if filename:
         fig.savefig(filename, dpi=1)
@@ -730,7 +728,6 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
 
         if scale_by_mag:
             cbar.ax.set_ylabel('J / T', rotation=90, horizontalalignment='right')
-        ax.cax.toggle_label(True)
 
     ax.set_xlim(np.min(mesh.corners[:, :, 0]), np.max(mesh.corners[:, :, 0]))
     ax.set_ylim(np.min(mesh.corners[:, :, 1]), np.max(mesh.corners[:, :, 1]))
