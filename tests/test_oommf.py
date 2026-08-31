@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import fidimag.extensions.dipolar as dipolar
 from fidimag.common import CuboidMesh
@@ -5,6 +7,12 @@ from fidimag.micro import UniformExchange, Sim, Demag, DMI
 from fidimag.micro.oommf import compute_demag_field, compute_exch_field, compute_dmi_field
 
 import pytest
+
+# The comparisons shell out to OOMMF, which has to be found through the
+# environment; without it they can only fail in a way that says nothing
+requires_oommf = pytest.mark.skipif(
+    os.environ.get('OOMMF_PATH') is None,
+    reason='OOMMF_PATH is not set, so OOMMF cannot be run')
 
 
 def compare_fields(v1, v2):
@@ -73,6 +81,7 @@ def test_oommf_coefficient():
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
     """
     Compare the exchange field from Fidimag with an equivalent
@@ -111,6 +120,7 @@ def test_exch_field_oommf(A=1e-11, Ms=2.6e5):
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_with_oommf_spatial_Ms(A=1e-11):
 
     def spatial_Ms(pos):
@@ -172,6 +182,7 @@ def test_with_oommf_spatial_Ms(A=1e-11):
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
     mesh = CuboidMesh(nx=10, ny=3, nz=2, dx=0.5, unit_length=1e-9)
@@ -206,6 +217,7 @@ def test_dmi_field_oommf(D=4.1e-3, Ms=2.6e5):
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_demag_field_oommf(Ms=6e5):
     mesh = CuboidMesh(nx=5, ny=2, nz=3, unit_length=1e-9)
     sim = Sim(mesh)
@@ -254,6 +266,7 @@ def test_demag_field_oommf(Ms=6e5):
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
     mesh = CuboidMesh(nx=150, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
     sim = Sim(mesh)
@@ -299,6 +312,7 @@ def test_demag_field_oommf_large(Ms=8e5, A=1.3e-11):
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
 
     mesh = CuboidMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)
@@ -340,6 +354,7 @@ def test_energy(Ms=8e5, A=1.3e-11, D=1.32e-3):
 
 
 @pytest.mark.run_oommf
+@requires_oommf
 def test_energy_dmi(Ms=8e5, D=1.32e-3):
 
     mesh = CuboidMesh(nx=40, ny=50, nz=1, dx=2.5, dy=2.5, dz=3, unit_length=1e-9)

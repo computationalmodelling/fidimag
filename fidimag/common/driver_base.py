@@ -55,10 +55,8 @@ class DriverBase:
         if integrator in cls.LEGACY_INTEGRATORS:
             new = cls.LEGACY_INTEGRATORS[integrator]
             warnings.warn(
-                "The integrator name '{}' was replaced in Fidimag 4.0 by "
-                "'{}', which says both which SUNDIALS solver is used and "
-                "which method it runs. The old name still works."
-                .format(integrator, new),
+                f"The integrator name '{integrator}' was replaced in Fidimag 4.0 by '{new}', which says " +
+                "both which SUNDIALS solver is used and which method it runs. The old name still works.",
                 DeprecationWarning, stacklevel=3)
             return new
         return integrator
@@ -444,20 +442,16 @@ class DriverBase:
                 # the loop never ran: self.step is counted from the start of
                 # the simulation, not from the start of this call
                 warnings.warn(
-                    "relax() did nothing: the simulation is already at step "
-                    "{}, which is not below max_steps={}. Raise max_steps, or "
-                    "reset the driver, to relax further."
-                    .format(self.step, max_steps),
+                    f"relax() did nothing: the simulation is already at step {self.step}, which is not " +
+                    f"below max_steps={max_steps}. Raise max_steps, or reset the driver, to relax further.",
                     RuntimeWarning, stacklevel=2)
             else:
                 warnings.warn(
-                    "The system did not relax: max_steps={} was reached with "
-                    "max_dmdt={:.3g}, still above stopping_dmdt={:.3g}. The "
-                    "magnetisation is whatever the last step left, not an "
-                    "equilibrium state. Raise max_steps, or loosen "
-                    "stopping_dmdt, or use one of the minimisers."
-                    .format(max_steps, dmdt / self._dmdt_factor,
-                            stopping_dmdt),
+                    f"The system did not relax: max_steps={max_steps} was reached with " +
+                    f"max_dmdt={dmdt / self._dmdt_factor:.3g}, still above " +
+                    f"stopping_dmdt={stopping_dmdt:.3g}. The magnetisation is whatever the last step " +
+                    "left, not an equilibrium state. Raise max_steps, or loosen stopping_dmdt, or use " +
+                    "one of the minimisers.",
                     RuntimeWarning, stacklevel=2)
 
         if save_m_steps is not None:

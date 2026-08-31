@@ -313,9 +313,8 @@ def get_field(mesh,  field='Demag'):
     matches = sorted(glob.glob(os.path.join(new_path, pattern)))
     if not matches:
         raise RuntimeError(
-            'OOMMF wrote no field file matching {} in {}. Check that '
-            'OOMMF_PATH points at an OOMMF installation and look at its '
-            'boxsi.log'.format(pattern, new_path))
+            f'OOMMF wrote no field file matching {pattern} in {new_path}. Check that OOMMF_PATH ' +
+            'points at an OOMMF installation and look at its boxsi.log')
     ovf = omf.OMF2(matches[-1])
 
     return ovf.get_all_mags()
