@@ -448,53 +448,19 @@ trial step then looks like a failure, the restarts are used up and the
 iteration gives up, at a torque that depends on the last bits of the field and
 so is not even repeatable.
 
-The cure is to sum the change rather than subtract two totals. Write the
-energy of the interactions that are quadratic in the magnetisation as
+The cure is to sum the change rather than subtract two totals. Every
+interaction reports the energy of each cell in ``energy``, in joules, with
+``total_energy`` their sum, so the change between two configurations can be
+taken site by site,
 
 .. math::
-    E = -\frac{1}{2}\sum_{i} w_{i}\,\vec{m}_{i}\cdot\vec{H}_{i}
+    \Delta E = \sum_{i} \left( E_{i}^{\text{new}} - E_{i}^{\text{ref}} \right)
 
-where :math:`i` runs over the sites and :math:`w_{i}` is the weight that turns
-:math:`\vec{m}\cdot\vec{H}` into an energy there, :math:`\mu_{0}VM_{s,i}` for
-the micromagnetic classes and :math:`\mu_{s,i}` for the atomistic ones. Label
-the two configurations the acceptance test compares by :math:`r`, the
-reference, which is the last accepted step, and :math:`n`, the new trial
-point, so that :math:`\vec{H}_{r}` is the effective field evaluated at
-:math:`\vec{m}_{r}` and :math:`\vec{H}_{n}` the field at :math:`\vec{m}_{n}`.
-The field being linear in the magnetisation with a symmetric operator gives
-the reciprocity
-:math:`\vec{m}_{n}\cdot\vec{H}_{r}=\vec{m}_{r}\cdot\vec{H}_{n}`, so that the
-two mixed terms of
-
-.. math::
-    (\vec{m}_{n}-\vec{m}_{r})\cdot(\vec{H}_{n}+\vec{H}_{r}) =
-    \vec{m}_{n}\cdot\vec{H}_{n} + \vec{m}_{n}\cdot\vec{H}_{r}
-    - \vec{m}_{r}\cdot\vec{H}_{n} - \vec{m}_{r}\cdot\vec{H}_{r}
-
-cancel, leaving :math:`\vec{m}_{n}\cdot\vec{H}_{n} -
-\vec{m}_{r}\cdot\vec{H}_{r}`, which is :math:`-2\Delta E / w`. Hence
-
-.. math::
-    \Delta E = -\frac{1}{2}\sum_{i} w_{i}\,
-               (\vec{m}_{n}-\vec{m}_{r})_{i}\cdot
-               (\vec{H}_{n}+\vec{H}_{r})_{i}
-
-This is a trapezoid, evaluated at both ends of the step, and the reciprocity
-makes it exact rather than first order, so it holds at any step length. Every
-term carries the small factor :math:`\vec{m}_{n}-\vec{m}_{r}`, the distance
-actually moved, so nothing large is ever formed and nothing large is ever
-subtracted: the result is accurate relative to :math:`\Delta E` rather than to
-:math:`E`.
-
-A constant Zeeman field is covered by the same expression even though its
-energy :math:`-\sum_{i}w_{i}\vec{m}_{i}\cdot\vec{H}_{\text{ext}}` carries no
-factor of a half, because its two fields are equal and the half is restored by
-:math:`\vec{H}_{n}+\vec{H}_{r}=2\vec{H}_{\text{ext}}`. This is why the code
-can use the total effective field and needs to know nothing about which
-interactions are present. The exchange, the DMI, the demagnetising field and a
-uniaxial anisotropy all have the required symmetry. An energy that is not
-quadratic does not, a cubic anisotropy being the case to watch, and there the
-expression degrades to the usual first order estimate.
+Each term is a difference of two numbers of the size of a single cell energy,
+not of the whole sample, so nothing large is subtracted and the result is
+accurate relative to :math:`\Delta E` rather than to :math:`E`. This is what
+``Oxs_CGEvolve`` does, and the reason the interaction classes were made to
+agree on what ``energy`` means.
 
 Scaling the energy does not help, and it is worth saying why, since
 ``energyScale`` looks like exactly the knob for the job. What decides whether
@@ -519,12 +485,7 @@ a good value is luck rather than a cure, and there is no way to recognise one
 in advance.
 
 ``_minimise_BB`` therefore carries :math:`E-E_{0}`, accumulated from the
-accepted steps, instead of reading totals. The one constant it cannot get from
-the identity, which differs between the micromagnetic and atomistic classes,
-is calibrated once against a difference of totals taken on the first accepted
-step, while that difference is still well resolved; it is needed only to keep
-``stopping_dE`` and the log in units of energy, since the acceptance test
-itself is invariant under it.
+accepted steps, instead of reading totals.
 
 With that in place the same problem reaches :math:`2.4\times10^{-10}` A/m
 instead of :math:`1.5\times10^{-6}`, in fewer evaluations than OOMMF needs to
@@ -534,24 +495,62 @@ out of a subtraction that is no longer performed. The steepest descent never
 had the problem, since it does not evaluate the energy at all.
 
 
-What OOMMF does about it
+A second route, not taken
+""""""""""""""""""""""""""
 
+There is another way to the same number, worth recording because it needs no
+per cell energy at all, only the effective field, which the minimiser has
+already computed. Writing the energy of the interactions that are quadratic in
+the magnetisation as
+:math:`E=-\tfrac{1}{2}\sum_{i}w_{i}\,\vec{m}_{i}\cdot\vec{H}_{i}`, with
+:math:`w_{i}=\mu_{0}VM_{s,i}` in the micromagnetic case and
+:math:`\mu_{s,i}` in the atomistic one, and labelling the reference and the
+trial configurations :math:`r` and :math:`n`, the field is linear in
+:math:`\vec{m}` with a symmetric operator, so
+:math:`\vec{m}_{n}\cdot\vec{H}_{r}=\vec{m}_{r}\cdot\vec{H}_{n}` and the two
+mixed terms of
+:math:`(\vec{m}_{n}-\vec{m}_{r})\cdot(\vec{H}_{n}+\vec{H}_{r})` cancel,
+leaving
+
+.. math::
+    \Delta E = -\frac{1}{2}\sum_{i} w_{i}\,
+               (\vec{m}_{n}-\vec{m}_{r})_{i}\cdot
+               (\vec{H}_{n}+\vec{H}_{r})_{i}
+
+a trapezoid that the reciprocity makes exact rather than first order, so it
+holds at any step length. It carries the small displacement in every term, so
+it does not cancel either, and a constant Zeeman field is covered by the same
+expression because its two fields are equal.
+
+Measured on the problem above it reached the same convergence as the sum over
+sites, to within the run to run spread. It was not kept because it is worse on
+three counts: it is exact only while the energy is quadratic, a cubic
+anisotropy being the case to watch, where it degrades to the usual first order
+estimate; it needs the field at both ends of the step, :math:`3n` stored
+against :math:`n`; and it gives the change only up to a constant, which
+differs between the micromagnetic and atomistic classes and has to be
+calibrated. It is recorded here because none of those objections is fatal, and
+it is the route to take if per cell energies are ever unavailable.
+
+
+What OOMMF does about it
+""""""""""""""""""""""""
 
 None of this is new, and ``Oxs_CGEvolve`` is worth reading on the point. It
-solves the same problem the other way, by summing the *per cell* energy
-differences against the best state so far,
+solved the same problem long ago, and in the same way, summing the *per cell*
+energy differences against the best state so far,
 
 .. code-block:: c
 
     work_etemp.Accum((stenergy[j] - sbenergy[j]));
 
-which is the approach Fidimag cannot take, because ``energy`` means an energy
-density in most of its interaction classes, is already weighted in
-``micro/demag.py``, and is never filled in at all by ``micro/zeeman.py``. The
-identity above needs no per cell energy, only the two fields, which is why it
-is the cheaper route here.
+The comment nearby attributes the analysis to notes from 2002. Fidimag could
+not do this until its interaction classes were made to agree on what
+``energy`` means: it was an energy density in most of the micromagnetic ones,
+already weighted in ``micro/demag.py``, and never written at all by
+``micro/zeeman.py``.
 
-OOMMF is also more careful than either version of Fidimag has been. It
+OOMMF is also more careful than Fidimag is. It
 accumulates in extended precision rather than in doubles, it carries an error
 bar with every bracket point,
 ``E_error_estimate = fabs(relenergy)*OC_REAL8m_EPSILON*8`` plus a density
@@ -559,15 +558,13 @@ term, and ``EstimateEnergySlack`` turns those into a threshold below which,
 in its own words, two energies "should be considered equal". When a bracket
 falls inside that slack ``BadPrecisionTest`` stops trusting the energies and
 brackets on the slope instead, which comes from the field and does not
-cancel. The comment attributes the analysis to notes from 2002.
+cancel.
 
-The identity used here is not free of cancellation either: it subtracts
-:math:`\vec{m}_{n}-\vec{m}_{r}`, two nearly equal vectors of order one, so
-the displacement carries an absolute error of order
-:math:`\varepsilon` and a relative one of
-:math:`\varepsilon/|\vec{m}_{n}-\vec{m}_{r}|`, which grows as the steps
-shrink. That floor was not reached on any problem tried here, but it is there,
-and a compensated sum with a fallback on the slope, as OOMMF does, is the more
+The sum used here has a floor of its own, since each site difference carries
+an error of order :math:`\varepsilon` times its own site energy, so the total
+is good to about :math:`\varepsilon E/\sqrt{N}` rather than
+:math:`\varepsilon E`. That was not reached on any problem tried here, but a
+compensated sum with a fallback on the slope, as OOMMF does, is the more
 robust arrangement if it ever matters.
 
 Note that ``stopping_dE`` is an absolute energy, so its default of

@@ -109,6 +109,9 @@ class HubertMinimiser(MinimiserBase):
         self.mXgradE = np.zeros(mesh.n)
         self.totalE = 0.0
         self.totalE_last = 0.0
+        # Energy of each site, summed over the interactions. `_minimise_BB`
+        # takes the change of energy from these rather than from `totalE`
+        self.cellE = np.zeros(mesh.n)
         self.energyScale = 1.
 
     # def run_step(self):
@@ -128,9 +131,13 @@ class HubertMinimiser(MinimiserBase):
 
         self.field[:] = 0
         self.totalE = 0
+        self.cellE[:] = 0
         for obj in self.interactions:
             obj.compute_energy()  # Using self.spin, and
             self.field += obj.field[:]
+            # `energy` is the energy of each site in every interaction class,
+            # so the contributions add directly
+            self.cellE += obj.energy / self.energyScale
             self.totalE += obj.total_energy / self.energyScale
 
     def _normalise_spin(self, spin):
@@ -391,58 +398,6 @@ class HubertMinimiser(MinimiserBase):
         self.mXgradE[:] = np.linalg.norm(g3, axis=1)
         return g
 
-    def _energy_change(self, spin_ref, field_ref):
-        r"""
-        Change of energy from `spin_ref` to `self.spin`, in arbitrary units
-
-        Taking this as the difference of two total energies is what stops the
-        Barzilai-Borwein minimisation short. Near a minimum the decrease to be
-        detected falls below the spacing of the doubles around the total: on
-        the standard problem 4 film the decrease reaches
-        :math:`1.9\times10^{-35}` J against a total of
-        :math:`6.3\times10^{-19}` J, whose neighbouring doubles are
-        :math:`1.4\times10^{-34}` J apart, so every trial step is rejected and
-        the iteration gives up around :math:`10^{-6}` A/m of torque.
-
-        Summing it instead removes the cancellation. Writing the energy as
-        :math:`E=-\tfrac{1}{2}\sum_{i}w_{i}\,\vec{m}_{i}\cdot\vec{H}_{i}`
-        and using that the field is linear in the magnetisation with a
-        symmetric operator, so that
-        :math:`\vec{m}_{n}\cdot\vec{H}_{r}=\vec{m}_{r}\cdot\vec{H}_{n}`,
-
-        .. math::
-            \Delta E = -\frac{1}{2}\sum_{i} w_{i}
-                       (\vec{m}_{n}-\vec{m}_{r})_{i}\cdot
-                       (\vec{H}_{n}+\vec{H}_{r})_{i}
-
-        which is a trapezoid, and is exact rather than first order. Every term
-        carries the small factor
-        :math:`\vec{m}_{n}-\vec{m}_{r}`, so nothing large is subtracted.
-
-        This holds for the exchange, the DMI, the demagnetising field and a
-        uniaxial anisotropy, all of which have a field linear in
-        :math:`\vec{m}`, and for a constant Zeeman field, whose two fields are
-        equal. It is not exact for an energy that is not quadratic, a cubic
-        anisotropy being the case to watch.
-
-        Parameters
-        ----------
-        spin_ref : numpy.ndarray
-            The magnetisation to measure the change from.
-        field_ref : numpy.ndarray
-            The effective field at `spin_ref`.
-
-        Returns
-        -------
-        float
-            The change, up to the constant that `_minimise_BB` calibrates
-            once against a difference of totals taken while that difference is
-            still well resolved.
-        """
-        dm = (self.spin - spin_ref).reshape(-1, 3)
-        hs = (self.field + field_ref).reshape(-1, 3)
-        return -0.5 * np.sum(self._magnetisation[:, np.newaxis] * dm * hs)
-
     # -------------------------------------------------------------------------
 
     def _minimise_BB(self,
@@ -540,13 +495,34 @@ class HubertMinimiser(MinimiserBase):
         self.totalE_last = self.totalE
 
         # Every energy here is measured from the starting point and summed
-        # from the accepted steps, rather than read off as a total; see
-        # `_energy_change`. `dE_unit` converts it back to the units of
-        # `totalE`, and is calibrated once, on the first accepted step, while
-        # a difference of totals is still well resolved
-        field_ref = self.field.copy()
+        # from the accepted steps. Near a minimum the decrease to be detected
+        # falls below the spacing of the doubles around the total energy, so a
+        # difference of totals cannot see it; a sum of the per site
+        # differences, each small against its own site energy, can. This is
+        # what OOMMF's Oxs_CGEvolve does.
+        #
+        # There is a second route worth recording, since it needs no per site
+        # energy at all. Writing the energy of the interactions that are
+        # quadratic in the magnetisation as
+        # E = -1/2 sum_i w_i m_i . H_i, with w_i = mu_0 V Ms_i in the
+        # micromagnetic case and mu_s_i in the atomistic one, and using that
+        # the field is linear in m with a symmetric operator, so that
+        # m_n . H_r = m_r . H_n, the two mixed terms of
+        # (m_n - m_r).(H_n + H_r) cancel and
+        #
+        #     dE = -1/2 sum_i w_i (m_n - m_r)_i . (H_n + H_r)_i
+        #
+        # a trapezoid that the reciprocity makes exact rather than first
+        # order. It carries the small displacement in every term, so it does
+        # not cancel either, and a constant Zeeman field is covered by it
+        # because its two fields are equal. It was measured to reach the same
+        # convergence as the sum above, but it is only exact while the energy
+        # is quadratic, a cubic anisotropy being the case to watch; it needs
+        # the field at both ends, so 3n stored rather than n; and it gives the
+        # change up to a constant that has to be calibrated. The sum below is
+        # simpler on all three counts
+        cellE_ref = self.cellE.copy()
         Erel = 0.0
-        dE_unit = None
 
         # Fill the whole trailing window with E0, so that max(trailE) is a
         # valid (and initially tight) reference from the very first step
@@ -605,7 +581,7 @@ class HubertMinimiser(MinimiserBase):
                 self.compute_effective_field()
                 self.step += 1
 
-                dE = self._energy_change(self.spin_last, field_ref)
+                dE = np.sum(self.cellE - cellE_ref)
                 Etrial = Erel + dE
 
                 # Grippo-Lampariello-Lucidi non-monotone acceptance
@@ -647,8 +623,8 @@ class HubertMinimiser(MinimiserBase):
                 self.gradE_last[:] = self.gradE
                 self.totalE_last = self.totalE
                 # Back at the last accepted point, which `Erel` already
-                # describes; only the reference field has to be restored
-                field_ref[:] = self.field
+                # describes; only the site energies have to be re-referenced
+                cellE_ref[:] = self.cellE
                 eta = eta0
                 BBcount = 0
                 continue  # main loop
@@ -661,16 +637,12 @@ class HubertMinimiser(MinimiserBase):
             # E_last - E ~ scale * λ ||g||^2
             gradScale = max(gradScale, -dE / (lamb * gradNorm2))
 
-            if dE_unit is None and dE != 0.0:
-                dE_unit = (self.totalE - self.totalE_last) / dE
-
             Erel = Etrial
-            field_ref[:] = self.field
+            cellE_ref[:] = self.cellE
 
             self.trailE[nStart] = Erel
             nStart = next(trailPool)
-            deltaE = (abs(self.trailE[nStart] - Erel) / nTrail
-                      * abs(dE_unit if dE_unit else 1.0))
+            deltaE = abs(self.trailE[nStart] - Erel) / nTrail
 
             # Secant pair of the step just taken. Note that `s` is the
             # difference of the *projected* spins, not -lamb * g, which is

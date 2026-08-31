@@ -16,21 +16,19 @@ Version 4.0
   test: near a minimum the decrease to be detected falls below the spacing of
   the doubles around the total energy, 1.9e-35 J against a spacing of 1.4e-34
   J on the standard problem 4 film, so every trial step looked like a failure.
-  The change of energy is now summed rather than taken as the difference of
-  two totals, using
-  `dE = -1/2 sum_i w_i (m_n - m_r)_i . (H_n + H_r)_i`, which the symmetry of
-  the field operator makes exact rather than first order for the exchange,
-  the DMI, the demagnetising field and a uniaxial anisotropy, and which
-  handles a constant Zeeman field as the same expression. Every term carries
-  the small displacement, so nothing large is subtracted. The same problem now
-  reaches 2.4e-10 A/m instead of 1.5e-6, and gives the same answer to the last
-  bit for any `energyScale` from 1 to 1e-31, the scale having dropped out of a
-  subtraction that is no longer performed. OOMMF's `Oxs_CGEvolve` has solved
-  the same problem since 2002, by summing the per cell energy differences,
-  which is not available here because `energy` does not mean the same thing in
-  every interaction class. Scaling the energy was never a cure
-  for this: five values of `energyScale` that all put the total within an order
-  of magnitude of one stopped between 4.5e-8 and 9.5e-6 A/m, with no trend
+  The change of energy is now summed over the sites,
+  `dE = sum_i (E_i_new - E_i_ref)`, rather than taken as the difference of two
+  totals. Each term is a difference of two cell energies rather than of two
+  whole-sample energies, so nothing large is subtracted. This is what OOMMF's
+  `Oxs_CGEvolve` has done since 2002, and what the per cell energy clean-up
+  below makes possible here. The same problem now reaches 2.4e-10 A/m instead
+  of 1.5e-6, in fewer field evaluations than OOMMF needs to reach 1e-6, and
+  gives the same answer to the last bit for any `energyScale` from 1 to 1e-31.
+  Scaling the energy was never a cure: five values of `energyScale` that all
+  put the total within an order of magnitude of one stopped between 4.5e-8 and
+  9.5e-6 A/m, with no trend. A second route, a trapezoid in the effective
+  field that needs no per cell energy at all, reaches the same convergence and
+  is recorded in the code and the documentation rather than used
 * **Hubert minimiser**: measured against OOMMF's `Oxs_CGEvolve` on the standard
   problem 4 relaxation, counted in effective field evaluations, the
   Barzilai-Borwein path now needs fewer than the conjugate gradient at every

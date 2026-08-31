@@ -134,19 +134,20 @@ def _max_torque(driver):
     return np.linalg.norm(np.cross(m, np.cross(m, h)), axis=1).max()
 
 
-def test_energy_change_matches_the_difference_of_totals():
+def test_energy_change_is_summed_from_the_sites():
     """
-    The trapezoid is the same number as the difference of two totals.
+    The per site energies add up to the change in the total.
 
-    It is only worth using where the difference of totals has lost its
-    precision, so check it against that difference over a step large enough
-    that the difference is still trustworthy. Demag is included because the
-    identity rests on the field operator being symmetric, which is least
-    obvious there.
+    `_minimise_BB` takes the change of energy as a sum over the sites rather
+    than as a difference of two totals, because near a minimum the decrease
+    falls below the spacing of the doubles around the total. This checks the
+    two routes against each other over a step where the difference of totals
+    is still trustworthy; that the sum keeps working past that point is what
+    `test_BB_converges_past_the_energy_difference_floor` measures.
     """
     mesh = fidimag.common.CuboidMesh(nx=12, ny=6, nz=2, dx=4, dy=4, dz=4,
                                      unit_length=1e-9)
-    sim = fidimag.micro.Sim(mesh, name='dE_id', driver='hubert_minimiser')
+    sim = fidimag.micro.Sim(mesh, name='dE_sum', driver='hubert_minimiser')
     sim.set_Ms(Ms)
     np.random.seed(17)
     sim.set_m(lambda pos: tuple(np.random.rand(3) - 0.5))
@@ -157,28 +158,26 @@ def test_energy_change_matches_the_difference_of_totals():
 
     driver = sim.driver
     driver.compute_effective_field()
+
+    # the sites account for the whole energy, interaction by interaction
+    assert np.sum(driver.cellE) == pytest.approx(driver.totalE, rel=1e-12)
+
     E_ref = driver.totalE
     m_ref = driver.spin.copy()
-    h_ref = driver.field.copy()
+    cellE_ref = driver.cellE.copy()
 
     np.random.seed(23)
-    driver.spin[:] = m_ref + 0.05 * (np.random.rand(len(m_ref)) - 0.5)
-    driver._normalise_spin(driver.spin)
-    driver.compute_effective_field()
+    direction = np.random.rand(len(m_ref)) - 0.5
 
-    from_totals = driver.totalE - E_ref
-    from_trapezoid = driver._energy_change(m_ref, h_ref)
+    for scale in (5e-2, 5e-3, 5e-4):
+        driver.spin[:] = m_ref + scale * direction
+        driver._normalise_spin(driver.spin)
+        driver.compute_effective_field()
 
-    # `_energy_change` carries an arbitrary constant, the one `_minimise_BB`
-    # calibrates, so compare the two up to a single factor
-    scale = from_totals / from_trapezoid
-    assert abs(from_trapezoid * scale - from_totals) < 1e-9 * abs(from_totals)
-    # and that factor is a constant of the problem, not of the step
-    driver.spin[:] = m_ref + 0.01 * (np.random.rand(len(m_ref)) - 0.5)
-    driver._normalise_spin(driver.spin)
-    driver.compute_effective_field()
-    scale2 = (driver.totalE - E_ref) / driver._energy_change(m_ref, h_ref)
-    assert abs(scale2 - scale) < 1e-6 * abs(scale)
+        from_totals = driver.totalE - E_ref
+        from_sites = np.sum(driver.cellE - cellE_ref)
+        assert from_sites == pytest.approx(from_totals, rel=1e-9)
+        driver.spin[:] = m_ref
 
 
 def test_BB_converges_past_the_energy_difference_floor():
