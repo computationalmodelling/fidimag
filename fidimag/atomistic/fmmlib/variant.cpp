@@ -21,6 +21,15 @@ static const FMMVariant kCompressed = {
 };
 #endif
 
+#ifdef FMMGEN_PLANAR
+static size_t planar_msize(size_t order) { return FMMGEN_PLANAR_MULTIPOLESIZE[order]; }
+static size_t planar_lsize(size_t order) { return FMMGEN_PLANAR_LOCALSIZE[order]; }
+
+static const FMMVariant kPlanar = {
+    S2Mxy, M2Mxy, M2Lxy, L2Lxy, L2Pxy, M2Pxy, planar_msize, planar_lsize, "planar",
+};
+#endif
+
 const FMMVariant *fmm = &kFull;
 
 bool fmm_have_compressed() {
@@ -31,15 +40,36 @@ bool fmm_have_compressed() {
 #endif
 }
 
-void fmm_select(bool compressed) {
-#ifdef FMMGEN_COMPRESSED
-  fmm = compressed ? &kCompressed : &kFull;
+bool fmm_have_planar() {
+#ifdef FMMGEN_PLANAR
+  return true;
 #else
-  if (compressed) {
-    throw std::runtime_error(
-        "compressed operators were not generated: set compress=True in "
-        "example/example.py and regenerate");
-  }
-  fmm = &kFull;
+  return false;
 #endif
+}
+
+void fmm_select(FMMVariantKind kind) {
+  switch (kind) {
+    case FMMVariantKind::Full:
+      fmm = &kFull;
+      return;
+    case FMMVariantKind::Compressed:
+#ifdef FMMGEN_COMPRESSED
+      fmm = &kCompressed;
+      return;
+#else
+      throw std::runtime_error(
+          "compressed operators were not generated: set compress=True in "
+          "example/example.py and regenerate");
+#endif
+    case FMMVariantKind::Planar:
+#ifdef FMMGEN_PLANAR
+      fmm = &kPlanar;
+      return;
+#else
+      throw std::runtime_error(
+          "planar operators were not generated: set planar=True in "
+          "example/example.py and regenerate");
+#endif
+  }
 }

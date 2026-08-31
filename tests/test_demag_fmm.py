@@ -332,6 +332,107 @@ def test_demag_fmm_order_validation():
             )
 
 
+def test_demag_fmm_2D_uses_planar_variant():
+    """
+    A 2D mesh (nz == 1) should route DemagFMM through fmm.FMM2D (fmmgen's
+    planar operator variant, generate_code(..., planar=True)) rather than
+    the general 3D fmm.FMM used for everything else, with no separate
+    argument needed to ask for it.
+    """
+    import fidimag.extensions.fmm as fmm_ext
+
+    N = 15
+    a = 0.4
+    mesh_2d = CuboidMesh(dx=a, dy=a, dz=a, nx=N, ny=N, nz=1, unit_length=1e-9)
+    mesh_3d = CuboidMesh(dx=a, dy=a, dz=a, nx=6, ny=6, nz=6, unit_length=1e-9)
+
+    def build(mesh):
+        sim = Sim(mesh)
+        sim.mu_s = 2 * const.mu_B
+        sim.set_m((0, 0, 1))
+        demag = DemagFMM(order=8, ncrit=8, theta=0.0)
+        sim.add(demag)
+        return demag
+
+    demag_2d = build(mesh_2d)
+    demag_3d = build(mesh_3d)
+
+    assert demag_2d.is_2d is True
+    assert isinstance(demag_2d.fmm, fmm_ext.FMM2D)
+    assert demag_3d.is_2d is False
+    assert isinstance(demag_3d.fmm, fmm_ext.FMM)
+
+
+def test_demag_fmm_2D_planar_matches_full():
+    """
+    fmm.FMM2D's field should agree with the brute-force DemagFull on the
+    same 2D vortex state used elsewhere in this module, the same way the
+    general fmm.FMM path already does (test_cuboid_demag_fmm_vs_fft_2D).
+    """
+    N = 15
+    a = 0.4
+    mesh_kwargs = dict(dx=a, dy=a, dz=a, nx=N, ny=N, nz=1, unit_length=1e-9)
+    xc = yc = N * a * 0.5
+
+    _run_comparison(
+        mesh_kwargs,
+        lambda pos: m_init_2Dvortex(pos, (xc, yc)),
+        demag_kwargs=dict(order=8, ncrit=8, theta=0.3, type='fmm'),
+        tol=1e-6,
+        reference=Demag(),
+    )
+
+
+def test_demag_fmm_2D_and_3D_interleaved_do_not_interfere():
+    """
+    Regression test for a real hazard the planar variant introduces:
+    fmm_select()'s target is a single process-global pointer that
+    compute_field_fmm/bh/exact read at CALL time, not at tree-build time
+    (see the note in fmm.pyx). A 2D DemagFMM (fmm.FMM2D, always the planar
+    variant) and a 3D one (fmm.FMM, full or compressed) can both be alive
+    at once - unremarkable in a test suite, or any script/notebook that
+    runs more than one simulation - and without re-selecting the right
+    variant on every call, whichever was selected most recently would
+    silently apply to both. FMM/FMM2D.compute_field() both re-select their
+    own variant immediately before every call for exactly this reason; this
+    test interleaves calls to catch a regression of that.
+    """
+    a = 0.4
+    mesh_2d = CuboidMesh(dx=a, dy=a, dz=a, nx=15, ny=15, nz=1, unit_length=1e-9)
+    mesh_3d = CuboidMesh(dx=a, dy=a, dz=a, nx=6, ny=6, nz=6, unit_length=1e-9)
+
+    def build(mesh, interaction):
+        sim = Sim(mesh)
+        sim.mu_s = 2 * const.mu_B
+        sim.set_m((0, 0, 1))
+        sim.add(interaction)
+        return sim
+
+    ref_2d = build(mesh_2d, DemagFull()).get_interaction(
+        "DemagFull").compute_field().copy()
+    ref_3d = build(mesh_3d, DemagFull()).get_interaction(
+        "DemagFull").compute_field().copy()
+
+    sim_2d = build(mesh_2d, DemagFMM(order=8, ncrit=8, theta=0.3))
+    sim_3d = build(mesh_3d, DemagFMM(order=8, ncrit=8, theta=0.3))
+
+    tol = 1e-3
+    for _ in range(10):
+        field_2d = sim_2d.get_interaction("DemagFMM").compute_field()
+        field_3d = sim_3d.get_interaction("DemagFMM").compute_field()
+
+        err_2d = _relative_l2_error(field_2d, ref_2d)
+        err_3d = _relative_l2_error(field_3d, ref_3d)
+        assert err_2d < tol, (
+            "2D DemagFMM field diverged after an interleaved 3D call: "
+            "relative L2 error %.3e >= tol %.3e" % (err_2d, tol)
+        )
+        assert err_3d < tol, (
+            "3D DemagFMM field diverged after an interleaved 2D call: "
+            "relative L2 error %.3e >= tol %.3e" % (err_3d, tol)
+        )
+
+
 if __name__ == '__main__':
     test_cuboid_demag_fmm_2D()
     test_cuboid_demag_fmm_3D()
@@ -342,3 +443,6 @@ if __name__ == '__main__':
     test_cuboid_demag_fmm_excludes_zero_mu_s_sites()
     test_cuboid_demag_fmm_vs_fft_theta_3D_uniform()
     test_demag_fmm_order_validation()
+    test_demag_fmm_2D_uses_planar_variant()
+    test_demag_fmm_2D_planar_matches_full()
+    test_demag_fmm_2D_and_3D_interleaved_do_not_interfere()

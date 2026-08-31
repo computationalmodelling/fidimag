@@ -221,16 +221,43 @@ over the neighbour array, independent of how many sites are zero.
 2D systems
 ----------
 
-A 2D system is simply a ``CuboidMesh`` with ``nz=1``, and ``DemagFMM``
-already works correctly on it (see the ``_2D`` tests in
-``tests/test_demag_fmm.py``) - it builds the same 3D octree and general
-operators as for a 3D block, which is correct but does not exploit that
-every spin has ``z=0``. fmmgen has a dedicated planar variant
-(``generate_code(..., planar=True)``) that reduces the multipole/local
-expansion algebra for sources and targets confined to a plane, and a tree
-implementation templated on spatial dimension. Neither is vendored into
-fidimag yet; wiring it in, with a 2D ``CuboidMesh`` automatically routed to
-the planar operators, is planned as separate follow-up work.
+A 2D system is simply a ``CuboidMesh`` with ``nz=1``. Every site then sits
+at the same z coordinate, so only relative (x, y) displacements ever enter
+the field calculation between them - the tree does not need a z column at
+all, whatever that shared z actually is. fmmgen has a planar operator
+variant for exactly this (``generate_code(..., planar=True)``), which drops
+the multipole/local terms that are always zero for z=0 sources and targets;
+this is not an approximation, since a 2D mesh's sites genuinely satisfy
+that condition. ``DemagFMM.setup()`` detects ``mesh.nz == 1`` and routes to
+it automatically, through ``fidimag.extensions.fmm.FMM2D`` rather than the
+general ``FMM`` used for a 3D mesh - no separate argument is needed to ask
+for it.
+
+.. image:: ../images/demag_fmm_2d_vs_general.png
+
+``benchmarks/demag_fmm_2d_vs_general.py`` times ``FMM2D`` against ``FMM``
+called directly on the same 2D mesh's coordinates (forcing the general path
+a 3D mesh would otherwise take), for :math:`L \times L` meshes up to
+:math:`N=22{,}500`. The planar variant is consistently faster, by 1.3x to
+1.7x depending on ``theta``, with no clear trend against :math:`N` over the
+range tested - the reduction is in operation count per interaction, not
+algorithmic complexity, so the speedup is closer to a constant factor than
+a growing one. The two disagree by no more than :math:`2\times10^{-4}`
+across the sweep, consistent with both being correct to the same
+:math:`(\text{order}, \theta)`-limited approximation error rather than
+either being a further approximation of the other.
+
+One caveat found while wiring this in: ``fmm_select()``'s target is a
+single process-global pointer that ``compute_field_fmm``/``bh``/``exact``
+read at *call* time, not at tree-build time. A 2D and a 3D ``DemagFMM`` can
+both be alive in the same process - unremarkable in a test suite, or any
+script that runs more than one simulation - and without re-selecting the
+right variant on every call, whichever was selected most recently would
+silently apply to both. ``FMM``/``FMM2D`` handle this by re-selecting their
+own variant immediately before every ``compute_field``/``compute_field_exact``
+call rather than only once at construction;
+``test_demag_fmm_2D_and_3D_interleaved_do_not_interfere`` in
+``tests/test_demag_fmm.py`` is a regression test for it.
 
 References
 ----------

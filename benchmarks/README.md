@@ -63,3 +63,29 @@ period, so the geometry behind the numbers is visible:
     --n-side 4 --radius 2.5 --nz 3 --period 18 \
     --out benchmarks/results/nanodisk_array_geometry.png
 ```
+
+## `demag_fmm_2d_vs_general.py`
+
+Times `fidimag.extensions.fmm.FMM2D` (fmmgen's planar operator variant,
+which `DemagFMM` selects automatically for a 2D, `nz=1` mesh) against the
+general `FMM` called directly on the same 2D mesh's coordinates, forcing
+the path a 3D mesh would otherwise take. See
+`doc/physics_num_methods/demag_fmm.rst`, "2D systems".
+
+```
+.venv/bin/python3 benchmarks/demag_fmm_2d_vs_general.py \
+    --l-min 10 --l-max 150 --l-step 10 \
+    --order 8 --thetas 0.3 0.5 0.7 0.9 --ncrit 128 \
+    --out benchmarks/results/demag_fmm_2d_vs_general.csv
+```
+
+Results are written incrementally as CSV (`L, N, order, theta, ncrit,
+t_planar_s, t_general_s, field_rel_err`), the last the relative L2
+difference between the two operator sets on identical input (both correct,
+so this should stay small rather than trend to zero). Plot with:
+
+```
+.venv/bin/python3 benchmarks/plot_demag_fmm_2d_vs_general.py \
+    benchmarks/results/demag_fmm_2d_vs_general.csv \
+    benchmarks/results/demag_fmm_2d_vs_general.png
+```

@@ -156,14 +156,32 @@ class DemagFMM(Energy):
         self.m_temp = np.zeros(3 * self.n_active)
         self.field_active = np.zeros(3 * self.n_active)
 
+        # A 2D system (nz == 1) has every site at the same z, so only
+        # relative (x, y) displacements ever matter for the field between
+        # them - the tree needs no z column at all, regardless of what that
+        # shared z actually is. fmmgen's planar operator variant exploits
+        # this explicitly (fewer terms than the general 3D one at the same
+        # order), so it is used automatically rather than left as a choice:
+        # there is no reason to prefer the general 3D operators once every
+        # site genuinely lies in one plane.
+        self.is_2d = (mesh.nz == 1)
+
         if self.n_active > 0:
-            self.fmm = fmm.FMM(self.n_active, self.ncrit, self.theta,
-                               self.order,
-                               active_coords,
-                               self.m_temp,
-                               active_mu_s, self._type,
-                               self.compressed
-                               )
+            if self.is_2d:
+                self.fmm = fmm.FMM2D(self.n_active, self.ncrit, self.theta,
+                                     self.order,
+                                     np.ascontiguousarray(active_coords[:, :2]),
+                                     self.m_temp,
+                                     active_mu_s, self._type,
+                                     )
+            else:
+                self.fmm = fmm.FMM(self.n_active, self.ncrit, self.theta,
+                                   self.order,
+                                   active_coords,
+                                   self.m_temp,
+                                   active_mu_s, self._type,
+                                   self.compressed
+                                   )
 
     def compute_field(self, t=0, spin=None):
         self.field[:] = 0.0
