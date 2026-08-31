@@ -166,21 +166,26 @@ class Sim(SimBase):
         """
 
         self._mu_s[:] = helper.init_scalar(value, self.mesh)
-        nonzero = 0
-        for i in range(self.n):
-            if self._mu_s[i] > 0.0:
-                self._mu_s_inv[i] = 1.0 / self._mu_s[i]
-                nonzero += 1
+
+        positive = self._mu_s > 0.0
+        self._mu_s_inv[positive] = 1.0 / self._mu_s[positive]
 
         # We moved this variable to the micro_driver class
-        self.n_nonzero = nonzero
+        self.n_nonzero = int(np.count_nonzero(positive))
 
-        for i in range(len(self._mu_s)):
-            if self._mu_s[i] == 0.0:
-                self._pins[i] = 1
+        zero = self._mu_s == 0.0
+        self._pins[zero] = 1
 
-                # Set the neighbour index to -1 for sites with mu_s = 0
-                self.mesh.neighbours[self.mesh.neighbours == i] = -1
+        # Set the neighbour index to -1 for sites with mu_s = 0. Done as one
+        # vectorised pass over the neighbours array rather than, as before,
+        # one full-array scan per zero-mu_s site: that was O(n_zero * n) and
+        # made this unusable for patterned/sparse samples with many empty
+        # sites, where n_zero is a large fraction of n.
+        neighbours = self.mesh.neighbours
+        valid = neighbours >= 0
+        targets_zero_site = np.zeros_like(neighbours, dtype=bool)
+        targets_zero_site[valid] = zero[neighbours[valid]]
+        neighbours[targets_zero_site] = -1
 
         # TODO: Check if this is necessary here, it is only defined
         # for the LLG STT in the drivers

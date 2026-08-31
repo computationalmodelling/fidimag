@@ -13,8 +13,10 @@ cdef extern from "utils.hpp":
     size_t Nterms(size_t p)
 
 cdef extern from "operators.h":
+    cdef int FMMGEN_MINORDER
     cdef int FMMGEN_MAXORDER
 
+MINORDER = FMMGEN_MINORDER
 MAXORDER = FMMGEN_MAXORDER
 
 cdef extern from "variant.hpp":
@@ -48,8 +50,9 @@ cdef class FMM:
     cdef Tree tree
 
     def __cinit__(self, size_t n, size_t ncrit, double theta, size_t order, double [:, :] r, double [:] mu, double [:] mu_s, calc_type=0, compressed=True):
-        if order > MAXORDER:
-            raise ValueError(f"Order needs to be < {MAXORDER}")
+        if order < MINORDER or order >= MAXORDER:
+            raise ValueError(
+                f"Order needs to be in [{MINORDER}, {MAXORDER}), got {order}")
         self.calc_type = calc_type
         # self.particles = vector[Particle]
         self.n = n

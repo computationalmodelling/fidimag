@@ -111,8 +111,19 @@ class DemagFMM(Energy):
             self._type = 1
 
         self.name = name
-        assert order > 0, "Order must be 1 or higher"
-        assert order < 11, "Order bust be < 11"
+        # fmm.MINORDER/MAXORDER reflect what operators.cpp was actually
+        # generated for, not a fixed range: the per-order dispatch switches
+        # there (S2M/M2M/M2L/L2L/L2P) have no case outside [MINORDER,
+        # MAXORDER), and silently do nothing for an order that falls outside
+        # it rather than raising. A silent no-op in M2L specifically means
+        # every far-field pair contributes zero, leaving the field built
+        # from near-field P2P terms alone - wrong, but not obviously so.
+        # fmm.FMM's own __cinit__ has the same check, but an assert here
+        # gives a clear error before any tree is built rather than only once
+        # setup() constructs one.
+        assert fmm.MINORDER <= order < fmm.MAXORDER, (
+            f"order must be in [{fmm.MINORDER}, {fmm.MAXORDER}), got {order}"
+        )
         self.order = order
         assert ncrit >= 2, "ncrit must be greater than 1."
         self.ncrit = ncrit
@@ -126,19 +137,44 @@ class DemagFMM(Energy):
 
     def setup(self, mesh, spin, mu_s, mu_s_inv):
         super().setup(mesh, spin, mu_s, mu_s_inv)
-        self.coords = mesh.coordinates * mesh.unit_length
-        self.m_temp = np.zeros_like(spin)
-        self.fmm = fmm.FMM(self.n, self.ncrit, self.theta,
-                           self.order,
-                           self.coords,
-                           self.m_temp,
-                           self.mu_s, self._type,
-                           self.compressed
-                           )
+        # A mu_s == 0 site carries no moment, so it can never contribute to
+        # the field (as a source) and never needs one evaluated at it (as a
+        # target, since mu_s_inv is 0 there too). Building the tree from
+        # every mesh site anyway - as the FFT-based Demag must, since it
+        # convolves over the full grid - wastes tree depth and traversal
+        # cost on these "ghost" sites. Restricting to the active sites lets
+        # DemagFMM scale with the number of magnetic sites rather than the
+        # bounding-box grid size, which matters for patterned or otherwise
+        # sparse samples.
+        self.active = np.nonzero(mu_s)[0]
+        self.n_active = self.active.size
+
+        active_coords = np.ascontiguousarray(
+            (mesh.coordinates[self.active] * mesh.unit_length))
+        active_mu_s = np.ascontiguousarray(mu_s[self.active])
+
+        self.m_temp = np.zeros(3 * self.n_active)
+        self.field_active = np.zeros(3 * self.n_active)
+
+        if self.n_active > 0:
+            self.fmm = fmm.FMM(self.n_active, self.ncrit, self.theta,
+                               self.order,
+                               active_coords,
+                               self.m_temp,
+                               active_mu_s, self._type,
+                               self.compressed
+                               )
 
     def compute_field(self, t=0, spin=None):
-        self.m_temp[:] = spin if spin is not None else self.spin
-        self.fmm.compute_field(self.field)
+        self.field[:] = 0.0
+        if self.n_active == 0:
+            return self.field
+
+        m = spin if spin is not None else self.spin
+        self.m_temp[:] = m.reshape(-1, 3)[self.active].reshape(-1)
+        self.fmm.compute_field(self.field_active)
+        self.field.reshape(-1, 3)[self.active] = \
+            self.field_active.reshape(-1, 3)
         self.field *= -1e-7
         return self.field
 

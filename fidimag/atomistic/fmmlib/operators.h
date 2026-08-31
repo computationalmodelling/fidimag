@@ -1,7 +1,7 @@
 #pragma once
-#include <stddef.h>
+#include <cstddef>
 #define FMMGEN_MINORDER 2
-#define FMMGEN_MAXORDER 8
+#define FMMGEN_MAXORDER 13
 #define FMMGEN_SOURCEORDER 1
 #define FMMGEN_SOURCESIZE 3
 #define FMMGEN_OUTPUTSIZE 3
@@ -10,8 +10,8 @@
    basis drops the C(p+3,3) - (p+1)^2 redundant coefficients, so these
    are (p+1)^2; the unsuffixed operators still take Nterms(order).
    Index by order. */
-static const size_t FMMGEN_MULTIPOLESIZE[] = {0, 3, 8, 15, 24, 35, 48, 63, 80};
-static const size_t FMMGEN_LOCALSIZE[] = {0, 1, 4, 9, 16, 25, 36, 49, 64};
+static const size_t FMMGEN_MULTIPOLESIZE[] = {0, 3, 8, 15, 24, 35, 48, 63, 80, 99, 120, 143, 168, 195};
+static const size_t FMMGEN_LOCALSIZE[] = {0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144, 169};
 void S2M_2(double x, double y, double z, double * S, double * M);
 void M2M_2(double x, double y, double z, double * M, double * Ms);
 void M2L_2(double x, double y, double z, double * M, double * L);
@@ -86,6 +86,66 @@ void L2Lc_7(double x, double y, double z, double * L, double * Ls);
 void L2Pc_7(double x, double y, double z, double * L, double * F);
 void M2Pc_7(double x, double y, double z, double * M, double * F);
 void M2Lc_7(double x, double y, double z, double * M, double * L);
+void S2M_8(double x, double y, double z, double * S, double * M);
+void M2M_8(double x, double y, double z, double * M, double * Ms);
+void M2L_8(double x, double y, double z, double * M, double * L);
+void L2L_8(double x, double y, double z, double * L, double * Ls);
+void L2P_8(double x, double y, double z, double * L, double * F);
+void M2P_8(double x, double y, double z, double * M, double * F);
+void S2Mc_8(double x, double y, double z, double * S, double * M);
+void M2Mc_8(double x, double y, double z, double * M, double * Ms);
+void L2Lc_8(double x, double y, double z, double * L, double * Ls);
+void L2Pc_8(double x, double y, double z, double * L, double * F);
+void M2Pc_8(double x, double y, double z, double * M, double * F);
+void M2Lc_8(double x, double y, double z, double * M, double * L);
+void S2M_9(double x, double y, double z, double * S, double * M);
+void M2M_9(double x, double y, double z, double * M, double * Ms);
+void M2L_9(double x, double y, double z, double * M, double * L);
+void L2L_9(double x, double y, double z, double * L, double * Ls);
+void L2P_9(double x, double y, double z, double * L, double * F);
+void M2P_9(double x, double y, double z, double * M, double * F);
+void S2Mc_9(double x, double y, double z, double * S, double * M);
+void M2Mc_9(double x, double y, double z, double * M, double * Ms);
+void L2Lc_9(double x, double y, double z, double * L, double * Ls);
+void L2Pc_9(double x, double y, double z, double * L, double * F);
+void M2Pc_9(double x, double y, double z, double * M, double * F);
+void M2Lc_9(double x, double y, double z, double * M, double * L);
+void S2M_10(double x, double y, double z, double * S, double * M);
+void M2M_10(double x, double y, double z, double * M, double * Ms);
+void M2L_10(double x, double y, double z, double * M, double * L);
+void L2L_10(double x, double y, double z, double * L, double * Ls);
+void L2P_10(double x, double y, double z, double * L, double * F);
+void M2P_10(double x, double y, double z, double * M, double * F);
+void S2Mc_10(double x, double y, double z, double * S, double * M);
+void M2Mc_10(double x, double y, double z, double * M, double * Ms);
+void L2Lc_10(double x, double y, double z, double * L, double * Ls);
+void L2Pc_10(double x, double y, double z, double * L, double * F);
+void M2Pc_10(double x, double y, double z, double * M, double * F);
+void M2Lc_10(double x, double y, double z, double * M, double * L);
+void S2M_11(double x, double y, double z, double * S, double * M);
+void M2M_11(double x, double y, double z, double * M, double * Ms);
+void M2L_11(double x, double y, double z, double * M, double * L);
+void L2L_11(double x, double y, double z, double * L, double * Ls);
+void L2P_11(double x, double y, double z, double * L, double * F);
+void M2P_11(double x, double y, double z, double * M, double * F);
+void S2Mc_11(double x, double y, double z, double * S, double * M);
+void M2Mc_11(double x, double y, double z, double * M, double * Ms);
+void L2Lc_11(double x, double y, double z, double * L, double * Ls);
+void L2Pc_11(double x, double y, double z, double * L, double * F);
+void M2Pc_11(double x, double y, double z, double * M, double * F);
+void M2Lc_11(double x, double y, double z, double * M, double * L);
+void S2M_12(double x, double y, double z, double * S, double * M);
+void M2M_12(double x, double y, double z, double * M, double * Ms);
+void M2L_12(double x, double y, double z, double * M, double * L);
+void L2L_12(double x, double y, double z, double * L, double * Ls);
+void L2P_12(double x, double y, double z, double * L, double * F);
+void M2P_12(double x, double y, double z, double * M, double * F);
+void S2Mc_12(double x, double y, double z, double * S, double * M);
+void M2Mc_12(double x, double y, double z, double * M, double * Ms);
+void L2Lc_12(double x, double y, double z, double * L, double * Ls);
+void L2Pc_12(double x, double y, double z, double * L, double * F);
+void M2Pc_12(double x, double y, double z, double * M, double * F);
+void M2Lc_12(double x, double y, double z, double * M, double * L);
 void S2M(double x, double y, double z, double * S, double * M, int order);
 void M2M(double x, double y, double z, double * M, double * Ms, int order);
 void M2L(double x, double y, double z, double * M, double * L, int order);
