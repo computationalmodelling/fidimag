@@ -1,8 +1,46 @@
 import numpy as np
 import os
 import zipfile
+from dataclasses import dataclass
 import fidimag.common.constant as const
 from fidimag.common.vtk import VTK
+
+
+@dataclass
+class MinimiserResult:
+    """
+    What a minimisation did, returned by `minimise`
+
+    The stopping criteria are otherwise only visible in the log, which leaves
+    a caller no way to tell a converged run from one that ran out of steps.
+
+    Attributes
+    ----------
+    converged : bool
+        Whether a convergence criterion was met, as opposed to the iteration
+        running out of steps or restarts.
+    reason : str
+        Which criterion ended it: `'mXgradE_tol'`, `'stopping_dE'`,
+        `'zero_gradient'`, `'max_steps'` or `'resets'`.
+    n_evaluations : int
+        Evaluations of the effective field, including those of trial steps
+        that were rejected. This is the cost of the minimisation, and the
+        quantity to compare between methods.
+    total_energy : float
+        Energy at the final configuration, scaled by `energyScale`.
+    max_torque : float
+        Largest `||m x dE/dm||` over the sites, the residual that vanishes at
+        a minimum.
+    mean_torque : float
+        The same, averaged over the sites, which is what `mXgradE_tol` tests.
+    """
+
+    converged: bool
+    reason: str
+    n_evaluations: int
+    total_energy: float
+    max_torque: float
+    mean_torque: float
 
 
 class MinimiserBase:

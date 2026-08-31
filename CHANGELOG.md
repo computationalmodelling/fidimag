@@ -34,6 +34,21 @@ Version 4.0
   Barzilai-Borwein path now needs fewer than the conjugate gradient at every
   tolerance: 413 against 614 to reach 1e-6 A/m on 2500 cells, 1038 against
   1278 on 10000. See the energy minimisation page
+* **Hubert minimiser**: `minimise` returns a `MinimiserResult`, saying whether
+  a convergence criterion was met, which one (`mXgradE_tol`, `stopping_dE`,
+  `zero_gradient`, `max_steps` or `resets`), how many effective field
+  evaluations it spent, and the energy and torque it finished at. There was
+  previously no way to tell a converged run from one that ran out of steps
+  except by reading the printed output
+* **Hubert minimiser**: progress goes to the `fidimag` logger rather than to
+  `print`, as the NEBM classes already did. The per step lines are at DEBUG
+  and the reason it stopped at INFO, so a converged run is now silent; raise
+  the level to see them again::
+
+      logging.getLogger('fidimag').setLevel(logging.INFO)
+
+  Failures to converge are logged at WARNING and are still shown. `log_steps`
+  is kept, and now throttles the DEBUG lines
 * **Steepest descent**: fixed the Barzilai-Borwein step size never reaching
   Python from `sd_compute_step`, which took it by value and dropped it, so the
   class had been running with a constant step and was sensitive to

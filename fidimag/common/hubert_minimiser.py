@@ -1,8 +1,12 @@
+import logging
 import numpy as np
 # import fidimag.extensions.clib as clib
 # import fidimag.common.constant as const
-from .minimiser_base import MinimiserBase
 from itertools import cycle
+
+from .minimiser_base import MinimiserBase, MinimiserResult
+
+log = logging.getLogger(name='fidimag')
 
 
 class HubertMinimiser(MinimiserBase):
@@ -149,6 +153,29 @@ class HubertMinimiser(MinimiserBase):
         # spin[self._pins > 0] = 0.
         spin.shape = (-1)
 
+    def _result(self, reason):
+        """
+        Describe the minimisation that has just finished
+
+        Parameters
+        ----------
+        reason : str
+            Which criterion ended it.
+
+        Returns
+        -------
+        MinimiserResult
+        """
+        converged = reason in ('mXgradE_tol', 'stopping_dE')
+        n = self.mXgradE.shape[0]
+        return MinimiserResult(converged=converged,
+                               reason=reason,
+                               n_evaluations=self.step,
+                               total_energy=float(self.totalE),
+                               max_torque=float(self.mXgradE.max()),
+                               mean_torque=float(np.sum(np.abs(self.mXgradE))
+                                                 / n))
+
     def _minimise_hubert(self,
                          max_steps=2000,
                          save_data_steps=10, save_m_steps=None,
@@ -199,6 +226,7 @@ class HubertMinimiser(MinimiserBase):
         self.step = 0
         nStart = 0
         exitFlag = False
+        reason = 'max_steps'
         totalRestart = True
         resetCount = 0
         creepCount = 0
@@ -217,7 +245,7 @@ class HubertMinimiser(MinimiserBase):
 
             if totalRestart:
                 if self.step > 0:
-                    print('Restarting')
+                    log.debug('Restarting')
                 self.spin[:] = self.spin_last
                 # Compute from self.spin. Do not update the step at this stage:
                 self.compute_effective_field()
@@ -273,7 +301,7 @@ class HubertMinimiser(MinimiserBase):
 
                 # Statistics and saving:
                 if self.step % log_steps == 0:
-                    print(f'Step = {self.step:>4} Creep n = {creepCount:>3}  reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(|mX∇E|) = {self.mXgradE.max():.4e}')
+                    log.debug(f'Step = {self.step:>4} Creep n = {creepCount:>3}  reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  max(|mX∇E|) = {self.mXgradE.max():.4e}')
                 # Note that step == 0 is never saved
                 if self.step % save_data_steps == 0:
                     self.data_saver.save()
@@ -297,12 +325,14 @@ class HubertMinimiser(MinimiserBase):
                 # spuriously small deltaE while the true residual (mX∇E) is
                 # still large.
                 if self.totalE <= self.totalE_last and deltaE < stopping_dE:
-                    print(f'Delta E = {deltaE} negligible. Stopping calculation.')
+                    log.info(f'Delta E = {deltaE} negligible. Stopping calculation.')
+                    reason = 'stopping_dE'
                     exitFlag = True
                     break  # creep loop
 
                 if self.step > max_steps:
-                    print(f'N of evaluations = {self.step} reached maximum value. Stopping calculation.')
+                    log.warning(f'N of evaluations = {self.step} reached maximum value. Stopping calculation.')
+                    reason = 'max_steps'
                     exitFlag = True
                     break  # creep loop
 
@@ -312,12 +342,13 @@ class HubertMinimiser(MinimiserBase):
                     eta = eta / (dEta * dEta)
 
                     if eta < etaMin:
-                        print(f'Parameter eta smaller than minimum. Restarting minimisation. resetCount = {resetCount}')
+                        log.debug(f'Parameter eta smaller than minimum. Restarting minimisation. resetCount = {resetCount}')
                         resetCount += 1
                         # perturbSpins()  # in case of using Sph coordinates
                         if resetCount > resetMax:
+                            reason = 'resets'
                             exitFlag = True
-                            print(f'N of resets {resetCount} reached maximum value. Stopping calculation.')
+                            log.warning(f'N of resets {resetCount} reached maximum value. Stopping calculation.')
                             break  # creep loop
                         totalRestart = True
                         break  # creep loop
@@ -343,7 +374,8 @@ class HubertMinimiser(MinimiserBase):
 
                     avGradE = np.sum(np.abs(self.mXgradE)) / self.mXgradE.shape[0]
                     if avGradE < mXgradE_tol:
-                        print(f'Average torque length |mX∇E|/N = {avGradE} negligible. Stopping calculation.')
+                        log.info(f'Average torque length |mX∇E|/N = {avGradE} negligible. Stopping calculation.')
+                        reason = 'mXgradE_tol'
                         exitFlag = True
 
             # Stop while creepCount
@@ -359,6 +391,8 @@ class HubertMinimiser(MinimiserBase):
             if not totalRestart:
                 eta *= dEta
                 resetCount = 0
+
+        return self._result(reason)
 
     # -------------------------------------------------------------------------
     # Shared helpers
@@ -485,6 +519,7 @@ class HubertMinimiser(MinimiserBase):
         self.spin_last = np.zeros_like(self.spin)
         self.step = 0
         exitFlag = False
+        reason = 'max_steps'
         resetCount = 0
         self._material = self._material_mask()
         _material = self._material
@@ -535,8 +570,8 @@ class HubertMinimiser(MinimiserBase):
 
         maxGrad = self.mXgradE.max()
         if maxGrad == 0.0:
-            print('Gradient is zero everywhere. Nothing to minimise.')
-            return
+            log.warning('Gradient is zero everywhere. Nothing to minimise.')
+            return self._result('zero_gradient')
         # Scale-free first step: move the largest torque by maxDeltaM
         eta0 = maxDeltaM / maxGrad
         eta = eta0
@@ -562,7 +597,8 @@ class HubertMinimiser(MinimiserBase):
 
             gradNorm2 = np.sum(self.gradE[_material] ** 2)
             if gradNorm2 == 0.0:
-                print('Gradient is zero everywhere. Stopping calculation.')
+                log.warning('Gradient is zero everywhere. Stopping calculation.')
+                reason = 'zero_gradient'
                 break
 
             # Trust region: never displace a spin by more than maxDeltaM
@@ -589,8 +625,9 @@ class HubertMinimiser(MinimiserBase):
                             <= Eref - gamma * gradScale * lamb * gradNorm2)
 
                 if self.step > max_steps:
-                    print(f'N of evaluations = {self.step} reached maximum '
-                          'value. Stopping calculation.')
+                    log.warning(f'N of evaluations = {self.step} reached '
+                                'maximum value. Stopping calculation.')
+                    reason = 'max_steps'
                     exitFlag = True
                     break  # backtracking loop
 
@@ -603,11 +640,13 @@ class HubertMinimiser(MinimiserBase):
                     # No decrease along -g: drop the secant information and
                     # start over from the last accepted point
                     resetCount += 1
-                    print('Could not decrease the energy along the gradient. '
-                          f'Restarting minimisation. resetCount = {resetCount}')
+                    log.debug('Could not decrease the energy along the '
+                              'gradient. Restarting minimisation. '
+                              f'resetCount = {resetCount}')
                     if resetCount > resetMax:
-                        print(f'N of resets {resetCount} reached maximum '
-                              'value. Stopping calculation.')
+                        log.warning(f'N of resets {resetCount} reached '
+                                    'maximum value. Stopping calculation.')
+                        reason = 'resets'
                         exitFlag = True
                     break  # backtracking loop
 
@@ -677,10 +716,11 @@ class HubertMinimiser(MinimiserBase):
             self.totalE_last = self.totalE
 
             if self.step % log_steps == 0:
-                print(f'Step = {self.step:>4}  backtracks = {nBacktrack:>2}  '
-                      f'reset = {resetCount:>3}  eta = {eta:>5.4e}  '
-                      f'E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  '
-                      f'max(|mX∇E|) = {self.mXgradE.max():.4e}')
+                log.debug(f'Step = {self.step:>4}  '
+                          f'backtracks = {nBacktrack:>2}  '
+                          f'reset = {resetCount:>3}  eta = {eta:>5.4e}  '
+                          f'E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  '
+                          f'max(|mX∇E|) = {self.mXgradE.max():.4e}')
             if self.step % save_data_steps == 0:
                 self.data_saver.save()
             if (save_vtk_steps is not None) and (self.step % save_vtk_steps == 0):
@@ -689,14 +729,19 @@ class HubertMinimiser(MinimiserBase):
                 self.save_m()
 
             if deltaE < stopping_dE:
-                print(f'Delta E = {deltaE} negligible. Stopping calculation.')
+                log.info(f'Delta E = {deltaE} negligible. '
+                         'Stopping calculation.')
+                reason = 'stopping_dE'
                 exitFlag = True
 
             avGradE = np.sum(np.abs(self.mXgradE)) / self.mXgradE.shape[0]
             if avGradE < mXgradE_tol:
-                print(f'Average torque length |mX∇E|/N = {avGradE} negligible. '
-                      'Stopping calculation.')
+                log.info(f'Average torque length |mX∇E|/N = {avGradE} '
+                         'negligible. Stopping calculation.')
+                reason = 'mXgradE_tol'
                 exitFlag = True
+
+        return self._result(reason)
 
     def minimise(self, max_steps=2000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
@@ -730,10 +775,24 @@ class HubertMinimiser(MinimiserBase):
             `_minimise_BB` for its parameters.
 
         Parameters shared by both are documented in `_minimise_hubert`.
+
+        Returns
+        -------
+        MinimiserResult
+            Whether a convergence criterion was met, which one, the number of
+            effective field evaluations spent, and the energy and torque of
+            the final configuration. Progress is reported through the
+            `fidimag` logger, at DEBUG for the per step lines and INFO for
+            the reason it stopped, so a run that converges is silent unless
+            that logger is turned up::
+
+                logging.getLogger('fidimag').setLevel(logging.INFO)
+
+            Failures to converge are logged at WARNING and so are shown.
         """
 
         if stepControl == 'hubert':
-            self._minimise_hubert(
+            return self._minimise_hubert(
                 max_steps=max_steps,
                 save_data_steps=save_data_steps, save_m_steps=save_m_steps,
                 save_vtk_steps=save_vtk_steps, log_steps=log_steps,
@@ -741,7 +800,7 @@ class HubertMinimiser(MinimiserBase):
                 stopping_dE=stopping_dE, dEta=dEta, etaMin=etaMin,
                 nTrail=nTrail, resetMax=resetMax, mXgradE_tol=mXgradE_tol)
         elif stepControl == 'BB':
-            self._minimise_BB(
+            return self._minimise_BB(
                 max_steps=max_steps,
                 save_data_steps=save_data_steps, save_m_steps=save_m_steps,
                 save_vtk_steps=save_vtk_steps, log_steps=log_steps,

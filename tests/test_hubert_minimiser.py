@@ -208,3 +208,62 @@ def test_BB_converges_past_the_energy_difference_floor():
     assert _max_torque(driver) < 1e-8
     # the s-state, whatever route was taken to it
     assert abs(driver.totalE - 2.221975441011e-19) < 1e-30
+
+
+def test_minimise_reports_what_it_did():
+    """
+    `minimise` returns its outcome instead of only printing it.
+
+    Without this a caller cannot tell a converged run from one that ran out
+    of steps, nor find out what the minimisation cost, except by reading the
+    log.
+    """
+    from fidimag.common.minimiser_base import MinimiserResult
+
+    def run(**kwargs):
+        mesh = fidimag.common.CuboidMesh(nx=40, ny=10, nz=1, dx=5, dy=5, dz=3,
+                                         unit_length=1e-9)
+        sim = fidimag.micro.Sim(mesh, name='res', driver='hubert_minimiser')
+        sim.set_Ms(8e5)
+        sim.set_m((1, 1, 1))
+        sim.add(fidimag.micro.UniformExchange(A=1.3e-11))
+        sim.add(fidimag.micro.Demag())
+        return sim.driver.minimise(**kwargs)
+
+    # stopped early: not converged, and it says why
+    out = run(stepControl='BB', max_steps=200, mXgradE_tol=1e-14,
+              stopping_dE=-1.0)
+    assert isinstance(out, MinimiserResult)
+    assert out.converged is False
+    assert out.reason == 'max_steps'
+    assert out.n_evaluations > 200
+
+    # converged on the torque
+    out = run(stepControl='BB', max_steps=3000, mXgradE_tol=1e-2,
+              stopping_dE=-1.0)
+    assert out.converged is True
+    assert out.reason == 'mXgradE_tol'
+    assert out.mean_torque < 1e-2
+    assert out.max_torque >= out.mean_torque
+    assert 0 < out.n_evaluations < 3000
+    assert isinstance(out.total_energy, float)
+
+    # the creep control reports the same way
+    out = run(stepControl='hubert', max_steps=6000, mXgradE_tol=1e-2,
+              stopping_dE=-1.0, eta_scale=1e-6)
+    assert out.converged is True
+    assert out.reason == 'mXgradE_tol'
+
+
+def test_minimise_is_quiet_unless_asked(capsys):
+    """Nothing is printed: progress goes to the `fidimag` logger."""
+    mesh = fidimag.common.CuboidMesh(nx=20, ny=5, nz=1, dx=5, dy=5, dz=3,
+                                     unit_length=1e-9)
+    sim = fidimag.micro.Sim(mesh, name='quiet', driver='hubert_minimiser')
+    sim.set_Ms(8e5)
+    sim.set_m((1, 1, 1))
+    sim.add(fidimag.micro.UniformExchange(A=1.3e-11))
+
+    sim.driver.minimise(stepControl='BB', max_steps=200, mXgradE_tol=1e-2,
+                        stopping_dE=-1.0)
+    assert capsys.readouterr().out == ''
