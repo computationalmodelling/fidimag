@@ -22,9 +22,18 @@ region - there is no way to leave a site out of the grid.
 The Barnes-Hut and Fast Multipole Methods
 -------------------------------------------
 
-Both BH and FMM replace the direct pairwise sum with a hierarchical
-approximation, following Visscher and Apalkov's recursive formulation for
-dipolar sums [1]_. Spins are recursively grouped into an octree: starting
+Both BH and FMM approximate the same quantity: the per-site dipolar field
+of :doc:`core_eqs`,
+
+.. math::
+   \vec{H}_i = \frac{\mu_0}{4\pi} \sum_{j \neq i}
+   \frac{3\hat{\vec{r}}_{ij}(\vec{\mu}_j \cdot \hat{\vec{r}}_{ij}) - \vec{\mu}_j}{r_{ij}^3},
+
+with :math:`\vec{\mu}_j = \mu_s \vec{S}_j` the magnetic moment at site
+:math:`j`, without evaluating every pair :math:`(i, j)` directly. They do
+this with a hierarchical approximation, following Visscher and Apalkov's
+recursive formulation for dipolar sums [1]_. Spins are recursively grouped
+into an octree: starting
 from one cell containing every spin, a cell is split into eight octants
 once it holds more than ``ncrit`` spins, and this repeats until every leaf
 holds at most ``ncrit`` spins. A group of spins far enough from a given
@@ -83,8 +92,11 @@ and the choice between them is fidimag's ``type`` argument: ``type='fmm'``
 Multipole and local expansions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The expansions themselves come from Taylor-expanding the dipolar Green's
-function about a cell centre. Using multi-index notation for a triple
+The expansions themselves come from Taylor-expanding the Green's function
+of Laplace's equation, :math:`\phi(\vec{r}) = 1/|\vec{r}|`, about a cell
+centre; this is the same :math:`1/r` that already appears in :math:`\vec{H}_i`
+above, generalised so that its derivatives can be taken once per cell
+rather than once per pair. Using multi-index notation for a triple
 :math:`\mathbf{n} = (n_x, n_y, n_z)`, with :math:`\mathbf{r}^{\mathbf{n}} =
 x^{n_x} y^{n_y} z^{n_z}` and :math:`\mathbf{n}! = n_x!\, n_y!\, n_z!`, a
 source at :math:`\mathbf{x}_a` has multipole moments about a cell centre
@@ -117,14 +129,29 @@ target's centre,
    \mathbf{L}_{\mathbf{n}}(\mathbf{z}_B) = \sum_{|\mathbf{m}|=0}^{p-|\mathbf{n}|-s}
    (-1)^{\mathbf{n}}\, \mathbf{M}_{\mathbf{m}}(\mathbf{z}_A)\, \nabla^{\mathbf{n}+\mathbf{m}}\phi(\mathbf{z}_B - \mathbf{z}_A),
 
-with :math:`\phi` the dipolar Green's function and :math:`s` the source
-order; every spin in the target cell then reads its field from this one
-local expansion (the L2P operator), rather than the source cell's
-multipole expansion directly. A Barnes-Hut-accepted cell skips straight to
-this last step, evaluating the source's multipole expansion at the target
-point itself (M2P) with no local expansion in between. Differentiating the
-local (or multipole, for M2P) expansion gives the field components fidimag
-actually asks for, rather than the potential.
+with :math:`s` the source order. Every spin at position :math:`\vec{x}_b`
+in the target cell then reads the potential from this one local expansion
+(the L2P operator),
+
+.. math::
+   \phi(\vec{x}_b) \approx \sum_{|\mathbf{n}|=s}^{p} \frac{1}{\mathbf{n}!}
+   (\vec{x}_b - \vec{z}_B)^{\mathbf{n}}\, \mathbf{L}_{\mathbf{n}}(\vec{z}_B),
+
+rather than the source cell's multipole expansion directly. Fidimag needs
+the field, not the potential, which L2P gets by differentiating the same
+local expansion instead of evaluating it directly: for a derivative
+:math:`\mathbf{k}` (a unit multi-index, e.g. :math:`(1,0,0)` for
+:math:`\partial/\partial x`),
+
+.. math::
+   \frac{\partial^{\mathbf{k}}\phi}{\partial \vec{r}^{\mathbf{k}}}\bigg|_{\vec{x}_b}
+   \approx \sum_{|\mathbf{n}|=s+|\mathbf{k}|}^{p} \frac{1}{(\mathbf{n}-\mathbf{k})!}
+   (\vec{x}_b - \vec{z}_B)^{\mathbf{n}-\mathbf{k}}\, \mathbf{L}_{\mathbf{n}}(\vec{z}_B),
+
+giving one field component (:math:`H_x`, :math:`H_y` or :math:`H_z`) per
+choice of :math:`\mathbf{k}`. A Barnes-Hut-accepted cell skips straight to
+this last step, differentiating the source cell's *multipole* expansion at
+the target point itself (M2P) with no local expansion in between.
 
 Symbolic operator generation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
