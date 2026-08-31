@@ -34,10 +34,10 @@ def skyrmion_number_slice(sim, at=None, zIndex=None):
 
     # Deal with inputs.
     if zIndex is None:
-        if at is "bottom":
+        if at == "bottom":
             zIndex = 0
 
-        elif at is "centre":
+        elif at == "centre":
             # Find the layer number that corresponds to the centre of the mesh,
             # preferring the lower layer in a tie.
             zIndex = sim.mesh.nz / 2.
@@ -45,7 +45,7 @@ def skyrmion_number_slice(sim, at=None, zIndex=None):
                 zIndex -= 0.5
             zIndex -= 0.5
 
-        elif at is "top":
+        elif at == "top":
             zIndex = sim.mesh.nz - 1  # Indeces start at 0.
 
         else:

@@ -159,7 +159,7 @@ class SimBase:
 
     pins = property(get_pins, set_pins)
 
-    
+
 
     def set_alpha(self, alpha):
         self.driver.alpha = alpha

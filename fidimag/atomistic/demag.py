@@ -1,7 +1,6 @@
 import fidimag.extensions.dipolar as clib
 import numpy as np
 from .energy import Energy
-import numpy as np
 import fidimag
 from fidimag.atomistic.energy import Energy
 import fidimag.extensions.fmm as fmm

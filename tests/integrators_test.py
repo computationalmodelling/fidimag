@@ -56,7 +56,7 @@ def test_step_integrator(integrator, stepsize_reported, stepsize_internal):
         ts[i+1] = integrator.t
         ys[i+1] = integrator.y
     assert 85 < ys[-1] < 100
-    
+
     # return ts, ys
 
 
@@ -83,7 +83,7 @@ def test_scipy_integrator():
 
     print(len(od.internal_timesteps))
     print(od.rhs_evals)
-    
+
     # return y_true, ts, ys, od.internal_timesteps
 
 

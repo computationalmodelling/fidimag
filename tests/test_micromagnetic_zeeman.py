@@ -73,7 +73,7 @@ def test_zeeman_energy():
 
     #                             ->    ->
     # Expected energy: Int ( -mu0 M  *  H  )  dV
-    # Since we have 8 cells with the same M, we just sum their contrib 
+    # Since we have 8 cells with the same M, we just sum their contrib
     exp_energy = 8 * (-mu0 * H * Ms * mesh.dx * mesh.dy * mesh.dz)
 
     assert np.abs(zf.compute_energy() - exp_energy) < 1e-10

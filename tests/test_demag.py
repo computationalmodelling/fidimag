@@ -25,7 +25,7 @@ def test_demag_fft_exact():
     exact = demag.compute_exact()
 
     np.testing.assert_allclose(fft, exact, rtol=1e-10)
-    
+
 
 
 

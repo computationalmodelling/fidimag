@@ -45,7 +45,7 @@ def test_excahnge_rkky(do_plot=False):
     ts = np.linspace(0, 3e-9, 1001)
 
     mx = []
-    
+
     mxt = []
 
     real_ts = []

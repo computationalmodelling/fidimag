@@ -214,6 +214,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+# The imports in a package `__init__` are its public interface, so they are
+# meant to look unused from inside the file
+"**/__init__.py" = ["F401"]
 # Tests build simulations from wildcard-ish imports and shadow names freely
 "tests/*" = ["F811", "F841"]
 

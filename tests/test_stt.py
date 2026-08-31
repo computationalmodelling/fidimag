@@ -17,7 +17,7 @@ def test_sst_field_1d():
     Most of the STT parameters are set to zero, so the field is reduced
     to the calculation of:
 
-    H_STT =  j \cdot \nabla S = ( jx * d S_x / dx + jy * d S_x / dy ,
+    H_STT =  j \\cdot \nabla S = ( jx * d S_x / dx + jy * d S_x / dy ,
                                   jx * d S_y / dx + jy * d S_y / dy ,
                                   0)
 
@@ -96,7 +96,7 @@ def test_sst_field_1d():
     clib.compute_stt_field(spin,
                            field,
                            jx, jy, jz,
-                           dx, dy, dz, 
+                           dx, dy, dz,
                            ngbs,
                            n
                            )

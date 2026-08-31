@@ -39,7 +39,7 @@ class StepIntegrator(BaseIntegrator):
     def set_step(self, step):
         step_choices = {'euler': euler_step, 'rk4': runge_kutta_step}
         if step not in step_choices:
-            raise NotImplemented("step must be euler or rk4")
+            raise NotImplementedError("step must be euler or rk4")
         self._step = step_choices[step]
 
 

@@ -14,8 +14,8 @@ https://github.com/fangohr/fidimag
   year = 	 {2015},
   note = 	 {https://github.com/fangohr/fidimag}
 }"""
-    
-    if bibtex: 
+
+    if bibtex:
         return s_bib
     else:
         return s

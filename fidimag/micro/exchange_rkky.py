@@ -39,7 +39,7 @@ class ExchangeRKKY(Energy):
         super().setup(mesh, spin, Ms, Ms_inv)
         if self.z_top<0:
             self.z_top+= self.nz
- 
+
 
     def compute_field(self, t=0, spin=None):
         if spin is not None:

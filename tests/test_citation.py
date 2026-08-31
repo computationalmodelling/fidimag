@@ -10,4 +10,4 @@ def test_citation():
     assert sb[0] == '@'
     assert len(sb.split()) > 1
     assert 'fidimag' in sb.lower()
-           
+

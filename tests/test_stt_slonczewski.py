@@ -37,7 +37,7 @@ def test_dynamic():
     # where K represents the easy-plane anisotropy.
     ###
     assert abs(mz - u/(2*alpha*K))/mz< 5e-4
-    
+
 
 
 

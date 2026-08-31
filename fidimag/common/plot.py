@@ -97,14 +97,14 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
         if the 
     """
     mesh = sim.mesh
-    
+
     if not (mesh.z0 <= z <= mesh.z0 + mesh.Lz):
         raise ValueError("Z value outside of mesh!")
-        
+
     valid_z = np.array(sorted(list(set(mesh.coordinates[:, 2]))))
     layer = np.argmin(np.abs(valid_z - z))
     n_layer = mesh.nz
-    
+
     m = sim.spin.copy()
     # Number of spins in a layer
     n_layer = int(mesh.nx) * int(mesh.ny)
@@ -122,9 +122,9 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
     my = my.reshape(mesh.ny, mesh.nx)
     mz = mz.reshape(mesh.ny, mesh.nx)
     mu_s = mu_s.reshape(mesh.ny, mesh.nx)
-    
 
-    
+
+
     extent = [mesh.x0, mesh.x0+mesh.Lx,
               mesh.y0, mesh.y0+mesh.Ly]
 
@@ -219,7 +219,7 @@ def plot_micro(sim, component='all', filename=None, figsize=(10, 5),
                 ax.set_title('$M_{}$'.format(label))
             else:
                 ax.set_title('$m_{}$'.format(label))
-                
+
             ax.set_xlabel('$x$ ({})'.format(axis_units))
             ax.set_ylabel('$y$ ({})'.format(axis_units))
 
@@ -330,14 +330,14 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
     Don't change things here without also changing them in the other versions!
     """
     mesh = sim.mesh
-    
+
     if not (mesh.z0 <= z <= mesh.z0 + mesh.Lz):
         raise ValueError("Z value outside of mesh!")
-        
+
     valid_z = np.array(sorted(list(set(mesh.coordinates[:, 2]))))
     layer = np.argmin(np.abs(valid_z - z))
     n_layer = mesh.nz
-    
+
     m = sim.spin.copy()
     # Number of spins in a layer
     n_layer = int(mesh.nx) * int(mesh.ny)
@@ -355,9 +355,9 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
     my = my.reshape(mesh.ny, mesh.nx)
     mz = mz.reshape(mesh.ny, mesh.nx)
     mu_s = mu_s.reshape(mesh.ny, mesh.nx)
-    
 
-    
+
+
     extent = [mesh.x0, mesh.x0+mesh.Lx,
               mesh.y0, mesh.y0+mesh.Ly]
 
@@ -452,7 +452,7 @@ def plot_atom_cub(sim, component='all', filename=None, figsize=(10, 5),
                 ax.set_title('$M_{}$'.format(label))
             else:
                 ax.set_title('$m_{}$'.format(label))
-                
+
             ax.set_xlabel('$x$ ({})'.format(axis_units))
             ax.set_ylabel('$y$ ({})'.format(axis_units))
 
@@ -547,15 +547,15 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
 
     """
     mesh = sim.mesh
-    
+
     # Note: Currently no z-dependence for hex-meshes!
     # # if not (mesh.z0 <= z <= mesh.z0 + mesh.Lz):
     # #     raise ValueError("Z value outside of mesh!")
-        
+
     # valid_z = np.array(sorted(list(set(mesh.coordinates[:, 2]))))
     # layer = np.argmin(np.abs(valid_z - z))
     # n_layer = mesh.nz
-    
+
     m = sim.spin.copy()
     # Number of spins in a layer
     n_layer = int(mesh.nx) * int(mesh.ny)
@@ -568,12 +568,12 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
     mx[mu_s == 0.0] = np.nan
     my[mu_s == 0.0] = np.nan
     mz[mu_s == 0.0] = np.nan
-    
+
     if scale_by_mag is True:
         mx *= mu_s
         my *= mu_s
         mz *= mu_s
-    
+
 
 #     extent = [mesh.x0, mesh.x0+mesh.Lx,
 #               mesh.y0, mesh.y0+mesh.Ly]
@@ -621,14 +621,14 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
 #                            extent=extent, vmin=0,
 #                            vmax=2*np.pi, cmap=cmap_edited)
 
-            coll = PolyCollection(mesh.corners[:, :, :2], 
+            coll = PolyCollection(mesh.corners[:, :, :2],
                       array=theta,
                       cmap=cmap_edited,
                       edgecolors=edgecolors, # or 'none'
             )
-            
+
             im = ax.add_collection(coll)
-                
+
             ax.set_title('$xy$ angle')
 
         else:
@@ -645,12 +645,12 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
 #                            extent=extent, vmin=vmin, vmax=vmax,
 #                            cmap=cmap_edited)
 
-            coll = PolyCollection(mesh.corners[:, :, :2], 
+            coll = PolyCollection(mesh.corners[:, :, :2],
                       array=m[components.index(component)],
                       cmap=cmap_edited,
                       edgecolors=edgecolors, # or 'none'
             )
-            
+
             im = ax.add_collection(coll)
 
 
@@ -660,7 +660,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
                 ax.set_title('$m_{}$'.format(component))
 
     elif component == 'all':
-        
+
         cmap_edited = plt.get_cmap(cmap)
         # Edit the colormap and set bad values to bgcolor
         cmap_edited.set_bad(color=bgcolor, alpha=1.0)
@@ -686,12 +686,12 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
 #             im = ax.imshow(comp, origin='lower', extent=extent,
 #                            vmin=vmin, vmax=vmax, cmap=cmap)
 
-            coll = PolyCollection(mesh.corners[:, :, :2], 
+            coll = PolyCollection(mesh.corners[:, :, :2],
                       array=comp,
                       cmap=cmap_edited,
                       edgecolors=edgecolors, # or 'none'
             )
-            
+
             im = ax.add_collection(coll)
 
 
@@ -699,7 +699,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
                 ax.set_title('$M_{}$'.format(label))
             else:
                 ax.set_title('$m_{}$'.format(label))
-                
+
             ax.set_xlabel('$x$ ({})'.format(axis_units))
             ax.set_ylabel('$y$ ({})'.format(axis_units))
 
@@ -734,7 +734,7 @@ def plot_atom_hex(sim, component='all', filename=None, figsize=(10, 5),
 
     ax.set_xlim(np.min(mesh.corners[:, :, 0]), np.max(mesh.corners[:, :, 0]))
     ax.set_ylim(np.min(mesh.corners[:, :, 1]), np.max(mesh.corners[:, :, 1]))
-    
-    
+
+
     if filename:
         fig.savefig(filename, dpi=1, bbox_inches = "tight")

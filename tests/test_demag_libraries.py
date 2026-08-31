@@ -232,7 +232,7 @@ def test_demag_2d_pbc():
     Ms=8.6e5
     n = 40
     d = 2.5
-    
+
     mesh = fidimag.common.CuboidMesh(nx=n, ny=n, nz=1, dx=d, dy=d, dz=d, unit_length=1e-9, periodicity=(True, True, False))
     sim = fidimag.micro.Sim(mesh, name="pbc_2d_bug")
     sim.set_Ms(Ms)
