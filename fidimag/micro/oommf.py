@@ -6,8 +6,6 @@ This code reproduces a Fidimag simulation using OOMMF
 import glob
 import os
 import logging
-import subprocess
-import sys
 import tempfile
 import numpy as np
 

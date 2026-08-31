@@ -76,6 +76,7 @@ dev = [
     "pytest>=6.0",
     "pytest-cov",
     "nbval",
+    "ruff",
 ]
 docs = [
     # Same set that doc/environment.yml installs for Read the Docs, but left
@@ -191,6 +192,31 @@ markers = [
 ]
 
 # Coverage configuration
+# Style
+#
+# Lines run to 110 columns rather than the 79 of PEP 8, which keeps the long
+# names of this code readable without wrapping every expression.
+[tool.ruff]
+line-length = 110
+target-version = "py39"
+extend-exclude = ["doc/build", "sandbox", "dev"]
+
+[tool.ruff.lint]
+# `ISC001` and `ISC002` catch implicit concatenation of adjacent string
+# literals, which is easy to write by accident and easy to misread; write the
+# `+` instead. Note that `.format` binds only to the literal it follows, so
+# "a" + "b".format(x) silently drops the interpolation in "a": prefer
+# f-strings when joining with `+`.
+select = ["E", "F", "W", "ISC"]
+ignore = [
+    "E741",    # names such as `l` and `I`, common in the index arithmetic here
+    "ISC003",  # would undo the explicit `+` that is the style here
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests build simulations from wildcard-ish imports and shadow names freely
+"tests/*" = ["F811", "F841"]
+
 [tool.coverage.run]
 source = ["fidimag"]
 omit = ["*/tests/*", "*/test_*.py"]
