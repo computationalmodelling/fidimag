@@ -83,16 +83,16 @@ class SteepestDescent(MinimiserBase):
         # Threshold values for the criteria to choose the T factor.
         # They are defined as properties with the corr decoration
         #
-        # `tmax` bounds the Barzilai-Borwein step from above, and goes with
-        # the `energy_guard` of `minimise`, which is on by default. Unguarded,
-        # a ceiling this high is not safe: the one dimensional domain wall of
+        # `tmax` bounds the Barzilai-Borwein step from above. It used to be
+        # 0.1, which is safe but slow: relaxing the standard problem 4 film to
+        # its s-state takes 12318 evaluations of the effective field at 0.1
+        # and 2473 at 1, reaching the same state. Higher is faster still,
+        # 1478 at 3 and 886 at 10, but the ceiling cannot be raised far
+        # without the energy guard: at 10 the one dimensional domain wall of
         # `tests/test_steepest_descent.py` collapses, to a profile error of
-        # 0.90 rather than 0.0018. Guarded, it is both safe and much faster
-        # than the 0.1 this used to be. Evaluations of the effective field to
-        # relax that wall: 352 at 0.1 unguarded, 223 at 10 unguarded and
-        # wrong, 14 at 10 guarded. For the standard problem 4 s-state,
-        # 12318, 860 and 80
-        self._tmax = 10.0
+        # 0.90 rather than 0.0018. 1 leaves an order of magnitude of margin
+        # below that. Raise it, with `energy_guard=True`, for a faster run
+        self._tmax = 1.0
         self._tmin = 1e-16
 
         # Scaling of the field
@@ -366,7 +366,7 @@ class SteepestDescent(MinimiserBase):
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_every=1000, printing=True,
                  initial_t_step=1e-2,
-                 energy_guard=True, nTrail=10, gamma=1e-4, maxBacktrack=15,
+                 energy_guard=False, nTrail=10, gamma=1e-4, maxBacktrack=15,
                  dTau=2
                  ):
         """
