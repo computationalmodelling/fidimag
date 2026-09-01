@@ -67,6 +67,21 @@ Version 4.0
 * **Steepest descent**: a non-positive Barzilai-Borwein quotient no longer
   produces a step up the energy, which could leave the iteration stalled in a
   configuration that was not a minimum
+* **Steepest descent**: the defaults are now `tmax = 10` with `energy_guard`
+  on, instead of `tmax = 0.1` with the guard off. The two go together: the
+  step ceiling decides how fast the method can be, and the guard decides how
+  far it can be raised before the iteration overshoots. On the one dimensional
+  domain wall of `tests/test_steepest_descent.py`, the wall collapses above
+  `tmax = 3` unguarded, to a profile error of 0.90 rather than 0.0018, while
+  guarded every ceiling tried gives the right answer and the highest is also
+  the cheapest: 352 evaluations of the effective field at the old defaults
+  against 14 at the new ones. Relaxing the standard problem 4 film to its
+  s-state takes 12318 evaluations at the old defaults, 860 at `tmax = 10`
+  unguarded, and 80 at the new ones. Measured against OOMMF's `Oxs_CGEvolve`
+  on the same relaxation, the steepest descent now needs an order of magnitude
+  fewer field evaluations than the conjugate gradient at every tolerance,
+  41 against 614 to reach 1e-6 A/m. Runs that relied on the old defaults will
+  converge further, in fewer steps
 * **Steepest descent**: new optional `energy_guard` argument, which accepts a
   step only if it passes a non-monotone sufficient-decrease test. It is what
   makes an aggressive `tmax` usable

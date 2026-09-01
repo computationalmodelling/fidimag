@@ -344,26 +344,42 @@ accepting a secant pair.
 The energy guard
 ^^^^^^^^^^^^^^^^
 
-The same acceptance test used in the BB path can be enabled here with the
-``energy_guard`` argument::
+The same acceptance test used in the BB path is applied here, and can be
+turned off with the ``energy_guard`` argument::
 
-    sim.driver.minimise(stopping_dm=1e-9, energy_guard=True)
+    sim.driver.minimise(stopping_dm=1e-9, energy_guard=False)
 
 The energy is obtained from the same pass over the interactions as the
-effective field, so the guard does not add any field computation, only the
-occasional rejected step.
+effective field, so the guard costs no field computation, only the occasional
+rejected step.
 
-Whether this is worth its cost depends on ``tmax``. At the default value of
-0.1 the steps are short enough that the test essentially never fails, the
-guarded and unguarded runs give the same answer, and the guard is only
-overhead, which is why it is off by default. It becomes useful when we raise
-``tmax`` to take longer steps, which is what one would want to do to gain
-speed. For a one dimensional domain wall with ``tmax = 10``, over eight
-repetitions, the unguarded iteration took between 210 and 3000 steps and ended
-in configurations whose scaled energies ranged from the correct 0.196 to 77,
-while the guarded one took 130 steps with 12 rejected trial steps in every
-single repetition. For comparison, the same wall at the default ceiling takes
-around 305 steps.
+It is on by default because it is what makes a useful ``tmax`` safe, and the
+two have to be chosen together. The step ceiling is what decides how fast the
+method can be, and the guard is what decides how far it can be raised before
+the iteration overshoots into a configuration that is not the minimum. On the
+one dimensional domain wall of ``tests/test_steepest_descent.py``, counting
+evaluations of the effective field and the mean error of the wall profile:
+
+=============  ==================  ==================
+``tmax``       guard off           guard on
+=============  ==================  ==================
+0.1            352, err 0.0018     33, err 0.0018
+1              142, err 0.0018     16, err 0.0018
+3              157, err 0.0018     16, err 0.0018
+10             223, **err 0.90**   14, err 0.0018
+=============  ==================  ==================
+
+Unguarded, the wall collapses somewhere above ``tmax = 3``; guarded, every
+ceiling gives the right answer and the highest is also the cheapest. The
+defaults are therefore ``tmax = 10`` with the guard on. Relaxing the standard
+problem 4 film to its s-state tells the same story, 12318 evaluations at the
+0.1 that used to be the default, 860 at 10 unguarded and 80 at 10 guarded.
+
+Raising ``tmax`` further is not free: at 100 the guarded iteration reached
+:math:`10^{-6}` A/m in about 50 evaluations but failed to get there at all in
+one run of three, stopping early at :math:`2.7\times10^{-5}`. The stopping
+criterion is a bound on how far a spin moves in a step, which is a poor proxy
+for convergence once the steps are long.
 
 The spread of the unguarded runs is not physics. The effective field is not
 bit-reproducible from one run to the next, for the reason given under
@@ -398,7 +414,7 @@ torque (A/m)          1e-1   1e-2   1e-3   1e-4   1e-5   1e-6
 ===================  =====  =====  =====  =====  =====  =====
 OOMMF CG               343    409    457    507    551    614
 Fidimag BB             226    259    305    321    377    413
-Fidimag SD            6264   7475   8686   9896  11107  12318
+Fidimag SD              24     26     32     35     37     41
 ===================  =====  =====  =====  =====  =====  =====
 
 and on 10000 cells of 2.5 nm:
@@ -408,15 +424,24 @@ torque (A/m)          1e-1   1e-2   1e-3   1e-4   1e-5   1e-6
 ===================  =====  =====  =====  =====  =====  =====
 OOMMF CG               728    826    936   1050   1156   1278
 Fidimag BB             731    792    894    929    989   1038
-Fidimag SD            9467  11296  13124  14953  16781  18610
+Fidimag SD              52     66     77     84     92    105
 ===================  =====  =====  =====  =====  =====  =====
 
-Two things follow. The Barzilai-Borwein path is not merely competitive with a
-line-searched conjugate gradient, it needs fewer field evaluations than one at
-every tolerance, by about a third on the coarse mesh and a fifth on the fine
-one, and it keeps going well past the last row, to
-:math:`2\times10^{-10}` A/m on the coarse mesh. The steepest descent needs ten
-to thirty times as many, which is the price of never looking at the energy.
+The steepest descent is the fastest of the three by a wide margin, an order of
+magnitude fewer field evaluations than the conjugate gradient at every
+tolerance. This is the method of Exl et al. [6]_, which is also what MuMax3
+minimises with, so the comparison is between a spectral gradient method and a
+line-searched conjugate gradient rather than between two codes. It is measured
+here at the defaults of this class, ``tmax = 10`` with the energy guard on;
+both matter, and the next section says why.
+
+The Barzilai-Borwein path of the Hubert class also needs fewer evaluations
+than the conjugate gradient at every tolerance, by about a third on the coarse
+mesh and a fifth on the fine one, and it keeps going well past the last row,
+to :math:`2\times10^{-10}` A/m on the coarse mesh. It carries a conjugate
+direction and a trust region that the steepest descent does not, which is
+worth more on harder landscapes than on this one.
+
 Wall clock does not change the picture: measured per evaluation, 0.23 ms
 against 0.80 ms for OOMMF on the coarse mesh and 0.99 ms against 1.07 ms on
 the fine one, both codes being bound by the same transform.
