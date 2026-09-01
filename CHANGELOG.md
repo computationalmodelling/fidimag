@@ -76,6 +76,19 @@ Version 4.0
 * **Steepest descent**: a non-positive Barzilai-Borwein quotient no longer
   produces a step up the energy, which could leave the iteration stalled in a
   configuration that was not a minimum
+* **Steepest descent**: new `stopping_torque` argument, which stops once no
+  site has a torque `||m x (m x H)||` larger than the value given, in the
+  units of the effective field. Prefer it to `stopping_dm`, which stops on how
+  far a spin moved in a step: that distance is the product of the step length
+  and the torque, and Barzilai-Borwein step lengths swing over orders of
+  magnitude, so the test can pass on a short step while the residual is
+  unchanged. On the standard problem 4 s-state `stopping_dm = 1e-9` ended the
+  iteration at a torque of 7e-3 A/m. The new criterion is the residual the
+  Hubert minimiser already stops on and the one OOMMF reports as
+  `Max mxHxm`, so the three are directly comparable, and it costs nothing:
+  `max_torque()` reads a quantity that is computed every step anyway.
+  `stopping_dm` still works and is unchanged when `stopping_torque` is not
+  given
 * **Steepest descent**: the default step ceiling `tmax` is 1 rather than 0.1.
   Relaxing the standard problem 4 film to its s-state takes 2498 evaluations
   of the effective field at 1 against 12318 at 0.1, reaching the same state.

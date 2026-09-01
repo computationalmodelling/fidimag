@@ -288,6 +288,34 @@ step length rule, and the differences are the update above, and the fact that
 the steepest descent class does not evaluate the energy at all, stopping
 instead when no spin moves further than ``stopping_dm`` in a step.
 
+Choosing when to stop
+^^^^^^^^^^^^^^^^^^^^^
+
+Prefer ``stopping_torque`` to ``stopping_dm``::
+
+    sim.driver.minimise(stopping_torque=1e-4)
+
+``stopping_dm`` stops once no spin has moved further than the value given in
+a single step. That distance is the product of the step length and the torque,
+so it is small either because the iteration has converged or because the last
+Barzilai-Borwein step happened to be short, and those step lengths swing over
+orders of magnitude by design. The test can therefore pass on a short step
+while the residual has not moved. On the standard problem 4 s-state,
+``stopping_dm = 1e-9`` ended the iteration with a torque of
+:math:`7\times10^{-3}` A/m, its last three steps having residuals of
+:math:`2.3\times10^{-8}`, :math:`9.8\times10^{-9}` and
+:math:`9.7\times10^{-9}` while the displacement swung by a factor of four
+across them. The value is also scaled by the effective field, so the same
+number means different things in the micromagnetic and atomistic classes.
+
+``stopping_torque`` tests :math:`\max||\vec{m}\times(\vec{m}\times\vec{H})||`
+instead, the residual that vanishes at a minimum, in the units of the field:
+A/m for the micromagnetic classes and tesla for the atomistic ones. It is the
+same quantity the Hubert minimiser stops on and the one OOMMF reports as
+``Max mxHxm``, so the three can be compared directly, and it costs nothing,
+being already computed at every step.
+
+
 Not evaluating the energy makes each step cheaper, but it means that nothing
 prevents a step from overshooting: the quotients are only an estimate, and when
 the curvature they are extrapolating from is not representative the iteration
@@ -372,16 +400,18 @@ is 1, an order of magnitude below that, which on the standard problem 4
 s-state takes 2498 evaluations against the 12318 of the 0.1 it used to be. A
 ceiling of 3 takes 1478 and of 10, guarded, would take fewer still.
 
-The guard is nonetheless off by default, because of how it interacts with the
-stopping criterion. ``stopping_dm`` bounds how far a spin moves in a step, and
-a rejected trial step is a short one, so backtracking can satisfy the
-criterion while the residual is still large. On the s-state, the guarded
-iteration stopped at :math:`4\times10^{-6}` A/m with ``tmax = 3`` and at
-:math:`5\times10^{-6}` with ``tmax = 10``, never reaching the
-:math:`10^{-6}` that the unguarded runs reach; the configuration is right, its
-energy agreeing to ten digits, but the convergence is looser than asked for.
-A criterion on the torque rather than on the displacement would fix this, and
-is what the guard needs before it can be turned on by default.
+What the guard cannot be replaced by is a better stopping criterion. The
+configuration the unguarded iteration ends on at ``tmax = 10`` is not an
+unconverged one that a tighter test would have caught: its torque is
+:math:`8\times10^{-5}` A/m, satisfying the same criterion the correct answer
+satisfies. It is a different stationary point, and the only way not to arrive
+there is to look at the energy while the step is being taken, which is what
+the guard does. ``tests/test_steepest_descent.py`` pins this.
+
+The guard costs between five and fifteen per cent more evaluations at a given
+ceiling, and buys the ability to raise the ceiling: 918 evaluations at
+``tmax = 10`` guarded against 1493 at ``tmax = 3``, which is as high as the
+unguarded iteration can safely go.
 
 The spread of the unguarded runs is not physics. The effective field is not
 bit-reproducible from one run to the next, for the reason given under

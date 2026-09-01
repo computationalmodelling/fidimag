@@ -186,3 +186,46 @@ def test_minimisers_are_quiet_unless_asked(capsys):
         out = capsys.readouterr()
         assert out.out == '', '%s wrote to stdout: %r' % (driver, out.out[:120])
         assert out.err == '', '%s wrote to stderr: %r' % (driver, out.err[:120])
+
+
+def test_stopping_torque_stops_on_the_residual():
+    """
+    `stopping_torque` tests the residual, `stopping_dm` a displacement.
+
+    `max_dm` is the product of the step length and the torque, and
+    Barzilai-Borwein step lengths swing over orders of magnitude, so it can
+    fall below its threshold on a short step while the residual is unchanged.
+    """
+    sim = _setup_1D_DW()
+    sim.driver.minimise(stopping_torque=1e-4, max_steps=20000, printing=False)
+
+    assert sim.driver.max_torque() < 1e-4
+    assert _dw_MAE(sim) < 0.02
+
+    # the displacement criterion, asked for the same tightness, stops with a
+    # residual orders of magnitude larger
+    loose = _setup_1D_DW()
+    loose.driver.minimise(stopping_dm=1e-4, max_steps=20000, printing=False)
+    assert loose.driver.max_torque() > 1e-4
+
+
+def test_energy_guard_is_what_allows_a_large_tmax():
+    """
+    Above a certain step ceiling the guard is the only thing keeping the
+    iteration on the right configuration.
+
+    The collapsed wall is stationary, its torque satisfying the same
+    criterion, so no stopping test can catch it: the energy has to be looked
+    at while the step is taken.
+    """
+    unguarded = _setup_1D_DW(tmax=10.0)
+    unguarded.driver.minimise(stopping_torque=1e-4, max_steps=20000,
+                              printing=False, energy_guard=False)
+    assert unguarded.driver.max_torque() < 1e-4, 'it did converge, but ...'
+    assert _dw_MAE(unguarded) > 0.5, '... to the wrong configuration'
+
+    guarded = _setup_1D_DW(tmax=10.0)
+    guarded.driver.minimise(stopping_torque=1e-4, max_steps=20000,
+                            printing=False, energy_guard=True)
+    assert guarded.driver.max_torque() < 1e-4
+    assert _dw_MAE(guarded) < 0.02

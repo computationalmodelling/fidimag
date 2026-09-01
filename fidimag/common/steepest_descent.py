@@ -365,20 +365,57 @@ class SteepestDescent(MinimiserBase):
 
         return nBacktrack
 
+    def max_torque(self):
+        """
+        Largest `||m x (m x H)||` over the sites, the residual of a minimum
+
+        `mxmxH` holds that quantity with the effective field already
+        multiplied by `scale`, so the scaling is divided out here and the
+        result carries the units of the field itself: A/m for the
+        micromagnetic classes, tesla for the atomistic ones. It is the same
+        residual the Hubert minimiser stops on, and the one OOMMF reports as
+        `Max mxHxm`.
+
+        Returns
+        -------
+        float
+        """
+        return float(np.max(np.linalg.norm(self.mxmxH.reshape(-1, 3), axis=1))
+                     / self.scale)
+
     def minimise(self, stopping_dm=1e-3, max_steps=5000,
                  save_data_steps=10, save_m_steps=None, save_vtk_steps=None,
                  log_every=1000, printing=True,
                  initial_t_step=1e-2,
                  energy_guard=False, nTrail=10, gamma=1e-4, maxBacktrack=15,
-                 dTau=2
+                 dTau=2, stopping_torque=None
                  ):
         """
-        Run the minimisation until meeting the stopping_dm criteria
+        Run the minimisation until it converges or runs out of steps
 
         Parameters
         ----------
+        stopping_torque
+            Stop once no site has a torque `||m x (m x H)||` larger than this,
+            in the units of the effective field, A/m for the micromagnetic
+            classes and tesla for the atomistic ones. This is the residual
+            that vanishes at a minimum, and is what OOMMF reports as
+            `Max mxHxm`. When it is given it replaces `stopping_dm`.
+
+            Prefer it. `stopping_dm` measures how far a spin moved, which is
+            the product of the step length and the torque, so it is small
+            either because the iteration has converged or because the last
+            Barzilai-Borwein step happened to be short. Those step lengths
+            swing over orders of magnitude by design, so the test can pass on
+            a short step while the residual is unchanged: on the standard
+            problem 4 s-state, `stopping_dm = 1e-9` stopped the iteration with
+            a torque of 7e-3 A/m, its last three steps having residuals of
+            2.3e-8, 9.8e-9 and 9.7e-9 in scaled units while `max_dm` swung by
+            a factor of four. `stopping_dm` also carries the field scaling, so
+            the same number means different things in the two modules
         stopping_dm
-            Stop once no spin moves further than this in a single step
+            Stop once no spin moves further than this in a single step.
+            Ignored when `stopping_torque` is given
         max_steps
             Maximum number of accepted steps
         save_data_steps, save_m_steps, save_vtk_steps
@@ -458,9 +495,19 @@ class SteepestDescent(MinimiserBase):
                                                                  nBacktrack)
                              if energy_guard else ""))
 
-            if max_dm < stopping_dm and self.step > 0:
-                log.info("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(
-                    self.step, np.max(np.abs(self.tau)), max_dm))
+            if stopping_torque is not None:
+                # `mxmxH` is m x (m x H) with the field already multiplied by
+                # `scale`, so dividing it out gives the torque in the units of
+                # the effective field, at no extra cost
+                converged = self.max_torque() < stopping_torque
+            else:
+                converged = max_dm < stopping_dm
+
+            if converged and self.step > 0:
+                log.info("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g} "
+                         "max_torque={:<10.3g}".format(
+                             self.step, np.max(np.abs(self.tau)), max_dm,
+                             self.max_torque()))
                 self.compute_effective_field()
                 self.data_saver.save()
                 break
