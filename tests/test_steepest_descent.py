@@ -13,14 +13,13 @@ Ku = 0.4e6
 E_DW_REFERENCE = 1.9603112400e-01
 
 
-def _setup_1D_DW(tmax=None):
+def _setup_1D_DW(tmax=None, driver='steepest_descent'):
     """1D micromagnetic sample with a domain wall as the initial state"""
 
     mesh = fidimag.common.CuboidMesh(nx=100, ny=1, nz=1, dx=1, dy=1, dz=1,
                                      unit_length=1e-9)
 
-    sim = fidimag.micro.Sim(mesh, name='1Dmicro_sd',
-                            driver='steepest_descent')
+    sim = fidimag.micro.Sim(mesh, name='1Dmicro_sd', driver=driver)
 
     sim.set_Ms(Ms)
     sim.add(fidimag.micro.UniformExchange(A))
@@ -166,3 +165,24 @@ if __name__ == "__main__":
     test_steepest_descent_tau_stays_positive()
     test_steepest_descent_energy_guard_large_tmax()
     test_steepest_descent_energy_guard_matches_default()
+
+
+def test_minimisers_are_quiet_unless_asked(capsys):
+    """
+    No minimiser prints: progress goes to the `fidimag` logger.
+
+    The per step lines are at DEBUG, the reason the iteration stopped at INFO
+    and a failure to converge at WARNING, so a run that converges is silent
+    unless that logger is turned up.
+    """
+    # `SimpleMinimiser` is not reachable through `Sim`, being commented out of
+    # the driver tables of both modules, so it cannot be exercised here
+    for driver, kwargs in [('steepest_descent', dict(stopping_dm=1e-4)),
+                           ('hubert_minimiser', dict(stepControl='BB',
+                                                     mXgradE_tol=1e-2,
+                                                     stopping_dE=-1.0))]:
+        sim = _setup_1D_DW(driver=driver)
+        sim.driver.minimise(max_steps=200, **kwargs)
+        out = capsys.readouterr()
+        assert out.out == '', '%s wrote to stdout: %r' % (driver, out.out[:120])
+        assert out.err == '', '%s wrote to stderr: %r' % (driver, out.err[:120])

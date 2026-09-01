@@ -1,9 +1,12 @@
+import logging
 import numpy as np
 import fidimag.extensions.clib as clib
 # import fidimag.common.constant as const
 
 from .minimiser_base import MinimiserBase
 
+
+log = logging.getLogger(name='fidimag')
 
 class SimpleMinimiser(MinimiserBase):
     """
@@ -92,15 +95,13 @@ class SimpleMinimiser(MinimiserBase):
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
 
-            if self.step % log_steps == 0:
-                print("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                    np.max(np.abs(self.tau)),
-                    max_dm, self.step))
+            if self.step % log_steps == 0 and log.isEnabledFor(logging.DEBUG):
+                log.debug("#max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
+                    np.max(np.abs(self.tau)), max_dm, self.step))
 
             if max_dm < stopping_dm and self.step > 0:
-                print("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
-                      np.max(np.abs(self.tau)),
-                      max_dm, self.step))
+                log.info("FINISHED AT: max_tau={:<8.3g} max_dm={:<10.3g} counter={}".format(
+                    np.max(np.abs(self.tau)), max_dm, self.step))
 
                 self.compute_effective_field()
                 self.data_saver.save()

@@ -51,6 +51,15 @@ Version 4.0
 
       logging.basicConfig(level=logging.DEBUG)
 
+* **Steepest descent and `SimpleMinimiser`**: progress goes to the `fidimag`
+  logger too, at the same levels as the Hubert minimiser, so no minimiser
+  writes to stdout or stderr any more. The steepest descent had also been
+  reporting its convergence unconditionally, ignoring `printing`, and warning
+  about a failure to converge through `sys.stderr`. `printing` and `log_every`
+  are kept, and now throttle the DEBUG lines
+* **`MinimiserBase.relax`** raises `NotImplementedError` instead of printing
+  that it is not implemented and returning `None`
+
 * **Hubert minimiser**: progress goes to the `fidimag` logger rather than to
   `print`, as the NEBM classes already did. The per step lines are at DEBUG
   and the reason it stopped at INFO, so a converged run is now silent; raise

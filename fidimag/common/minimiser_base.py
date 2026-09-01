@@ -114,7 +114,9 @@ class MinimiserBase:
         pass
 
     def relax(self):
-        print('Not implemented for the SD minimiser')
+        raise NotImplementedError(
+            'A minimiser has no dynamics to relax; call minimise instead, or ' +
+            'use one of the time integration drivers')
 
     # -------------------------------------------------------------------------
 

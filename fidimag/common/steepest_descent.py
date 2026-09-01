@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import fidimag.extensions.common_clib as clib
 # Change int he future to common clib:
@@ -6,6 +7,8 @@ import sys
 from itertools import cycle
 from .minimiser_base import MinimiserBase
 
+
+log = logging.getLogger(name='fidimag')
 
 class SteepestDescent(MinimiserBase):
     """
@@ -447,21 +450,17 @@ class SteepestDescent(MinimiserBase):
             max_dm = (self.spin - self.spin_last).reshape(-1, 3) ** 2
             max_dm = np.max(np.sqrt(np.sum(max_dm, axis=1)))
 
-            if printing:
-                if self.step % log_every == 0:
-                    # print("#{:<4} t={:<8.3g} dt={:.3g} max_dmdt={:.3g}
-                    print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
-                            np.max(np.abs(self.tau)),
-                            max_dm)
+            if (printing and self.step % log_every == 0
+                    and log.isEnabledFor(logging.DEBUG)):
+                log.debug("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(
+                              self.step, np.max(np.abs(self.tau)), max_dm)
                           + (" E={:<12.6g} backtracks={}".format(self.totalE,
                                                                  nBacktrack)
                              if energy_guard else ""))
 
             if max_dm < stopping_dm and self.step > 0:
-                print("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(self.step,
-                                                                        np.max(np.abs(self.tau)),
-                                                                        max_dm)
-                      )
+                log.info("#{:<4} max_tau={:<8.3g} max_dm={:<10.3g}".format(
+                    self.step, np.max(np.abs(self.tau)), max_dm))
                 self.compute_effective_field()
                 self.data_saver.save()
                 break
@@ -479,4 +478,5 @@ class SteepestDescent(MinimiserBase):
             self.step += 1
 
         if self.step == max_steps:
-            sys.stderr.write("Warning: minimise did not converge in {} steps - maxdm = {}".format(self.step, max_dm))
+            log.warning("minimise did not converge in {} steps - maxdm = {}".format(
+                self.step, max_dm))
