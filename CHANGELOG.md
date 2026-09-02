@@ -328,6 +328,14 @@ Version 4.0
 
 ### Removals
 
+* **`fidimag/atomistic/exchange_new.py` and `fidimag/atomistic/field.py` are
+  gone.** The first was a second `Exchange` class that nothing imported and
+  that could not have worked: `compute` referred twice to a `mesh` not in its
+  scope, and it offered `compute` and `in_jacobian` where the interaction
+  interface wants `compute_field` and `jac`. The second was a byte for byte
+  copy of `fidimag/common/field.py`, imported only by the first; the original
+  stays, the tests use it. With these and `sim2fdfield` removed, `ruff`
+  reports no undefined names anywhere in the package
 * **`fidimag/common/sim2fdfield.py` is gone.** It converted a simulation into
   a `finitedifferencefield.Field`, importing a package that is not a
   dependency and has never been one, and it could not have run in any case:
