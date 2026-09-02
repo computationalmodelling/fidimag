@@ -1,12 +1,49 @@
 #include "calculate.hpp"
+#include "variant.hpp"
 #include "operators.h"
 #include "tree.hpp"
 #include "utils.hpp"
 #include <iostream>
-#include <stack>
-#include <cmath>
+#include <omp.h>
 
-void M_sanity_check(const std::vector<Cell> &cells) {
+// A cell's z centre for a real 3D tree, or 0.0 for a planar (D=2) one, where
+// Cell<D>::centre only has 2 components. Every cell-cell displacement in this
+// file goes through this rather than storing a z=0 shell per cell.
+template <int D>
+static inline double zc(const std::array<double, D> &centre) {
+  if constexpr (D == 3) return centre[2];
+  else return 0.0;
+}
+
+// Dispatches to the genuinely 2-argument-position P2P_batchxy for a planar
+// (D=2) tree, or the ordinary 3-argument P2P_batch otherwise. Guarded by
+// FMMGEN_PLANAR so example driver builds that never set planar=True still
+// compile for D=3 -- the fallback (#else branch) pads with the tz/bz the
+// caller already has, exactly as every other operator call in this file
+// does via zc<D>()/Tree::body_z_zero, and is what every call site used
+// unconditionally before this existed.
+#ifdef FMMGEN_PLANAR
+template <int D>
+static inline void p2p_batch_dispatch(double tx, double ty, double tz,
+                                      const double *bx, const double *by, const double *bz,
+                                      const double *bS, size_t begin, size_t end, double *F) {
+  if constexpr (D == 2) {
+    P2P_batchxy(tx, ty, bx, by, bS, begin, end, F);
+  } else {
+    P2P_batch(tx, ty, tz, bx, by, bz, bS, begin, end, F);
+  }
+}
+#else
+template <int D>
+static inline void p2p_batch_dispatch(double tx, double ty, double tz,
+                                      const double *bx, const double *by, const double *bz,
+                                      const double *bS, size_t begin, size_t end, double *F) {
+  P2P_batch(tx, ty, tz, bx, by, bz, bS, begin, end, F);
+}
+#endif
+
+template <int D>
+void M_sanity_check(const std::vector<Cell<D>> &cells) {
 	double M0 = 0;
 	for(size_t c = 1; c < cells.size(); c++) {
       if (cells[c].nchild == 0) {
@@ -21,294 +58,377 @@ void M_sanity_check(const std::vector<Cell> &cells) {
 }
 
 
-void P2P_Cells(size_t A, size_t B, std::vector<Cell> &cells, std::vector<Particle> &particles, double *F) {
-  // A - target
-  // B - source
-  for (size_t p1 = 0; p1 < cells[A].nleaf; p1++) {
-    //double F_p[FMMGEN_OUTPUTSIZE] = {0.0};
-    size_t l1 = cells[A].leaf[p1];
-    for (size_t p2 = 0; p2 < cells[B].nleaf; p2++) {
-      size_t l2 = cells[B].leaf[p2];
-      if (l2 != l1) {
-      	double dx = (particles[l1].r[0] - particles[l2].r[0]);
-      	double dy = (particles[l1].r[1] - particles[l2].r[1]);
-      	double dz = (particles[l1].r[2] - particles[l2].r[2]);
-      	P2P(dx, dy, dz, particles[l2].S, &F[FMMGEN_OUTPUTSIZE*l1]);
-      }
-    }
+// interact_dehnen (the non-lazy, immediate-evaluation traversal) and P2P_Cells
+// were removed here. interact_dehnen was only ever called from itself, so it
+// was unreachable; P2P_Cells lost its last caller when evaluate_P2P_lazy was
+// restructured to group by target below.
+
+// One step of the dual-tree traversal: either classify (A,B) as a terminal
+// interaction, or emit the child pairs it decomposes into.
+//
+// Factored out so the traversal can be driven two ways: breadth-first to carve
+// out independent work, then depth-first inside each piece.
+template <int D>
+static inline void dehnen_step(const size_t A, const size_t B,
+                               const std::vector<Cell<D>> &cells,
+                               const double theta, const size_t ncrit,
+                               std::vector<Interaction> &M2L_list,
+                               std::vector<Interaction> &P2P_list,
+                               std::vector<Interaction> *children) {
+  const double dx = cells[A].centre[0] - cells[B].centre[0];
+  const double dy = cells[A].centre[1] - cells[B].centre[1];
+  const double dz = zc<D>(cells[A].centre) - zc<D>(cells[B].centre);
+
+  // Squared multipole acceptance criterion; see the note in the header.
+  const double R2 = dx*dx + dy*dy + dz*dz;
+  const double rsum = cells[A].rmax + cells[B].rmax;
+
+  if (R2 * theta * theta > rsum * rsum) {
+    M2L_list.push_back(Interaction{(uint32_t)A, (uint32_t)B});
   }
-}
-
-void interact_dehnen(size_t A, size_t B, std::vector<Cell> &cells, std::vector<Particle> &particles,
-		     double theta, size_t order, size_t ncrit, double *F) {
-  double dx = (cells[A].x - cells[B].x);
-  double dy = (cells[A].y - cells[B].y);
-  double dz = (cells[A].z - cells[B].z);
-  double R = sqrt(dx*dx + dy*dy + dz*dz);
-
-  if (R*theta > (cells[A].rmax + cells[B].rmax)) {
-    M2L(dx, dy, dz, cells[B].M, cells[A].L, order);
-  }
-
   else if (cells[A].nchild == 0 && cells[B].nchild == 0) {
-    if (cells[B].nleaf >= ncrit) {
-      M2L(dx, dy, dz, cells[B].M, cells[A].L, order);
-    }
-    else {
-      P2P_Cells(A, B, cells,particles, F);
-    }
+    // The previous version had an `if (cells[B].nleaf >= ncrit)` branch here
+    // that pushed an M2L pair and also evaluated M2L immediately. It was
+    // unreachable: nchild == 0 implies nleaf < ncrit by construction, so the
+    // condition can never hold. Worse, it ran during build_tree, before
+    // cells[].M and cells[].L had been pointed at their storage. Dropping it
+    // leaves the interaction lists byte-identical.
+    P2P_list.push_back(Interaction{(uint32_t)A, (uint32_t)B});
   }
-
   else if (cells[B].nchild == 0 || (cells[A].rmax >= cells[B].rmax && cells[A].nchild != 0)) {
-      for(int oa = 0; oa < 8; oa++) {
-        if (cells[A].nchild & (1 << oa)) {
-          int a = cells[A].child[oa];
-          interact_dehnen(a, B, cells, particles, theta, order, ncrit, F);
-        }
-      }
+    for (size_t oa = 0; oa < Cell<D>::NCHILD; oa++) {
+      if (cells[A].nchild & (1 << oa))
+        children->push_back(Interaction{(uint32_t)cells[A].child[oa], (uint32_t)B});
+    }
   }
-
   else {
-    for(int ob = 0; ob < 8; ob++) {
-      if (cells[B].nchild & (1 << ob)) {
-        const int b = cells[B].child[ob];
-        interact_dehnen(A, b, cells, particles, theta, order, ncrit, F);
-      }
+    for (size_t ob = 0; ob < Cell<D>::NCHILD; ob++) {
+      if (cells[B].nchild & (1 << ob))
+        children->push_back(Interaction{(uint32_t)A, (uint32_t)cells[B].child[ob]});
     }
   }
 }
 
+// Depth-first traversal of one subtree pair, into private lists.
+template <int D>
+static void dehnen_dfs(const size_t A, const size_t B,
+                       const std::vector<Cell<D>> &cells,
+                       const double theta, const size_t ncrit,
+                       std::vector<Interaction> &M2L_list,
+                       std::vector<Interaction> &P2P_list) {
+  std::vector<Interaction> kids;
+  dehnen_step<D>(A, B, cells, theta, ncrit, M2L_list, P2P_list, &kids);
+  for (size_t k = 0; k < kids.size(); k++) {
+    dehnen_dfs<D>(kids[k].target, kids[k].source, cells, theta, ncrit, M2L_list, P2P_list);
+  }
+}
+
+template <int D>
 void interact_dehnen_lazy(const size_t A, const size_t B,
-                          const std::vector<Cell> &cells,
-                          const std::vector<Particle> &particles,
-			                    const double theta, const size_t order,
+                          const std::vector<Cell<D>> &cells,
+                          const std::vector<Particle<D>> &particles,
+                          const double theta, const size_t order,
                           const size_t ncrit,
-                          std::vector<std::pair<size_t, size_t>> &M2L_list,
-                          std::vector<std::pair<size_t, size_t>> &P2P_list) {
-  const double dx = cells[A].x - cells[B].x;
-  const double dy = cells[A].y - cells[B].y;
-  const double dz = cells[A].z - cells[B].z;
-  const double R = sqrt(dx*dx + dy*dy + dz*dz);
+                          std::vector<Interaction> &M2L_list,
+                          std::vector<Interaction> &P2P_list) {
+  (void)particles; (void)order;
 
-  if (R*theta > (cells[A].rmax + cells[B].rmax)) {
-    //if (cells[A].nleaf < ncrit && cells[B].nleaf < ncrit) {
-      std::pair<size_t, size_t> m2l_pair = std::make_pair(B, A);
-      M2L_list.push_back(m2l_pair);
-    //}
+  // The traversal used to be a serial recursion, and was one of the larger
+  // remaining costs as well as a hard Amdahl ceiling.
+  //
+  // exafmm parallelises it with `#pragma omp task untied`, but that makes the
+  // order in which interactions are appended depend on the scheduler, which
+  // would cost us the bit-reproducibility that removing the atomics bought.
+  //
+  // Instead: expand breadth-first until there are enough independent subtree
+  // pairs to keep the threads busy, then run each depth-first into its OWN
+  // buffer and concatenate the buffers in index order. The work split and the
+  // concatenation order are both fixed, so the result is identical to the
+  // serial traversal regardless of thread count or scheduling.
+  const size_t target_tasks = 8 * (size_t)omp_get_max_threads();
+
+  std::vector<Interaction> frontier{Interaction{(uint32_t)A, (uint32_t)B}};
+  std::vector<Interaction> next;
+  while (frontier.size() < target_tasks) {
+    next.clear();
+    for (size_t f = 0; f < frontier.size(); f++) {
+      dehnen_step<D>(frontier[f].target, frontier[f].source, cells, theta, ncrit,
+                     M2L_list, P2P_list, &next);
+    }
+    // Swap before checking emptiness: on break, frontier must become the
+    // (now-empty) set of pairs still needing depth-first work, not the set
+    // just fully classified by dehnen_step above -- otherwise the depth-first
+    // phase below re-classifies and double-counts every pair from the last
+    // breadth-first round. Only reachable for trees small enough to fully
+    // classify before target_tasks pairs accumulate.
+    frontier.swap(next);
+    if (frontier.empty()) break;
   }
 
-  else if (cells[A].nchild == 0 && cells[B].nchild == 0) {
-    if (cells[B].nleaf >= ncrit) {
-      std::pair<size_t, size_t> m2l_pair = std::make_pair(B, A);
-      M2L_list.push_back(m2l_pair);
-      M2L(dx, dy, dz, cells[B].M, cells[A].L, order);
-    }
-    else {
-      //if (cells[A].nleaf < ncrit and cells[B].nleaf < ncrit) {
-    	std::pair<size_t, size_t> p2p_pair = std::make_pair(A, B);
-    	P2P_list.push_back(p2p_pair);
-      //}
-    }
+  std::vector<std::vector<Interaction>> m2l_buf(frontier.size());
+  std::vector<std::vector<Interaction>> p2p_buf(frontier.size());
+
+  #pragma omp parallel for schedule(dynamic, 1)
+  for (size_t f = 0; f < frontier.size(); f++) {
+    dehnen_dfs<D>(frontier[f].target, frontier[f].source, cells, theta, ncrit,
+                 m2l_buf[f], p2p_buf[f]);
   }
 
-  else if (cells[B].nchild == 0 || (cells[A].rmax >= cells[B].rmax && cells[A].nchild != 0)) {
-    for(int oa = 0; oa < 8; oa++) {
-      // For all 8 children of A, if child exists
-      if (cells[A].nchild & (1 << oa)) {
-    	int a = cells[A].child[oa];
-    	interact_dehnen_lazy(a, B, cells, particles, theta, order, ncrit, M2L_list, P2P_list);
-      }
-    }
-  }
-
-  else {
-    for(int ob = 0; ob < 8; ob++) {
-      // for all 8 children of B, if child exists:
-      if (cells[B].nchild & (1 << ob)) {
-        int b = cells[B].child[ob];
-        interact_dehnen_lazy(A, b, cells, particles, theta, order, ncrit, M2L_list, P2P_list);
-      }
-    }
+  for (size_t f = 0; f < frontier.size(); f++) {
+    M2L_list.insert(M2L_list.end(), m2l_buf[f].begin(), m2l_buf[f].end());
+    P2P_list.insert(P2P_list.end(), p2p_buf[f].begin(), p2p_buf[f].end());
   }
 }
 
-void evaluate_P2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
-              size_t cell, size_t ncrit, size_t exporder) {
+template <int D>
+void evaluate_P2M(std::vector<Cell<D>> &cells,
+                  const double *bx, const double *by, const double *bz,
+                  const double *bS, size_t ncrit, size_t exporder) {
+  // Uses the generated S2M rather than seeding a scratch multipole with the
+  // source's moments and calling the general M2M. The old form encoded an
+  // undocumented basis assumption in the driver -- that a point source's
+  // multipole coefficients ARE its moments, true for the Cartesian basis but
+  // not in general -- and paid for a full M2M when all but FMMGEN_SOURCESIZE
+  // input coefficients are known to be zero. S2M is that specialisation:
+  // 16.9x fewer multiplies at p=11, 4.1x at p=5.
   #pragma omp for
   for(size_t c = 0; c < cells.size(); c++) {
-    //std::cout << "Cell " << c << std::endl;
-    //std::cout << "  Msize = " << Msize(exporder, FMMGEN_SOURCEORDER) << std::endl;
-    size_t msize = Msize(exporder, FMMGEN_SOURCEORDER);
-    double *M = new double[msize]();
-
     if (cells[c].nleaf < ncrit) {
-      for(size_t i = 0; i < cells[c].nleaf; i++) {
-        size_t l = cells[c].leaf[i];
-        // Walter dehnen's definition:
-        // (-1)^m / m! (x_a - z_a)^m
-        double dx = (cells[c].x - particles[l].r[0]);
-        double dy = (cells[c].y - particles[l].r[1]);
-        double dz = (cells[c].z - particles[l].r[2]);
-        for(int k = 0; k < FMMGEN_SOURCESIZE; k++) {
-          // std::cout << particles[l].S[k] << std::endl;
-          M[k] = particles[l].S[k];
-        }
-        M2M(dx, dy, dz, M, cells[c].M, exporder);
+      const size_t o = cells[c].body_offset;
+      for(size_t m = o; m < o + cells[c].nleaf; m++) {
+        fmm->s2m(cells[c].centre[0] - bx[m], cells[c].centre[1] - by[m],
+            zc<D>(cells[c].centre) - bz[m],
+            const_cast<double*>(&bS[FMMGEN_SOURCESIZE*m]), cells[c].M, exporder);
       }
    }
-   delete[] M;
   }
 }
 
-void evaluate_M2M(std::vector<Particle> &particles, std::vector<Cell> &cells,
+template <int D>
+void evaluate_M2M(std::vector<Cell<D>> &cells,
+                  const std::vector<std::vector<size_t>> &levels, size_t exporder) {
+  /*
+  evaluate_M2M with level-synchronous parallel traversal.
+
+  Process tree bottom-up, parallelizing within each level.
+  Cells at the same level can be processed in parallel since
+  they write to different parent cells.
+  */
+  // Bottom-up: start from deepest level and work up to level 1 (skip root at level 0).
+  //
+  // Parallelise over the PARENT cells at level l-1, not over the children at
+  // level l. Siblings share a parent, so distributing children across threads
+  // means up to 2^D threads accumulate into the same cells[p].M concurrently.
+  // Iterating parents gives each thread exclusive ownership of the cell it
+  // writes, which is the same pattern evaluate_L2L already uses.
+  for (int l = levels.size() - 1; l > 0; l--) {
+    #pragma omp for schedule(static)
+    for (size_t i = 0; i < levels[l-1].size(); i++) {
+      size_t p = levels[l-1][i];
+      for (size_t octant = 0; octant < Cell<D>::NCHILD; octant++) {
+        if (cells[p].nchild & (1 << octant)) {
+          size_t c = cells[p].child[octant];
+          double dx = (cells[p].centre[0] - cells[c].centre[0]);
+          double dy = (cells[p].centre[1] - cells[c].centre[1]);
+          double dz = zc<D>(cells[p].centre) - zc<D>(cells[c].centre);
+          fmm->m2m(dx, dy, dz, cells[c].M, cells[p].M, exporder);
+        }
+      }
+    }
+  }
+}
+
+
+template <int D>
+void evaluate_M2L_lazy(std::vector<Cell<D>> &cells,
+                       std::vector<Interaction> &M2L_list,
+                       std::vector<size_t> &M2L_group, size_t order) {
+    // M2L_list is grouped by target, so one thread can own an entire target.
+    // That thread is the only writer of cells[A].L, which lets M2L accumulate
+    // straight into it. Compared with the previous version this removes, per
+    // interaction: a heap allocation, the zeroing of the temporary, and an
+    // lsize-long loop of atomic adds (364 atomics per interaction at p=11,
+    // roughly 660M over a typical run).
+    //
+    // Entries for target A live in [M2L_group[A], M2L_group[A+1]); empty
+    // targets are skipped. Groups vary widely in size, hence dynamic
+    // scheduling.
+    const size_t ngroups = M2L_group.empty() ? 0 : M2L_group.size() - 1;
+    #pragma omp for schedule(dynamic, 16)
+    for (size_t A = 0; A < ngroups; A++) {
+        const size_t begin = M2L_group[A], end = M2L_group[A+1];
+        if (begin == end) continue;
+        double *const L = cells[A].L;
+        const double ax = cells[A].centre[0], ay = cells[A].centre[1], az = zc<D>(cells[A].centre);
+        for (size_t i = begin; i < end; i++) {
+            const size_t B = M2L_list[i].source;
+            fmm->m2l(ax - cells[B].centre[0], ay - cells[B].centre[1], az - zc<D>(cells[B].centre),
+                cells[B].M, L, order);
+        }
+    }
+
+}
+
+template <int D>
+void evaluate_P2P_lazy(std::vector<Cell<D>> &cells,
+                       const double *bx, const double *by, const double *bz,
+                       const double *body_S,
+                       std::vector<Interaction> &P2P_list,
+                       std::vector<size_t> &P2P_group, double *F) {
+   // Grouped by target, so the owning thread is the sole writer of F for that
+   // target's particles: no atomics, and the result is bit-reproducible.
+   //
+   // F is in Morton order here too, so the target write is contiguous and the
+   // body_perm indirection is gone entirely; the caller scatters once at the end.
+   //
+   // Sources are handed to the GENERATED P2P_batch kernel a contiguous run at
+   // a time. The per-pair P2P() lives in another translation unit, so calling
+   // it per interaction cost a real function call and made vectorisation
+   // impossible -- the object code had zero vector instructions here.
+   const size_t ngroups = P2P_group.empty() ? 0 : P2P_group.size() - 1;
+   #pragma omp for schedule(dynamic, 16)
+   for (size_t A = 0; A < ngroups; A++) {
+       const size_t begin = P2P_group[A], end = P2P_group[A+1];
+       if (begin == end) continue;
+       const size_t ao = cells[A].body_offset, an = cells[A].nleaf;
+       for (size_t i = begin; i < end; i++) {
+           const size_t B = P2P_list[i].source;
+           const size_t bo = cells[B].body_offset, bn = cells[B].nleaf;
+           for (size_t t = ao; t < ao + an; t++) {
+               double *const Fl = &F[FMMGEN_OUTPUTSIZE * t];
+               // Self-interaction is excluded by SPLITTING the source range
+               // around t rather than testing inside the loop: the kernel stays
+               // branch-free, and index-based exclusion preserves the original
+               // semantics exactly. Masking on r2 > 0 instead would also drop
+               // coincident-but-distinct particles, a silent behaviour change.
+               if (t >= bo && t < bo + bn) {
+                   p2p_batch_dispatch<D>(bx[t], by[t], bz[t], bx, by, bz, body_S, bo, t, Fl);
+                   p2p_batch_dispatch<D>(bx[t], by[t], bz[t], bx, by, bz, body_S, t+1, bo+bn, Fl);
+               } else {
+                   p2p_batch_dispatch<D>(bx[t], by[t], bz[t], bx, by, bz, body_S, bo, bo+bn, Fl);
+               }
+           }
+       }
+   }
+}
+
+
+
+
+template <int D>
+void evaluate_L2L(std::vector<Cell<D>> &cells, const std::vector<std::vector<size_t>> &levels,
                   size_t exporder) {
   /*
-  evaluate_M2M(particles, cells)
+  evaluate_L2L with level-synchronous parallel traversal.
 
-  This function evaluates the multipole to
-  multipole kernel. It does this by working up the
-  tree from the leaf nodes, which is possible
-  by iterating backwards through the nodes because
-  of the way the tree is constructed.
+  Process tree top-down, parallelizing within each level.
+  Cells at the same level can be processed in parallel.
   */
-  // #pragma omp for schedule(dynamic)
-  // Can't currently go up the tree in parallel.
-  // Needs to be recursive or summing not correct.
-
-  // Dehnen definition:
-  // M_m(z_p) = (z_p - z_c)^n / n! M_{m - n}
-  for (size_t c = cells.size() - 1; c > 0; c--) {
-    size_t p = cells[c].parent;
-    double dx = (cells[p].x - cells[c].x);
-    double dy = (cells[p].y - cells[c].y);
-    double dz = (cells[p].z - cells[c].z);
-    M2M(dx, dy, dz, cells[c].M, cells[p].M, exporder);
-  }
-}
-
-
-void evaluate_M2L_lazy(std::vector<Cell> &cells,
-                       std::vector<std::pair<size_t, size_t>> &M2L_list, size_t order) {
-    #pragma omp for
-    for(size_t i = 0; i < M2L_list.size(); i++) {
-    	size_t B = M2L_list[i].first;
-    	size_t A = M2L_list[i].second;
-      // Dehnen definition:
-      // F_n(z_B) = M_m(z_A) * D_{n+m} (z_B - z_A)
-
-      // So here, we've reversed the order:
-      // F_n(z_A) = M_m(z_B) * D_{n+m} (z_A - z_B)
-    	double dx = cells[A].x - cells[B].x;
-    	double dy = cells[A].y - cells[B].y;
-    	double dz = cells[A].z - cells[B].z;
-    	M2L(dx, dy, dz, cells[B].M, cells[A].L, order);
-    }
-}
-
-void evaluate_P2P_lazy(std::vector<Cell> &cells, std::vector<Particle> &particles,
-                       std::vector<std::pair<size_t, size_t>> &P2P_list, double *F) {
-   #pragma omp for
-   for(size_t i = 0; i < P2P_list.size(); i++) {
-       size_t A = P2P_list[i].first;
-       size_t B = P2P_list[i].second;
-       P2P_Cells(A, B, cells, particles, F);
-   }
-}
-
-
-void evaluate_L2L(std::vector<Cell> &cells, size_t exporder) {
-  // Can't currently go down the tree in parallel!
-  // needs to be recursive or summing not correct.
-  for (size_t p = 0; p < cells.size(); p++) {
-    for (int octant = 0; octant < 8; octant++) {
-      if (cells[p].nchild & (1 << octant)) {
-        // for child c in cell p
-        size_t c = cells[p].child[octant];
-        double dx = cells[c].x - cells[p].x;
-        double dy = cells[c].y - cells[p].y;
-        double dz = cells[c].z - cells[p].z;
-        L2L(dx, dy, dz, cells[p].L, cells[c].L, exporder);
+  // Top-down: start from root level and work down
+  for (size_t l = 0; l < levels.size() - 1; l++) {
+    #pragma omp for schedule(static)
+    for (size_t i = 0; i < levels[l].size(); i++) {
+      size_t p = levels[l][i];
+      for (size_t octant = 0; octant < Cell<D>::NCHILD; octant++) {
+        if (cells[p].nchild & (1 << octant)) {
+          size_t c = cells[p].child[octant];
+          double dx = cells[c].centre[0] - cells[p].centre[0];
+          double dy = cells[c].centre[1] - cells[p].centre[1];
+          double dz = zc<D>(cells[c].centre) - zc<D>(cells[p].centre);
+          // Each thread processes different parent cells, so no race condition
+          fmm->l2l(dx, dy, dz, cells[p].L, cells[c].L, exporder);
+        }
       }
     }
   }
 }
 
-void evaluate_L2P(std::vector<Particle> &particles, std::vector<Cell> &cells,
+template <int D>
+void evaluate_L2P(std::vector<Cell<D>> &cells,
+                  const double *bx, const double *by, const double *bz,
                   double *F, size_t ncrit, size_t exporder) {
   #pragma omp for schedule(runtime)
   for (size_t i = 0; i < cells.size(); i++) {
     if (cells[i].nleaf < ncrit) {
-      for (size_t p = 0; p < cells[i].nleaf; p++) {
-	    size_t k = cells[i].leaf[p];
-        double dx = particles[k].r[0] - cells[i].x;
-        double dy = particles[k].r[1] - cells[i].y;
-        double dz = particles[k].r[2] - cells[i].z;
-        L2P(dx, dy, dz, cells[i].L, &F[FMMGEN_OUTPUTSIZE*k], exporder);
+      const size_t o = cells[i].body_offset;
+      for (size_t m = o; m < o + cells[i].nleaf; m++) {
+        fmm->l2p(bx[m] - cells[i].centre[0], by[m] - cells[i].centre[1], bz[m] - zc<D>(cells[i].centre),
+            cells[i].L, &F[FMMGEN_OUTPUTSIZE*m], exporder);
       }
     }
   }
 }
 
-void evaluate_direct(std::vector<Particle> &particles, double *F, size_t n) {
+template <int D>
+void evaluate_direct(const double *bx, const double *by, const double *bz,
+                     const double *bS, double *F, size_t n) {
   #pragma omp parallel for schedule(runtime)
   for (size_t i = 0; i < n; i++) {
-    for (size_t j = 0; j < n; j++) {
-      if (i != j) {
-      	double dx = particles[i].r[0] - particles[j].r[0];
-      	double dy = particles[i].r[1] - particles[j].r[1];
-      	double dz = particles[i].r[2] - particles[j].r[2];
-      	P2P(dx, dy, dz, particles[j].S, &F[FMMGEN_OUTPUTSIZE*i]);
-      }
-    }
+    double *const Fl = &F[FMMGEN_OUTPUTSIZE*i];
+    // Split around i so the batched kernel stays branch-free.
+    if (i > 0)     p2p_batch_dispatch<D>(bx[i], by[i], bz[i], bx, by, bz, bS, 0, i, Fl);
+    if (i + 1 < n) p2p_batch_dispatch<D>(bx[i], by[i], bz[i], bx, by, bz, bS, i+1, n, Fl);
   }
 }
 
-void evaluate_M2P_and_P2P(std::vector<Particle> &particles, unsigned int p, unsigned int i,
-  std::vector<Cell> &cells, double *F, unsigned int n_crit, double theta,
+template <int D>
+void evaluate_M2P_and_P2P(const double *bx, const double *by, const double *bz,
+  const double *bS, unsigned int p, size_t m,
+  std::vector<Cell<D>> &cells, double *F, unsigned int n_crit, double theta,
   unsigned int exporder) {
-  // For particle i, start at cell p
-  double dx, dy, dz, r;
-  int c;
-  unsigned int j;
-  // If cell p is not a leaf cell:
+  // For Morton-ordered particle m, start at cell p.
+  double dx, dy, dz;
   if (cells[p].nleaf >= n_crit) {
-    // Iterate through it's children
-    for (unsigned int octant = 0; octant < 8; octant++) {
-      // If a child exists in a given octant:
+    for (size_t octant = 0; octant < Cell<D>::NCHILD; octant++) {
       if (cells[p].nchild & (1 << octant)) {
-        // Get the child's index
-        c = cells[p].child[octant];
-        // Calculate the distance from the particle to the child cell
-        dx = particles[i].r[0] - cells[c].x;
-        dy = particles[i].r[1] - cells[c].y;
-        dz = particles[i].r[2] - cells[c].z;
-        r = sqrt(dx*dx + dy*dy + dz*dz);
-        // Apply the Barnes-Hut criterion:
-        if (cells[c].r > theta * r) {
-            // If the cell is 'near':
-            evaluate_M2P_and_P2P(particles, c, i, cells, F, n_crit, theta, exporder);
+        const size_t c = cells[p].child[octant];
+        dx = bx[m] - cells[c].centre[0];
+        dy = by[m] - cells[c].centre[1];
+        dz = bz[m] - zc<D>(cells[c].centre);
+        // Squared form of  cells[c].r > theta * r,  as in the FMM criterion.
+        const double r2 = dx*dx + dy*dy + dz*dz;
+        if (cells[c].r * cells[c].r > theta * theta * r2) {
+            evaluate_M2P_and_P2P<D>(bx, by, bz, bS, c, m, cells, F, n_crit, theta, exporder);
         }
         else {
-            // If the cell is 'far', calculate the potential and field
-            // on the particle from the multipole expansion:
-            M2P(dx, dy, dz, cells[c].M, &F[FMMGEN_OUTPUTSIZE*i], exporder);
+            fmm->m2p(dx, dy, dz, cells[c].M, &F[FMMGEN_OUTPUTSIZE*m], exporder);
         }
       }
     }
   }
   else {
-    // loop in leaf cell's particles
-    for(unsigned int l = 0; l < (cells[p].nleaf); l++) {
-      // Get the particle index:
-      j = cells[p].leaf[l];
-      if (i != j) {
-        // Calculate the interparticle distance:
-        dx = particles[i].r[0] - particles[j].r[0];
-        dy = particles[i].r[1] - particles[j].r[1];
-        dz = particles[i].r[2] - particles[j].r[2];
-        // Compute the field:
-        P2P(dx, dy, dz, particles[j].S, &F[FMMGEN_OUTPUTSIZE*i]);
-      }
+    // Leaf: its particles are the contiguous run [o, o + nleaf). Split around
+    // m so the batched kernel stays branch-free, as elsewhere.
+    const size_t o = cells[p].body_offset, n = cells[p].nleaf;
+    double *const Fl = &F[FMMGEN_OUTPUTSIZE*m];
+    if (m >= o && m < o + n) {
+      if (m > o)         p2p_batch_dispatch<D>(bx[m], by[m], bz[m], bx, by, bz, bS, o, m, Fl);
+      if (m + 1 < o + n) p2p_batch_dispatch<D>(bx[m], by[m], bz[m], bx, by, bz, bS, m+1, o+n, Fl);
+    } else {
+      p2p_batch_dispatch<D>(bx[m], by[m], bz[m], bx, by, bz, bS, o, o+n, Fl);
     }
   }
 }
+
+// D = 2 (quadtree, planar) and D = 3 (octree) are the only supported
+// instantiations -- see the static_assert in Particle<D>.
+template void M_sanity_check<2>(const std::vector<Cell<2>> &);
+template void M_sanity_check<3>(const std::vector<Cell<3>> &);
+template void evaluate_P2M<2>(std::vector<Cell<2>> &, const double *, const double *, const double *, const double *, size_t, size_t);
+template void evaluate_P2M<3>(std::vector<Cell<3>> &, const double *, const double *, const double *, const double *, size_t, size_t);
+template void evaluate_M2M<2>(std::vector<Cell<2>> &, const std::vector<std::vector<size_t>> &, size_t);
+template void evaluate_M2M<3>(std::vector<Cell<3>> &, const std::vector<std::vector<size_t>> &, size_t);
+template void evaluate_L2L<2>(std::vector<Cell<2>> &, const std::vector<std::vector<size_t>> &, size_t);
+template void evaluate_L2L<3>(std::vector<Cell<3>> &, const std::vector<std::vector<size_t>> &, size_t);
+template void evaluate_L2P<2>(std::vector<Cell<2>> &, const double *, const double *, const double *, double *, size_t, size_t);
+template void evaluate_L2P<3>(std::vector<Cell<3>> &, const double *, const double *, const double *, double *, size_t, size_t);
+template void evaluate_direct<2>(const double *, const double *, const double *, const double *, double *, size_t);
+template void evaluate_direct<3>(const double *, const double *, const double *, const double *, double *, size_t);
+template void interact_dehnen_lazy<2>(const size_t, const size_t, const std::vector<Cell<2>> &, const std::vector<Particle<2>> &, const double, const size_t, const size_t, std::vector<Interaction> &, std::vector<Interaction> &);
+template void interact_dehnen_lazy<3>(const size_t, const size_t, const std::vector<Cell<3>> &, const std::vector<Particle<3>> &, const double, const size_t, const size_t, std::vector<Interaction> &, std::vector<Interaction> &);
+template void evaluate_M2L_lazy<2>(std::vector<Cell<2>> &, std::vector<Interaction> &, std::vector<size_t> &, size_t);
+template void evaluate_M2L_lazy<3>(std::vector<Cell<3>> &, std::vector<Interaction> &, std::vector<size_t> &, size_t);
+template void evaluate_P2P_lazy<2>(std::vector<Cell<2>> &, const double *, const double *, const double *, const double *, std::vector<Interaction> &, std::vector<size_t> &, double *);
+template void evaluate_P2P_lazy<3>(std::vector<Cell<3>> &, const double *, const double *, const double *, const double *, std::vector<Interaction> &, std::vector<size_t> &, double *);
+template void evaluate_M2P_and_P2P<2>(const double *, const double *, const double *, const double *, unsigned int, size_t, std::vector<Cell<2>> &, double *, unsigned int, double, unsigned int);
+template void evaluate_M2P_and_P2P<3>(const double *, const double *, const double *, const double *, unsigned int, size_t, std::vector<Cell<3>> &, double *, unsigned int, double, unsigned int);
