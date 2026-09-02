@@ -175,8 +175,6 @@ def test_minimisers_are_quiet_unless_asked(capsys):
     and a failure to converge at WARNING, so a run that converges is silent
     unless that logger is turned up.
     """
-    # `SimpleMinimiser` is not reachable through `Sim`, being commented out of
-    # the driver tables of both modules, so it cannot be exercised here
     for driver, kwargs in [('steepest_descent', dict(stopping_dm=1e-4)),
                            ('hubert_minimiser', dict(stepControl='BB',
                                                      mXgradE_tol=1e-2,

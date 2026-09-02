@@ -1,9 +1,20 @@
+"""
+A minimal template for a minimiser, kept out of the package
+
+This was never reachable through `Sim`, being commented out of the driver
+tables of both `fidimag.micro.sim` and `fidimag.atomistic.sim`, and it is a
+sketch rather than a working method: the step is a fixed multiple of the
+torque with no step length rule and no acceptance test. Start from
+`fidimag.common.steepest_descent` or `fidimag.common.hubert_minimiser` for
+anything real; this is here to show the shape a driver has to have.
+"""
+
 import logging
 import numpy as np
 import fidimag.extensions.clib as clib
 # import fidimag.common.constant as const
 
-from .minimiser_base import MinimiserBase
+from fidimag.common.minimiser_base import MinimiserBase
 
 
 log = logging.getLogger(name='fidimag')

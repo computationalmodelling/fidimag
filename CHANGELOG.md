@@ -328,6 +328,17 @@ Version 4.0
 
 ### Removals
 
+* **`fidimag/common/sim2fdfield.py` is gone.** It converted a simulation into
+  a `finitedifferencefield.Field`, importing a package that is not a
+  dependency and has never been one, and it could not have run in any case:
+  `numpy` was never imported and three lines referred to a `mesh` that does
+  not exist in their scope. Nothing referenced it
+* **`SimpleMinimiser` has moved to `sandbox/minimiser_cg/`.** It was a
+  template rather than a method, a fixed multiple of the torque with no step
+  length rule and no acceptance test, and it was unreachable anyway, being
+  commented out of the driver tables of both simulation classes. Use
+  `steepest_descent` or `hubert_minimiser`
+
 * The Python 2 era install scripts are gone: `bin/ubuntu_install_script.sh`,
   which built through `make` and wrote PYTHONPATH into `/etc/profile.d`,
   together with the `bin/install-ubuntu-packages.sh` and
