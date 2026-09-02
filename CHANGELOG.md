@@ -214,6 +214,18 @@ Version 4.0
 
 ### Fixes
 
+* **`fidimag.common.plot` no longer uses `mpl_toolkits`.** The colorbars were
+  built with `ImageGrid`, whose only purpose here was to make them scale with
+  the subplots, which `Figure.colorbar` does itself when told which axes to
+  take the room from. That dependency is what broke the module against modern
+  matplotlib. Also fixed while there: `plot_atom_hex(scale_by_mag=True)`
+  raised `AttributeError` for every component, on a duplicated fragment that
+  called `cbar.ax.cax.colorbar`; `savefig` passed `dpi=1`, which renders a
+  handful of pixels; the three plotting functions returned `None` and now
+  return the figure; and `plot` dispatched on `type(sim) ==` rather than
+  `isinstance`. The data drawn is unchanged, checked array by array over
+  every component and mesh type
+
 * **Minimising an atomistic system with a demagnetising field was wrong.**
   The minimisers build the effective field by asking each interaction for its
   energy and then reading its `field`, and neither atomistic demagnetising
