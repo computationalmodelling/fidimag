@@ -12,3 +12,4 @@ Magnetism and Numerical Methods
    time_integration
    energy_minimisation
    nebm
+   demag_fmm
