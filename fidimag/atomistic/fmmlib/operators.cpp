@@ -1,4 +1,4 @@
-#include "/tmp/fidimag_regen/operators.h"
+#include "operators.h"
 #include<cmath>
 void S2M_2(double x, double y, double z, double * __restrict S, double * __restrict M) {
 #pragma omp atomic
@@ -73360,666 +73360,666 @@ L[143] += D[430]*M[0] + D[442]*M[1] + D[443]*M[2];
 void S2M(double x, double y, double z, double * __restrict S, double * __restrict M, int order) {
 switch (order) {
   case 2:
-    S2M_2(x, y, z, __restrict S, __restrict M);
+    S2M_2(x, y, z, S, M);
     break;
   case 3:
-    S2M_3(x, y, z, __restrict S, __restrict M);
+    S2M_3(x, y, z, S, M);
     break;
   case 4:
-    S2M_4(x, y, z, __restrict S, __restrict M);
+    S2M_4(x, y, z, S, M);
     break;
   case 5:
-    S2M_5(x, y, z, __restrict S, __restrict M);
+    S2M_5(x, y, z, S, M);
     break;
   case 6:
-    S2M_6(x, y, z, __restrict S, __restrict M);
+    S2M_6(x, y, z, S, M);
     break;
   case 7:
-    S2M_7(x, y, z, __restrict S, __restrict M);
+    S2M_7(x, y, z, S, M);
     break;
   case 8:
-    S2M_8(x, y, z, __restrict S, __restrict M);
+    S2M_8(x, y, z, S, M);
     break;
   case 9:
-    S2M_9(x, y, z, __restrict S, __restrict M);
+    S2M_9(x, y, z, S, M);
     break;
   case 10:
-    S2M_10(x, y, z, __restrict S, __restrict M);
+    S2M_10(x, y, z, S, M);
     break;
   case 11:
-    S2M_11(x, y, z, __restrict S, __restrict M);
+    S2M_11(x, y, z, S, M);
     break;
   case 12:
-    S2M_12(x, y, z, __restrict S, __restrict M);
+    S2M_12(x, y, z, S, M);
     break;
   }
 }
 void M2M(double x, double y, double z, double * __restrict M, double * __restrict Ms, int order) {
 switch (order) {
   case 2:
-    M2M_2(x, y, z, __restrict M, __restrict Ms);
+    M2M_2(x, y, z, M, Ms);
     break;
   case 3:
-    M2M_3(x, y, z, __restrict M, __restrict Ms);
+    M2M_3(x, y, z, M, Ms);
     break;
   case 4:
-    M2M_4(x, y, z, __restrict M, __restrict Ms);
+    M2M_4(x, y, z, M, Ms);
     break;
   case 5:
-    M2M_5(x, y, z, __restrict M, __restrict Ms);
+    M2M_5(x, y, z, M, Ms);
     break;
   case 6:
-    M2M_6(x, y, z, __restrict M, __restrict Ms);
+    M2M_6(x, y, z, M, Ms);
     break;
   case 7:
-    M2M_7(x, y, z, __restrict M, __restrict Ms);
+    M2M_7(x, y, z, M, Ms);
     break;
   case 8:
-    M2M_8(x, y, z, __restrict M, __restrict Ms);
+    M2M_8(x, y, z, M, Ms);
     break;
   case 9:
-    M2M_9(x, y, z, __restrict M, __restrict Ms);
+    M2M_9(x, y, z, M, Ms);
     break;
   case 10:
-    M2M_10(x, y, z, __restrict M, __restrict Ms);
+    M2M_10(x, y, z, M, Ms);
     break;
   case 11:
-    M2M_11(x, y, z, __restrict M, __restrict Ms);
+    M2M_11(x, y, z, M, Ms);
     break;
   case 12:
-    M2M_12(x, y, z, __restrict M, __restrict Ms);
+    M2M_12(x, y, z, M, Ms);
     break;
   }
 }
 void M2L(double x, double y, double z, double * __restrict M, double * __restrict L, int order) {
 switch (order) {
   case 2:
-    M2L_2(x, y, z, __restrict M, __restrict L);
+    M2L_2(x, y, z, M, L);
     break;
   case 3:
-    M2L_3(x, y, z, __restrict M, __restrict L);
+    M2L_3(x, y, z, M, L);
     break;
   case 4:
-    M2L_4(x, y, z, __restrict M, __restrict L);
+    M2L_4(x, y, z, M, L);
     break;
   case 5:
-    M2L_5(x, y, z, __restrict M, __restrict L);
+    M2L_5(x, y, z, M, L);
     break;
   case 6:
-    M2L_6(x, y, z, __restrict M, __restrict L);
+    M2L_6(x, y, z, M, L);
     break;
   case 7:
-    M2L_7(x, y, z, __restrict M, __restrict L);
+    M2L_7(x, y, z, M, L);
     break;
   case 8:
-    M2L_8(x, y, z, __restrict M, __restrict L);
+    M2L_8(x, y, z, M, L);
     break;
   case 9:
-    M2L_9(x, y, z, __restrict M, __restrict L);
+    M2L_9(x, y, z, M, L);
     break;
   case 10:
-    M2L_10(x, y, z, __restrict M, __restrict L);
+    M2L_10(x, y, z, M, L);
     break;
   case 11:
-    M2L_11(x, y, z, __restrict M, __restrict L);
+    M2L_11(x, y, z, M, L);
     break;
   case 12:
-    M2L_12(x, y, z, __restrict M, __restrict L);
+    M2L_12(x, y, z, M, L);
     break;
   }
 }
 void L2L(double x, double y, double z, double * __restrict L, double * __restrict Ls, int order) {
 switch (order) {
   case 2:
-    L2L_2(x, y, z, __restrict L, __restrict Ls);
+    L2L_2(x, y, z, L, Ls);
     break;
   case 3:
-    L2L_3(x, y, z, __restrict L, __restrict Ls);
+    L2L_3(x, y, z, L, Ls);
     break;
   case 4:
-    L2L_4(x, y, z, __restrict L, __restrict Ls);
+    L2L_4(x, y, z, L, Ls);
     break;
   case 5:
-    L2L_5(x, y, z, __restrict L, __restrict Ls);
+    L2L_5(x, y, z, L, Ls);
     break;
   case 6:
-    L2L_6(x, y, z, __restrict L, __restrict Ls);
+    L2L_6(x, y, z, L, Ls);
     break;
   case 7:
-    L2L_7(x, y, z, __restrict L, __restrict Ls);
+    L2L_7(x, y, z, L, Ls);
     break;
   case 8:
-    L2L_8(x, y, z, __restrict L, __restrict Ls);
+    L2L_8(x, y, z, L, Ls);
     break;
   case 9:
-    L2L_9(x, y, z, __restrict L, __restrict Ls);
+    L2L_9(x, y, z, L, Ls);
     break;
   case 10:
-    L2L_10(x, y, z, __restrict L, __restrict Ls);
+    L2L_10(x, y, z, L, Ls);
     break;
   case 11:
-    L2L_11(x, y, z, __restrict L, __restrict Ls);
+    L2L_11(x, y, z, L, Ls);
     break;
   case 12:
-    L2L_12(x, y, z, __restrict L, __restrict Ls);
+    L2L_12(x, y, z, L, Ls);
     break;
   }
 }
 void L2P(double x, double y, double z, double * __restrict L, double * __restrict F, int order) {
 switch (order) {
   case 2:
-    L2P_2(x, y, z, __restrict L, __restrict F);
+    L2P_2(x, y, z, L, F);
     break;
   case 3:
-    L2P_3(x, y, z, __restrict L, __restrict F);
+    L2P_3(x, y, z, L, F);
     break;
   case 4:
-    L2P_4(x, y, z, __restrict L, __restrict F);
+    L2P_4(x, y, z, L, F);
     break;
   case 5:
-    L2P_5(x, y, z, __restrict L, __restrict F);
+    L2P_5(x, y, z, L, F);
     break;
   case 6:
-    L2P_6(x, y, z, __restrict L, __restrict F);
+    L2P_6(x, y, z, L, F);
     break;
   case 7:
-    L2P_7(x, y, z, __restrict L, __restrict F);
+    L2P_7(x, y, z, L, F);
     break;
   case 8:
-    L2P_8(x, y, z, __restrict L, __restrict F);
+    L2P_8(x, y, z, L, F);
     break;
   case 9:
-    L2P_9(x, y, z, __restrict L, __restrict F);
+    L2P_9(x, y, z, L, F);
     break;
   case 10:
-    L2P_10(x, y, z, __restrict L, __restrict F);
+    L2P_10(x, y, z, L, F);
     break;
   case 11:
-    L2P_11(x, y, z, __restrict L, __restrict F);
+    L2P_11(x, y, z, L, F);
     break;
   case 12:
-    L2P_12(x, y, z, __restrict L, __restrict F);
+    L2P_12(x, y, z, L, F);
     break;
   }
 }
 void M2P(double x, double y, double z, double * __restrict M, double * __restrict F, int order) {
 switch (order) {
   case 2:
-    M2P_2(x, y, z, __restrict M, __restrict F);
+    M2P_2(x, y, z, M, F);
     break;
   case 3:
-    M2P_3(x, y, z, __restrict M, __restrict F);
+    M2P_3(x, y, z, M, F);
     break;
   case 4:
-    M2P_4(x, y, z, __restrict M, __restrict F);
+    M2P_4(x, y, z, M, F);
     break;
   case 5:
-    M2P_5(x, y, z, __restrict M, __restrict F);
+    M2P_5(x, y, z, M, F);
     break;
   case 6:
-    M2P_6(x, y, z, __restrict M, __restrict F);
+    M2P_6(x, y, z, M, F);
     break;
   case 7:
-    M2P_7(x, y, z, __restrict M, __restrict F);
+    M2P_7(x, y, z, M, F);
     break;
   case 8:
-    M2P_8(x, y, z, __restrict M, __restrict F);
+    M2P_8(x, y, z, M, F);
     break;
   case 9:
-    M2P_9(x, y, z, __restrict M, __restrict F);
+    M2P_9(x, y, z, M, F);
     break;
   case 10:
-    M2P_10(x, y, z, __restrict M, __restrict F);
+    M2P_10(x, y, z, M, F);
     break;
   case 11:
-    M2P_11(x, y, z, __restrict M, __restrict F);
+    M2P_11(x, y, z, M, F);
     break;
   case 12:
-    M2P_12(x, y, z, __restrict M, __restrict F);
+    M2P_12(x, y, z, M, F);
     break;
   }
 }
 void S2Mc(double x, double y, double z, double * __restrict S, double * __restrict M, int order) {
 switch (order) {
   case 2:
-    S2Mc_2(x, y, z, __restrict S, __restrict M);
+    S2Mc_2(x, y, z, S, M);
     break;
   case 3:
-    S2Mc_3(x, y, z, __restrict S, __restrict M);
+    S2Mc_3(x, y, z, S, M);
     break;
   case 4:
-    S2Mc_4(x, y, z, __restrict S, __restrict M);
+    S2Mc_4(x, y, z, S, M);
     break;
   case 5:
-    S2Mc_5(x, y, z, __restrict S, __restrict M);
+    S2Mc_5(x, y, z, S, M);
     break;
   case 6:
-    S2Mc_6(x, y, z, __restrict S, __restrict M);
+    S2Mc_6(x, y, z, S, M);
     break;
   case 7:
-    S2Mc_7(x, y, z, __restrict S, __restrict M);
+    S2Mc_7(x, y, z, S, M);
     break;
   case 8:
-    S2Mc_8(x, y, z, __restrict S, __restrict M);
+    S2Mc_8(x, y, z, S, M);
     break;
   case 9:
-    S2Mc_9(x, y, z, __restrict S, __restrict M);
+    S2Mc_9(x, y, z, S, M);
     break;
   case 10:
-    S2Mc_10(x, y, z, __restrict S, __restrict M);
+    S2Mc_10(x, y, z, S, M);
     break;
   case 11:
-    S2Mc_11(x, y, z, __restrict S, __restrict M);
+    S2Mc_11(x, y, z, S, M);
     break;
   case 12:
-    S2Mc_12(x, y, z, __restrict S, __restrict M);
+    S2Mc_12(x, y, z, S, M);
     break;
   }
 }
 void M2Mc(double x, double y, double z, double * __restrict M, double * __restrict Ms, int order) {
 switch (order) {
   case 2:
-    M2Mc_2(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_2(x, y, z, M, Ms);
     break;
   case 3:
-    M2Mc_3(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_3(x, y, z, M, Ms);
     break;
   case 4:
-    M2Mc_4(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_4(x, y, z, M, Ms);
     break;
   case 5:
-    M2Mc_5(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_5(x, y, z, M, Ms);
     break;
   case 6:
-    M2Mc_6(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_6(x, y, z, M, Ms);
     break;
   case 7:
-    M2Mc_7(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_7(x, y, z, M, Ms);
     break;
   case 8:
-    M2Mc_8(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_8(x, y, z, M, Ms);
     break;
   case 9:
-    M2Mc_9(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_9(x, y, z, M, Ms);
     break;
   case 10:
-    M2Mc_10(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_10(x, y, z, M, Ms);
     break;
   case 11:
-    M2Mc_11(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_11(x, y, z, M, Ms);
     break;
   case 12:
-    M2Mc_12(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_12(x, y, z, M, Ms);
     break;
   }
 }
 void L2Lc(double x, double y, double z, double * __restrict L, double * __restrict Ls, int order) {
 switch (order) {
   case 2:
-    L2Lc_2(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_2(x, y, z, L, Ls);
     break;
   case 3:
-    L2Lc_3(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_3(x, y, z, L, Ls);
     break;
   case 4:
-    L2Lc_4(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_4(x, y, z, L, Ls);
     break;
   case 5:
-    L2Lc_5(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_5(x, y, z, L, Ls);
     break;
   case 6:
-    L2Lc_6(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_6(x, y, z, L, Ls);
     break;
   case 7:
-    L2Lc_7(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_7(x, y, z, L, Ls);
     break;
   case 8:
-    L2Lc_8(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_8(x, y, z, L, Ls);
     break;
   case 9:
-    L2Lc_9(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_9(x, y, z, L, Ls);
     break;
   case 10:
-    L2Lc_10(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_10(x, y, z, L, Ls);
     break;
   case 11:
-    L2Lc_11(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_11(x, y, z, L, Ls);
     break;
   case 12:
-    L2Lc_12(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_12(x, y, z, L, Ls);
     break;
   }
 }
 void L2Pc(double x, double y, double z, double * __restrict L, double * __restrict F, int order) {
 switch (order) {
   case 2:
-    L2Pc_2(x, y, z, __restrict L, __restrict F);
+    L2Pc_2(x, y, z, L, F);
     break;
   case 3:
-    L2Pc_3(x, y, z, __restrict L, __restrict F);
+    L2Pc_3(x, y, z, L, F);
     break;
   case 4:
-    L2Pc_4(x, y, z, __restrict L, __restrict F);
+    L2Pc_4(x, y, z, L, F);
     break;
   case 5:
-    L2Pc_5(x, y, z, __restrict L, __restrict F);
+    L2Pc_5(x, y, z, L, F);
     break;
   case 6:
-    L2Pc_6(x, y, z, __restrict L, __restrict F);
+    L2Pc_6(x, y, z, L, F);
     break;
   case 7:
-    L2Pc_7(x, y, z, __restrict L, __restrict F);
+    L2Pc_7(x, y, z, L, F);
     break;
   case 8:
-    L2Pc_8(x, y, z, __restrict L, __restrict F);
+    L2Pc_8(x, y, z, L, F);
     break;
   case 9:
-    L2Pc_9(x, y, z, __restrict L, __restrict F);
+    L2Pc_9(x, y, z, L, F);
     break;
   case 10:
-    L2Pc_10(x, y, z, __restrict L, __restrict F);
+    L2Pc_10(x, y, z, L, F);
     break;
   case 11:
-    L2Pc_11(x, y, z, __restrict L, __restrict F);
+    L2Pc_11(x, y, z, L, F);
     break;
   case 12:
-    L2Pc_12(x, y, z, __restrict L, __restrict F);
+    L2Pc_12(x, y, z, L, F);
     break;
   }
 }
 void M2Pc(double x, double y, double z, double * __restrict M, double * __restrict F, int order) {
 switch (order) {
   case 2:
-    M2Pc_2(x, y, z, __restrict M, __restrict F);
+    M2Pc_2(x, y, z, M, F);
     break;
   case 3:
-    M2Pc_3(x, y, z, __restrict M, __restrict F);
+    M2Pc_3(x, y, z, M, F);
     break;
   case 4:
-    M2Pc_4(x, y, z, __restrict M, __restrict F);
+    M2Pc_4(x, y, z, M, F);
     break;
   case 5:
-    M2Pc_5(x, y, z, __restrict M, __restrict F);
+    M2Pc_5(x, y, z, M, F);
     break;
   case 6:
-    M2Pc_6(x, y, z, __restrict M, __restrict F);
+    M2Pc_6(x, y, z, M, F);
     break;
   case 7:
-    M2Pc_7(x, y, z, __restrict M, __restrict F);
+    M2Pc_7(x, y, z, M, F);
     break;
   case 8:
-    M2Pc_8(x, y, z, __restrict M, __restrict F);
+    M2Pc_8(x, y, z, M, F);
     break;
   case 9:
-    M2Pc_9(x, y, z, __restrict M, __restrict F);
+    M2Pc_9(x, y, z, M, F);
     break;
   case 10:
-    M2Pc_10(x, y, z, __restrict M, __restrict F);
+    M2Pc_10(x, y, z, M, F);
     break;
   case 11:
-    M2Pc_11(x, y, z, __restrict M, __restrict F);
+    M2Pc_11(x, y, z, M, F);
     break;
   case 12:
-    M2Pc_12(x, y, z, __restrict M, __restrict F);
+    M2Pc_12(x, y, z, M, F);
     break;
   }
 }
 void M2Lc(double x, double y, double z, double * __restrict M, double * __restrict L, int order) {
 switch (order) {
   case 2:
-    M2Lc_2(x, y, z, __restrict M, __restrict L);
+    M2Lc_2(x, y, z, M, L);
     break;
   case 3:
-    M2Lc_3(x, y, z, __restrict M, __restrict L);
+    M2Lc_3(x, y, z, M, L);
     break;
   case 4:
-    M2Lc_4(x, y, z, __restrict M, __restrict L);
+    M2Lc_4(x, y, z, M, L);
     break;
   case 5:
-    M2Lc_5(x, y, z, __restrict M, __restrict L);
+    M2Lc_5(x, y, z, M, L);
     break;
   case 6:
-    M2Lc_6(x, y, z, __restrict M, __restrict L);
+    M2Lc_6(x, y, z, M, L);
     break;
   case 7:
-    M2Lc_7(x, y, z, __restrict M, __restrict L);
+    M2Lc_7(x, y, z, M, L);
     break;
   case 8:
-    M2Lc_8(x, y, z, __restrict M, __restrict L);
+    M2Lc_8(x, y, z, M, L);
     break;
   case 9:
-    M2Lc_9(x, y, z, __restrict M, __restrict L);
+    M2Lc_9(x, y, z, M, L);
     break;
   case 10:
-    M2Lc_10(x, y, z, __restrict M, __restrict L);
+    M2Lc_10(x, y, z, M, L);
     break;
   case 11:
-    M2Lc_11(x, y, z, __restrict M, __restrict L);
+    M2Lc_11(x, y, z, M, L);
     break;
   case 12:
-    M2Lc_12(x, y, z, __restrict M, __restrict L);
+    M2Lc_12(x, y, z, M, L);
     break;
   }
 }
 void S2Mxy(double x, double y, double z, double * __restrict S, double * __restrict M, int order) {
 switch (order) {
   case 2:
-    S2Mxy_2(x, y, z, __restrict S, __restrict M);
+    S2Mxy_2(x, y, z, S, M);
     break;
   case 3:
-    S2Mxy_3(x, y, z, __restrict S, __restrict M);
+    S2Mxy_3(x, y, z, S, M);
     break;
   case 4:
-    S2Mxy_4(x, y, z, __restrict S, __restrict M);
+    S2Mxy_4(x, y, z, S, M);
     break;
   case 5:
-    S2Mxy_5(x, y, z, __restrict S, __restrict M);
+    S2Mxy_5(x, y, z, S, M);
     break;
   case 6:
-    S2Mxy_6(x, y, z, __restrict S, __restrict M);
+    S2Mxy_6(x, y, z, S, M);
     break;
   case 7:
-    S2Mxy_7(x, y, z, __restrict S, __restrict M);
+    S2Mxy_7(x, y, z, S, M);
     break;
   case 8:
-    S2Mxy_8(x, y, z, __restrict S, __restrict M);
+    S2Mxy_8(x, y, z, S, M);
     break;
   case 9:
-    S2Mxy_9(x, y, z, __restrict S, __restrict M);
+    S2Mxy_9(x, y, z, S, M);
     break;
   case 10:
-    S2Mxy_10(x, y, z, __restrict S, __restrict M);
+    S2Mxy_10(x, y, z, S, M);
     break;
   case 11:
-    S2Mxy_11(x, y, z, __restrict S, __restrict M);
+    S2Mxy_11(x, y, z, S, M);
     break;
   case 12:
-    S2Mxy_12(x, y, z, __restrict S, __restrict M);
+    S2Mxy_12(x, y, z, S, M);
     break;
   }
 }
 void M2Mxy(double x, double y, double z, double * __restrict M, double * __restrict Ms, int order) {
 switch (order) {
   case 2:
-    M2Mxy_2(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_2(x, y, z, M, Ms);
     break;
   case 3:
-    M2Mxy_3(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_3(x, y, z, M, Ms);
     break;
   case 4:
-    M2Mxy_4(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_4(x, y, z, M, Ms);
     break;
   case 5:
-    M2Mxy_5(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_5(x, y, z, M, Ms);
     break;
   case 6:
-    M2Mxy_6(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_6(x, y, z, M, Ms);
     break;
   case 7:
-    M2Mxy_7(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_7(x, y, z, M, Ms);
     break;
   case 8:
-    M2Mxy_8(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_8(x, y, z, M, Ms);
     break;
   case 9:
-    M2Mxy_9(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_9(x, y, z, M, Ms);
     break;
   case 10:
-    M2Mxy_10(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_10(x, y, z, M, Ms);
     break;
   case 11:
-    M2Mxy_11(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_11(x, y, z, M, Ms);
     break;
   case 12:
-    M2Mxy_12(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_12(x, y, z, M, Ms);
     break;
   }
 }
 void L2Lxy(double x, double y, double z, double * __restrict L, double * __restrict Ls, int order) {
 switch (order) {
   case 2:
-    L2Lxy_2(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_2(x, y, z, L, Ls);
     break;
   case 3:
-    L2Lxy_3(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_3(x, y, z, L, Ls);
     break;
   case 4:
-    L2Lxy_4(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_4(x, y, z, L, Ls);
     break;
   case 5:
-    L2Lxy_5(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_5(x, y, z, L, Ls);
     break;
   case 6:
-    L2Lxy_6(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_6(x, y, z, L, Ls);
     break;
   case 7:
-    L2Lxy_7(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_7(x, y, z, L, Ls);
     break;
   case 8:
-    L2Lxy_8(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_8(x, y, z, L, Ls);
     break;
   case 9:
-    L2Lxy_9(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_9(x, y, z, L, Ls);
     break;
   case 10:
-    L2Lxy_10(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_10(x, y, z, L, Ls);
     break;
   case 11:
-    L2Lxy_11(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_11(x, y, z, L, Ls);
     break;
   case 12:
-    L2Lxy_12(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_12(x, y, z, L, Ls);
     break;
   }
 }
 void L2Pxy(double x, double y, double z, double * __restrict L, double * __restrict F, int order) {
 switch (order) {
   case 2:
-    L2Pxy_2(x, y, z, __restrict L, __restrict F);
+    L2Pxy_2(x, y, z, L, F);
     break;
   case 3:
-    L2Pxy_3(x, y, z, __restrict L, __restrict F);
+    L2Pxy_3(x, y, z, L, F);
     break;
   case 4:
-    L2Pxy_4(x, y, z, __restrict L, __restrict F);
+    L2Pxy_4(x, y, z, L, F);
     break;
   case 5:
-    L2Pxy_5(x, y, z, __restrict L, __restrict F);
+    L2Pxy_5(x, y, z, L, F);
     break;
   case 6:
-    L2Pxy_6(x, y, z, __restrict L, __restrict F);
+    L2Pxy_6(x, y, z, L, F);
     break;
   case 7:
-    L2Pxy_7(x, y, z, __restrict L, __restrict F);
+    L2Pxy_7(x, y, z, L, F);
     break;
   case 8:
-    L2Pxy_8(x, y, z, __restrict L, __restrict F);
+    L2Pxy_8(x, y, z, L, F);
     break;
   case 9:
-    L2Pxy_9(x, y, z, __restrict L, __restrict F);
+    L2Pxy_9(x, y, z, L, F);
     break;
   case 10:
-    L2Pxy_10(x, y, z, __restrict L, __restrict F);
+    L2Pxy_10(x, y, z, L, F);
     break;
   case 11:
-    L2Pxy_11(x, y, z, __restrict L, __restrict F);
+    L2Pxy_11(x, y, z, L, F);
     break;
   case 12:
-    L2Pxy_12(x, y, z, __restrict L, __restrict F);
+    L2Pxy_12(x, y, z, L, F);
     break;
   }
 }
 void M2Pxy(double x, double y, double z, double * __restrict M, double * __restrict F, int order) {
 switch (order) {
   case 2:
-    M2Pxy_2(x, y, z, __restrict M, __restrict F);
+    M2Pxy_2(x, y, z, M, F);
     break;
   case 3:
-    M2Pxy_3(x, y, z, __restrict M, __restrict F);
+    M2Pxy_3(x, y, z, M, F);
     break;
   case 4:
-    M2Pxy_4(x, y, z, __restrict M, __restrict F);
+    M2Pxy_4(x, y, z, M, F);
     break;
   case 5:
-    M2Pxy_5(x, y, z, __restrict M, __restrict F);
+    M2Pxy_5(x, y, z, M, F);
     break;
   case 6:
-    M2Pxy_6(x, y, z, __restrict M, __restrict F);
+    M2Pxy_6(x, y, z, M, F);
     break;
   case 7:
-    M2Pxy_7(x, y, z, __restrict M, __restrict F);
+    M2Pxy_7(x, y, z, M, F);
     break;
   case 8:
-    M2Pxy_8(x, y, z, __restrict M, __restrict F);
+    M2Pxy_8(x, y, z, M, F);
     break;
   case 9:
-    M2Pxy_9(x, y, z, __restrict M, __restrict F);
+    M2Pxy_9(x, y, z, M, F);
     break;
   case 10:
-    M2Pxy_10(x, y, z, __restrict M, __restrict F);
+    M2Pxy_10(x, y, z, M, F);
     break;
   case 11:
-    M2Pxy_11(x, y, z, __restrict M, __restrict F);
+    M2Pxy_11(x, y, z, M, F);
     break;
   case 12:
-    M2Pxy_12(x, y, z, __restrict M, __restrict F);
+    M2Pxy_12(x, y, z, M, F);
     break;
   }
 }
 void M2Lxy(double x, double y, double z, double * __restrict M, double * __restrict L, int order) {
 switch (order) {
   case 2:
-    M2Lxy_2(x, y, z, __restrict M, __restrict L);
+    M2Lxy_2(x, y, z, M, L);
     break;
   case 3:
-    M2Lxy_3(x, y, z, __restrict M, __restrict L);
+    M2Lxy_3(x, y, z, M, L);
     break;
   case 4:
-    M2Lxy_4(x, y, z, __restrict M, __restrict L);
+    M2Lxy_4(x, y, z, M, L);
     break;
   case 5:
-    M2Lxy_5(x, y, z, __restrict M, __restrict L);
+    M2Lxy_5(x, y, z, M, L);
     break;
   case 6:
-    M2Lxy_6(x, y, z, __restrict M, __restrict L);
+    M2Lxy_6(x, y, z, M, L);
     break;
   case 7:
-    M2Lxy_7(x, y, z, __restrict M, __restrict L);
+    M2Lxy_7(x, y, z, M, L);
     break;
   case 8:
-    M2Lxy_8(x, y, z, __restrict M, __restrict L);
+    M2Lxy_8(x, y, z, M, L);
     break;
   case 9:
-    M2Lxy_9(x, y, z, __restrict M, __restrict L);
+    M2Lxy_9(x, y, z, M, L);
     break;
   case 10:
-    M2Lxy_10(x, y, z, __restrict M, __restrict L);
+    M2Lxy_10(x, y, z, M, L);
     break;
   case 11:
-    M2Lxy_11(x, y, z, __restrict M, __restrict L);
+    M2Lxy_11(x, y, z, M, L);
     break;
   case 12:
-    M2Lxy_12(x, y, z, __restrict M, __restrict L);
+    M2Lxy_12(x, y, z, M, L);
     break;
   }
 }
