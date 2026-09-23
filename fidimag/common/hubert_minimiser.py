@@ -26,15 +26,17 @@ class HubertMinimiser(MinimiserBase):
     of the magnetisation torque, and using different criteria for stopping the
     algorithm.
 
-    The energy is stored for `t` number of steps during a creep stage, in the
-    `trailE` array `[E0, E1 ... Et]`. If the energy decreases at this stage,
-    with respect to the trail step, η is increased to accelerate the descent.
-    Otherwise, η is decreased, with a given limit which, if it is reached, the
-    minimisation is restarted. The saving of the trail energy is cyclic, i.e.
-    if the current step reaches `t`, the next step will save `E` at `0`, and
-    the energy difference at the current step is computed as `abs(Et - E0)/t`.
-    The energy difference is scaled by the length of the trailing energy array,
-    `t`.
+    η is grown or shrunk by comparing each trial energy only to the
+    immediately preceding *accepted* energy, not to `trailE` (the step by
+    step scheme, with flow charts, is in the *Energy minimisation* page of
+    the documentation): shrunk on a rejected step, down to a limit which, if
+    reached, restarts the minimisation; grown once `maxCreep` steps in a row
+    have been accepted.
+
+    `trailE` instead feeds the stopping criterion. It holds a cyclic window
+    of the last `t = nTrail` accepted energies `[E0, E1 ... Et]`; once it
+    wraps around, convergence is checked from `abs(Et - E0) / t`, i.e. the
+    energy difference scaled by the length of the trailing window.
 
     The energy in this minimisation class is scaled by the `self.energyScale`
     parameter, so define the `stopping_dE` argument in `minimise` accordingly.

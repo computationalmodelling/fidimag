@@ -29,7 +29,12 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'sphinx.ext.napoleon',
               'sphinx.ext.mathjax', 'sphinx.ext.viewcode',
+              'sphinx.ext.graphviz',
               'nbsphinx']
+
+# Flow charts in the docs are drawn with Graphviz, which needs the `dot`
+# executable at build time
+graphviz_output_format = 'svg'
 
 # Generate the stub pages of the API reference from the autosummary directives
 autosummary_generate = True

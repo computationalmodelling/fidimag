@@ -144,12 +144,14 @@ This is the ``hubert_minimiser`` driver, based on the works of Berkov [1]_,
 
 where :math:`\mathbf{S}` is a Polak-Ribière conjugate direction built from the
 gradient, :math:`\eta` is a scaling factor that the algorithm updates as it
-goes, and :math:`\eta_{s}` is a fixed factor given by the user. The energy of
-the last :math:`t` steps is kept in a trailing array, and the algorithm creeps
-with a fixed :math:`\eta` for a number of steps: if the energy decreases,
-:math:`\eta` is increased to accelerate the descent, and if it increases,
-:math:`\eta` is decreased, with a minimum value below which the minimisation is
-restarted.
+goes, and :math:`\eta_{s}` is a fixed factor given by the user. The algorithm
+creeps with a fixed :math:`\eta`, comparing each trial energy with the last
+accepted one: a step that increases the energy is rejected and :math:`\eta` is
+decreased, with a minimum value below which the minimisation is restarted, and
+once ``maxCreep`` steps in a row have been accepted :math:`\eta` is increased
+to accelerate the descent. The energy of the last :math:`t` steps is kept in a
+trailing array, which here only serves the stopping criterion. The two paths
+are drawn step by step in :ref:`minimiser_step_structure`.
 
 The parameter that has to be tuned here is :math:`\eta_{s}`, i.e. the
 ``eta_scale`` argument, since it is what converts the units of the field into a
@@ -260,6 +262,151 @@ system in the creep case:
 
 The cost per evaluation is essentially the same for both, so these numbers
 translate directly into computing time.
+
+
+.. _minimiser_step_structure:
+
+Step structure of the two paths
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Both paths alternate a trial step with an accept or reject test, and both
+escalate to a *reset* once trials keep failing. What differs is how the step
+length is chosen, and what the test compares against: the last accepted energy
+in the creep path, the largest energy of the trailing window in the BB one.
+The stopping tests (``stopping_dE``, ``mXgradE_tol``, ``max_steps`` and
+``resetMax``) are left out of the pseudocode below, and drawn in the charts as
+a single exit.
+
+The creep path, ``stepControl='hubert'``:
+
+.. code-block:: text
+
+    restart:
+        eta = 1;  direction = -gradE                  # steepest descent
+        repeat (creep stage, up to maxCreep times):
+            m_trial = m_last - eta * eta_scale * direction
+            E_trial = energy(m_trial)
+            if E_trial > E_last:                       # backtrack
+                eta /= dEta**2;  creepCount = 0
+                if eta < etaMin: goto restart           # reset
+            else:                                       # accept
+                direction = PolakRibiere(gradE, direction)
+                m_last, E_last = m_trial, E_trial
+                creepCount += 1
+        eta *= dEta               # grow, only after maxCreep consecutive accepts
+
+.. graphviz::
+    :caption: The creep path of the Hubert minimiser.
+    :align: center
+
+    digraph creep {
+        graph [bgcolor=white, rankdir=TB, nodesep=0.4, ranksep=0.35,
+               fontname="Helvetica"];
+        node  [shape=box, style="rounded,filled", fillcolor="#eef2f7",
+               fontname="Helvetica", fontsize=11];
+        edge  [fontname="Helvetica", fontsize=10];
+
+        start   [label="Start", shape=oval, fillcolor="#dfe8d8"];
+        restart [label="Restart\nm = m_last,  η = 1\nS = gradient (steepest descent)"];
+        trial   [label="Trial step\nm = m_last − η η_s S,  normalise"];
+        eval    [label="Evaluate H_eff and E"];
+        stop    [label="Stopping test\nmet?", shape=diamond, fillcolor="#fbf1d6"];
+        rise    [label="E > E_last ?", shape=diamond, fillcolor="#fbf1d6"];
+        shrink  [label="Backtrack\nη ← η / dEta²,  creep = 0"];
+        small   [label="η < etaMin ?", shape=diamond, fillcolor="#fbf1d6"];
+        accept  [label="Accept\nS ← Polak-Ribière update\nm_last, E_last ← m, E\ncreep += 1"];
+        full    [label="creep =\nmaxCreep ?", shape=diamond, fillcolor="#fbf1d6"];
+        grow    [label="Grow\nη ← η · dEta"];
+        done    [label="End", shape=oval, fillcolor="#dfe8d8"];
+
+        start -> restart -> trial -> eval -> stop;
+        stop  -> done   [label=" yes"];
+        stop  -> rise   [label=" no"];
+        rise  -> shrink [label=" yes"];
+        rise  -> accept [label=" no"];
+        shrink -> small;
+        small -> restart [label=" yes (reset)"];
+        small -> trial   [label=" no"];
+        accept -> full;
+        full  -> trial  [label=" no"];
+        full  -> grow   [label=" yes"];
+        grow  -> trial;
+    }
+
+The BB path, ``stepControl='BB'``:
+
+.. code-block:: text
+
+    m_last, g_last = m0, projGrad(m0)
+    eta = maxDeltaM / max(|g_last|)                   # trust-region first step
+    gradScale = 0                                     # unit calibration
+    repeat:
+        lamb = min(eta, maxDeltaM / max(|g_last|))    # trust-region cap
+        repeat (backtracking):
+            m_trial = m_last - lamb * g_last
+            E_trial = energy(m_trial)
+            if E_trial <= max(trailE) - gamma*gradScale*lamb*|g_last|**2:  # GLL accept
+                break
+            lamb /= dEta**2                            # backtrack
+            if too many backtracks:                    # reset
+                m_trial = m_last;  eta = eta0;  continue outer loop
+        g_new = projGrad(m_trial)
+        dE = E_trial - E_last
+        gradScale = max(gradScale, -dE / (lamb * |g_last|**2))  # old g_last
+        s, y = m_trial - m_last, g_new - g_last        # old m_last, g_last
+        eta = BB1(s, y) or BB2(s, y)                   # curvature step
+        m_last, g_last, E_last = m_trial, g_new, E_trial
+        trailE[next slot] = E_trial                    # cyclic, width nTrail
+
+.. graphviz::
+    :caption: The Barzilai-Borwein path of the Hubert minimiser.
+    :align: center
+
+    digraph bb {
+        graph [bgcolor=white, rankdir=TB, nodesep=0.4, ranksep=0.35,
+               fontname="Helvetica"];
+        node  [shape=box, style="rounded,filled", fillcolor="#eef2f7",
+               fontname="Helvetica", fontsize=11];
+        edge  [fontname="Helvetica", fontsize=10];
+
+        start   [label="Start", shape=oval, fillcolor="#dfe8d8"];
+        init    [label="Initialise\ng_last = tangential gradient at m0\nη = η0 = maxΔm / max|g_last|"];
+        cap     [label="Trust region\nλ = min(η, maxΔm / max|g_last|)\nE_ref = max(trailE)"];
+        trial   [label="Trial step\nm = m_last − λ g_last,  normalise"];
+        eval    [label="Evaluate H_eff\nΔE as a sum over sites"];
+        gll     [label="E ≤ E_ref − γ c λ |g_last|² ?", shape=diamond,
+                 fillcolor="#fbf1d6"];
+        back    [label="Backtrack\nλ ← λ / dEta²"];
+        tired   [label="too many\nbacktracks ?", shape=diamond, fillcolor="#fbf1d6"];
+        reset   [label="Reset\nm ← m_last,  η ← η0\ndrop the secant memory"];
+        accept  [label="Accept\ng = tangential gradient at m\ncalibrate c (gradScale)\nstore E in trailE"];
+        bb      [label="BB step length\ns = m − m_last,  y = g − g_last\nη = BB1 or BB2 if s·y > 0, else η0"];
+        shift   [label="m_last, g_last, E_last ← m, g, E"];
+        stop    [label="Stopping test\nmet?", shape=diamond, fillcolor="#fbf1d6"];
+        done    [label="End", shape=oval, fillcolor="#dfe8d8"];
+
+        start -> init -> cap -> trial -> eval -> gll;
+        gll   -> accept [label=" yes"];
+        gll   -> back   [label=" no"];
+        back  -> tired;
+        tired -> trial  [label=" no"];
+        tired -> reset  [label=" yes"];
+        reset -> cap;
+        accept -> bb -> shift -> stop;
+        stop  -> done   [label=" yes"];
+        stop  -> cap    [label=" no"];
+    }
+
+The two escalation levels line up: the creep path's
+``eta /= dEta**2`` retry from ``spin_last`` is the BB backtracking loop, and
+both give up on the current step length through a reset once retries keep
+failing, counted against the same ``resetMax``. The creep path then clears the
+Polak-Ribière direction and sets :math:`\eta = 1`; the BB path drops its
+secant memory and returns to the trust-region step :math:`\eta_{0}`. What has
+no BB counterpart is the growth of :math:`\eta` after ``maxCreep`` consecutive
+accepted steps. The BB path needs no such schedule, because it re-estimates
+:math:`\eta` from the curvature after every accepted step, rather than feeling
+its way up to a good value.
 
 
 The steepest descent minimiser
