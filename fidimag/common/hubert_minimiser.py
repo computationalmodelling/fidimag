@@ -89,13 +89,13 @@ class HubertMinimiser(MinimiserBase):
 
         # Inherit from the base minimiser class
         super().__init__(mesh, spin,
-                                              magnetisation, magnetisation_inv,
-                                              field,
-                                              pins,
-                                              interactions,
-                                              name,
-                                              data_saver
-                                              )
+                         magnetisation, magnetisation_inv,
+                         field,
+                         pins,
+                         interactions,
+                         name,
+                         data_saver
+                         )
         # TODO: spin_last and gradE_last should only be temporal, not
         # driver variables
 
@@ -173,8 +173,7 @@ class HubertMinimiser(MinimiserBase):
                                n_evaluations=self.step,
                                total_energy=float(self.totalE),
                                max_torque=float(self.mXgradE.max()),
-                               mean_torque=float(np.sum(np.abs(self.mXgradE))
-                                                 / n))
+                               mean_torque=float(np.sum(np.abs(self.mXgradE)) / n))
 
     def _minimise_hubert(self,
                          max_steps=2000,
@@ -621,8 +620,7 @@ class HubertMinimiser(MinimiserBase):
             nBacktrack = 0
             accepted = False
             while not accepted:
-                self.spin[_material] = (self.spin_last[_material]
-                                        - lamb * self.gradE_last[_material])
+                self.spin[_material] = (self.spin_last[_material] - lamb * self.gradE_last[_material])
                 self._normalise_spin(self.spin)
 
                 self.compute_effective_field()
@@ -632,8 +630,7 @@ class HubertMinimiser(MinimiserBase):
                 Etrial = Erel + dE
 
                 # Grippo-Lampariello-Lucidi non-monotone acceptance
-                accepted = (Etrial
-                            <= Eref - gamma * gradScale * lamb * gradNorm2)
+                accepted = (Etrial <= Eref - gamma * gradScale * lamb * gradNorm2)
 
                 if self.step > max_steps:
                     log.warning(f'N of evaluations = {self.step} reached maximum value. ' +
