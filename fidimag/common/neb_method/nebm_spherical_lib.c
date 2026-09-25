@@ -104,9 +104,11 @@ double compute_distance_spherical(double *restrict A, double *restrict B, int n,
         }
     }
 
+    // Plain Euclidean norm of the angle differences, the metric in which the
+    // tangents are normalised, so that the path distance is the arc length
     distance = compute_norm_spherical(A_minus_B,
                                       n_dofs_image_material,
-                                      n_dofs_image_material);
+                                      0);
 
     return distance;
 }

@@ -93,17 +93,15 @@ class NEBM_Spherical(ChainMethodBase):
     transition.  Additionally, the effective force includes a spring force that
     keeps images equally spaced along the band to avoid clustering around
     minima or saddle points. The spacing between images needs a definition of
-    DISTANCE. In this code we use an Euclidean distance, normalised by the
-    number of degrees of freedom, which is the sum of all spin components, so
-    if we have P spins in the system, the number of dofs is 2 * P, i.e. the 2
-    spherical angles per spin.  The distance is defined as::
+    DISTANCE. In this code we use the Euclidean distance in the angles, over
+    the P spins that carry material::
 
-                                     ______________________________________________
-                                    /  P
-                           1       /  __                    2                      2
-        dist(Y_i, Y_j) =  ---     /  \   [ t(i,a) - t(j,a) ]  + [ p(i,a) - p(j,a) ]
-                          2*P \  /   /__
-                               \/    a=1
+                               ______________________________________________
+                              /  P
+                             /  __                    2                      2
+        dist(Y_i, Y_j) =    /  \   [ t(i,a) - t(j,a) ]  + [ p(i,a) - p(j,a) ]
+                        \  /   /__
+                         \/    a=1
 
     where t(i,a) is the theta (polar) angle of the a-th spin in the image Y_i,
     and p refers to the phi (azimuthal) angle. Notice that in spherical
@@ -114,6 +112,10 @@ class NEBM_Spherical(ChainMethodBase):
     thus we do some scaling on the phi angles (which are in the [0,2*PI] range)
     when computing a difference between two spins or when computing the
     distance. This way the differences for both angles have the same range.
+
+    The tangents are unit vectors in the same metric, and the gradient has
+    the components dE/dt and dE/dp, so that the force, the springs and the
+    interpolation of the energy along the path distance all agree.
 
     References
     ----------
@@ -248,6 +250,8 @@ class NEBM_Spherical(ChainMethodBase):
             self.negH[i][:] = energygradient2spherical(self.sim.field,
                                                             y[i]
                                                             )
+            # Sites without material carry no energy: keep their angles fixed
+            self.negH[i][~self._material] = 0.0
             # elif self.coordinates == 'Cartesian':
             #     self.H_eff[i][:] = self.sim.spin
 
@@ -257,9 +261,39 @@ class NEBM_Spherical(ChainMethodBase):
         self.negH = self.negH.reshape(-1)
 
     def compute_tangents(self, y):
-        nebm_clib.compute_tangents(self.tangents, y, self.energies,
-                                   self.n_dofs_image, self.n_images
-                                   )
+        """
+        Unit tangents to the band, with the rule of Henkelman and Jonsson
+        (the same as ``compute_tangents_C``). It is done here because the
+        angle differences have to be brought into [-PI, PI] before they are
+        weighted by the energy differences: a step of phi across the branch
+        cut is small, but its raw difference is close to 2 PI.
+        """
+        Y = y.reshape(self.n_images, -1)
+        E = self.energies
+        T = self.tangents.reshape(self.n_images, -1)
+        T[:] = 0.0
+
+        for i in range(1, self.n_images - 1):
+            t_plus = wrap_angles(Y[i + 1] - Y[i])
+            t_minus = wrap_angles(Y[i] - Y[i - 1])
+            dE_plus, dE_minus = E[i + 1] - E[i], E[i] - E[i - 1]
+
+            if dE_plus > 0 and dE_minus > 0:
+                T[i] = t_plus
+            elif dE_plus < 0 and dE_minus < 0:
+                T[i] = t_minus
+            else:
+                dE_max = max(abs(dE_plus), abs(dE_minus))
+                dE_min = min(abs(dE_plus), abs(dE_minus))
+                if E[i + 1] > E[i - 1]:
+                    T[i] = t_plus * dE_max + t_minus * dE_min
+                else:
+                    T[i] = t_plus * dE_min + t_minus * dE_max
+
+            T[i][~self._material] = 0.0
+            norm = np.linalg.norm(T[i])
+            if norm > 0.0:
+                T[i] /= norm
 
     def compute_spring_force(self, y):
 
@@ -278,9 +312,6 @@ class NEBM_Spherical(ChainMethodBase):
                                        self.n_dofs_image,
                                        self.distances
                                        )
-        # nebm_clib.normalise_images(self.tangents,
-        #                            self.n_images, self.n_dofs_image
-        #                            )
 
     def nebm_step(self, y):
 
@@ -380,17 +411,24 @@ class NEBM_Spherical(ChainMethodBase):
 # -----------------------------------------------------------------------------
 
 
+def wrap_angles(a):
+    """Bring angles, or differences of angles, into [-PI, PI), keeping their sign"""
+    return (a + np.pi) % (2 * np.pi) - np.pi
+
+
 def correct_angles(A):
     """
-    Correct THETA and PHI angles
-    """
-    A[::2][A[::2] > np.pi] = 2 * np.pi - A[::2][A[::2] > np.pi]
-    A[::2][A[::2] < 0] = np.abs(A[::2][A[::2] < 0])
-    # A[::2][A[::2] > np.pi] = np.pi
-    # A[::2][A[::2] < 0] = 0
+    Bring THETA into [0, PI] and PHI into [-PI, PI), without changing the spins
 
-    A[1::2][A[1::2] > np.pi] = A[1::2][A[1::2] > np.pi] - 2 * np.pi
-    A[1::2][A[1::2] < -np.pi] = 2 * np.pi + A[1::2][A[1::2] < -np.pi]
+    A THETA outside [0, PI] is reflected back, and the reflected direction is
+    the same spin only once PHI is turned by PI.
+    """
+    theta, phi = A[::2], A[1::2]
+    above, below = theta > np.pi, theta < 0
+    theta[above] = 2 * np.pi - theta[above]
+    theta[below] = -theta[below]
+    phi[above | below] += np.pi
+    phi[:] = wrap_angles(phi)
 
 
 def redefine_angles(A):
@@ -450,10 +488,12 @@ def energygradient2spherical(Hxyz, spin):
                        np.sin(t) * Hxyz[:, 2]
                        )
 
-    # Phi components
-    gradientE[:, 1] = (np.sin(p) * Hxyz[:, 0] +
-                       np.cos(p) * (-Hxyz[:, 1])
-                       )
+    # Phi components. The sin(t) makes this dE/dp, the derivative with
+    # respect to the angle, rather than the component along the unit vector
+    # e_p; the band measures distances in the angles themselves
+    gradientE[:, 1] = np.sin(t) * (np.sin(p) * Hxyz[:, 0] +
+                                   np.cos(p) * (-Hxyz[:, 1])
+                                   )
 
     Hxyz = Hxyz.reshape(-1)
 

@@ -235,9 +235,12 @@ on the difference between corresponding spins. In Cartesian coordinates it reads
                               \right\}^{1/2}
 
 where we have scaled the distance by the number of degrees of freedom of the
-system (or an image). In spherical coordinates the definition is similar, only
-that we use the difference of the azimuthal and polar angles and the scale
-is :math:`2P`.
+system (or an image). In spherical coordinates ``NEBM_Spherical`` uses the
+difference of the azimuthal and polar angles, and no scaling: the distance is
+then the arc length of the metric in which its tangents are normalised, and
+the gradient is taken with respect to the angles, :math:`\partial E/\partial
+\theta` and :math:`\partial E/\partial \phi`, so that the force, the springs
+and the interpolation of the energy band agree.
 
 Algorithm
 ---------

@@ -459,7 +459,7 @@ def test_energy_barrier_2particles():
     init_im = [(-1, 0, 0), mid_m, (1, 0, 0)]
     interp = [6, 6]
 
-    coord_list = ['Geodesic']
+    coord_list = ['Geodesic', 'Spherical']
     barriers = []
 
     # Define different ks for multiple simulations
@@ -520,19 +520,27 @@ def _dense_band(nebm_class):
                       name='dense_band')
 
 
-def test_band_interpolation_slope_is_the_energy_derivative():
+@pytest.mark.parametrize('nebm_class', [NEBM_Geodesic, NEBM_Spherical])
+def test_band_interpolation_slope_is_the_energy_derivative(nebm_class):
     """
     The slopes of the cubic interpolation of the band are the field weighted
     by mu_0 Ms dV along the tangent. On a dense, smooth band they must agree
-    with the derivative of the energies with respect to the path distance.
+    with the derivative of the energies with respect to the path distance,
+    which needs the gradient, the unit tangent and the distance to use the
+    same metric.
     """
-    neb = _dense_band(NEBM_Geodesic)
+    neb = _dense_band(nebm_class)
     neb.compute_polynomial_factors()
     slopes = neb.interp_factors[2][1:-1]
     E, s = neb.energies, neb.path_distances
     finite_difference = (E[2:] - E[:-2]) / (s[2:] - s[:-2])
     steep = np.abs(finite_difference) > 1e-3 * np.abs(finite_difference).max()
-    assert np.allclose(slopes[steep], finite_difference[steep], rtol=1e-2)
+    # The two interpolated segments meet at image 31 with a kink, which the
+    # central differences either side of it straddle
+    smooth = np.ones_like(steep)
+    smooth[[29, 31]] = False
+    use = steep & smooth
+    assert np.allclose(slopes[use], finite_difference[use], rtol=1e-2, atol=0)
 
 
 def test_band_interpolation_weights_follow_the_degrees_of_freedom():
