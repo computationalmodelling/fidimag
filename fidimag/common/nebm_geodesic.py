@@ -285,7 +285,7 @@ class NEBM_Geodesic(ChainMethodBase):
             relaxation function.
         """
 
-        self.gradientE.shape = (self.n_images, -1)
+        self.negH.shape = (self.n_images, -1)
         y.shape = (self.n_images, -1)
 
         # Only update the extreme images
@@ -296,12 +296,12 @@ class NEBM_Geodesic(ChainMethodBase):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = -self.sim.field
+            self.negH[i][:] = -self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
 
         y.shape = (-1)
-        self.gradientE.shape = (-1)
+        self.negH.shape = (-1)
 
     def compute_tangents(self, y):
         """
@@ -597,8 +597,8 @@ class NEBM_Geodesic(ChainMethodBase):
 
         Notes
         -----
-        For the inner images ``self.gradientE`` is the raw effective field,
-        not yet a true energy derivative, so it must be converted with the
+        For the inner images ``self.negH`` is minus the raw effective
+        field, not yet a true energy derivative, so it must be converted with the
         same ``self.scale`` factor used in ``compute_polynomial_factors``
         (``mu_0 * Ms * dV`` per degree of freedom for micromagnetics,
         ``mu_s`` per degree of freedom for atomistic simulations) before
@@ -613,10 +613,10 @@ class NEBM_Geodesic(ChainMethodBase):
         energies = self.energies
 
         dE_dx = np.zeros(self.n_images)
-        gradientE = self.gradientE.reshape(self.n_images, -1)
+        negH = self.negH.reshape(self.n_images, -1)
         tangents = self.tangents.reshape(self.n_images, -1)
         for i in range(1, self.n_images - 1):
-            dE_dx[i] = np.dot(self.scale * gradientE[i], tangents[i])
+            dE_dx[i] = np.dot(self.scale * negH[i], tangents[i])
         dE_dx[0] = ((energies[1] - energies[0])
                     / (path_distances[1] - path_distances[0]))
         dE_dx[-1] = ((energies[-1] - energies[-2])
@@ -663,7 +663,7 @@ class NEBM_Geodesic(ChainMethodBase):
             all the spin directions of the images in the band.
         """
         self.compute_effective_field_and_energy(y)
-        nebm_clib.project_images(self.gradientE, y,
+        nebm_clib.project_images(self.negH, y,
                                  self.n_images, self.n_dofs_image
                                  )
         self.compute_tangents(y)
@@ -671,7 +671,7 @@ class NEBM_Geodesic(ChainMethodBase):
 
         nebm_clib.compute_effective_force(self.G,
                                           self.tangents,
-                                          self.gradientE,
+                                          self.negH,
                                           self.spring_force,
                                           self._climbing_image,
                                           self.n_images,

@@ -232,7 +232,7 @@ class NEBM_Spherical(ChainMethodBase):
 
         """
 
-        self.gradientE = self.gradientE.reshape(self.n_images, -1)
+        self.negH = self.negH.reshape(self.n_images, -1)
 
         y = y.reshape(self.n_images, -1)
 
@@ -245,7 +245,7 @@ class NEBM_Spherical(ChainMethodBase):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = energygradient2spherical(self.sim.field,
+            self.negH[i][:] = energygradient2spherical(self.sim.field,
                                                             y[i]
                                                             )
             # elif self.coordinates == 'Cartesian':
@@ -254,7 +254,7 @@ class NEBM_Spherical(ChainMethodBase):
             self.energies[i] = self.sim.compute_energy()
 
         y = y.reshape(-1)
-        self.gradientE = self.gradientE.reshape(-1)
+        self.negH = self.negH.reshape(-1)
 
     def compute_tangents(self, y):
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
@@ -293,7 +293,7 @@ class NEBM_Spherical(ChainMethodBase):
 
         nebm_clib.compute_effective_force(self.G,
                                           self.tangents,
-                                          self.gradientE,
+                                          self.negH,
                                           self.spring_force,
                                           self._climbing_image,
                                           self.n_images,

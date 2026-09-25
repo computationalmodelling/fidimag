@@ -118,7 +118,7 @@ def _relaxed_band(simname, interp=(3, 3), max_iterations=50):
     """
     A small band, briefly relaxed, for the spring-length unit tests below.
     The weighting functions are pure functions of (path_distances, energies,
-    gradientE, tangents), so they only need a band that is populated and
+    negH, tangents), so they only need a band that is populated and
     self-consistent, not one that is converged.
     """
     sim = Sim(mesh)
@@ -129,7 +129,7 @@ def _relaxed_band(simname, interp=(3, 3), max_iterations=50):
                         name=simname, integrator='cvode_bdf')
     neb.relax(max_iterations=max_iterations, save_vtks_every=10 ** 9,
               save_npys_every=10 ** 9, stopping_dYdt=1e-6, dt=1e-6)
-    neb.nebm_step(neb.band)      # refresh gradientE / tangents
+    neb.nebm_step(neb.band)      # refresh negH / tangents
     return neb
 
 
@@ -542,7 +542,7 @@ def test_band_interpolation_weights_follow_the_degrees_of_freedom():
     a shape mismatch.
     """
     neb = _dense_band(NEBM_Spherical)
-    assert neb.scale.size == neb.gradientE.size // neb.n_images
+    assert neb.scale.size == neb.negH.size // neb.n_images
     neb.compute_polynomial_factors()
 
 

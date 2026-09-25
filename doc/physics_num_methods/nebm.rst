@@ -364,7 +364,7 @@ class was specified with ``n_images``, the total number of degrees of freedom
 for the band is ``n_band = n_dofs_image * n_images``.
 
 As explained in our discussion about the NEBM, we set up ``band``,
-``gradientE``, ``tangents`` and ``spring_force`` arrays whose length is
+``negH``, ``tangents`` and ``spring_force`` arrays whose length is
 ``n_band``. The order is the same than how we defined the images, thus the
 Numpy array, when using Cartesian coordinates to describe the spins, looks like
 
@@ -516,7 +516,7 @@ the :math:`\partial \mathbf{Y} / \partial \tau` dynamical equation, which is
         --> compute_effective_field_and_energy  # Gradient = - Eff field
                                                 # Which we compute for every image
                                                 # using the sim class
-            nebm_clib.project_images(gradientE) # Project the gradient
+            nebm_clib.project_images(negH)      # Project the gradient
             compute_tangents
             |
             --> nebm_clib.compute_tangents      #
@@ -585,7 +585,7 @@ are for the simulation at hand::
   energy per magnetic moment (:math:`\mathbf{H} = -\partial E / \partial
   (\mu_s \mathbf{m})`). Thresholds have to be chosen on that scale instead.
 
-The three quantities in the per-step log line, ``max|G|``, ``max|gradE|`` and
+The three quantities in the per-step log line, ``max|G|``, ``max|H|`` and
 ``max|F_k|``, are all in those units, so they can be compared with one
 another: ``G`` is assembled from the energy gradient and the spring force, so
 the log shows directly whether the spring force is dominating the band.

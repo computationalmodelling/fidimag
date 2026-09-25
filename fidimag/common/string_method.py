@@ -200,7 +200,7 @@ class StringMethod(ChainMethodBase):
             relaxation function.
         """
 
-        self.gradientE = self.gradientE.reshape(self.n_images, -1)
+        self.negH = self.negH.reshape(self.n_images, -1)
 
         y = y.reshape(self.n_images, -1)
 
@@ -213,12 +213,12 @@ class StringMethod(ChainMethodBase):
 
             self.sim.compute_effective_field(t=0)
 
-            self.gradientE[i][:] = -self.sim.field
+            self.negH[i][:] = -self.sim.field
 
             self.energies[i] = self.sim.compute_energy()
 
         y = y.reshape(-1)
-        self.gradientE = self.gradientE.reshape(-1)
+        self.negH = self.negH.reshape(-1)
 
     def string_method_step(self, y):
         """
@@ -234,7 +234,7 @@ class StringMethod(ChainMethodBase):
         """
         # Use the projection mehtod from the NEBM C libs
         self.compute_effective_field_and_energy(y)
-        nebm_clib.project_images(self.gradientE, y,
+        nebm_clib.project_images(self.negH, y,
                                  self.n_images, self.n_dofs_image
                                  )
 
@@ -243,7 +243,7 @@ class StringMethod(ChainMethodBase):
 
         # Is it necessary to rescale the effective field?
         # scale = np.tile(np.repeat(const.mu_0 * self.sim.Ms, 3), self.n_images)
-        self.G[:] = -self.gradientE[:]
+        self.G[:] = -self.negH[:]
         # print(self.G)
 
     # -------------------------------------------------------------------------

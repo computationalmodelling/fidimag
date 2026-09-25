@@ -104,8 +104,10 @@ class ChainMethodBase:
     band : numpy.ndarray
         Every degree of freedom (spin direction) of the band, ordered per
         image and, within an image, in the XYZ format.
-    gradientE : numpy.ndarray
-        Components of the energy gradient.
+    negH : numpy.ndarray
+        ``-H_eff`` of every image, in the units of the field (in spherical
+        coordinates, its angular components). The energy gradient is
+        ``scale * negH``.
     G : numpy.ndarray
         Effective force, as defined by the chain method in use.
     tangents : numpy.ndarray
@@ -150,8 +152,8 @@ class ChainMethodBase:
     ``compute_effective_field_and_energy``
         Compute the effective field and the energies of the images of the
         band, according to the number of degrees of freedom (i.e. the total
-        number of spin components). The effective field is stored in
-        ``gradientE`` and the energies in ``energies``.
+        number of spin components). Minus the effective field is stored in
+        ``negH`` and the energies in ``energies``.
     ``initialise_energies``
         Populate the ``energies`` array with the energies of every image at
         the 0th step of the algorithm.
@@ -256,7 +258,7 @@ class ChainMethodBase:
         # Only used when spring_force_ratio > 0.
         self.spring_weighting = 'energy'
 
-        # Divides the max|G|/max|gradE|/max|F_k| values in the relax()
+        # Divides the max|G|/max|H|/max|F_k| values in the relax()
         # debug log, purely for display. Those are reported in the raw units
         # of the effective field (A/m for micromagnetics, Tesla for
         # atomistic simulations), whose magnitude is already readable and is
@@ -286,7 +288,7 @@ class ChainMethodBase:
         self.band = np.zeros(self.n_band)
 
         # The gradient with respect to the magnetisation (effective field)
-        self.gradientE = np.zeros_like(self.band)
+        self.negH = np.zeros_like(self.band)
 
         # The effective force
         self.G = np.zeros_like(self.band)
@@ -727,7 +729,7 @@ class ChainMethodBase:
 
         # CVODE's CV_NORMAL mode returns the solution at *t* by
         # interpolating its internal (adaptive) steps, which can land past
-        # *t*. self.energies/self.gradientE (and, for NEBM subclasses that
+        # *t*. self.energies/self.negH (and, for NEBM subclasses that
         # define it, self.tangents/self.spring_force/self.G) were last set
         # by Sundials_RHS at that internal, generally different, y -- so
         # they are stale here and must be refreshed against the actual
@@ -821,7 +823,7 @@ class ChainMethodBase:
         criterion would never be met.
         """
 
-        # Units of the max|G| / max|gradE| / max|F_k| values reported below,
+        # Units of the max|G| / max|H| / max|F_k| values reported below,
         # and of the stopping_max_force threshold they are compared against:
         # the effective field is in A/m for micromagnetics and in Tesla
         # (energy per magnetic moment) for atomistic simulations.
@@ -929,13 +931,13 @@ class ChainMethodBase:
             # the mxHxm figures OOMMF reports and can be used as they are to
             # choose stopping_max_force; for an atomistic system the numbers
             # are fields in Tesla and live on a different scale. self.G,
-            # self.gradientE and self.spring_force are all in these units by
+            # self.negH and self.spring_force are all in these units by
             # construction, since G is assembled from the other two, so the
             # three printed numbers can always be compared with one another.
             G_norms = np.linalg.norm(
                 self.G[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
-            gradE_norms = np.linalg.norm(
-                self.gradientE[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
+            negH_norms = np.linalg.norm(
+                self.negH[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
             Fk_norms = np.linalg.norm(
                 self.spring_force[INNER_DOFS].reshape(-1, self.dof), axis=1)[INNER_MATERIAL]
 
@@ -943,14 +945,14 @@ class ChainMethodBase:
             # mean_G_norms_per_image = np.mean(G_norms.reshape(self.n_images - 2, -1), axis=1)
             # print(mean_G_norms_per_image)
             # gradE_dot_t = np.einsum('ij,ij->i',
-            #                         self.gradientE.reshape(self.n_images, -1),
+            #                         self.negH.reshape(self.n_images, -1),
             #                         self.tangents.reshape(self.n_images, -1))
-            # gradE_perp = (self.gradientE.reshape(self.n_images, -1)
+            # gradE_perp = (self.negH.reshape(self.n_images, -1)
             #               - np.einsum('i,ij->ij', gradE_dot_t,
             #                           self.tangents.reshape(self.n_images, -1))
             #               )
             # print(np.max(gradE_perp))
-            # print(np.max(gradE_norms.reshape(self.n_images - 2, -1), axis=1))
+            # print(np.max(negH_norms.reshape(self.n_images - 2, -1), axis=1))
             # print(np.max(Fk_norms.reshape(self.n_images - 2, -1), axis=1))
             # -----------------------------------------------------------------
 
@@ -959,7 +961,7 @@ class ChainMethodBase:
                       f"step_size: {increment_dt:>8.3g}, " +
                       f"max dYdt: {max_dYdt:>8.3g} " +
                       "max|G|: {:>8.3g} ".format(np.max(G_norms) / self.log_energy_scale) +
-                      "max|gradE|: {:>8.3g} ".format(np.max(gradE_norms) / self.log_energy_scale) +
+                      "max|H|: {:>8.3g} ".format(np.max(negH_norms) / self.log_energy_scale) +
                       "and max|F_k|: {:>8.3g}".format(np.max(Fk_norms) / self.log_energy_scale)
                       )
 
@@ -1020,14 +1022,14 @@ class ChainMethodBase:
             self.compute_tangents(self.band)
             self.compute_distances()
 
-        self.gradientE.shape = (self.n_images, -1)
+        self.negH.shape = (self.n_images, -1)
         self.tangents.shape = (self.n_images, -1)
 
         deltas = np.zeros(self.n_images)
         for i in range(self.n_images):
-            deltas[i] = np.dot(self.scale * self.gradientE[i], self.tangents[i])
+            deltas[i] = np.dot(self.scale * self.negH[i], self.tangents[i])
 
-        self.gradientE.shape = (-1)
+        self.negH.shape = (-1)
         self.tangents.shape = (-1)
 
         ds = self.path_distances
@@ -1144,7 +1146,7 @@ class ChainMethodBase:
         derivatives = np.zeros(self.n_images)
         for i in range(self.n_images):
             derivatives[i] = np.dot(
-                self.scale * (self.gradientE).reshape(self.n_images, -1)[i],
+                self.scale * (self.negH).reshape(self.n_images, -1)[i],
                 self.tangents.reshape(self.n_images, -1)[i])
 
         E = self.energies
