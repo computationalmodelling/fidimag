@@ -235,12 +235,9 @@ on the difference between corresponding spins. In Cartesian coordinates it reads
                               \right\}^{1/2}
 
 where we have scaled the distance by the number of degrees of freedom of the
-system (or an image). In spherical coordinates ``NEBM_Spherical`` uses the
-difference of the azimuthal and polar angles, and no scaling: the distance is
-then the arc length of the metric in which its tangents are normalised, and
-the gradient is taken with respect to the angles, :math:`\partial E/\partial
-\theta` and :math:`\partial E/\partial \phi`, so that the force, the springs
-and the interpolation of the energy band agree.
+system (or an image). In spherical coordinates we use the difference of the
+polar and azimuthal angles, but without the scaling, since the tangents are
+normalised in the same metric (see :ref:`nebm_spherical_code`).
 
 Algorithm
 ---------
@@ -307,9 +304,9 @@ Three classes derive from it:
    Euclidean distances with no projections into spin space. The azimuthal and
    polar angles need to be redefined when performing differences or computing
    Euclidean distances, specially because the polar angle gets undefined when
-   it is close to the north or south. It is not completely clear what is the
-   best approach to redefine the angles and when to do this, thus this class
-   currently does not work properly.
+   it is close to the north or south. This class finds the same energy
+   barriers as `NEBM_Geodesic`, but it is slower when the spins pass close to
+   the poles, see :ref:`nebm_spherical_code`.
 
 3. `StringMethod`: Not a NEBM class. Instead of a spring force, the images are
    redistributed along the path by interpolating it after every step, which
@@ -676,12 +673,15 @@ cycle converges better than more restarts. Note, however, that the
 underlying issue in that regime is the absence of a preconditioner rather
 than the size of the subspace.
 
+.. _nebm_spherical_code:
+
 Spherical coordinates code
 --------------------------
 
-This class follows the same process than the Geodesic distances code. The main
+This class follows the same process as the Geodesic distances code. The main
 difference is that in the ``nebm_step`` process, the projections are not
-performed and the distances are computed using the scaled Euclidean distance.
+performed and the distances are computed using the Euclidean distance of the
+angles.
 
 For spherical coordinates, the vectors are smaller, with ``n_dofs_image = 2 * n_spins``,
 where
@@ -696,9 +696,101 @@ where
 
 The ``Sundials_RHS`` function does not include the correction factor since
 spherical coordinates have implicit the constraint of fixed length for the
-magnetisation. When computing distances or differences, it is necessary to
-redefine the angles, but it is not completely clear the optimal way of doing
-this.
+magnetisation, thus every image is simply evolved with
+
+.. math::
+    \frac{\partial \mathbf{Y}_i}{\partial \tau} = \mathbf{G}_{i}
+
+Gradient
+^^^^^^^^
+
+The degrees of freedom are now the angles, so the gradient of the energy is
+taken with respect to them. Writing a spin as
+:math:`\mathbf{m}=(\sin\theta\cos\phi,\sin\theta\sin\phi,\cos\theta)` and
+using the chain rule with the effective field, we have, for every spin
+
+.. math::
+    \frac{\partial E}{\partial \theta} = - w\, \mathbf{H}_{\text{eff}} \cdot
+        \frac{\partial \mathbf{m}}{\partial \theta} , \qquad
+    \frac{\partial E}{\partial \phi} = - w\, \mathbf{H}_{\text{eff}} \cdot
+        \frac{\partial \mathbf{m}}{\partial \phi}
+        = - w \sin\theta\, \mathbf{H}_{\text{eff}} \cdot \hat{\boldsymbol{\phi}}
+
+where :math:`w=\mu_{0}M_{s}\Delta V` in the micromagnetic case and
+:math:`w=\mu_{s}` in the atomistic case. The ``negH`` array stores these
+components divided by :math:`w`, i.e. in the units of the field, as in the
+other classes. It is worth noticing the :math:`\sin\theta` factor in the
+:math:`\phi` component, since :math:`\hat{\boldsymbol{\phi}}` is a unit vector
+but :math:`\partial\mathbf{m}/\partial\phi` is not. Sites without material
+have no energy, so their gradient is set to zero and their angles do not
+change.
+
+Tangents and distances
+^^^^^^^^^^^^^^^^^^^^^^
+
+The tangents follow the same rules of Henkelman and Jónsson [1]_ as in the
+other classes, but they are computed in Python, in ``compute_tangents``,
+because the differences of the angles have to be redefined *before* they are
+weighted by the energy differences. When a spin crosses :math:`\phi=\pm\pi`
+the raw difference of its azimuthal angle is close to :math:`2\pi`, although
+the spin barely moved, thus every difference is brought into the
+:math:`[-\pi, \pi]` range, keeping its sign. The tangents are then normalised.
+
+The distance between two images is the Euclidean distance of the angles of
+the spins with material, now without any scaling,
+
+.. math::
+   d_{j,k} = \left\{ \sum_{a} \left[ \left( \theta_{a}^{(j)} - \theta_{a}^{(k)} \right)^{2}
+                              + \left( \phi_{a}^{(j)} - \phi_{a}^{(k)} \right)^{2}
+                     \right] \right\}^{1/2}
+
+This is the same metric in which the tangents are normalised, so that the
+projection of the force, the spring force and the interpolation of the energy
+band, which uses :math:`\partial E/\partial x` along the path, all agree.
+
+When an angle leaves its range during the relaxation it is redefined in
+``correct_angles``: a polar angle outside :math:`[0, \pi]` is reflected back,
+and the azimuthal angle of that spin is turned by :math:`\pi`, otherwise the
+reflection would describe a different spin. The azimuthal angles are kept in
+:math:`[-\pi, \pi]`.
+
+Comparison with the Geodesic code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Both classes find the same energy barriers. We compared the number of
+effective field evaluations (calls to ``nebm_step``) using the same CVODE
+integrator and tolerances, and ``stopping_dYdt=1e-4``. The first number is the
+number of evaluations to get the energy barrier within a relative error of
+:math:`10^{-5}`, and the second one the total number until the relaxation
+stops:
+
+=====================================  ===========  ===========
+System                                 Geodesic     Spherical
+=====================================  ===========  ===========
+Two particles (this test system)       675 / 802    546 / 902
+Wire of 40 spins, rotating through y   581 / 1028   780 / 1217
+Wire of 40 spins, rotating through z   585 / 1016   231 / 2103
+=====================================  ===========  ===========
+
+The wire is 40 cells of 2 nm with exchange and a uniaxial anisotropy along
+:math:`x`, reversed through a middle image pointing close to :math:`y` or
+to :math:`z`. Notice that ``stopping_dYdt`` is measured in the angles in one
+class and in the spin components in the other, so the totals are not exactly
+the same criterion. In the last wire the spins pass close to
+:math:`\theta=0`, where the azimuthal angle is not defined: the barrier is
+found early, but the band takes twice as long to relax. Accordingly, spherical
+coordinates are only an option when the spins stay away from the poles, and
+even then there is no clear advantage over the Geodesic code, which is also
+faster per step, since its tangents and forces are computed in C.
+
+We also tried using the metric of the sphere,
+:math:`\mathrm{d}\theta^{2}+\sin^{2}\theta\,\mathrm{d}\phi^{2}`, in this class,
+i.e. Geodesic distances and the force obtained by dividing the :math:`\phi`
+component of the gradient by :math:`\sin^{2}\theta`, which is the Geodesic
+NEBM written in the angles. It gave the same barriers and practically the same
+number of evaluations away from the poles, and it was even slower close to
+them (about 3300 evaluations in total for the last wire), because of the
+:math:`1/\sin^{2}\theta` factor. For this reason it was not kept.
 
 .. [1] Henkelman, G. & Jónsson, H. *Improved tangent estimate in the nudged
    elastic band method for finding minimum energy paths and saddle points*. The
