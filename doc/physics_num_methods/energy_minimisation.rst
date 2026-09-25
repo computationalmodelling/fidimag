@@ -292,7 +292,7 @@ The creep path, ``stepControl='hubert'``:
 .. code-block:: text
 
     restart:
-        eta = 1;  direction = -gradE                  # steepest descent
+        eta = 1;  direction = negH                    # -H_eff, steepest descent
         repeat (creep stage, up to maxCreep times):
             m_trial = m_last - eta * eta_scale * direction
             E_trial = energy(m_trial)
@@ -300,7 +300,7 @@ The creep path, ``stepControl='hubert'``:
                 eta /= dEta**2;  creepCount = 0
                 if eta < etaMin: goto restart           # reset
             else:                                       # accept
-                direction = PolakRibiere(gradE, direction)
+                direction = PolakRibiere(negH, direction)
                 m_last, E_last = m_trial, E_trial
                 creepCount += 1
         eta *= dEta               # grow, only after maxCreep consecutive accepts

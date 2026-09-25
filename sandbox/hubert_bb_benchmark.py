@@ -20,7 +20,7 @@ def record_torque(driver):
 
     def wrapped(out=None):
         g = project(out=out)
-        history.append((driver.step, driver.mXgradE.max()))
+        history.append((driver.step, driver.torque.max()))
         return g
 
     driver._project_gradient = wrapped

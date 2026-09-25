@@ -98,21 +98,25 @@ class HubertMinimiser(MinimiserBase):
                          name,
                          data_saver
                          )
-        # TODO: spin_last and gradE_last should only be temporal, not
+        # TODO: spin_last and negH_last should only be temporal, not
         # driver variables
 
         self.t = 0.0
         # Not using DAMPING here:
         # self._alpha_field = self._alpha * np.ones_like(self.spin)
-        self.gradE = np.zeros_like(self.field)
-        self.gradE_last = np.zeros_like(self.field)
+        # -H_eff, in the units of the field (tangential part only in the BB
+        # path). This is the energy gradient in the metric weighted by the
+        # moments w_i; the Euclidean gradient is -w_i H_eff_i (`moment_factor`)
+        self.negH = np.zeros_like(self.field)
+        self.negH_last = np.zeros_like(self.field)
         # Polak-Ribiere conjugate gradient search direction (MERRILL's `S`)
         self.PR_searchDirection = np.zeros_like(self.field)
-        # If we use Cartesian coordinates then what is decreasing in gradient search is m X gradE
+        # |m x H_eff| per site, the residual of the stopping criterion.
+        # If we use Cartesian coordinates then what is decreasing in gradient search is m X H_eff
         # This comes form the fact that we minimize: E(m) - λ * (m^2 - 1)
         # with respect to m, i.e. d(...)/dm = 0, and that leads to m x Heff = 0
         # If we use speherical coordinates, the constraint is implicit and we have: dE/dtheta = 0, dE/dphi = 0
-        self.mXgradE = np.zeros(mesh.n)
+        self.torque = np.zeros(mesh.n)
         self.totalE = 0.0
         self.totalE_last = 0.0
         # Energy of each site, summed over the interactions. `_minimise_BB`
@@ -174,13 +178,13 @@ class HubertMinimiser(MinimiserBase):
         MinimiserResult
         """
         converged = reason in ('mXgradE_tol', 'stopping_dE')
-        n = self.mXgradE.shape[0]
+        n = self.torque.shape[0]
         return MinimiserResult(converged=converged,
                                reason=reason,
                                n_evaluations=self.step,
                                total_energy=float(self.totalE),
-                               max_torque=float(self.mXgradE.max()),
-                               mean_torque=float(np.sum(np.abs(self.mXgradE)) / n))
+                               max_torque=float(self.torque.max()),
+                               mean_torque=float(np.sum(np.abs(self.torque)) / n))
 
     def _minimise_hubert(self,
                          max_steps=2000,
@@ -222,9 +226,8 @@ class HubertMinimiser(MinimiserBase):
             Maximum number of resets in case eta reaches the minimum value
             (indicating slow convergence)
         mXgradE_tol
-            Tolerance for the mean of the squared norm of the m X energy gradient,
-            product `||m X gradE||^2`. The average is calculated from all spin sites
-            in material sites.
+            Tolerance for the mean of the torque `||m X H_eff||` (`self.torque`),
+            in the units of the field, averaged over all sites
         """
 
         # rstate = np.random.RandomState(perturbSeed)
@@ -240,7 +243,7 @@ class HubertMinimiser(MinimiserBase):
         self.trailE = np.zeros(nTrail)
         trailPool = cycle(range(nTrail))  # cycle through 0,1,...,(nTrail-1),0,1,...
         eta = 1.0
-        # ||gradE||^2 at the last accepted point, used as the denominator in
+        # ||negH||^2 at the last accepted point, used as the denominator in
         # the Polak-Ribiere beta below (MERRILL's `GO2`)
         GSQUARE = 0.0
         # We might want to change this in the future to save memory:
@@ -256,9 +259,9 @@ class HubertMinimiser(MinimiserBase):
                 # Compute from self.spin. Do not update the step at this stage:
                 self.compute_effective_field()
                 # self.step += 1
-                self.gradE_last[:] = -self.field  # Scale field??
-                self.gradE_last[~_material] = 0.0
-                self.gradE[:] = self.gradE_last
+                self.negH_last[:] = -self.field
+                self.negH_last[~_material] = 0.0
+                self.negH[:] = self.negH_last
                 self.totalE_last = self.totalE
                 self.trailE[nStart] = self.totalE
                 nStart = next(trailPool)
@@ -267,8 +270,8 @@ class HubertMinimiser(MinimiserBase):
                 # (equivalent to beta = 0 in MERRILL, which happens here
                 # naturally since the gradient hasn't changed from the last
                 # accepted point)
-                self.PR_searchDirection[:] = self.gradE_last
-                GSQUARE = np.sum(self.gradE_last[_material] ** 2)
+                self.PR_searchDirection[:] = self.negH_last
+                GSQUARE = np.sum(self.negH_last[_material] ** 2)
                 totalRestart = False
 
             creepCount = 0
@@ -290,23 +293,23 @@ class HubertMinimiser(MinimiserBase):
                 self.compute_effective_field()  # Compute Heff and E using self.spin
                 self.step += 1
 
-                # TODO: No-material sites should have gradE=0.0 but we must
-                # be sure not taking them into account, in gradE at least
-                self.gradE[:] = -self.field  # Scale field??
-                self.gradE[~_material] = 0.0
+                # TODO: No-material sites should have negH=0.0 but we must
+                # be sure not taking them into account, in negH at least
+                self.negH[:] = -self.field
+                self.negH[~_material] = 0.0
                 # Save the energy and move trail index to next site
                 self.trailE[nStart] = self.totalE
                 nStart = next(trailPool)
-                mXgrad = np.cross(self.spin.reshape(-1, 3), self.gradE.reshape(-1, 3), axis=1)
-                # np.einsum('ij,ij->i', mXgrad, mXgrad, out=self.mXgradE2)
-                self.mXgradE[:] = np.linalg.norm(mXgrad, axis=1)
-                self.mXgradE[~_material[::3]] = 0.0
+                mXH = np.cross(self.spin.reshape(-1, 3), self.negH.reshape(-1, 3), axis=1)
+                # np.einsum('ij,ij->i', mXH, mXH, out=self.mXgradE2)
+                self.torque[:] = np.linalg.norm(mXH, axis=1)
+                self.torque[~_material[::3]] = 0.0
                 # self.gradE2[~_material[::3]] = 0.0
                 # Compute E difference of current E (totalE) with the trailing E
                 deltaE = abs(self.trailE[nStart] - self.totalE) / nTrail
 
                 # Statistics and saving:
-                # `mXgradE.max()` is a pass over the sites, so the message is
+                # `torque.max()` is a pass over the sites, so the message is
                 # only built when it will be seen. `log_steps` throttles it
                 # further, for a run logged at DEBUG
                 if (self.step % log_steps == 0
@@ -314,7 +317,7 @@ class HubertMinimiser(MinimiserBase):
                     log.debug(f'Step = {self.step:>4} Creep n = {creepCount:>3}  ' +
                               f'reset = {resetCount:>3}  eta = {eta:>5.4e}  ' +
                               f'E_new = {self.totalE:.4e}  ΔE = {deltaE:.4e}  ' +
-                              f'max(|mX∇E|) = {self.mXgradE.max():.4e}')
+                              f'max(|m×H|) = {self.torque.max():.4e}')
                 # Note that step == 0 is never saved
                 if self.step % save_data_steps == 0:
                     self.data_saver.save()
@@ -328,14 +331,14 @@ class HubertMinimiser(MinimiserBase):
 
                 # with np.printoptions(precision=2):
                 #     print('Creep: ', self.trailE)
-                #     print(f': eta = {eta}  maxgradE = {self.gradE.max()}')
+                #     print(f': eta = {eta}  maxgradE = {self.negH.max()}')
 
                 # Only trust a near-flat trailing energy as convergence if
                 # this step was actually accepted (the energy did not
                 # increase). trailE is filled on every evaluation, including
                 # rejected trial steps, so while eta is being shrunk the band
                 # can bounce back close to its nTrail-old energy and give a
-                # spuriously small deltaE while the true residual (mX∇E) is
+                # spuriously small deltaE while the true residual (m×H) is
                 # still large.
                 if self.totalE <= self.totalE_last and deltaE < stopping_dE:
                     log.info(f'Delta E = {deltaE} negligible. Stopping calculation.')
@@ -373,24 +376,24 @@ class HubertMinimiser(MinimiserBase):
                     creepCount += 1
 
                     # Polak-Ribiere conjugate gradient direction update.
-                    # Must use the OLD gradE_last (gradient at the point we
-                    # are leaving) together with the newly accepted gradE
-                    # before gradE_last gets overwritten below.
+                    # Must use the OLD negH_last (gradient at the point we
+                    # are leaving) together with the newly accepted negH
+                    # before negH_last gets overwritten below.
                     GO2 = GSQUARE
-                    GSQUARE = np.sum(self.gradE[_material] ** 2)
-                    SPG = np.sum(self.gradE_last[_material] * self.gradE[_material])
+                    GSQUARE = np.sum(self.negH[_material] ** 2)
+                    SPG = np.sum(self.negH_last[_material] * self.negH[_material])
                     beta = max(0.0, (GSQUARE - SPG) / GO2) if GO2 != 0.0 else 0.0
-                    self.PR_searchDirection[_material] = self.gradE[_material] + beta * self.PR_searchDirection[_material]
+                    self.PR_searchDirection[_material] = self.negH[_material] + beta * self.PR_searchDirection[_material]
                     self.PR_searchDirection[~_material] = 0.0
 
-                    # Update Energy, spin and gradE
+                    # Update Energy, spin and negH
                     self.spin_last[:] = self.spin[:]
-                    self.gradE_last[:] = self.gradE[:]
+                    self.negH_last[:] = self.negH[:]
                     self.totalE_last = self.totalE
 
-                    avGradE = np.sum(np.abs(self.mXgradE)) / self.mXgradE.shape[0]
+                    avGradE = np.sum(np.abs(self.torque)) / self.torque.shape[0]
                     if avGradE < mXgradE_tol:
-                        log.info(f'Average torque length |mX∇E|/N = {avGradE} negligible. ' +
+                        log.info(f'Average torque length |m×H|/N = {avGradE} negligible. ' +
                                  'Stopping calculation.')
                         reason = 'mXgradE_tol'
                         exitFlag = True
@@ -425,28 +428,30 @@ class HubertMinimiser(MinimiserBase):
         return mask
 
     def _project_gradient(self, out=None):
-        """Tangential (Riemannian) gradient of the energy at `self.spin`
+        """Tangential part of `-H_eff` at `self.spin`, stored in `self.negH`
 
-        The Cartesian gradient `δE/δm = -H_eff` has a radial component
-        `(m · δE/δm) m` which is the Lagrange multiplier enforcing `|m| = 1`.
-        That component is annihilated by the re-normalisation of the spins, so
-        it carries no information about the descent direction, but it *does*
-        pollute any quantity built from differences of gradients (such as the
-        Barzilai-Borwein secant pair). Removing it gives::
+        `-H_eff` is the energy gradient in the metric weighted by the moments
+        (the Euclidean one is `δE/δm_i = -w_i H_eff_i`). It has a radial
+        component `(m · H_eff) m`, the Lagrange multiplier enforcing
+        `|m| = 1`. That component is annihilated by the re-normalisation of
+        the spins, so it carries no information about the descent direction,
+        but it *does* pollute any quantity built from differences of
+        gradients (such as the Barzilai-Borwein secant pair). Removing it
+        gives::
 
-            g = δE/δm - (m · δE/δm) m = -m × (m × δE/δm)
+            g = -H_eff + (m · H_eff) m = m × (m × H_eff)
 
-        whose norm at every site is `||m × δE/δm||`, i.e. the same residual
-        already used as the stopping criterion of this class. The norms are
-        stored in `self.mXgradE`.
+        whose norm at every site is `||m × H_eff||`, the residual of the
+        stopping criterion of this class. The norms are stored in
+        `self.torque`.
         """
-        g = self.gradE if out is None else out
+        g = self.negH if out is None else out
         g[:] = -self.field
         g3 = g.reshape(-1, 3)
         m3 = self.spin.reshape(-1, 3)
         g3 -= np.einsum('ij,ij->i', m3, g3)[:, None] * m3
         g[~self._material] = 0.0
-        self.mXgradE[:] = np.linalg.norm(g3, axis=1)
+        self.torque[:] = np.linalg.norm(g3, axis=1)
         return g
 
     # -------------------------------------------------------------------------
@@ -518,8 +523,8 @@ class HubertMinimiser(MinimiserBase):
             Maximum number of restarts, where a restart is a step that could
             not be accepted within `maxBacktrack` backtracks
         mXgradE_tol
-            Tolerance for the mean of the norm of the `m X gradE` torque,
-            averaged over all sites
+            Tolerance for the mean of the torque `||m X H_eff||` (`self.torque`),
+            in the units of the field, averaged over all sites
         maxDeltaM
             Trust region: the trial step is clipped so that no spin moves more
             than this distance (with `|m| = 1`) before re-normalisation. It
@@ -550,7 +555,7 @@ class HubertMinimiser(MinimiserBase):
 
         # Energy and tangential gradient at the starting point
         self.compute_effective_field()
-        self._project_gradient(out=self.gradE)
+        self._project_gradient(out=self.negH)
         self.totalE_last = self.totalE
 
         # Every energy here is measured from the starting point and summed
@@ -590,9 +595,9 @@ class HubertMinimiser(MinimiserBase):
         nStart = next(trailPool)
 
         self.spin_last[:] = self.spin
-        self.gradE_last[:] = self.gradE
+        self.negH_last[:] = self.negH
 
-        maxGrad = self.mXgradE.max()
+        maxGrad = self.torque.max()
         if maxGrad == 0.0:
             log.warning('Gradient is zero everywhere. Nothing to minimise.')
             return self._result('zero_gradient')
@@ -609,14 +614,14 @@ class HubertMinimiser(MinimiserBase):
             # First order decrease of E per unit step length along -g. The BB
             # quotients do not need the weights, being invariant under a
             # rescaling of the gradient, but this compares against an energy
-            slope = np.sum(weight * self.gradE[_material] ** 2)
+            slope = np.sum(weight * self.negH[_material] ** 2)
             if slope == 0.0:
                 log.warning('Gradient is zero everywhere. Stopping calculation.')
                 reason = 'zero_gradient'
                 break
 
             # Trust region: never displace a spin by more than maxDeltaM
-            maxGrad = self.mXgradE.max()
+            maxGrad = self.torque.max()
             lamb = min(eta, maxDeltaM / maxGrad)
             # Non-monotone reference energy of the trailing window
             Eref = self.trailE.max()
@@ -624,7 +629,7 @@ class HubertMinimiser(MinimiserBase):
             nBacktrack = 0
             accepted = False
             while not accepted:
-                self.spin[_material] = (self.spin_last[_material] - lamb * self.gradE_last[_material])
+                self.spin[_material] = (self.spin_last[_material] - lamb * self.negH_last[_material])
                 self._normalise_spin(self.spin)
 
                 self.compute_effective_field()
@@ -669,8 +674,8 @@ class HubertMinimiser(MinimiserBase):
                 # take a plain steepest descent step next
                 self.spin[:] = self.spin_last
                 self.compute_effective_field()
-                self._project_gradient(out=self.gradE)
-                self.gradE_last[:] = self.gradE
+                self._project_gradient(out=self.negH)
+                self.negH_last[:] = self.negH
                 self.totalE_last = self.totalE
                 # Back at the last accepted point, which `Erel` already
                 # describes; only the site energies have to be re-referenced
@@ -680,7 +685,7 @@ class HubertMinimiser(MinimiserBase):
                 continue  # main loop
 
             # ------ Accepted step ------------------------------------------
-            self._project_gradient(out=self.gradE)
+            self._project_gradient(out=self.negH)
 
             Erel = Etrial
             cellE_ref[:] = self.cellE
@@ -693,7 +698,7 @@ class HubertMinimiser(MinimiserBase):
             # difference of the *projected* spins, not -lamb * g, which is
             # what the SPG framework requires
             s = self.spin[_material] - self.spin_last[_material]
-            y = self.gradE[_material] - self.gradE_last[_material]
+            y = self.negH[_material] - self.negH_last[_material]
             sy = np.dot(s, y)
 
             if sy > 0.0:
@@ -718,7 +723,7 @@ class HubertMinimiser(MinimiserBase):
             BBcount += 1
 
             self.spin_last[:] = self.spin
-            self.gradE_last[:] = self.gradE
+            self.negH_last[:] = self.negH
             self.totalE_last = self.totalE
 
             # See the note in `_minimise_hubert`: the message costs a pass
@@ -726,7 +731,7 @@ class HubertMinimiser(MinimiserBase):
             if self.step % log_steps == 0 and log.isEnabledFor(logging.DEBUG):
                 log.debug(f'Step = {self.step:>4}  backtracks = {nBacktrack:>2}  ' +
                           f'reset = {resetCount:>3}  eta = {eta:>5.4e}  E_new = {self.totalE:.4e}  ' +
-                          f'ΔE = {deltaE:.4e}  max(|mX∇E|) = {self.mXgradE.max():.4e}')
+                          f'ΔE = {deltaE:.4e}  max(|m×H|) = {self.torque.max():.4e}')
             if self.step % save_data_steps == 0:
                 self.data_saver.save()
             if (save_vtk_steps is not None) and (self.step % save_vtk_steps == 0):
@@ -739,9 +744,9 @@ class HubertMinimiser(MinimiserBase):
                 reason = 'stopping_dE'
                 exitFlag = True
 
-            avGradE = np.sum(np.abs(self.mXgradE)) / self.mXgradE.shape[0]
+            avGradE = np.sum(np.abs(self.torque)) / self.torque.shape[0]
             if avGradE < mXgradE_tol:
-                log.info(f'Average torque length |mX∇E|/N = {avGradE} negligible. Stopping calculation.')
+                log.info(f'Average torque length |m×H|/N = {avGradE} negligible. Stopping calculation.')
                 reason = 'mXgradE_tol'
                 exitFlag = True
 
