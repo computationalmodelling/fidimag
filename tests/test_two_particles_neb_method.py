@@ -511,5 +511,40 @@ def test_energy_barrier_2particles_verlet():
     assert np.abs(barrier - 0.016019) < 1e-3
 
 
+def _dense_band(nebm_class):
+    sim = Sim(mesh)
+    sim.Ms = two_part
+    sim.add(UniaxialAnisotropy(Kx, axis=(1, 0, 0)))
+    return nebm_class(sim, [(-1, 0, 0), (0.0, 0.8, 0.8), (1, 0, 0)],
+                      interpolations=[30, 30], spring_constant=1e4,
+                      name='dense_band')
+
+
+def test_band_interpolation_slope_is_the_energy_derivative():
+    """
+    The slopes of the cubic interpolation of the band are the field weighted
+    by mu_0 Ms dV along the tangent. On a dense, smooth band they must agree
+    with the derivative of the energies with respect to the path distance.
+    """
+    neb = _dense_band(NEBM_Geodesic)
+    neb.compute_polynomial_factors()
+    slopes = neb.interp_factors[2][1:-1]
+    E, s = neb.energies, neb.path_distances
+    finite_difference = (E[2:] - E[:-2]) / (s[2:] - s[:-2])
+    steep = np.abs(finite_difference) > 1e-3 * np.abs(finite_difference).max()
+    assert np.allclose(slopes[steep], finite_difference[steep], rtol=1e-2)
+
+
+def test_band_interpolation_weights_follow_the_degrees_of_freedom():
+    """
+    The weights have one entry per degree of freedom: 2 per spin in spherical
+    coordinates, where they used to have 3 and the interpolation failed with
+    a shape mismatch.
+    """
+    neb = _dense_band(NEBM_Spherical)
+    assert neb.scale.size == neb.gradientE.size // neb.n_images
+    neb.compute_polynomial_factors()
+
+
 if __name__ == '__main__':
     test_energy_barrier_2particles()

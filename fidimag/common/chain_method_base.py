@@ -314,17 +314,16 @@ class ChainMethodBase:
         # 4 factors
         self.interp_factors = np.zeros((4, self.n_images))
 
-        # Somehow we need to rescale the gradient by the right units. In the
-        # case of micromag, we use mu0 * Ms, and for the atomistic case we
-        # simply use mu_s. This must be related to the way we derive the
-        # effective field to calculate the negative energy gradient, which is
-        # the functional derivative of the energy
+        # Weights that turn the field into the energy gradient,
+        # dE/dm_i = -w_i H_i: mu_0 Ms_i dV in micromagnetics and mu_s_i in
+        # the atomistic case, one per degree of freedom (3 in Cartesian
+        # coordinates, 2 in spherical ones)
         if self.sim._micromagnetic:
             self.scale = np.repeat(self.mesh.dx * self.mesh.dy * self.mesh.dz *
                                    (self.mesh.unit_length ** 3.) *
-                                   const.mu_0 * self.sim.Ms, 3)
+                                   const.mu_0 * self.sim.Ms, self.dof)
         else:
-            self.scale = np.repeat(self.sim.mu_s, 3)
+            self.scale = np.repeat(self.sim.mu_s, self.dof)
 
         # ---------------------------------------------------------------------
 
