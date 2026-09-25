@@ -19,154 +19,147 @@ log = logging.getLogger(name="fidimag")
 
 class ChainMethodBase:
     """
+    Base class for chain methods, such as the NEBM or String Method codes.
 
-    Base Class for chain methods, such as NEBM or String Method codes.
+    This class only sets up the arrays describing an energy band and the
+    machinery shared by every chain method: the integrators, the data
+    writers, the VTK/npy savers and the interpolation of the energy band.
+    The physics -- effective field, tangents, distances and the right hand
+    side of the evolution equation -- is left to the subclasses, which must
+    define the abstract methods listed in the Notes section.
 
-    Abstract Methods: ---------------------------------------------------------
+    Parameters
+    ----------
+    sim
+        An instance of a micromagnetic or an atomistic simulation. Its
+        driver is removed, since the band is evolved by this class instead.
+    initial_images
+        A sequence of arrays or functions setting the magnetisation field
+        profile of the images that define the initial band. The images at
+        the extremes of the band are kept fixed.
+    interpolations
+        A list of integers with the number of images to interpolate between
+        every pair of consecutive ``initial_images``, hence of length
+        ``len(initial_images) - 1``. If not specified, no images are
+        interpolated.
+    spring_constant
+        Magnitude of the spring constant, which keeps the images from
+        drifting towards the minima of the energy band.
+    name
+        Name of the chain method simulation, used as the prefix of every
+        output file.
+    climbing_image
+        Any iterable with the indexes of the climbing images, i.e. images
+        whose spring force is removed and whose energy gradient is inverted
+        along the tangent, so they are driven towards a saddle point. A
+        negative index sets a falling image instead, whose total force is
+        the energy gradient only.
+    dof
+        Degrees of freedom per spin. Spherical coordinates have ``dof=2``
+        and Cartesian coordinates have ``dof=3``.
+    openmp
+        Set to ``True`` to evolve the band with the OpenMP version of the
+        CVODE integrator.
 
-    ::
+    Attributes
+    ----------
+    dof : int
+        Degrees of freedom of the coordinates used in the band (e.g.
+        spherical coordinates have ``dof=2``).
+    sim : object
+        Fidimag atomistic or micromagnetic simulation object.
+    mesh : object
+        Fidimag simulation mesh object.
+    name : str
+        Name of the chain method simulation.
+    n_spins : int
+        Number of spins per image.
+    k : numpy.ndarray
+        Spring constant of every image.
+    variable_k : bool
+        Set to ``True`` to update the ``k`` values according to the
+        energies, which also requires setting ``dk``. Experimental, and
+        ``False`` by default.
+    VTK : object
+        Fidimag VTK object used to save VTK files.
+    files_convert_f : callable or None
+        Function converting the coordinates of the band into Cartesian
+        coordinates. ``None`` means the band is already Cartesian.
+    initial_images : list
+        The initial images of the band, as Numpy arrays or as space
+        dependent functions of the magnetisation/spin field.
+    interpolations : list of int
+        Number of images interpolated between every pair of consecutive
+        initial images.
+    n_images : int
+        Number of images in the band, computed from the number of initial
+        images and the interpolations between them.
+    n_images_inner_band : int
+        Number of images excluding the two at the extremes of the band.
+    n_dofs_image : int
+        Number of degrees of freedom per image, i.e. the number of spins
+        times ``dof``.
+    n_band : int
+        Total number of degrees of freedom in the whole band.
+    band : numpy.ndarray
+        Every degree of freedom (spin direction) of the band, ordered per
+        image and, within an image, in the XYZ format.
+    gradientE : numpy.ndarray
+        Components of the energy gradient.
+    G : numpy.ndarray
+        Effective force, as defined by the chain method in use.
+    tangents : numpy.ndarray
+        Tangents to the band at every image.
+    energies : numpy.ndarray
+        Energy of every image in the band, of length ``n_images``.
+    spring_force : numpy.ndarray
+        Components of the spring force.
+    distances : numpy.ndarray
+        Distances between adjacent images, ``[0-1, 1-2, 2-3, ...]``.
+    path_distances : numpy.ndarray
+        Distance of every image measured from the 0th image, so its first
+        element is always zero.
+    last_Y : numpy.ndarray
+        The band as computed in the previous step of the integrator, with
+        the same layout as ``band``.
+    _material : numpy.ndarray of bool
+        Array of size ``dof * n_spins``, i.e. the number of degrees of
+        freedom of a single image, which is ``True`` where ``Ms`` or
+        ``mu_s`` are larger than zero. It filters out the spins that should
+        not be counted in, for example, a scaled norm.
+    n_dofs_image_material : int
+        Number of degrees of freedom of a single image where ``mu_s`` or
+        ``Ms`` are larger than zero.
+    scale : numpy.ndarray
+        Factor rescaling the energy gradient into the right units:
+        ``mu_0 * Ms * cell_volume`` for micromagnetics and ``mu_s`` for
+        atomistic simulations.
+    G_log : list
+        The maximum force norms logged during ``relax``, also written to
+        ``<name>_G_log.txt``.
 
-        compute_distances          :: Function to compute the distances between
-                                      corresponding images of two bands. So the
-                                      inputs are two arrays with at least one
-                                      full image. The output is a 1D array with
-                                      the distances. So if the inputs have x
-                                      images we must return an array with x
-                                      entries.
+    Notes
+    -----
+    Subclasses must define the following abstract methods:
 
-        compute_effective_field_and_energy   :: Calculate effective field and
-                                                the energies of the images for
-                                                the energy band, according to
-                                                the number of degrees of
-                                                freedom (total number of spin
-                                                components). Effective field is
-                                                stored in the self.gradient and
-                                                the enrgies in self.energies
-
-        initialise_energies        :: Populate the self.energies array with the
-                                      energies of every image for the 0th step
-                                      of the algorithm
-
-        Sundials_RHS               :: Right hand side of the NEB equation for
-                                      Sundials
-
-    Methods -------------------------------------------------------------------
-
-    ::
-
-        compute_maximum_dYdt       :: Compute the maximum distance between the
-                                      images (not counting the extremes) of the
-                                      last computed band in the evolver
-                                      (self.integrator.y) with the band of the
-                                      previous step (stored in self.last_Y)
-                                      divided by the last time step of the
-                                      evolver.
-
-        create_tablewriter         :: Start the data frameworks to output the
-                                      energies ( *_energy.ndt) and distances
-                                      (*_dYs.ndt) for every step of the
-                                      integrator
-        generate_initial_band      :: Use the initial states and inteprolations
-                                      lists to generate the initial band. The
-                                      interpolations are linearly made in
-                                      spherical coordinates, using the
-                                      chain_method_tools.linear_interpolation_spherical
-                                      function. We may change this in the
-                                      future to generate an inteprolation using
-                                      a geodesic path
-
-        initialise_integrator      :: Start the CVODE integrator and define it
-                                      in self.integrator
-        relax                      :: Relax the band for a specific number of
-                                      steps. Arguments of this function
-                                      includes saving VTK and NPY files every
-                                      certain number of steps and some criteria
-                                      for stopping the integrator
-        run_until                  :: This function is called from the relax
-                                      function (maybe is not very useful, we
-                                      may check this in the future)
-        save_VTKs                  :: Function to save a VTK of every image for
-                                      the current step of the integrator, which
-                                      is defined in the self.iterations
-                                      variable
-        save_npys                  :: Same for NPY files
-
-    ARGUMENTS -----------------------------------------------------------------
-
-    ::
-
-        sim                 :: An instance of a micromagnetic or an atomistic
-                               simulation
-
-        initial_images      :: A sequence of arrays or functions to set up the
-                               magnetisation field profile
-
-        interpolations      ::
-
-        dof                 :: Degrees of freedom per spin. Spherical coordinates
-                               have dof=2 and Cartesian have dof=3
-
-    VARIABLES -----------------------------------------------------------------
-
-    ::
-
-        self.dof              :: Degree of freedom for the coordinates used in
-                                 the band (e.g. Spherical has self.dof=2)
-        self.sim              :: Fidimag atomistic or micromagnetic simulation
-                                 object
-        self.mesh             :: Fidimag simulation mesh object
-        self.name             :: Name of the chain method simulation
-        self.n_spins          :: Number of spins per image
-        self.k                :: Spring constant
-        self.variable_k(TEST) :: Set True to update k values acc to energy.
-                                 Need to specify self.dk var.
-                                 Default value: False
-        self.VTK              :: Fidimag VTK object to save VTK files
-        self.files_convert_f  :: Function to convert the coordinates from the
-                                 band to Cartesian coordinates
-        self.initial_images   :: List with the initial images for the band
-                                 (Numpy arrays or space functions with the
-                                 magnetisation/spin field)
-        self.interpolations   :: Optional List with integers indicating
-                                 interpolations between images
-        self.n_images         :: Number of images in the band calculated from
-                                 the number of initial images and
-                                 interpolations between them
-        self.n_images_inner_band :: Number of images without considering the
-                                    images at the extremes
-        self.n_dofs_image     :: Number of degrees of freedom per image, which
-                                 is the total number of spins multiplied by the
-                                 self.dof
-        self.n_band           :: Total number of degrees of freedom in the
-                                 whole band
-        self.band             :: The array containing all the degrees of
-                                 freedom (spin directions). It is ordered in
-                                 the XYZ format
-        self.gradientE        :: Array with the components of the energy
-                                 gradient
-        self.G                :: Array with the effective force from the NEB
-                                 method definition
-        self.tangents         :: Array with the NEBM tangents
-        self.energies         :: Array with the energies of every image in the
-                                 band (length = self.n_images)
-        self.spring_force     :: Array with the spring force components
-        self.distances        :: Array with the distances between adjacent
-                                 images: [0-1 1-2 2-3 .. etc ]
-        self.last_Y           :: Array with the last computed band (like
-                                 self.band) from the integrator
-        self._material        :: Array of Booleans of size (self.dof*n_spins),
-                                 i.e. the number of dofs in an image.
-                                 It is True where Ms or mu_s are larger than
-                                 zero. This is necessary to filter spins that
-                                 not need to be counted in, for example, a
-                                 scaled norm.
-        self.n_dofs_image_material :: Number of dofs where mu_s or Ms > 0
-                                      (in a single image)
-        climbing_image        :: Any iterable with the indexes of the climbing
-                                 images. Climbing images are stored in the
-                                 self._climbing_image array, which the
-                                 self.climbing_image decorator populates
-
+    ``compute_distances``
+        Compute the distances between corresponding images of two bands.
+        The inputs are two arrays with at least one full image and the
+        output is a 1D array with the distances, so an input with ``x``
+        images must return an array with ``x`` entries.
+    ``compute_effective_field_and_energy``
+        Compute the effective field and the energies of the images of the
+        band, according to the number of degrees of freedom (i.e. the total
+        number of spin components). The effective field is stored in
+        ``gradientE`` and the energies in ``energies``.
+    ``initialise_energies``
+        Populate the ``energies`` array with the energies of every image at
+        the 0th step of the algorithm.
+    ``generate_initial_band``
+        Use the initial states and the interpolations to generate the
+        initial band.
+    ``Sundials_RHS``
+        Right hand side of the chain method equation, as called by Sundials.
     """
     def __init__(self, sim,
                  initial_images, interpolations=None,
@@ -344,14 +337,27 @@ class ChainMethodBase:
     # relevant to the NEBM and not the string method
     @property
     def climbing_image(self):
+        """
+        The climbing images of the band, as an array of length
+        ``n_images`` whose entries are ``1`` for a climbing image, ``-1``
+        for a falling image and ``0`` otherwise.
+
+        Set it with an image index, or with any iterable of image indexes,
+        of the images that will climb towards a saddle point. A negative
+        index sets a falling image instead, whose total force is the energy
+        gradient only. Indexes of the images at the extremes of the band are
+        not allowed, since those images are kept fixed. Deleting it resets
+        every image back to a normal one.
+
+        Raises
+        ------
+        Exception
+            If an index does not belong to an image of the inner band.
+        """
         return self._climbing_image
 
     @climbing_image.setter
     def climbing_image(self, climbing_image_list):
-        """
-        Set climbing images passing a list of image indexes
-        Negative indexes mean a falling image (total force = gradient only)
-        """
         self._climbing_image[:] = 0
         images = range(self.n_images)[1:-1]
         for ci in np.array([climbing_image_list]).flatten():
@@ -373,18 +379,19 @@ class ChainMethodBase:
 
     def save_VTKs(self, coordinates_function=None):
         """
+        Save a VTK file per image of the band.
 
-        Save VTK files in different folders, according to the simulation name
-        and step. Files are saved as vtks/simname_simstep_vtk/image_00000x.vti
-        (or .vtp for a hexagonal mesh)
+        Files are saved in a different folder per simulation name and step,
+        as ``vtks/simname_simstep/image_00000x.vti`` (or ``.vtp`` for a
+        hexagonal mesh).
 
-        coordinates_function    :: A function to transform the coordinates of
-
-                                   the band to Cartesian coordinates. For
-                                   example, in spherical coordinates we need
-                                   the spherical2cartesian function from
-                                   chain_method_tools
-
+        Parameters
+        ----------
+        coordinates_function
+            A function transforming the coordinates of the band into
+            Cartesian coordinates. For example, for a band in spherical
+            coordinates this is the ``spherical2cartesian`` function from
+            ``chain_method_tools``. If ``None``, the band is saved as it is.
         """
         # Create the directory
         directory = "vtks/{}_{:05d}".format(self.name, self.iterations)
@@ -421,9 +428,16 @@ class ChainMethodBase:
 
     def save_npys(self, coordinates_function=None):
         """
-        Save npy files in different folders according to
-        the simulation name and step
-        Files are saved as: npys/simname_simstep/image_x.npy
+        Save a npy file per image of the band.
+
+        Files are saved in a different folder per simulation name and step,
+        as ``npys/simname_simstep/image_x.npy``.
+
+        Parameters
+        ----------
+        coordinates_function
+            A function transforming the coordinates of the band into
+            Cartesian coordinates. If ``None``, the band is saved as it is.
         """
         # Create directory as simname_simstep
         directory = 'npys/%s_%d' % (self.name, self.iterations)
@@ -445,19 +459,45 @@ class ChainMethodBase:
     def initialise_integrator(self, integrator='cvode_bdf', rtol=1e-6, atol=1e-6,
                               linear_solver='spgmr', maxl=30, maxrs=10):
         """
-        linear_solver, maxl, maxrs :: Only used by the 'sundials' integrator.
+        Start the integrator that evolves the band, and set it in
+        ``self.integrator``.
 
-            'spgmr' (default) is restarted GMRES(maxl) with at most maxrs
-            restarts; 'diag' is CVODE's diagonal approximate Jacobian solver.
-            GMRES keeps a Krylov basis of (maxl + 1) copies of the whole
-            band, so maxl directly sets the integrator's memory footprint:
-            (maxl + 1) * n_images * n_dofs_image * 8 bytes. SUNDIALS reserves
-            that basis up front, but its pages are only faulted in as GMRES
-            actually uses the vectors, so an oversized maxl does not show up
-            as one large allocation: it shows up as resident memory that
-            keeps creeping upwards during a relaxation, which is easily
-            mistaken for a memory leak. The restarts keep the total iteration
-            reach at maxl * (1 + maxrs) while bounding the basis.
+        Parameters
+        ----------
+        integrator
+            One of ``'cvode_bdf'`` (the CVODE solver from Sundials, and the
+            default), ``'rk4'``, ``'euler'`` or ``'verlet'``.
+        rtol
+            Relative tolerance of the CVODE integrator.
+        atol
+            Absolute tolerance of the CVODE integrator.
+        linear_solver
+            Only used by the CVODE integrator. ``'spgmr'`` (default) is
+            restarted GMRES(``maxl``) with at most ``maxrs`` restarts, and
+            ``'diag'`` is CVODE's diagonal approximate Jacobian solver.
+        maxl
+            Only used by the CVODE integrator with the ``'spgmr'`` linear
+            solver. Dimension of the Krylov basis.
+        maxrs
+            Only used by the CVODE integrator with the ``'spgmr'`` linear
+            solver. Maximum number of GMRES restarts.
+
+        Raises
+        ------
+        Exception
+            If the specified integrator is not one of the valid options.
+
+        Notes
+        -----
+        GMRES keeps a Krylov basis of ``maxl + 1`` copies of the whole band,
+        so ``maxl`` directly sets the memory footprint of the integrator:
+        ``(maxl + 1) * n_images * n_dofs_image * 8`` bytes. SUNDIALS reserves
+        that basis up front, but its pages are only faulted in as GMRES
+        actually uses the vectors, so an oversized ``maxl`` does not show up
+        as one large allocation: it shows up as resident memory that keeps
+        creeping upwards during a relaxation, which is easily mistaken for a
+        memory leak. The restarts keep the total iteration reach at
+        ``maxl * (1 + maxrs)`` while bounding the basis.
         """
         self.t = 0
         self.iterations = 0
@@ -552,11 +592,24 @@ class ChainMethodBase:
 
     def compute_norms(self, A, B):
         """
-        Compute the norms of the difference between corresponding images of the
-        bands A and B. Every norm is scaled by the number of degrees of freedom
+        Compute the norms of the difference between corresponding images of
+        the bands *A* and *B*.
 
-        The norm is computed only using mesh/lattice sites with material, i.e.
-        mu_s or Ms > 0
+        Every norm is scaled by the number of degrees of freedom, and is
+        computed using only the mesh/lattice sites with material, i.e. those
+        where ``mu_s`` or ``Ms`` are larger than zero.
+
+        Parameters
+        ----------
+        A
+            The degrees of freedom of a band, with at least one full image.
+        B
+            The degrees of freedom of a band, with at least one full image.
+
+        Returns
+        -------
+        numpy.ndarray
+            A 1D array with one norm per image.
         """
 
         A_minus_B = A - B
@@ -572,58 +625,80 @@ class ChainMethodBase:
 
     def step_RHS(self, t, y):
         """
-        The RHS of the ODE to be solved for the Chain Method
-        This function is specified for the Scipy integrator
+        Right hand side of the ODE solved by the chain method, as called by
+        the step integrators (Euler, Runge-Kutta and Verlet).
+
+        Parameters
+        ----------
+        t
+            Current time of the integrator.
+        y
+            The band at which the right hand side is evaluated.
         """
         pass
 
     def Sundials_RHS(self, t, y, ydot):
         """
+        Right hand side of the ODE solved by the chain method, as called on
+        every iteration of the CVODE integrator.
 
-        This function is called on every iteration of the integrator (CVODE
-        solver). ydot refers to the Right Hand Side of the equation, since
-        we are solving dy/dt = 0
-
+        Parameters
+        ----------
+        t
+            Current time of the integrator.
+        y
+            The band at which the right hand side is evaluated.
+        ydot
+            Output array where the right hand side is stored, since we are
+            solving ``dy/dt = 0``.
         """
 
         pass
 
     def compute_maximum_dYdt(self, A, B, dt):
         """
+        Compute the maximum difference between the images of the *A* array
+        and the images of the *B* array, divided by *dt*.
 
-        Compute the maximum difference from the images of the *A* array with
-        the images of the *B* array, divided by dt
+        Parameters
+        ----------
+        A
+            The degrees of freedom of a band, typically the band from the
+            last step of the integrator.
+        B
+            The degrees of freedom of a band, typically the band from the
+            previous step of the integrator.
+        dt
+            Time step separating the two bands.
 
-        The differences are not computed for the images at the extremes, since
-        these images are fixed and do not change with the iterator
+        Returns
+        -------
+        float
+            The largest rate of change of the band, or zero if no image
+            changed.
 
-        For instance, in spherical coordinates, if we have a band of (N + 1)
-        images, labeled from 0 to N, we start by
+        Notes
+        -----
+        The differences are not computed for the images at the extremes,
+        since these images are fixed and do not change with the integrator.
 
-        dY = [A1_theta0 A1_phi0 A1_theta1 ... A(N-1)_theta0 A(N-1)_phi0 A(N-1)_theta1 ... ]
+        For instance, in spherical coordinates, if we have a band of
+        ``N + 1`` images labelled from 0 to ``N``, we start by::
 
-            - [B1_theta0 B1_phi0 B1_theta1 ... B(N-1)_theta0 B(N-1)_phi0 B(N-1)_theta1 ... ]
+            dY = [A1_theta0 A1_phi0 A1_theta1 ... A(N-1)_theta0 ... ]
+                 - [B1_theta0 B1_phi0 B1_theta1 ... B(N-1)_theta0 ... ]
 
-        where A(i)_theta(j) is the theta componenet of the j-th spin of the
-        i-th image in the band
+        where ``A(i)_theta(j)`` is the theta component of the j-th spin of
+        the i-th image in the band. Then we calculate the norm of every
+        difference, using only the mesh/lattice sites with material, i.e.
+        those where ``mu_s`` or ``Ms`` are larger than zero::
 
-        Then we calculate the norm of every difference (the norm is computed
-        only using mesh/lattice sites with material, i.e.  mu_s or Ms > 0):
+            ||dY|| = [ || dY1_theta0 dY1_phi0 dY1_theta1 ... ||,
+                                        ...
+                       || dY(N-1)_theta0 dY(N-1)_phi0 ...  || ]
 
-        ||dY|| =  [ || dY1_theta0 dY1_phi0 dY1_theta1         ...       ||
-
-        ::
-
-                                   ...
-                    || dY(N-1)_theta0 dY(N-1)_phi0 dY(N-1)_theta1  ...  ||
-                  ]
-
-        We divide by dt:
-
-        ||dY|| -- > || dY || / dt = dYdt
-
-        and finally take the maximum value of dYdt
-
+        Finally we divide by *dt*, so ``||dY|| -> ||dY|| / dt = dYdt``, and
+        take the maximum value of ``dYdt``.
         """
 
         # We will not consider the images at the extremes to compute dY.
@@ -686,51 +761,65 @@ class ChainMethodBase:
               ):
 
         """
-        Relax the energy band according to the specified integrator::
+        Relax the energy band for a given number of steps of the integrator
+        set in ``initialise_integrator``.
 
-            Sundials:        dt is the initial stepsize which is updated
-                             by CVODE. Number of calls is given by CVODE
-            StepIntegrators: dt is the relaxation stepsize. These integrators
-                             evolve using an internal `stepsize`, thus the
-                             number of evaluations is dt / stepsize.
-                             You can update the integrator evolve step using:
-                                self.integrator.stepsize = 1e-4
+        Parameters
+        ----------
+        dt
+            Time step of the relaxation. Its meaning depends on the
+            integrator in use:
 
-        stopping_max_force :: Optional. If set, also stop once the largest::
+            - CVODE: the initial step size, which is then updated by CVODE
+              itself, so the number of evaluations is decided by CVODE.
+            - Step integrators (Euler, Runge-Kutta, Verlet): the relaxation
+              step size. These integrators evolve the band using an internal
+              ``stepsize``, so the number of evaluations is
+              ``dt / stepsize``. The internal step can be updated with
+              ``self.integrator.stepsize = 1e-4``.
+        stopping_dYdt
+            Stop the relaxation once the largest rate of change of the band
+            (see ``compute_maximum_dYdt``) drops below this value.
+        max_iterations
+            Maximum number of steps of the integrator.
+        save_npys_every
+            Save a npy file per image every this number of steps.
+        save_vtks_every
+            Save a VTK file per image every this number of steps.
+        save_initial_state
+            Save the VTK/npy files and the table entries of the initial band
+            before the relaxation starts. They are only saved on the first
+            ``relax`` call of an object, since any later call continues from
+            the band that the previous one already saved.
+        stopping_max_force
+            Optional. If set, also stop once the largest force norm on the
+            band (``max|G|``, over the inner images) drops below this value.
+            This is a step-size-independent convergence check, unlike
+            ``stopping_dYdt``, which only measures how much the Cartesian
+            coordinates changed in the last step and can be small simply
+            because the integrator took a tiny internal step, even far from
+            a true force equilibrium. Off (``None``) by default, so the
+            previous ``stopping_dYdt``-only behaviour is unchanged unless
+            this is explicitly requested.
 
-                              force norm on the band (max|G|, over the
-                              inner images) drops below this value. This is
-                              a step-size-independent convergence check,
-                              unlike stopping_dYdt (which only measures how
-                              much the Cartesian coordinates changed in the
-                              last step, and can be small simply because the
-                              integrator took a tiny internal step, even far
-                              from a true force equilibrium). Off (None) by
-                              default, so the previous stopping_dYdt-only
-                              behaviour is unchanged unless this is
-                              explicitly requested.
+        Notes
+        -----
+        The ``stopping_max_force`` comparison uses the largest ``|G|`` over
+        the sites that carry material, in the raw units of the effective
+        field: A/m for micromagnetics and Tesla for atomistic simulations.
+        For a micromagnetic system this is the same kind of quantity as
+        OOMMF's ``|m x H x m|``, so a value around ``1e-2`` means here what
+        it means there; for an atomistic system the threshold is a field in
+        Tesla and has to be chosen on that scale. In both cases it is
+        exactly the ``max|G|`` written to the debug log, so a threshold can
+        be read straight off a previous run. The same values are collected
+        in ``self.G_log`` and written to ``<name>_G_log.txt`` at the end of
+        ``relax``.
 
-                              The comparison uses the largest |G| over
-                              the sites that carry material, in the raw units
-                              of the effective field: A/m for micromagnetics,
-                              Tesla for atomistic simulations. For a
-                              micromagnetic system this is the same kind of
-                              quantity as OOMMF's |m x H x m|, so a value
-                              around 1e-2 means here what it means there; for
-                              an atomistic system the threshold is a field in
-                              Tesla and has to be chosen on that scale. In
-                              both cases it is exactly the max|G| written to
-                              the debug log, so a threshold can be read
-                              straight off a previous run. The same values
-                              are collected in self.G_log and written to
-                              <name>_G_log.txt at the end of relax().
-
-                              Cells with no material are excluded on purpose:
-                              they keep feeling the stray field of the
-                              magnetised region while nothing relaxes them,
-                              so including them would hold max|G| at a fixed
-                              floor and this criterion would never be met.
-
+        Cells with no material are excluded on purpose: they keep feeling
+        the stray field of the magnetised region while nothing relaxes them,
+        so including them would hold ``max|G|`` at a fixed floor and this
+        criterion would never be met.
         """
 
         # Units of the max|G| / max|gradE| / max|F_k| values reported below,
@@ -905,16 +994,23 @@ class ChainMethodBase:
     def compute_polynomial_factors(self, compute_fields=True):
 
         """
-        Compute a smooth approximation for the band, using a third order
-        polynomial approximation. Prefactors are stored in the
-        self.interp_factors array
+        Compute a smooth approximation of the energy band, using a third
+        order polynomial, and store its prefactors in the
+        ``self.interp_factors`` array.
 
-        This approximation uses the tangents and derivatives from each image of
-        the band as information to estimate the curvatures. The formula can be
-        found in
+        The approximation uses the tangents and the derivatives of every
+        image of the band as the information to estimate the curvatures.
 
-        - Bessarab et al., Computer Physics Communications 196 (2015) 335-347
+        Parameters
+        ----------
+        compute_fields
+            Update the effective field, the tangents and the distances
+            before computing the prefactors. Necessary if the band has not
+            been relaxed before calling this method.
 
+        References
+        ----------
+        Bessarab et al., Computer Physics Communications 196 (2015) 335-347
         """
 
         # To be sure, update the effective field and tangents when calling
@@ -955,22 +1051,21 @@ class ChainMethodBase:
     def compute_polynomial_approximation_energy(self, n_points):
 
         """
+        Compute a smooth approximation of the energy band, using the third
+        order polynomial whose prefactors are computed by the
+        ``compute_polynomial_factors`` method.
 
-        Compute a smooth approximation of the energy band, using a third order
-        polynomial approximation. The pre-factors in the polynomial are
-        computed from the self.compute_polynomial_factors function
+        Parameters
+        ----------
+        n_points
+            Number of points of the interpolation.
 
-        This function returns a tuple with two elements:
-
-            0. An array with the distance of every data point from the 0th
-            image.
-
-            1. A n_points long array, with the cubic interpolated energy band
-
-        ARGUMENTS
-
-        n_points    :: The number of points for the interpolation
-
+        Returns
+        -------
+        x : numpy.ndarray
+            The distance of every data point measured from the 0th image.
+        E_interp : numpy.ndarray
+            An ``n_points`` long array with the interpolated energy band.
         """
 
         ds = self.path_distances
@@ -983,7 +1078,23 @@ class ChainMethodBase:
     def _compute_polynomial_approximation_energy(self, x):
 
         """
-        Return interpolated energy value for a point x
+        Return the polynomial interpolation of the energy at the point *x*.
+
+        Parameters
+        ----------
+        x
+            Distance from the 0th image, within the path distances of the
+            band.
+
+        Returns
+        -------
+        float
+            The interpolated energy.
+
+        Raises
+        ------
+        Exception
+            If *x* lies outside the path distances of the band.
         """
 
         ds = self.path_distances
@@ -1009,11 +1120,18 @@ class ChainMethodBase:
     def compute_Bernstein_polynomials(self, compute_fields=True):
 
         """
-        Compute Bernstein polynomials to approximate the the energy curve.
-        The functions are stored in the self.Bernstein_polynomials variable
+        Compute the Bernstein polynomials approximating the energy curve,
+        and store them in the ``self.Bernstein_polynomials`` list.
 
-        These polynomials can be used with the
-        self.compute_Bernstein_approximation_energy method
+        These polynomials are used by the
+        ``compute_Bernstein_approximation_energy`` method.
+
+        Parameters
+        ----------
+        compute_fields
+            Update the effective field, the tangents and the distances
+            before computing the polynomials. Necessary if the band has not
+            been relaxed before calling this method.
         """
 
         # To be sure, update the effective field and tangents when calling
@@ -1050,7 +1168,23 @@ class ChainMethodBase:
     def _compute_Bernstein_approximation_energy(self, x):
 
         """
-        Return interpolated energy value for a point x
+        Return the Bernstein interpolation of the energy at the point *x*.
+
+        Parameters
+        ----------
+        x
+            Distance from the 0th image, within the path distances of the
+            band.
+
+        Returns
+        -------
+        float
+            The interpolated energy.
+
+        Raises
+        ------
+        Exception
+            If *x* lies outside the path distances of the band.
         """
 
         ds = self.path_distances
@@ -1072,8 +1206,21 @@ class ChainMethodBase:
     def compute_Bernstein_approximation_energy(self, n_points):
 
         """
-        Return interpolated energy values of the energy band with n_points
-        resolution
+        Compute a smooth approximation of the energy band, using the
+        Bernstein polynomials computed by the
+        ``compute_Bernstein_polynomials`` method.
+
+        Parameters
+        ----------
+        n_points
+            Number of points of the interpolation.
+
+        Returns
+        -------
+        x : numpy.ndarray
+            The distance of every data point measured from the 0th image.
+        E_interp : numpy.ndarray
+            An ``n_points`` long array with the interpolated energy band.
         """
 
         ds = self.path_distances

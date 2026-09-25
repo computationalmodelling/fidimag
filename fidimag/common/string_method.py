@@ -17,6 +17,13 @@ log = logging.getLogger(name="fidimag")
 
 class StringMethod(ChainMethodBase):
     """
+    The String Method class, to find minimum energy paths between two stable
+    states in a given magnetic system.
+
+    Unlike the NEBM, the images are not kept apart by a spring force: they
+    are evolved by the energy gradient alone and then redistributed along
+    the string by spline interpolation, in ``run_until``.
+
     Parameters
     ----------
     sim
@@ -40,21 +47,13 @@ class StringMethod(ChainMethodBase):
         images. If we do not want any interpolation, we leave this
         list as None or empty.
     interpolation_method
-        In case that a number of interpolations were defined, it is
-        possible to specify how the interpolation is performed
-        using any of these methods:
+        If a number of interpolations was defined, how those
+        interpolations are computed:
 
-        ::
-
-            'linear'   : A linear interpolation of the spin
-                         directions using spherical
-                         coordinates
-
-            'rotation' : Interpolation of the spin
-                         directions using Rodrigue's
-                         rotation formulae
-    spring_constant
-        The spring constant magnitude
+        - ``'linear'``: a linear interpolation of the spin directions
+          using spherical coordinates.
+        - ``'rotation'``: an interpolation of the spin directions using
+          Rodrigues' rotation formula.
     name
         The simulation name. Folders for VTK and NPY files, and
         data tables are named according to this string.
@@ -62,7 +61,11 @@ class StringMethod(ChainMethodBase):
         Set this as True to use the parallelised version of CVODE,
         which is the integrator used to evolve the minimisation
         equation.
-
+    integrator
+        The integrator evolving the string, passed on to
+        ``initialise_integrator``. Defaults to ``'verlet'``, since the
+        variable step integrator from Sundials does not work well with the
+        String Method (see ``Sundials_RHS``).
     """
 
     def __init__(self, sim,
@@ -96,6 +99,10 @@ class StringMethod(ChainMethodBase):
         # ---------------------------------------------------------------------
 
     def initialise_energies(self):
+        """
+        Populate the ``self.energies`` array with the energy of every image
+        of the band, for the 0th step of the algorithm.
+        """
         # Energy of the images
         self.band = self.band.reshape(self.n_images, -1)
         for i in range(self.n_images):
@@ -106,8 +113,16 @@ class StringMethod(ChainMethodBase):
 
     def generate_initial_band(self, method='linear'):
         """
-        method      :: linear, rotation
+        Generate the initial string from the initial images, interpolating
+        between them as requested by the ``interpolations`` list.
 
+        Parameters
+        ----------
+        method
+            How the interpolations between consecutive initial images are
+            computed. Either ``'linear'``, for a linear interpolation of the
+            spin directions in spherical coordinates, or ``'rotation'``, for
+            an interpolation using Rodrigues' rotation formula.
         """
 
         # Every row will be an image of the band, i.e. the i-th row is
@@ -172,15 +187,17 @@ class StringMethod(ChainMethodBase):
 
     def compute_effective_field_and_energy(self, y):
         """
+        Compute the effective field and the energy of every image in the
+        band.
 
-        Compute the effective field and the energy of every image in the band,
-        using the array *y* as the degrees of freedom of the system (i.e. the
-        one that contains all the spin directions of the images in the band).
-
-        The local copy of the *y* array for this String class is the self.band
-        array, which we update at the end of every call to the integrator in
-        the relaxation function
-
+        Parameters
+        ----------
+        y
+            The degrees of freedom of the system, i.e. the array containing
+            all the spin directions of the images in the band. The local
+            copy of this array for this String class is ``self.band``, which
+            is updated at the end of every call to the integrator in the
+            relaxation function.
         """
 
         self.gradientE = self.gradientE.reshape(self.n_images, -1)
@@ -204,7 +221,17 @@ class StringMethod(ChainMethodBase):
         self.gradientE = self.gradientE.reshape(-1)
 
     def string_method_step(self, y):
+        """
+        Update the effective field and the energies from the band *y*, and
+        set the effective force ``self.G`` from the energy gradient alone,
+        i.e. a steepest descent step.
 
+        Parameters
+        ----------
+        y
+            The degrees of freedom of the system, i.e. the array containing
+            all the spin directions of the images in the band.
+        """
         # Use the projection mehtod from the NEBM C libs
         self.compute_effective_field_and_energy(y)
         nebm_clib.project_images(self.gradientE, y,
@@ -225,10 +252,14 @@ class StringMethod(ChainMethodBase):
 
     def compute_distances(self):
         """
-        Compute the distance between consecutive images in the string
-        Distances are redefined between 0 and 1
-        We use the Geodesic library to compute the distances (the original
-        method uses a Euclidean norm)
+        Compute the distances between consecutive images of the string, and
+        store them in ``self.distances`` and ``self.path_distances``.
+
+        Notes
+        -----
+        The path distances are rescaled to lie between 0 and 1. The
+        distances are computed with the Geodesic library, whereas the
+        original String Method uses a Euclidean norm.
         """
 
         nebm_clib.image_distances_GreatCircle(self.distances,
@@ -246,8 +277,26 @@ class StringMethod(ChainMethodBase):
 
     def step_RHS(self, t, y):
         """
-        Use Step integrators from the chain_method_integrators library
+        Right hand side of the String Method equation, as called on every
+        iteration of the step integrators in
+        ``chain_method_integrators.py``.
 
+        The effective force is left in ``self.G``, with the entries of the
+        images at the extremes of the string set to zero, since those images
+        are kept fixed.
+
+        Parameters
+        ----------
+        t
+            Current time of the integrator. Unused, since the equation does
+            not depend explicitly on time.
+        y
+            The band at which the right hand side is evaluated.
+
+        Returns
+        -------
+        int
+            Always 0, as expected by the integrators.
         """
 
         self.ode_count += 1
@@ -269,20 +318,37 @@ class StringMethod(ChainMethodBase):
 
     def Sundials_RHS(self, t, y, ydot):
         """
+        Right hand side of the String Method equation, as called on every
+        iteration of the CVODE integrator.
 
-        This function is called on every iteration of the integrator (CVODE
-        solver). ydot refers to the Right Hand Side of the equation, since
-        we are solving dy/dt = 0
+        Parameters
+        ----------
+        t
+            Current time of the integrator. Unused, since the equation does
+            not depend explicitly on time.
+        y
+            The band at which the right hand side is evaluated.
+        ydot
+            Output array where the right hand side is stored, since we are
+            solving ``dy/dt = 0``. Its entries for the images at the
+            extremes of the string are set to zero, since those images are
+            kept fixed.
 
-        WARNING: The variable step integrator from Sundials does not work well
-        with the StringMethod, making the algorithm overshoot the solutions for
-        large time steps and driving the images toward the extrema images.  We
-        could poossibly fix this by redefining the positions of the images
-        after every integrator step, instead of redefining them after a certain
-        number of steps, however this requires to tune the Sundials Python
-        wrapper. In addition, we would need to check the stopping criteria of
-        the algorithm
+        Returns
+        -------
+        int
+            Always 0, as expected by the integrator.
 
+        Warnings
+        --------
+        The variable step integrator from Sundials does not work well with
+        the String Method: it makes the algorithm overshoot the solutions
+        for large time steps, driving the images towards the images at the
+        extremes. This could possibly be fixed by redefining the positions
+        of the images after every integrator step, instead of after a
+        certain number of steps, but that requires tuning the Sundials
+        Python wrapper, and the stopping criteria of the algorithm would
+        have to be checked as well.
         """
 
         self.ode_count += 1
@@ -310,11 +376,29 @@ class StringMethod(ChainMethodBase):
 
     def run_until(self, t):
         """
-        After certain number of integration steps, given by
-        self.integrator.run_until(t), we redefine the positions of the images
-        using splines. Splines are computed using Scipy (not the most efficient
-        method for now, but very accurate). Image positions are normalised in
-        the distance calculation method
+        Evolve the string until the time *t*, then redistribute the images
+        along it.
+
+        Parameters
+        ----------
+        t
+            Time up to which the integrator is run. If it is not larger than
+            the current ``self.t``, nothing is done.
+
+        Returns
+        -------
+        float or None
+            The maximum rate of change of the string, as computed by
+            ``compute_maximum_dYdt``, or ``None`` if the integrator was not
+            run.
+
+        Notes
+        -----
+        After the number of integration steps given by
+        ``self.integrator.run_until(t)``, the positions of the images are
+        redefined using splines, which are computed with Scipy: not the most
+        efficient method for now, but a very accurate one. The image
+        positions are normalised in the distance calculation method.
         """
 
         if (t) <= self.t:
@@ -363,12 +447,21 @@ class StringMethod(ChainMethodBase):
 
     def compute_tangents(self, y):
         """
-        Calculation of tangents from the Geodesic NEBM, so we can use the
-        interpolation methods for the energy band
+        Compute the tangents to the string, using the Geodesic NEBM
+        definition, so that the interpolation methods for the energy band
+        can be used.
 
-        TODO: An alternative approximation of the band can be made with simple
-        spline interpolations although the GNEBM interpolation has more
-        information of the gradients
+        Parameters
+        ----------
+        y
+            The degrees of freedom of the system, i.e. the array containing
+            all the spin directions of the images in the band.
+
+        Notes
+        -----
+        An alternative approximation of the band could be made with simple
+        spline interpolations, although the GNEBM interpolation carries more
+        information about the gradients.
         """
         nebm_clib.compute_tangents(self.tangents, y, self.energies,
                                    self.n_dofs_image, self.n_images
