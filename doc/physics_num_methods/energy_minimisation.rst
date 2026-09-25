@@ -213,9 +213,10 @@ is that the energy decreases with respect to the largest of the last
 
 .. math::
     E(\mathbf{m}_{\text{new}}) \leq \max_{0\leq j < t} E_{j}
-                                    - \gamma \lambda ||\mathbf{g}||^{2}
+                                    - \gamma \lambda \sum_{i} w_{i} ||\mathbf{g}_{i}||^{2}
 
-with :math:`\gamma` a small constant. If a trial step fails this test we
+with :math:`\gamma` a small constant and :math:`w_{i}` the weights described
+below. If a trial step fails this test we
 backtrack, i.e. we shorten it and try again from the same configuration. This
 is the non-monotone line search of Grippo, Lampariello and Lucidi, and together
 with the BB step lengths and the re-normalisation of the spins, which plays the
@@ -223,13 +224,22 @@ role of the projection onto the constraint set, it is the spectral projected
 gradient method of Birgin, Martínez and Raydan [5]_. Setting ``nTrail = 1``
 recovers a monotone line search.
 
-There is a subtlety in the sufficient decrease term above, which compares a
-gradient norm against an energy. In Fidimag the energy of the minimiser is
-divided by the ``energyScale`` attribute while the gradient is the raw effective
-field, so the two do not share units, and the missing constant is not the same
-for the micromagnetic and the atomistic classes. Rather than hard-coding it, we
-calibrate it from the decrease that the accepted steps actually produce, which
-keeps the criterion meaningful without having to know the units.
+The sufficient decrease term compares a gradient against an energy, and the
+gradient here is the effective field, which is the energy gradient only up to a
+weight at every site,
+
+.. math::
+    \frac{\partial E}{\partial \mathbf{m}_{i}} = - w_{i}\, \mathbf{H}_{\text{eff},i}
+    \qquad
+    w_{i} = \mu_{0} M_{s,i} \Delta V \ \text{(micromagnetic)}, \quad
+    w_{i} = \mu_{s,i} \ \text{(atomistic)}
+
+the same weights the chain methods use (see :doc:`nebm`). The sum above is
+then the first order decrease of the energy along the step, and is divided by
+``energyScale`` like the energies it is compared with. The factor
+:math:`\mu_{0}\Delta V` is the ``moment_factor`` attribute of the minimiser,
+which the micromagnetic simulation class sets. Since the weights vary from site
+to site when :math:`M_{s}` does, no single constant could replace them.
 
 A trust region completes the algorithm: no spin is allowed to move further than
 ``maxDeltaM`` in a single step, in units where the spin length is one. This
@@ -337,22 +347,21 @@ The BB path, ``stepControl='BB'``:
 
 .. code-block:: text
 
+    w = moment_factor * Ms (or mu_s) / energyScale    # per site weights
     m_last, g_last = m0, projGrad(m0)
     eta = maxDeltaM / max(|g_last|)                   # trust-region first step
-    gradScale = 0                                     # unit calibration
     repeat:
         lamb = min(eta, maxDeltaM / max(|g_last|))    # trust-region cap
+        slope = sum(w * |g_last|**2)                  # first order decrease rate
         repeat (backtracking):
             m_trial = m_last - lamb * g_last
             E_trial = energy(m_trial)
-            if E_trial <= max(trailE) - gamma*gradScale*lamb*|g_last|**2:  # GLL accept
+            if E_trial <= max(trailE) - gamma*lamb*slope:  # GLL accept
                 break
             lamb /= dEta**2                            # backtrack
             if too many backtracks:                    # reset
                 m_trial = m_last;  eta = eta0;  continue outer loop
         g_new = projGrad(m_trial)
-        dE = E_trial - E_last
-        gradScale = max(gradScale, -dE / (lamb * |g_last|**2))  # old g_last
         s, y = m_trial - m_last, g_new - g_last        # old m_last, g_last
         eta = BB1(s, y) or BB2(s, y)                   # curvature step
         m_last, g_last, E_last = m_trial, g_new, E_trial
@@ -374,12 +383,12 @@ The BB path, ``stepControl='BB'``:
         cap     [label="Trust region\nλ = min(η, maxΔm / max|g_last|)\nE_ref = max(trailE)"];
         trial   [label="Trial step\nm = m_last − λ g_last,  normalise"];
         eval    [label="Evaluate H_eff\nΔE as a sum over sites"];
-        gll     [label="E ≤ E_ref − γ c λ |g_last|² ?", shape=diamond,
+        gll     [label="E ≤ E_ref − γ λ Σ w |g_last|² ?", shape=diamond,
                  fillcolor="#fbf1d6"];
         back    [label="Backtrack\nλ ← λ / dEta²"];
         tired   [label="too many\nbacktracks ?", shape=diamond, fillcolor="#fbf1d6"];
         reset   [label="Reset\nm ← m_last,  η ← η0\ndrop the secant memory"];
-        accept  [label="Accept\ng = tangential gradient at m\ncalibrate c (gradScale)\nstore E in trailE"];
+        accept  [label="Accept\ng = tangential gradient at m\nstore E in trailE"];
         bb      [label="BB step length\ns = m − m_last,  y = g − g_last\nη = BB1 or BB2 if s·y > 0, else η0"];
         shift   [label="m_last, g_last, E_last ← m, g, E"];
         stop    [label="Stopping test\nmet?", shape=diamond, fillcolor="#fbf1d6"];
@@ -553,7 +562,9 @@ unconverged one that a tighter test would have caught: its torque is
 :math:`8\times10^{-5}` A/m, satisfying the same criterion the correct answer
 satisfies. It is a different stationary point, and the only way not to arrive
 there is to look at the energy while the step is being taken, which is what
-the guard does. ``tests/test_steepest_descent.py`` pins this.
+the guard does. ``tests/test_steepest_descent.py`` pins the guarded run; the
+unguarded one ends there only on some runs, for the reason given under
+:ref:`reproducibility`, so it is not asserted on.
 
 The guard costs between five and fifteen per cent more evaluations at a given
 ceiling, and buys the ability to raise the ceiling: 918 evaluations at
@@ -676,9 +687,10 @@ dividing both by a constant leaves that ratio alone: here
 :math:`\varepsilon = 2.2\times10^{-16}`, at any scale. The subtraction
 ``(E - dE) - E`` returns exactly zero for :math:`E` of
 :math:`6\times10^{-19}`, of one, and of :math:`10^{12}` alike. Nor is the
-algorithm supposed to care: the gradient is never divided by ``energyScale``,
-and ``gradScale`` is calibrated from the decrease, so the scale cancels out of
-the acceptance test in exact arithmetic.
+algorithm supposed to care: the BB quotients never see ``energyScale``, and the
+weights :math:`w_{i}` of the sufficient decrease term are divided by it like
+the energies are, so the scale cancels out of the acceptance test in exact
+arithmetic.
 
 What a different scale does change is the rounding, and so the sequence of
 accepted steps and the point at which the iteration gives up. On the problem
@@ -695,9 +707,10 @@ accepted steps, instead of reading totals.
 
 With that in place the same problem reaches :math:`2.4\times10^{-10}` A/m
 instead of :math:`1.5\times10^{-6}`, in fewer evaluations than OOMMF needs to
-reach :math:`10^{-6}`, and it returns the same answer to the last bit for
-every ``energyScale`` from one to :math:`10^{-31}`, the scale having dropped
-out of a subtraction that is no longer performed. The steepest descent never
+reach :math:`10^{-6}`, and it reaches the same minimum and the same floor, to
+within a few units in the last place of the energy, for every ``energyScale``
+from one to :math:`10^{-31}`, the scale having dropped out of a subtraction
+that is no longer performed. The steepest descent never
 had the problem, since it does not evaluate the energy at all.
 
 
@@ -730,13 +743,13 @@ expression because its two fields are equal.
 
 Measured on the problem above it reached the same convergence as the sum over
 sites, to within the run to run spread. It was not kept because it is worse on
-three counts: it is exact only while the energy is quadratic, a cubic
-anisotropy being the case to watch, where it degrades to the usual first order
-estimate; it needs the field at both ends of the step, :math:`3n` stored
-against :math:`n`; and it gives the change only up to a constant, which
-differs between the micromagnetic and atomistic classes and has to be
-calibrated. It is recorded here because none of those objections is fatal, and
-it is the route to take if per cell energies are ever unavailable.
+two counts: it is exact only while the energy is quadratic, a cubic anisotropy
+being the case to watch, where it degrades to the usual first order estimate;
+and it needs the field at both ends of the step, :math:`3n` stored against
+:math:`n`. Its weights are the same :math:`w_{i}` as in the sufficient
+decrease term, so they are known. It is recorded here because neither
+objection is fatal, and it is the route to take if per cell energies are ever
+unavailable.
 
 
 What OOMMF does about it

@@ -119,6 +119,11 @@ class HubertMinimiser(MinimiserBase):
         # takes the change of energy from these rather than from `totalE`
         self.cellE = np.zeros(mesh.n)
         self.energyScale = 1.
+        # Turns `_magnetisation` into the weight of the energy gradient,
+        # δE/δm_i = -w_i H_eff_i with w_i = moment_factor * _magnetisation_i:
+        # mu_0 * cell volume in micromagnetics (set by the micromagnetic Sim),
+        # 1 in the atomistic case, where w_i = mu_s_i
+        self.moment_factor = 1.
 
     # def run_step(self):
     #     self.spin_last[:] = self.spin[:]
@@ -481,9 +486,12 @@ class HubertMinimiser(MinimiserBase):
         Acceptance therefore uses the non-monotone Grippo-Lampariello-Lucidi
         condition over the trailing energies already kept by this class::
 
-            E(m_new) <= max(trailE) - γ λ ||g||^2
+            E(m_new) <= max(trailE) - γ λ Σ_i w_i ||g_i||^2
 
-        backtracking with `λ / dEta^2` when it fails. This is the SPG scheme
+        with `w_i = mu_0 Ms_i V` (micromagnetic) or `mu_s_i` (atomistic),
+        divided by `energyScale`, so that the last term is γ times the first
+        order decrease of the energy along the step. See `moment_factor`.
+        The step backtracks with `λ / dEta^2` when the test fails. This is the SPG scheme
         of Birgin, Martínez & Raydan, with the sphere as the constraint set
         and the re-normalisation of the spins as the projection onto it.
 
@@ -535,6 +543,10 @@ class HubertMinimiser(MinimiserBase):
         resetCount = 0
         self._material = self._material_mask()
         _material = self._material
+        # Weights of the energy gradient, δE/δm_i = -w_i H_eff_i, so that
+        # Σ_i w_i |g_i|^2 is the decrease of E per unit step along -g
+        weight = (np.repeat(self.moment_factor * self._magnetisation, 3)[_material]
+                  / self.energyScale)
 
         # Energy and tangential gradient at the starting point
         self.compute_effective_field()
@@ -564,10 +576,10 @@ class HubertMinimiser(MinimiserBase):
         # not cancel either, and a constant Zeeman field is covered by it
         # because its two fields are equal. It was measured to reach the same
         # convergence as the sum above, but it is only exact while the energy
-        # is quadratic, a cubic anisotropy being the case to watch; it needs
-        # the field at both ends, so 3n stored rather than n; and it gives the
-        # change up to a constant that has to be calibrated. The sum below is
-        # simpler on all three counts
+        # is quadratic, a cubic anisotropy being the case to watch; and it
+        # needs the field at both ends, so 3n stored rather than n. Its
+        # weights are the w_i of `moment_factor`. The sum below is simpler on
+        # both counts
         cellE_ref = self.cellE.copy()
         Erel = 0.0
 
@@ -587,28 +599,18 @@ class HubertMinimiser(MinimiserBase):
         # Scale-free first step: move the largest torque by maxDeltaM
         eta0 = maxDeltaM / maxGrad
         eta = eta0
-        # `gradE` is built from the effective field, so it is the true energy
-        # gradient only up to a constant with the units of the interactions
-        # (mu_0 Ms V in the micromagnetic case, mu_s in the atomistic one),
-        # further divided by `energyScale`. The BB quotients are invariant
-        # under that rescaling -- it cancels between η and the gradient in the
-        # spin update, which is precisely why no `eta_scale` is needed here --
-        # but the sufficient-decrease term below is not, since it compares a
-        # gradient norm against an energy. Rather than hard-coding a unit
-        # conversion that differs between the micromagnetic and the atomistic
-        # classes, the constant is calibrated from the decrease actually
-        # observed along the accepted steps, starting from a plain
-        # non-monotone decrease test.
         # Only safeguard against a step length collapsing to nothing; the
         # upper end is handled by the maxDeltaM trust region below
         etaMin = 1e-10 * eta0
         BBcount = 0
-        gradScale = 0.0
 
         while not exitFlag:
 
-            gradNorm2 = np.sum(self.gradE[_material] ** 2)
-            if gradNorm2 == 0.0:
+            # First order decrease of E per unit step length along -g. The BB
+            # quotients do not need the weights, being invariant under a
+            # rescaling of the gradient, but this compares against an energy
+            slope = np.sum(weight * self.gradE[_material] ** 2)
+            if slope == 0.0:
                 log.warning('Gradient is zero everywhere. Stopping calculation.')
                 reason = 'zero_gradient'
                 break
@@ -632,7 +634,7 @@ class HubertMinimiser(MinimiserBase):
                 Etrial = Erel + dE
 
                 # Grippo-Lampariello-Lucidi non-monotone acceptance
-                accepted = (Etrial <= Eref - gamma * gradScale * lamb * gradNorm2)
+                accepted = (Etrial <= Eref - gamma * lamb * slope)
 
                 if self.step > max_steps:
                     log.warning(f'N of evaluations = {self.step} reached maximum value. ' +
@@ -679,11 +681,6 @@ class HubertMinimiser(MinimiserBase):
 
             # ------ Accepted step ------------------------------------------
             self._project_gradient(out=self.gradE)
-
-            # Calibrate the units of the gradient against the energy from the
-            # first-order model of the decrease just achieved,
-            # E_last - E ~ scale * λ ||g||^2
-            gradScale = max(gradScale, -dE / (lamb * gradNorm2))
 
             Erel = Etrial
             cellE_ref[:] = self.cellE

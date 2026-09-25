@@ -99,6 +99,15 @@ class Sim(SimBase):
         if self.driver.__class__.__name__ == 'SteepestDescent':
             self.driver.scale = fidimag.common.constant.mu_0
 
+        # The minimisers weigh the field by mu_0 Ms_i dV to get the energy
+        # gradient. Ms is read at every `minimise` call; the cell volume is
+        # fixed here, since the mesh does not change within a Sim
+        if isinstance(self.driver, (hubert_minimiser.HubertMinimiser,
+                                    steepest_descent.SteepestDescent)):
+            self.driver.moment_factor = (fidimag.common.constant.mu_0 *
+                                         self.mesh.dx * self.mesh.dy * self.mesh.dz *
+                                         self.mesh.unit_length ** 3)
+
         # Some references to functions in the corresponding driver classes
         # that can be accessed through the Simulation class
         self.relax = self.driver.relax

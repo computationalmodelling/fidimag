@@ -109,6 +109,11 @@ class SteepestDescent(MinimiserBase):
         self.totalE = 0.0
         self.totalE_last = 0.0
         self.energyScale = 1.
+        # Turns `_magnetisation` into the weight of the energy gradient,
+        # δE/δm_i = -w_i H_eff_i with w_i = moment_factor * _magnetisation_i:
+        # mu_0 * cell volume in micromagnetics (set by the micromagnetic Sim),
+        # 1 in the atomistic case, where w_i = mu_s_i
+        self.moment_factor = 1.
         # Copy of the last accepted configuration, to roll back a rejected
         # trial step. `spin_last` cannot be used for this, since the C update
         # overwrites it with whatever `spin` held when it was called
@@ -305,10 +310,10 @@ class SteepestDescent(MinimiserBase):
 
         self._spin_accepted[:] = self.spin[:]
         Eref = self.trailE.max()
-        # Squared norm of the tangential gradient. `mxmxH` = m × (m × H) is,
-        # up to the field scaling, the projection of δE/δm onto the tangent
-        # plane of the sphere
-        gradNorm2 = np.dot(self.mxmxH, self.mxmxH)
+        # First order decrease of E per unit τ. The step is δm = -τ mxmxH,
+        # and `mxmxH` = m × (m × scale H) is the tangential part of
+        # -scale H, so δE = -τ Σ_i (w_i / scale) |mxmxH_i|^2
+        slope = np.sum(self._weight * self.mxmxH ** 2)
 
         # `sd_compute_step` already guarantees a positive tau in [tmin, tmax]
         tau = self.tau
@@ -325,7 +330,7 @@ class SteepestDescent(MinimiserBase):
             self.compute_effective_field_and_energy()
             self.nEval += 1
 
-            if self.totalE <= Eref - gamma * self._gradScale * tau * gradNorm2:
+            if self.totalE <= Eref - gamma * tau * slope:
                 break
             nBacktrack += 1
             if nBacktrack > maxBacktrack or tau <= self._tmin:
@@ -348,16 +353,6 @@ class SteepestDescent(MinimiserBase):
                                         self._tmin, self._tmax
                                         )
 
-        # `mxmxH` is built from the effective field, so it is the true energy
-        # gradient only up to a constant carrying the units of the
-        # interactions, further divided by `energyScale`. Calibrate that
-        # constant from the decrease actually observed, rather than
-        # hard-coding a conversion that differs between the micromagnetic and
-        # the atomistic classes
-        if tau * gradNorm2 > 0.0:
-            self._gradScale = max(self._gradScale,
-                                  (self.totalE_last - self.totalE)
-                                  / (tau * gradNorm2))
         self.totalE_last = self.totalE
 
         self.trailE[self._nTrailIdx] = self.totalE
@@ -467,7 +462,10 @@ class SteepestDescent(MinimiserBase):
             self.trailE = np.full(nTrail, self.totalE)
             self._trailPool = cycle(range(nTrail))
             self._nTrailIdx = next(self._trailPool)
-            self._gradScale = 0.0
+            # Weights of |mxmxH|^2 in the decrease of the energy; `scale`
+            # divides out because it is already inside `mxmxH`
+            self._weight = (np.repeat(self.moment_factor * self._magnetisation, 3)
+                            / (self.scale * self.energyScale))
         else:
             self.compute_effective_field()
         self.nEval += 1

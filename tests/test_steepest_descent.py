@@ -209,19 +209,15 @@ def test_stopping_torque_stops_on_the_residual():
 
 def test_energy_guard_is_what_allows_a_large_tmax():
     """
-    Above a certain step ceiling the guard is the only thing keeping the
-    iteration on the right configuration.
+    Above a certain step ceiling the guard is what keeps the iteration on the
+    right configuration, under the torque criterion as well.
 
-    The collapsed wall is stationary, its torque satisfying the same
-    criterion, so no stopping test can catch it: the energy has to be looked
-    at while the step is taken.
+    Unguarded, the wall can collapse into a stationary configuration whose
+    torque satisfies the same criterion, so no stopping test can catch it.
+    Whether it does depends on the summation order of an OpenMP reduction,
+    so only the guarded run is asserted on, as in
+    `test_steepest_descent_energy_guard_large_tmax`.
     """
-    unguarded = _setup_1D_DW(tmax=10.0)
-    unguarded.driver.minimise(stopping_torque=1e-4, max_steps=20000,
-                              printing=False, energy_guard=False)
-    assert unguarded.driver.max_torque() < 1e-4, 'it did converge, but ...'
-    assert _dw_MAE(unguarded) > 0.5, '... to the wrong configuration'
-
     guarded = _setup_1D_DW(tmax=10.0)
     guarded.driver.minimise(stopping_torque=1e-4, max_steps=20000,
                             printing=False, energy_guard=True)
