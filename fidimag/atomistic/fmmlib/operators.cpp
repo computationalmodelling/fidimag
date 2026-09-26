@@ -1,6 +1,6 @@
-#include "/tmp/fidimag_regen/operators.h"
+#include "operators.h"
 #include<cmath>
-void S2M_2(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_2(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 #pragma omp atomic
 M[0] += S[0];
 #pragma omp atomic
@@ -22,7 +22,7 @@ M[8] += z*S[2];
 
 }
 
-void M2M_2(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 #pragma omp atomic
 Ms[0] += M[0];
 #pragma omp atomic
@@ -44,7 +44,7 @@ Ms[8] += z*M[2] + M[8];
 
 }
 
-void M2L_2(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[9];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -71,7 +71,7 @@ L[3] += D[5]*M[0] + D[7]*M[1] + D[8]*M[2];
 
 }
 
-void L2L_2(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_2(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 #pragma omp atomic
 Ls[0] += x*L[1] + y*L[2] + z*L[3] + L[0];
 #pragma omp atomic
@@ -83,7 +83,7 @@ Ls[3] += L[3];
 
 }
 
-void L2P_2(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_2(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 #pragma omp atomic
 F[0] += -L[1];
 #pragma omp atomic
@@ -93,7 +93,7 @@ F[2] += -L[3];
 
 }
 
-void M2P_2(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -123,7 +123,7 @@ F[2] += Ftmp0*(Ftmp17*(Ftmp13*z + Ftmp14*z + Ftmp15*z - M[5]) + Ftmp4*(Ftmp10*z 
 
 }
 
-void S2Mc_2(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_2(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = -z*S[2];
 #pragma omp atomic
 M[0] += S[0];
@@ -144,7 +144,7 @@ M[7] += y*S[2] + z*S[1];
 
 }
 
-void M2Mc_2(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = -z*M[2];
 #pragma omp atomic
 Ms[0] += M[0];
@@ -165,7 +165,7 @@ Ms[7] += y*M[2] + z*M[1] + M[7];
 
 }
 
-void L2Lc_2(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_2(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 #pragma omp atomic
 Ls[0] += x*L[1] + y*L[2] + z*L[3] + L[0];
 #pragma omp atomic
@@ -177,7 +177,7 @@ Ls[3] += L[3];
 
 }
 
-void L2Pc_2(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_2(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 #pragma omp atomic
 F[0] += -L[1];
 #pragma omp atomic
@@ -187,7 +187,7 @@ F[2] += -L[3];
 
 }
 
-void M2Pc_2(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -217,7 +217,7 @@ F[2] += Ftmp0*(Ftmp17*(Ftmp13*z + Ftmp14*z + Ftmp15*z - M[5]) + Ftmp4*(Ftmp11*z 
 
 }
 
-void M2Lc_2(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[9];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -244,7 +244,7 @@ L[3] += D[5]*M[0] + D[7]*M[1] + D[8]*M[2];
 
 }
 
-void S2Mxy_2(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_2(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 #pragma omp atomic
 M[0] += S[0];
 #pragma omp atomic
@@ -264,7 +264,7 @@ M[7] += y*S[2];
 
 }
 
-void M2Mxy_2(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 #pragma omp atomic
 Ms[0] += M[0];
 #pragma omp atomic
@@ -284,7 +284,7 @@ Ms[7] += y*M[2] + M[7];
 
 }
 
-void L2Lxy_2(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_2(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 #pragma omp atomic
 Ls[0] += x*L[1] + y*L[2] + L[0];
 #pragma omp atomic
@@ -296,7 +296,7 @@ Ls[3] += L[3];
 
 }
 
-void L2Pxy_2(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_2(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 #pragma omp atomic
 F[0] += -L[1];
 #pragma omp atomic
@@ -306,7 +306,7 @@ F[2] += -L[3];
 
 }
 
-void M2Pxy_2(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -328,7 +328,7 @@ F[2] += Ftmp0*(-Ftmp10*M[5] - Ftmp4*M[7] + M[2]);
 
 }
 
-void M2Lxy_2(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_2(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[9];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -353,7 +353,7 @@ L[3] += D[5]*M[0] + D[7]*M[1] + D[8]*M[2];
 
 }
 
-void P2P(double x, double y, double z, double * __restrict S, double * __restrict F) {
+void P2P(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = x*S[0];
@@ -371,7 +371,7 @@ F[2] += Ftmp0*(-Ftmp1*Ftmp6 - Ftmp2*Ftmp6 - Ftmp4*std::pow(z, 2)*S[2] + S[2]);
 
 }
 
-void P2P_batch(double tx, double ty, double tz, const double * __restrict sx, const double * __restrict sy, const double * __restrict sz, const double * __restrict S, size_t begin, size_t end, double * __restrict F) {
+void P2P_batch(double tx, double ty, double tz, const double * FMMGEN_RESTRICT sx, const double * FMMGEN_RESTRICT sy, const double * FMMGEN_RESTRICT sz, const double * FMMGEN_RESTRICT S, size_t begin, size_t end, double * FMMGEN_RESTRICT F) {
 double facc0 = 0.0;
 double facc1 = 0.0;
 double facc2 = 0.0;
@@ -397,7 +397,7 @@ F[1] += facc1;
 F[2] += facc2;
 }
 
-void P2Pxy(double x, double y, double * __restrict S, double * __restrict F) {
+void P2Pxy(double x, double y, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = x*S[0];
@@ -411,7 +411,7 @@ F[2] += Ftmp0*S[2];
 
 }
 
-void P2P_batchxy(double tx, double ty, const double * __restrict sx, const double * __restrict sy, const double * __restrict S, size_t begin, size_t end, double * __restrict F) {
+void P2P_batchxy(double tx, double ty, const double * FMMGEN_RESTRICT sx, const double * FMMGEN_RESTRICT sy, const double * FMMGEN_RESTRICT S, size_t begin, size_t end, double * FMMGEN_RESTRICT F) {
 double facc0 = 0.0;
 double facc1 = 0.0;
 double facc2 = 0.0;
@@ -432,7 +432,7 @@ F[1] += facc1;
 F[2] += facc2;
 }
 
-void S2M_3(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_3(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = x*S[2];
@@ -481,7 +481,7 @@ M[18] += (1.0/2.0)*std::pow(z, 2)*S[2];
 
 }
 
-void M2M_3(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -542,7 +542,7 @@ Ms[18] += Mstmp17*(Mstmp11 + 2*M[8]) + M[18];
 
 }
 
-void M2L_3(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[19];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -602,7 +602,7 @@ L[9] += D[14]*M[0] + D[17]*M[1] + D[18]*M[2];
 
 }
 
-void L2L_3(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_3(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[9];
 double Lstmp1 = y*L[7];
 double Lstmp2 = z*L[8];
@@ -632,7 +632,7 @@ Ls[9] += L[9];
 
 }
 
-void L2P_3(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_3(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 #pragma omp atomic
 F[0] += -x*L[4] - y*L[5] - z*L[6] - L[1];
 #pragma omp atomic
@@ -642,7 +642,7 @@ F[2] += -x*L[6] - y*L[8] - z*L[9] - L[3];
 
 }
 
-void M2P_3(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -699,7 +699,7 @@ F[2] += Ftmp0*(-Ftmp16 - 9*Ftmp17 + 3*Ftmp2*x*(5*Ftmp2*y*(-Ftmp38*z - Ftmp39*z +
 
 }
 
-void S2Mc_3(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_3(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -750,7 +750,7 @@ M[14] += (1.0/2.0)*Mtmp16 + (1.0/2.0)*y*(2*Mtmp10 + Mtmp9);
 
 }
 
-void M2Mc_3(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -808,7 +808,7 @@ Ms[14] += -Mstmp14*(Mstmp1 - Mstmp23) + Mstmp22*(Mstmp10 + 2*Mstmp11 + Mstmp19) 
 
 }
 
-void L2Lc_3(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_3(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*(L[4] + L[7]);
 double Lstmp1 = y*L[7];
 double Lstmp2 = z*L[8];
@@ -836,7 +836,7 @@ Ls[8] += L[8];
 
 }
 
-void L2Pc_3(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_3(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 #pragma omp atomic
 F[0] += -x*L[4] - y*L[5] - z*L[6] - L[1];
 #pragma omp atomic
@@ -846,7 +846,7 @@ F[2] += -x*L[6] - y*L[8] + z*(L[4] + L[7]) - L[3];
 
 }
 
-void M2Pc_3(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -898,7 +898,7 @@ F[2] += Ftmp0*(Ftmp11*(Ftmp23*(-Ftmp18*z - Ftmp21*z + M[14]) + z*(Ftmp26 + Ftmp3
 
 }
 
-void M2Lc_3(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[18];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -955,7 +955,7 @@ L[8] += D[13]*M[0] + D[16]*M[1] + D[17]*M[2];
 
 }
 
-void S2Mxy_3(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_3(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = x*S[2];
@@ -994,7 +994,7 @@ M[14] += Mtmp4*S[2];
 
 }
 
-void M2Mxy_3(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -1039,7 +1039,7 @@ Ms[14] += Mstmp10*(Mstmp6 + 2*M[7]) + M[14];
 
 }
 
-void L2Lxy_3(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_3(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[7];
 double Lstmp1 = x*L[4];
 double Lstmp2 = y*L[5];
@@ -1064,7 +1064,7 @@ Ls[8] += L[8];
 
 }
 
-void L2Pxy_3(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_3(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 #pragma omp atomic
 F[0] += -x*L[4] - y*L[5] - L[1];
 #pragma omp atomic
@@ -1074,7 +1074,7 @@ F[2] += -x*L[6] - y*L[8] - L[3];
 
 }
 
-void M2Pxy_3(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -1108,7 +1108,7 @@ F[2] += Ftmp0*(-Ftmp20*M[10] - Ftmp20*M[14] + Ftmp21*(Ftmp13*M[12] + Ftmp19*M[10
 
 }
 
-void M2Lxy_3(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_3(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[19];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -1162,7 +1162,7 @@ L[8] += D[13]*M[0] + D[16]*M[1] + D[17]*M[2];
 
 }
 
-void S2M_4(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_4(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -1253,7 +1253,7 @@ M[33] += (1.0/6.0)*std::pow(z, 3)*S[2];
 
 }
 
-void M2M_4(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -1373,7 +1373,7 @@ Ms[33] += Mstmp46*(z*(Mstmp11 + 3*M[8]) + 6*M[18]) + M[33];
 
 }
 
-void M2L_4(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[34];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -1478,7 +1478,7 @@ L[19] += D[28]*M[0] + D[32]*M[1] + D[33]*M[2];
 
 }
 
-void L2L_4(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_4(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[19];
 double Lstmp1 = z*L[18];
 double Lstmp2 = 2*L[8];
@@ -1546,7 +1546,7 @@ Ls[19] += L[19];
 
 }
 
-void L2P_4(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_4(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = z*L[15];
 double Ftmp1 = 2*L[6];
 double Ftmp2 = (1.0/2.0)*z;
@@ -1567,7 +1567,7 @@ F[2] += -Ftmp2*(z*L[19] + 2*L[9]) - Ftmp6*(Ftmp10 + 2*Ftmp9 + y*L[17]) - Ftmp8*(
 
 }
 
-void M2P_4(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -1658,7 +1658,7 @@ F[2] += Ftmp0*(Ftmp12*(75*Ftmp61 + Ftmp67 + Ftmp7*M[22] + Ftmp75 + z*(Ftmp57 + F
 
 }
 
-void S2Mc_4(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_4(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -1747,7 +1747,7 @@ M[23] += -1.0/6.0*Mtmp36 + (1.0/6.0)*y*(Mtmp33 + y*(3*Mtmp10 + Mtmp9));
 
 }
 
-void M2Mc_4(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -1856,7 +1856,7 @@ Ms[23] += -Mstmp36*(Mstmp52 - Mstmp56) + Mstmp55*(-3*Mstmp32 + Mstmp49 + y*(Mstm
 
 }
 
-void L2Lc_4(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_4(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 3*L[4];
 double Lstmp1 = 3*L[7];
 double Lstmp2 = z*(L[11] + L[15]);
@@ -1920,7 +1920,7 @@ Ls[15] += L[15];
 
 }
 
-void L2Pc_4(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_4(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 2*L[6];
 double Ftmp1 = z*(L[9] + L[12]);
 double Ftmp2 = y*L[12];
@@ -1942,7 +1942,7 @@ F[2] += -Ftmp5*(-2*Ftmp10 + Ftmp9 + y*L[15]) - Ftmp8*(Ftmp0 - 2*Ftmp1 + Ftmp7*L[
 
 }
 
-void M2Pc_4(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -2022,7 +2022,7 @@ F[2] += Ftmp0*(Ftmp17*(Ftmp16*(Ftmp14*(Ftmp46*z + Ftmp47*z - M[23]) - z*(Ftmp51 
 
 }
 
-void M2Lc_4(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[30];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -2115,7 +2115,7 @@ L[15] += D[25]*M[0] + D[28]*M[1] + D[29]*M[2];
 
 }
 
-void S2Mxy_4(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_4(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -2178,7 +2178,7 @@ M[23] += Mtmp10*S[2];
 
 }
 
-void M2Mxy_4(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -2253,7 +2253,7 @@ Ms[23] += Mstmp22*(y*(Mstmp6 + 3*M[7]) + 6*M[14]) + M[23];
 
 }
 
-void L2Lxy_4(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_4(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[14];
 double Lstmp1 = y*L[12];
 double Lstmp2 = 2*L[5];
@@ -2301,7 +2301,7 @@ Ls[15] += L[15];
 
 }
 
-void L2Pxy_4(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_4(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = y*L[12];
 double Ftmp1 = 2*L[5];
 double Ftmp2 = (1.0/2.0)*y;
@@ -2316,7 +2316,7 @@ F[2] += -Ftmp2*(y*L[15] + 2*L[8]) - Ftmp4*(Ftmp3*L[13] + x*L[11] + 2*L[6]) - L[3
 
 }
 
-void M2Pxy_4(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -2355,7 +2355,7 @@ F[2] += Ftmp0*(3*Ftmp1*y*(5*Ftmp1*M[19] + 15*Ftmp1*M[23] - Ftmp8*(Ftmp6*M[23] - 
 
 }
 
-void M2Lxy_4(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_4(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[34];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -2442,7 +2442,7 @@ L[15] += D[26]*M[0] + D[30]*M[1] + D[31]*M[2];
 
 }
 
-void S2M_5(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_5(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -2597,7 +2597,7 @@ M[54] += (1.0/24.0)*std::pow(z, 4)*S[2];
 
 }
 
-void M2M_5(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -2806,7 +2806,7 @@ Ms[54] += Mstmp92*(z*(z*(Mstmp11 + 4*M[8]) + 12*M[18]) + 24*M[33]) + M[54];
 
 }
 
-void M2L_5(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[55];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -2977,7 +2977,7 @@ L[34] += D[48]*M[0] + D[53]*M[1] + D[54]*M[2];
 
 }
 
-void L2L_5(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_5(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[34];
 double Lstmp1 = 6*L[8];
 double Lstmp2 = z*L[33];
@@ -3108,7 +3108,7 @@ Ls[34] += L[34];
 
 }
 
-void L2P_5(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_5(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 6*L[6];
 double Ftmp1 = z*L[29];
 double Ftmp2 = (1.0/6.0)*z;
@@ -3135,7 +3135,7 @@ F[2] += -Ftmp13*(Ftmp0 + Ftmp12*(2*Ftmp5 + Ftmp6 + y*L[27]) + Ftmp4*(Ftmp1 + 2*L
 
 }
 
-void M2P_5(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -3301,7 +3301,7 @@ F[2] += Ftmp0*(Ftmp127*(15*Ftmp1*M[21] + 5*Ftmp1*M[26] + 15*Ftmp1*M[28] - Ftmp26
 
 }
 
-void S2Mc_5(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_5(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -3434,7 +3434,7 @@ M[34] += (1.0/24.0)*Mtmp57 + (1.0/24.0)*y*(-4*Mtmp43 + y*(Mtmp58 + y*(4*Mtmp10 +
 
 }
 
-void M2Mc_5(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -3623,7 +3623,7 @@ Ms[34] += Mstmp109*(Mstmp110 - 4*Mstmp75 + y*(Mstmp114 - 6*Mstmp32 + y*(Mstmp10 
 
 }
 
-void L2Lc_5(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_5(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 12*L[4];
 double Lstmp1 = 12*L[7];
 double Lstmp2 = 2*L[19];
@@ -3744,7 +3744,7 @@ Ls[24] += L[24];
 
 }
 
-void L2Pc_5(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_5(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 6*L[6];
 double Ftmp1 = 3*L[9];
 double Ftmp2 = 3*L[12];
@@ -3780,7 +3780,7 @@ F[2] += -Ftmp16*(Ftmp0 + Ftmp15*(Ftmp6 - 2*Ftmp7 + y*L[22]) - Ftmp5*(Ftmp23 + Ft
 
 }
 
-void M2Pc_5(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -3898,7 +3898,7 @@ F[2] += Ftmp0*(-Ftmp10*M[10] - Ftmp10*M[14] + 15*Ftmp106 + Ftmp11*(Ftmp8*M[22] +
 
 }
 
-void M2Lc_5(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[45];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -4039,7 +4039,7 @@ L[24] += D[40]*M[0] + D[43]*M[1] + D[44]*M[2];
 
 }
 
-void S2Mxy_5(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_5(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -4130,7 +4130,7 @@ M[34] += Mtmp16*S[2];
 
 }
 
-void M2Mxy_5(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -4244,7 +4244,7 @@ Ms[34] += Mstmp39*(y*(y*(Mstmp6 + 4*M[7]) + 12*M[14]) + 24*M[23]) + M[34];
 
 }
 
-void L2Lxy_5(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_5(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[23];
 double Lstmp1 = 6*L[5];
 double Lstmp2 = y*L[21];
@@ -4323,7 +4323,7 @@ Ls[24] += L[24];
 
 }
 
-void L2Pxy_5(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_5(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 6*L[5];
 double Ftmp1 = y*L[21];
 double Ftmp2 = (1.0/6.0)*y;
@@ -4339,7 +4339,7 @@ F[2] += -Ftmp2*(y*(y*L[24] + 3*L[15]) + 6*L[8]) - Ftmp5*(Ftmp4*(y*L[22] + 2*L[13
 
 }
 
-void M2Pxy_5(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -4403,7 +4403,7 @@ F[2] += Ftmp0*(-Ftmp15*M[10] - Ftmp15*M[14] + Ftmp16*(5*Ftmp1*M[19] + 15*Ftmp1*M
 
 }
 
-void M2Lxy_5(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_5(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[55];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -4540,7 +4540,7 @@ L[24] += D[45]*M[0] + D[50]*M[1] + D[51]*M[2];
 
 }
 
-void S2M_6(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_6(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -4779,7 +4779,7 @@ M[82] += (1.0/120.0)*std::pow(z, 5)*S[2];
 
 }
 
-void M2M_6(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -5117,7 +5117,7 @@ Ms[82] += Mstmp166*(z*(z*(z*(Mstmp11 + 5*M[8]) + 20*M[18]) + 60*M[33]) + 120*M[5
 
 }
 
-void M2L_6(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[83];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -5375,7 +5375,7 @@ L[55] += D[75]*M[0] + D[81]*M[1] + D[82]*M[2];
 
 }
 
-void L2L_6(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_6(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[55];
 double Lstmp1 = 24*L[8];
 double Lstmp2 = z*L[54];
@@ -5603,7 +5603,7 @@ Ls[55] += L[55];
 
 }
 
-void L2P_6(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_6(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 24*L[6];
 double Ftmp1 = z*L[49];
 double Ftmp2 = (1.0/24.0)*z;
@@ -5641,7 +5641,7 @@ F[2] += -Ftmp11*(Ftmp24 + Ftmp7*(z*(Ftmp25 + 3*L[33]) + 6*L[18]) + y*(Ftmp5*(Ftm
 
 }
 
-void M2P_6(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -5904,7 +5904,7 @@ F[2] += Ftmp0*(-Ftmp15*M[18] - Ftmp206*(-Ftmp118*(-Ftmp11*M[36] + Ftmp251 + Ftmp
 
 }
 
-void S2Mc_6(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_6(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -6101,7 +6101,7 @@ M[47] += (1.0/120.0)*Mtmp96 + (1.0/120.0)*y*(Mtmp91 + y*(-10*Mtmp44 + y*(Mtmp92 
 
 }
 
-void M2Mc_6(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -6393,7 +6393,7 @@ Ms[47] += Mstmp146*(Mstmp189 + z*(-Mstmp191 + z*(Mstmp173 - Mstmp190))) + Mstmp1
 
 }
 
-void L2Lc_6(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_6(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 60*L[4];
 double Lstmp1 = 60*L[7];
 double Lstmp2 = 5*L[16];
@@ -6595,7 +6595,7 @@ Ls[35] += L[35];
 
 }
 
-void L2Pc_6(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_6(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 24*L[6];
 double Ftmp1 = 12*L[9];
 double Ftmp2 = 12*L[12];
@@ -6652,7 +6652,7 @@ F[2] += Ftmp15*(-Ftmp32 - y*(Ftmp45 - Ftmp8*(Ftmp38 + Ftmp41 + 2*L[23]) + y*(Ftm
 
 }
 
-void M2Pc_6(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -6824,7 +6824,7 @@ F[2] += Ftmp0*(-Ftmp11*M[10] - Ftmp11*M[14] - Ftmp12*(Ftmp131 + Ftmp143 - Ftmp7*
 
 }
 
-void M2Lc_6(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[63];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -7022,7 +7022,7 @@ L[35] += D[58]*M[0] + D[61]*M[1] + D[62]*M[2];
 
 }
 
-void S2Mxy_6(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_6(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -7149,7 +7149,7 @@ M[47] += Mtmp26*S[2];
 
 }
 
-void M2Mxy_6(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -7309,7 +7309,7 @@ Ms[47] += Mstmp59*(y*(y*(y*(Mstmp6 + 5*M[7]) + 20*M[14]) + 60*M[23]) + 120*M[34]
 
 }
 
-void L2Lxy_6(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_6(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[34];
 double Lstmp1 = 24*L[5];
 double Lstmp2 = y*L[32];
@@ -7430,7 +7430,7 @@ Ls[35] += L[35];
 
 }
 
-void L2Pxy_6(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_6(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 24*L[5];
 double Ftmp1 = y*L[32];
 double Ftmp2 = (1.0/24.0)*y;
@@ -7448,7 +7448,7 @@ F[2] += -Ftmp2*(y*(y*(y*L[35] + 4*L[24]) + 12*L[15]) + 24*L[8]) - Ftmp7*(Ftmp4*(
 
 }
 
-void M2Pxy_6(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -7537,7 +7537,7 @@ F[2] += Ftmp0*(-Ftmp25*M[10] - Ftmp25*M[14] - Ftmp26*(-Ftmp17*M[19] + Ftmp18*(42
 
 }
 
-void M2Lxy_6(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_6(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[83];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -7733,7 +7733,7 @@ L[35] += D[71]*M[0] + D[77]*M[1] + D[78]*M[2];
 
 }
 
-void S2M_7(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_7(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -8080,7 +8080,7 @@ M[118] += (1.0/720.0)*std::pow(z, 6)*S[2];
 
 }
 
-void M2M_7(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -8590,7 +8590,7 @@ Ms[118] += Mstmp264*(z*(z*(z*(z*(Mstmp11 + 6*M[8]) + 30*M[18]) + 120*M[33]) + 36
 
 }
 
-void M2L_7(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[119];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -8955,7 +8955,7 @@ L[83] += D[110]*M[0] + D[117]*M[1] + D[118]*M[2];
 
 }
 
-void L2L_7(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_7(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[83];
 double Lstmp1 = 120*L[8];
 double Lstmp2 = z*L[82];
@@ -9320,7 +9320,7 @@ Ls[83] += L[83];
 
 }
 
-void L2P_7(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_7(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 120*L[6];
 double Ftmp1 = z*L[76];
 double Ftmp2 = (1.0/120.0)*z;
@@ -9370,7 +9370,7 @@ F[2] += -Ftmp13*(Ftmp35 + Ftmp9*(z*(z*(Ftmp36 + 4*L[54]) + 12*L[33]) + 24*L[18])
 
 }
 
-void M2P_7(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -9800,7 +9800,7 @@ F[2] += Ftmp0*(-Ftmp10*M[90] - Ftmp10*M[99] - Ftmp10*M[101] - Ftmp21*M[18] - Ftm
 
 }
 
-void S2Mc_7(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_7(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -10081,7 +10081,7 @@ M[62] += (1.0/720.0)*Mtmp138 + (1.0/720.0)*y*(6*Mtmp113 + y*(Mtmp139 + y*(-20*Mt
 
 }
 
-void M2Mc_7(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -10513,7 +10513,7 @@ Ms[62] += Mstmp243*(-z*(Mstmp300 + z*(Mstmp298 + z*(-Mstmp301 + z*(Mstmp1 - Mstm
 
 }
 
-void L2Lc_7(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_7(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 360*L[4];
 double Lstmp1 = 360*L[7];
 double Lstmp2 = 30*L[16];
@@ -10824,7 +10824,7 @@ Ls[48] += L[48];
 
 }
 
-void L2Pc_7(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_7(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = -120*L[6];
 double Ftmp1 = 60*L[9];
 double Ftmp2 = 60*L[12];
@@ -10908,7 +10908,7 @@ F[2] += Ftmp22*(Ftmp16*(Ftmp27 + z*(-z*(Ftmp57 + 4*L[26] + 8*L[30] + 4*L[34]) + 
 
 }
 
-void M2Pc_7(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -11162,7 +11162,7 @@ F[2] += Ftmp0*(-Ftmp19*M[10] - Ftmp19*M[14] - Ftmp193 + 3*Ftmp2*x*(Ftmp11 + Ftmp
 
 }
 
-void M2Lc_7(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[84];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -11422,7 +11422,7 @@ L[48] += D[79]*M[0] + D[82]*M[1] + D[83]*M[2];
 
 }
 
-void S2Mxy_7(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_7(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -11589,7 +11589,7 @@ M[62] += Mtmp36*S[2];
 
 }
 
-void M2Mxy_7(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -11809,7 +11809,7 @@ Ms[62] += Mstmp89*(y*(y*(y*(y*(Mstmp6 + 6*M[7]) + 30*M[14]) + 120*M[23]) + 360*M
 
 }
 
-void L2Lxy_7(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_7(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[47];
 double Lstmp1 = 120*L[5];
 double Lstmp2 = y*L[45];
@@ -11981,7 +11981,7 @@ Ls[48] += L[48];
 
 }
 
-void L2Pxy_7(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_7(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 120*L[5];
 double Ftmp1 = y*L[45];
 double Ftmp2 = (1.0/120.0)*y;
@@ -12000,7 +12000,7 @@ F[2] += -Ftmp2*(y*(y*(y*(y*L[48] + 5*L[35]) + 20*L[24]) + 60*L[15]) + 120*L[8]) 
 
 }
 
-void M2Pxy_7(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -12129,7 +12129,7 @@ F[2] += Ftmp0*(-Ftmp106*M[54] - Ftmp106*M[58] - Ftmp36*M[10] - Ftmp36*M[14] - Ft
 
 }
 
-void M2Lxy_7(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_7(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[119];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -12396,7 +12396,7 @@ L[48] += D[105]*M[0] + D[112]*M[1] + D[113]*M[2];
 
 }
 
-void S2M_8(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_8(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -12875,7 +12875,7 @@ M[163] += (1.0/5040.0)*std::pow(z, 7)*S[2];
 
 }
 
-void M2M_8(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -13610,7 +13610,7 @@ Ms[163] += Mstmp398*(z*(z*(z*(z*(z*(Mstmp11 + 7*M[8]) + 42*M[18]) + 210*M[33]) +
 
 }
 
-void M2L_8(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[164];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -14110,7 +14110,7 @@ L[119] += D[154]*M[0] + D[162]*M[1] + D[163]*M[2];
 
 }
 
-void L2L_8(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_8(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[119];
 double Lstmp1 = 720*L[8];
 double Lstmp2 = z*L[118];
@@ -14666,7 +14666,7 @@ Ls[119] += L[119];
 
 }
 
-void L2P_8(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_8(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 720*L[6];
 double Ftmp1 = z*L[111];
 double Ftmp2 = (1.0/720.0)*z;
@@ -14731,7 +14731,7 @@ F[2] += -Ftmp16*(Ftmp12*(z*(z*(z*(Ftmp50 + 5*L[82]) + 20*L[54]) + 60*L[33]) + 12
 
 }
 
-void M2P_8(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -15384,7 +15384,7 @@ F[2] += Ftmp0*(-Ftmp10*M[90] - Ftmp10*M[99] - Ftmp10*M[101] - Ftmp19*M[18] + 3*F
 
 }
 
-void S2Mc_8(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_8(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -15756,7 +15756,7 @@ M[79] += -1.0/5040.0*Mtmp204 + (1.0/5040.0)*y*(Mtmp196 + y*(21*Mtmp118 + y*(Mtmp
 
 }
 
-void M2Mc_8(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -16349,7 +16349,7 @@ Ms[79] += Mstmp355*(Mstmp425 + z*(-Mstmp428 + z*(-Mstmp426 + z*(-z*(Mstmp386 - M
 
 }
 
-void L2Lc_8(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_8(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 2520*L[4];
 double Lstmp1 = 2520*L[7];
 double Lstmp2 = 210*L[16];
@@ -16800,7 +16800,7 @@ Ls[63] += L[63];
 
 }
 
-void L2Pc_8(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_8(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = -720*L[6];
 double Ftmp1 = 360*L[9];
 double Ftmp2 = 360*L[12];
@@ -16918,7 +16918,7 @@ F[2] += Ftmp27*(Ftmp20*(Ftmp34 + z*(-z*(z*(Ftmp82 + 5*L[40] + 10*L[44] + 5*L[48]
 
 }
 
-void M2Pc_8(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -17254,7 +17254,7 @@ F[2] += Ftmp0*(-Ftmp20*M[10] - Ftmp20*M[14] + Ftmp21*(Ftmp13*M[18] - Ftmp15*M[38
 
 }
 
-void M2Lc_8(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[108];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -17586,7 +17586,7 @@ L[63] += D[103]*M[0] + D[106]*M[1] + D[107]*M[2];
 
 }
 
-void S2Mxy_8(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_8(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -17798,7 +17798,7 @@ M[79] += Mtmp47*S[2];
 
 }
 
-void M2Mxy_8(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -18086,7 +18086,7 @@ Ms[79] += Mstmp123*(y*(y*(y*(y*(y*(Mstmp6 + 7*M[7]) + 42*M[14]) + 210*M[23]) + 8
 
 }
 
-void L2Lxy_8(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_8(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[62];
 double Lstmp1 = 720*L[5];
 double Lstmp2 = y*L[60];
@@ -18321,7 +18321,7 @@ Ls[63] += L[63];
 
 }
 
-void L2Pxy_8(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_8(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 720*L[5];
 double Ftmp1 = y*L[60];
 double Ftmp2 = (1.0/720.0)*y;
@@ -18342,7 +18342,7 @@ F[2] += -Ftmp10*(Ftmp4*(y*(y*(y*(y*L[61] + 5*L[46]) + 20*L[33]) + 60*L[22]) + 12
 
 }
 
-void M2Pxy_8(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -18523,7 +18523,7 @@ F[2] += Ftmp0*(-Ftmp151*M[10] - Ftmp151*M[14] - Ftmp152*M[54] - Ftmp152*M[58] + 
 
 }
 
-void M2Lxy_8(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_8(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[164];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -18871,7 +18871,7 @@ L[63] += D[148]*M[0] + D[156]*M[1] + D[157]*M[2];
 
 }
 
-void S2M_9(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_9(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -19514,7 +19514,7 @@ M[218] += (1.0/40320.0)*std::pow(z, 8)*S[2];
 
 }
 
-void M2M_9(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -20523,7 +20523,7 @@ Ms[218] += Mstmp563*(z*(z*(z*(z*(z*(z*(Mstmp11 + 8*M[8]) + 56*M[18]) + 336*M[33]
 
 }
 
-void M2L_9(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[219];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -21198,7 +21198,7 @@ L[164] += D[208]*M[0] + D[217]*M[1] + D[218]*M[2];
 
 }
 
-void L2L_9(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_9(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[164];
 double Lstmp1 = 5040*L[8];
 double Lstmp2 = z*L[163];
@@ -22009,7 +22009,7 @@ Ls[164] += L[164];
 
 }
 
-void L2P_9(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_9(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 5040*L[6];
 double Ftmp1 = z*L[155];
 double Ftmp2 = (1.0/5040.0)*z;
@@ -22091,7 +22091,7 @@ F[2] += -Ftmp18*(Ftmp14*(z*(z*(z*(z*(Ftmp66 + 6*L[118]) + 30*L[82]) + 120*L[54])
 
 }
 
-void M2P_9(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -23105,7 +23105,7 @@ F[2] += Ftmp0*(-Ftmp10*M[85] - Ftmp10*M[103] - Ftmp10*M[112] - Ftmp10*M[116] - F
 
 }
 
-void S2Mc_9(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_9(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -23574,7 +23574,7 @@ M[98] += (1.0/40320.0)*Mtmp260 + (1.0/40320.0)*y*(-8*Mtmp221 + y*(Mtmp261 + y*(5
 
 }
 
-void M2Mc_9(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -24377,7 +24377,7 @@ Ms[98] += Mstmp514*(Mstmp595 + z*(-Mstmp599 + z*(-Mstmp596 + z*(Mstmp472 + z*(Ms
 
 }
 
-void L2Lc_9(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_9(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 20160*L[4];
 double Lstmp1 = 20160*L[7];
 double Lstmp2 = 1680*L[16];
@@ -25007,7 +25007,7 @@ Ls[80] += L[80];
 
 }
 
-void L2Pc_9(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_9(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = -5040*L[6];
 double Ftmp1 = 2520*L[9];
 double Ftmp2 = 2520*L[12];
@@ -25172,7 +25172,7 @@ F[2] += Ftmp105*(Ftmp0 + Ftmp28*(Ftmp131 + z*(Ftmp146 - z*(Ftmp132 + z*(Ftmp147 
 
 }
 
-void M2Pc_9(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -25655,7 +25655,7 @@ F[2] += Ftmp0*(Ftmp101*(-Ftmp100*(Ftmp168 - Ftmp184*M[54] + Ftmp187*M[86] - Ftmp
 
 }
 
-void M2Lc_9(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[135];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -26078,7 +26078,7 @@ L[80] += D[130]*M[0] + D[133]*M[1] + D[134]*M[2];
 
 }
 
-void S2Mxy_9(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_9(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -26337,7 +26337,7 @@ M[98] += Mtmp56*S[2];
 
 }
 
-void M2Mxy_9(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -26702,7 +26702,7 @@ Ms[98] += Mstmp162*(y*(y*(y*(y*(y*(y*(Mstmp6 + 8*M[7]) + 56*M[14]) + 336*M[23]) 
 
 }
 
-void L2Lxy_9(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_9(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[79];
 double Lstmp1 = 5040*L[5];
 double Lstmp2 = y*L[77];
@@ -27012,7 +27012,7 @@ Ls[80] += L[80];
 
 }
 
-void L2Pxy_9(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_9(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 5040*L[5];
 double Ftmp1 = y*L[77];
 double Ftmp2 = (1.0/5040.0)*y;
@@ -27034,7 +27034,7 @@ F[2] += -Ftmp11*(Ftmp4*(y*(y*(y*(y*(y*L[78] + 6*L[61]) + 30*L[46]) + 120*L[33]) 
 
 }
 
-void M2Pxy_9(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -27272,7 +27272,7 @@ F[2] += Ftmp0*(8505*Ftmp11*M[90] + Ftmp13*M[82] + Ftmp13*M[98] + Ftmp175*(-Ftmp1
 
 }
 
-void M2Lxy_9(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_9(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[219];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -27724,7 +27724,7 @@ L[80] += D[201]*M[0] + D[210]*M[1] + D[211]*M[2];
 
 }
 
-void S2M_10(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_10(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -28557,7 +28557,7 @@ M[284] += (1.0/362880.0)*std::pow(z, 9)*S[2];
 
 }
 
-void M2M_10(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -29910,7 +29910,7 @@ Ms[284] += Mstmp774*(z*(z*(z*(z*(z*(z*(z*(Mstmp11 + 9*M[8]) + 72*M[18]) + 504*M[
 
 }
 
-void M2L_10(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[285];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -30790,7 +30790,7 @@ L[219] += D[273]*M[0] + D[283]*M[1] + D[284]*M[2];
 
 }
 
-void L2L_10(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_10(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[219];
 double Lstmp1 = 40320*L[8];
 double Lstmp2 = z*L[218];
@@ -31935,7 +31935,7 @@ Ls[219] += L[219];
 
 }
 
-void L2P_10(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_10(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 40320*L[6];
 double Ftmp1 = z*L[209];
 double Ftmp2 = (1.0/40320.0)*z;
@@ -32038,7 +32038,7 @@ F[2] += -Ftmp2*(z*(z*(z*(z*(z*(z*(z*L[219] + 8*L[164]) + 56*L[119]) + 336*L[83])
 
 }
 
-void M2P_10(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -33432,7 +33432,7 @@ F[2] += Ftmp0*(-Ftmp10*M[85] - Ftmp10*M[103] - Ftmp10*M[112] - Ftmp10*M[116] - F
 
 }
 
-void S2Mc_10(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_10(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -34038,7 +34038,7 @@ M[119] += (1.0/362880.0)*Mtmp352 + (1.0/362880.0)*y*(Mtmp345 + y*(-36*Mtmp243 + 
 
 }
 
-void M2Mc_10(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -35070,7 +35070,7 @@ Ms[119] += Mstmp689*(Mstmp781 + z*(-Mstmp785 + z*(-Mstmp782 + z*(Mstmp786 + z*(M
 
 }
 
-void L2Lc_10(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_10(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 181440*L[4];
 double Lstmp1 = 181440*L[7];
 double Lstmp2 = 15120*L[16];
@@ -35921,7 +35921,7 @@ Ls[99] += L[99];
 
 }
 
-void L2Pc_10(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_10(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = -40320*L[6];
 double Ftmp1 = 20160*L[9];
 double Ftmp2 = 20160*L[12];
@@ -36144,7 +36144,7 @@ F[2] += Ftmp11*(Ftmp159 + Ftmp45 + z*(Ftmp181 + Ftmp182 - z*(Ftmp106 + Ftmp162 +
 
 }
 
-void M2Pc_10(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -36756,7 +36756,7 @@ F[2] += Ftmp0*(-Ftmp119*(Ftmp106*(-Ftmp105*(-Ftmp303*M[71] + Ftmp304*M[107] + 38
 
 }
 
-void M2Lc_10(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[165];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -37276,7 +37276,7 @@ L[99] += D[160]*M[0] + D[163]*M[1] + D[164]*M[2];
 
 }
 
-void S2Mxy_10(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_10(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -37590,7 +37590,7 @@ M[119] += Mtmp69*S[2];
 
 }
 
-void M2Mxy_10(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -38042,7 +38042,7 @@ Ms[119] += Mstmp207*(y*(y*(y*(y*(y*(y*(y*(Mstmp6 + 9*M[7]) + 72*M[14]) + 504*M[2
 
 }
 
-void L2Lxy_10(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_10(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[98];
 double Lstmp1 = 40320*L[5];
 double Lstmp2 = y*L[96];
@@ -38442,7 +38442,7 @@ Ls[99] += L[99];
 
 }
 
-void L2Pxy_10(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_10(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 40320*L[5];
 double Ftmp1 = y*L[96];
 double Ftmp2 = (1.0/40320.0)*y;
@@ -38466,7 +38466,7 @@ F[2] += -Ftmp13*(Ftmp4*(y*(y*(y*(y*(y*(y*L[97] + 7*L[78]) + 42*L[61]) + 210*L[46
 
 }
 
-void M2Pxy_10(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = std::pow(Rinv, 2);
@@ -38773,7 +38773,7 @@ F[2] += Ftmp0*(8505*Ftmp11*M[90] + Ftmp13*M[82] + Ftmp13*M[98] - Ftmp225*(Ftmp19
 
 }
 
-void M2Lxy_10(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_10(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[285];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -39342,7 +39342,7 @@ L[99] += D[265]*M[0] + D[275]*M[1] + D[276]*M[2];
 
 }
 
-void S2M_11(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_11(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -40405,7 +40405,7 @@ M[362] += (1.0/3628800.0)*std::pow(z, 10)*S[2];
 
 }
 
-void M2M_11(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -42144,7 +42144,7 @@ Ms[362] += Mstmp1003*(z*(z*(z*(z*(z*(z*(z*(z*(Mstmp11 + 10*M[8]) + 90*M[18]) + 7
 
 }
 
-void M2L_11(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[363];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -43275,7 +43275,7 @@ L[285] += D[350]*M[0] + D[361]*M[1] + D[362]*M[2];
 
 }
 
-void L2L_11(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_11(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[285];
 double Lstmp1 = 362880*L[8];
 double Lstmp2 = z*L[284];
@@ -44843,7 +44843,7 @@ Ls[285] += L[285];
 
 }
 
-void L2P_11(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_11(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 362880*L[6];
 double Ftmp1 = z*L[274];
 double Ftmp2 = (1.0/362880.0)*z;
@@ -44968,7 +44968,7 @@ F[2] += -Ftmp105*(Ftmp0 + Ftmp19*(z*(z*(z*(z*(z*(z*(Ftmp1 + 8*L[209]) + 56*L[155
 
 }
 
-void M2P_11(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -46902,7 +46902,7 @@ F[2] += Ftmp0*(-Ftmp10*M[90] - Ftmp10*M[99] - Ftmp10*M[101] + 99225*Ftmp11*M[166
 
 }
 
-void S2Mc_11(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_11(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -47648,7 +47648,7 @@ M[142] += (1.0/3628800.0)*Mtmp437 + (1.0/3628800.0)*y*(10*Mtmp389 + y*(Mtmp439 +
 
 }
 
-void M2Mc_11(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -48970,7 +48970,7 @@ Ms[142] += Mstmp1011*(Mstmp1018 + 10*Mstmp907 + y*(Mstmp1028 + 45*Mstmp689 + y*(
 
 }
 
-void L2Lc_11(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_11(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 1814400*L[4];
 double Lstmp1 = 1814400*L[7];
 double Lstmp2 = 151200*L[16];
@@ -50093,7 +50093,7 @@ Ls[120] += L[120];
 
 }
 
-void L2Pc_11(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_11(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = -362880*L[6];
 double Ftmp1 = 181440*L[9];
 double Ftmp2 = 181440*L[12];
@@ -50392,7 +50392,7 @@ F[2] += Ftmp13*(Ftmp211 + Ftmp54 + z*(Ftmp239 + Ftmp240 - z*(Ftmp135 + Ftmp215 +
 
 }
 
-void M2Pc_11(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -51151,7 +51151,7 @@ F[2] += Ftmp0*(99225*Ftmp10*M[82] + 14175*Ftmp10*M[86] + 8505*Ftmp10*M[90] + 141
 
 }
 
-void M2Lc_11(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[198];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -51787,7 +51787,7 @@ L[120] += D[193]*M[0] + D[196]*M[1] + D[197]*M[2];
 
 }
 
-void S2Mxy_11(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_11(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -52160,7 +52160,7 @@ M[142] += Mtmp82*S[2];
 
 }
 
-void M2Mxy_11(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -52706,7 +52706,7 @@ Ms[142] += Mstmp255*(y*(y*(y*(y*(y*(y*(y*(y*(Mstmp6 + 10*M[7]) + 90*M[14]) + 720
 
 }
 
-void L2Lxy_11(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_11(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[119];
 double Lstmp1 = 362880*L[5];
 double Lstmp2 = y*L[117];
@@ -53209,7 +53209,7 @@ Ls[120] += L[120];
 
 }
 
-void L2Pxy_11(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_11(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 362880*L[5];
 double Ftmp1 = y*L[117];
 double Ftmp2 = (1.0/362880.0)*y;
@@ -53234,7 +53234,7 @@ F[2] += -Ftmp14*(Ftmp4*(y*(y*(y*(y*(y*(y*(y*L[118] + 8*L[97]) + 56*L[78]) + 336*
 
 }
 
-void M2Pxy_11(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -53615,7 +53615,7 @@ F[2] += Ftmp0*(99225*Ftmp10*M[82] + 14175*Ftmp10*M[86] + 8505*Ftmp10*M[90] + 141
 
 }
 
-void M2Lxy_11(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_11(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[363];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -54324,7 +54324,7 @@ L[120] += D[341]*M[0] + D[352]*M[1] + D[353]*M[2];
 
 }
 
-void S2M_12(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2M_12(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -55652,7 +55652,7 @@ M[453] += (1.0/39916800.0)*std::pow(z, 11)*S[2];
 
 }
 
-void M2M_12(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2M_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -57843,7 +57843,7 @@ Ms[453] += Mstmp1275*(z*(z*(z*(z*(z*(z*(z*(z*(z*(Mstmp11 + 11*M[8]) + 110*M[18])
 
 }
 
-void M2L_12(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2L_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[454];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -59269,7 +59269,7 @@ L[363] += D[440]*M[0] + D[452]*M[1] + D[453]*M[2];
 
 }
 
-void L2L_12(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2L_12(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = z*L[363];
 double Lstmp1 = 3628800*L[8];
 double Lstmp2 = z*L[362];
@@ -61368,7 +61368,7 @@ Ls[363] += L[363];
 
 }
 
-void L2P_12(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2P_12(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 3628800*L[6];
 double Ftmp1 = z*L[351];
 double Ftmp2 = (1.0/3628800.0)*z;
@@ -61518,7 +61518,7 @@ F[2] += -Ftmp129*(Ftmp0 + Ftmp22*(z*(z*(z*(z*(z*(z*(z*(Ftmp1 + 9*L[274]) + 72*L[
 
 }
 
-void M2P_12(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2P_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -64185,7 +64185,7 @@ F[2] += Ftmp0*(-Ftmp10*M[90] - Ftmp10*M[99] - Ftmp10*M[101] + 99225*Ftmp11*M[166
 
 }
 
-void S2Mc_12(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mc_12(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[0];
 double Mtmp1 = z*S[2];
 double Mtmp2 = -Mtmp1;
@@ -65093,7 +65093,7 @@ M[167] += -1.0/39916800.0*Mtmp560 + (1.0/39916800.0)*y*(Mtmp550 + y*(55*Mtmp412 
 
 }
 
-void M2Mc_12(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mc_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = z*M[2];
 double Mstmp2 = -Mstmp1;
@@ -66705,7 +66705,7 @@ Ms[167] += Mstmp1151*(Mstmp1264 + z*(-Mstmp1269 + z*(-Mstmp1265 + z*(Mstmp1270 +
 
 }
 
-void L2Lc_12(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lc_12(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = 19958400*L[4];
 double Lstmp1 = 19958400*L[7];
 double Lstmp2 = 1663200*L[16];
@@ -68150,7 +68150,7 @@ Ls[143] += L[143];
 
 }
 
-void L2Pc_12(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pc_12(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = -3628800*L[6];
 double Ftmp1 = 1814400*L[9];
 double Ftmp2 = 1814400*L[12];
@@ -68541,7 +68541,7 @@ F[2] += Ftmp14*(Ftmp271 + Ftmp68 + z*(Ftmp307 + Ftmp308 - z*(Ftmp168 + Ftmp277 +
 
 }
 
-void M2Pc_12(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pc_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -69498,7 +69498,7 @@ F[2] += Ftmp0*(99225*Ftmp10*M[82] + 14175*Ftmp10*M[86] + 8505*Ftmp10*M[90] + 141
 
 }
 
-void M2Lc_12(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lc_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[234];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -70264,7 +70264,7 @@ L[143] += D[229]*M[0] + D[232]*M[1] + D[233]*M[2];
 
 }
 
-void S2Mxy_12(double x, double y, double z, double * __restrict S, double * __restrict M) {
+void S2Mxy_12(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M) {
 double Mtmp0 = x*S[1];
 double Mtmp1 = y*S[0];
 double Mtmp2 = Mtmp0 + Mtmp1;
@@ -70702,7 +70702,7 @@ M[167] += Mtmp97*S[2];
 
 }
 
-void M2Mxy_12(double x, double y, double z, double * __restrict M, double * __restrict Ms) {
+void M2Mxy_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms) {
 double Mstmp0 = x*M[0];
 double Mstmp1 = x*M[1];
 double Mstmp2 = y*M[0];
@@ -71342,7 +71342,7 @@ Ms[167] += Mstmp299*(y*(y*(y*(y*(y*(y*(y*(y*(y*(Mstmp6 + 11*M[7]) + 110*M[14]) +
 
 }
 
-void L2Lxy_12(double x, double y, double z, double * __restrict L, double * __restrict Ls) {
+void L2Lxy_12(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls) {
 double Lstmp0 = y*L[142];
 double Lstmp1 = 3628800*L[5];
 double Lstmp2 = y*L[140];
@@ -71964,7 +71964,7 @@ Ls[143] += L[143];
 
 }
 
-void L2Pxy_12(double x, double y, double z, double * __restrict L, double * __restrict F) {
+void L2Pxy_12(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F) {
 double Ftmp0 = 3628800*L[5];
 double Ftmp1 = y*L[140];
 double Ftmp2 = (1.0/3628800.0)*y;
@@ -71991,7 +71991,7 @@ F[2] += -Ftmp16*(Ftmp4*(y*(y*(y*(y*(y*(y*(y*(y*L[141] + 9*L[118]) + 72*L[97]) + 
 
 }
 
-void M2Pxy_12(double x, double y, double z, double * __restrict M, double * __restrict F) {
+void M2Pxy_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double Ftmp0 = std::pow(Rinv, 3);
 double Ftmp1 = -M[0];
@@ -72490,7 +72490,7 @@ F[2] += Ftmp0*(99225*Ftmp10*M[82] + 14175*Ftmp10*M[86] + 8505*Ftmp10*M[90] + 141
 
 }
 
-void M2Lxy_12(double x, double y, double z, double * __restrict M, double * __restrict L) {
+void M2Lxy_12(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L) {
 double Rinv = 1.0 / sqrt(x*x + y*y + z*z);
 double D[454];
 double Dtmp0 = std::pow(Rinv, 3);
@@ -73357,669 +73357,669 @@ L[143] += D[430]*M[0] + D[442]*M[1] + D[443]*M[2];
 
 }
 
-void S2M(double x, double y, double z, double * __restrict S, double * __restrict M, int order) {
+void S2M(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M, int order) {
 switch (order) {
   case 2:
-    S2M_2(x, y, z, __restrict S, __restrict M);
+    S2M_2(x, y, z, S, M);
     break;
   case 3:
-    S2M_3(x, y, z, __restrict S, __restrict M);
+    S2M_3(x, y, z, S, M);
     break;
   case 4:
-    S2M_4(x, y, z, __restrict S, __restrict M);
+    S2M_4(x, y, z, S, M);
     break;
   case 5:
-    S2M_5(x, y, z, __restrict S, __restrict M);
+    S2M_5(x, y, z, S, M);
     break;
   case 6:
-    S2M_6(x, y, z, __restrict S, __restrict M);
+    S2M_6(x, y, z, S, M);
     break;
   case 7:
-    S2M_7(x, y, z, __restrict S, __restrict M);
+    S2M_7(x, y, z, S, M);
     break;
   case 8:
-    S2M_8(x, y, z, __restrict S, __restrict M);
+    S2M_8(x, y, z, S, M);
     break;
   case 9:
-    S2M_9(x, y, z, __restrict S, __restrict M);
+    S2M_9(x, y, z, S, M);
     break;
   case 10:
-    S2M_10(x, y, z, __restrict S, __restrict M);
+    S2M_10(x, y, z, S, M);
     break;
   case 11:
-    S2M_11(x, y, z, __restrict S, __restrict M);
+    S2M_11(x, y, z, S, M);
     break;
   case 12:
-    S2M_12(x, y, z, __restrict S, __restrict M);
+    S2M_12(x, y, z, S, M);
     break;
   }
 }
-void M2M(double x, double y, double z, double * __restrict M, double * __restrict Ms, int order) {
+void M2M(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms, int order) {
 switch (order) {
   case 2:
-    M2M_2(x, y, z, __restrict M, __restrict Ms);
+    M2M_2(x, y, z, M, Ms);
     break;
   case 3:
-    M2M_3(x, y, z, __restrict M, __restrict Ms);
+    M2M_3(x, y, z, M, Ms);
     break;
   case 4:
-    M2M_4(x, y, z, __restrict M, __restrict Ms);
+    M2M_4(x, y, z, M, Ms);
     break;
   case 5:
-    M2M_5(x, y, z, __restrict M, __restrict Ms);
+    M2M_5(x, y, z, M, Ms);
     break;
   case 6:
-    M2M_6(x, y, z, __restrict M, __restrict Ms);
+    M2M_6(x, y, z, M, Ms);
     break;
   case 7:
-    M2M_7(x, y, z, __restrict M, __restrict Ms);
+    M2M_7(x, y, z, M, Ms);
     break;
   case 8:
-    M2M_8(x, y, z, __restrict M, __restrict Ms);
+    M2M_8(x, y, z, M, Ms);
     break;
   case 9:
-    M2M_9(x, y, z, __restrict M, __restrict Ms);
+    M2M_9(x, y, z, M, Ms);
     break;
   case 10:
-    M2M_10(x, y, z, __restrict M, __restrict Ms);
+    M2M_10(x, y, z, M, Ms);
     break;
   case 11:
-    M2M_11(x, y, z, __restrict M, __restrict Ms);
+    M2M_11(x, y, z, M, Ms);
     break;
   case 12:
-    M2M_12(x, y, z, __restrict M, __restrict Ms);
+    M2M_12(x, y, z, M, Ms);
     break;
   }
 }
-void M2L(double x, double y, double z, double * __restrict M, double * __restrict L, int order) {
+void M2L(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L, int order) {
 switch (order) {
   case 2:
-    M2L_2(x, y, z, __restrict M, __restrict L);
+    M2L_2(x, y, z, M, L);
     break;
   case 3:
-    M2L_3(x, y, z, __restrict M, __restrict L);
+    M2L_3(x, y, z, M, L);
     break;
   case 4:
-    M2L_4(x, y, z, __restrict M, __restrict L);
+    M2L_4(x, y, z, M, L);
     break;
   case 5:
-    M2L_5(x, y, z, __restrict M, __restrict L);
+    M2L_5(x, y, z, M, L);
     break;
   case 6:
-    M2L_6(x, y, z, __restrict M, __restrict L);
+    M2L_6(x, y, z, M, L);
     break;
   case 7:
-    M2L_7(x, y, z, __restrict M, __restrict L);
+    M2L_7(x, y, z, M, L);
     break;
   case 8:
-    M2L_8(x, y, z, __restrict M, __restrict L);
+    M2L_8(x, y, z, M, L);
     break;
   case 9:
-    M2L_9(x, y, z, __restrict M, __restrict L);
+    M2L_9(x, y, z, M, L);
     break;
   case 10:
-    M2L_10(x, y, z, __restrict M, __restrict L);
+    M2L_10(x, y, z, M, L);
     break;
   case 11:
-    M2L_11(x, y, z, __restrict M, __restrict L);
+    M2L_11(x, y, z, M, L);
     break;
   case 12:
-    M2L_12(x, y, z, __restrict M, __restrict L);
+    M2L_12(x, y, z, M, L);
     break;
   }
 }
-void L2L(double x, double y, double z, double * __restrict L, double * __restrict Ls, int order) {
+void L2L(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls, int order) {
 switch (order) {
   case 2:
-    L2L_2(x, y, z, __restrict L, __restrict Ls);
+    L2L_2(x, y, z, L, Ls);
     break;
   case 3:
-    L2L_3(x, y, z, __restrict L, __restrict Ls);
+    L2L_3(x, y, z, L, Ls);
     break;
   case 4:
-    L2L_4(x, y, z, __restrict L, __restrict Ls);
+    L2L_4(x, y, z, L, Ls);
     break;
   case 5:
-    L2L_5(x, y, z, __restrict L, __restrict Ls);
+    L2L_5(x, y, z, L, Ls);
     break;
   case 6:
-    L2L_6(x, y, z, __restrict L, __restrict Ls);
+    L2L_6(x, y, z, L, Ls);
     break;
   case 7:
-    L2L_7(x, y, z, __restrict L, __restrict Ls);
+    L2L_7(x, y, z, L, Ls);
     break;
   case 8:
-    L2L_8(x, y, z, __restrict L, __restrict Ls);
+    L2L_8(x, y, z, L, Ls);
     break;
   case 9:
-    L2L_9(x, y, z, __restrict L, __restrict Ls);
+    L2L_9(x, y, z, L, Ls);
     break;
   case 10:
-    L2L_10(x, y, z, __restrict L, __restrict Ls);
+    L2L_10(x, y, z, L, Ls);
     break;
   case 11:
-    L2L_11(x, y, z, __restrict L, __restrict Ls);
+    L2L_11(x, y, z, L, Ls);
     break;
   case 12:
-    L2L_12(x, y, z, __restrict L, __restrict Ls);
+    L2L_12(x, y, z, L, Ls);
     break;
   }
 }
-void L2P(double x, double y, double z, double * __restrict L, double * __restrict F, int order) {
+void L2P(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F, int order) {
 switch (order) {
   case 2:
-    L2P_2(x, y, z, __restrict L, __restrict F);
+    L2P_2(x, y, z, L, F);
     break;
   case 3:
-    L2P_3(x, y, z, __restrict L, __restrict F);
+    L2P_3(x, y, z, L, F);
     break;
   case 4:
-    L2P_4(x, y, z, __restrict L, __restrict F);
+    L2P_4(x, y, z, L, F);
     break;
   case 5:
-    L2P_5(x, y, z, __restrict L, __restrict F);
+    L2P_5(x, y, z, L, F);
     break;
   case 6:
-    L2P_6(x, y, z, __restrict L, __restrict F);
+    L2P_6(x, y, z, L, F);
     break;
   case 7:
-    L2P_7(x, y, z, __restrict L, __restrict F);
+    L2P_7(x, y, z, L, F);
     break;
   case 8:
-    L2P_8(x, y, z, __restrict L, __restrict F);
+    L2P_8(x, y, z, L, F);
     break;
   case 9:
-    L2P_9(x, y, z, __restrict L, __restrict F);
+    L2P_9(x, y, z, L, F);
     break;
   case 10:
-    L2P_10(x, y, z, __restrict L, __restrict F);
+    L2P_10(x, y, z, L, F);
     break;
   case 11:
-    L2P_11(x, y, z, __restrict L, __restrict F);
+    L2P_11(x, y, z, L, F);
     break;
   case 12:
-    L2P_12(x, y, z, __restrict L, __restrict F);
+    L2P_12(x, y, z, L, F);
     break;
   }
 }
-void M2P(double x, double y, double z, double * __restrict M, double * __restrict F, int order) {
+void M2P(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F, int order) {
 switch (order) {
   case 2:
-    M2P_2(x, y, z, __restrict M, __restrict F);
+    M2P_2(x, y, z, M, F);
     break;
   case 3:
-    M2P_3(x, y, z, __restrict M, __restrict F);
+    M2P_3(x, y, z, M, F);
     break;
   case 4:
-    M2P_4(x, y, z, __restrict M, __restrict F);
+    M2P_4(x, y, z, M, F);
     break;
   case 5:
-    M2P_5(x, y, z, __restrict M, __restrict F);
+    M2P_5(x, y, z, M, F);
     break;
   case 6:
-    M2P_6(x, y, z, __restrict M, __restrict F);
+    M2P_6(x, y, z, M, F);
     break;
   case 7:
-    M2P_7(x, y, z, __restrict M, __restrict F);
+    M2P_7(x, y, z, M, F);
     break;
   case 8:
-    M2P_8(x, y, z, __restrict M, __restrict F);
+    M2P_8(x, y, z, M, F);
     break;
   case 9:
-    M2P_9(x, y, z, __restrict M, __restrict F);
+    M2P_9(x, y, z, M, F);
     break;
   case 10:
-    M2P_10(x, y, z, __restrict M, __restrict F);
+    M2P_10(x, y, z, M, F);
     break;
   case 11:
-    M2P_11(x, y, z, __restrict M, __restrict F);
+    M2P_11(x, y, z, M, F);
     break;
   case 12:
-    M2P_12(x, y, z, __restrict M, __restrict F);
+    M2P_12(x, y, z, M, F);
     break;
   }
 }
-void S2Mc(double x, double y, double z, double * __restrict S, double * __restrict M, int order) {
+void S2Mc(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M, int order) {
 switch (order) {
   case 2:
-    S2Mc_2(x, y, z, __restrict S, __restrict M);
+    S2Mc_2(x, y, z, S, M);
     break;
   case 3:
-    S2Mc_3(x, y, z, __restrict S, __restrict M);
+    S2Mc_3(x, y, z, S, M);
     break;
   case 4:
-    S2Mc_4(x, y, z, __restrict S, __restrict M);
+    S2Mc_4(x, y, z, S, M);
     break;
   case 5:
-    S2Mc_5(x, y, z, __restrict S, __restrict M);
+    S2Mc_5(x, y, z, S, M);
     break;
   case 6:
-    S2Mc_6(x, y, z, __restrict S, __restrict M);
+    S2Mc_6(x, y, z, S, M);
     break;
   case 7:
-    S2Mc_7(x, y, z, __restrict S, __restrict M);
+    S2Mc_7(x, y, z, S, M);
     break;
   case 8:
-    S2Mc_8(x, y, z, __restrict S, __restrict M);
+    S2Mc_8(x, y, z, S, M);
     break;
   case 9:
-    S2Mc_9(x, y, z, __restrict S, __restrict M);
+    S2Mc_9(x, y, z, S, M);
     break;
   case 10:
-    S2Mc_10(x, y, z, __restrict S, __restrict M);
+    S2Mc_10(x, y, z, S, M);
     break;
   case 11:
-    S2Mc_11(x, y, z, __restrict S, __restrict M);
+    S2Mc_11(x, y, z, S, M);
     break;
   case 12:
-    S2Mc_12(x, y, z, __restrict S, __restrict M);
+    S2Mc_12(x, y, z, S, M);
     break;
   }
 }
-void M2Mc(double x, double y, double z, double * __restrict M, double * __restrict Ms, int order) {
+void M2Mc(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms, int order) {
 switch (order) {
   case 2:
-    M2Mc_2(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_2(x, y, z, M, Ms);
     break;
   case 3:
-    M2Mc_3(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_3(x, y, z, M, Ms);
     break;
   case 4:
-    M2Mc_4(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_4(x, y, z, M, Ms);
     break;
   case 5:
-    M2Mc_5(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_5(x, y, z, M, Ms);
     break;
   case 6:
-    M2Mc_6(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_6(x, y, z, M, Ms);
     break;
   case 7:
-    M2Mc_7(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_7(x, y, z, M, Ms);
     break;
   case 8:
-    M2Mc_8(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_8(x, y, z, M, Ms);
     break;
   case 9:
-    M2Mc_9(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_9(x, y, z, M, Ms);
     break;
   case 10:
-    M2Mc_10(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_10(x, y, z, M, Ms);
     break;
   case 11:
-    M2Mc_11(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_11(x, y, z, M, Ms);
     break;
   case 12:
-    M2Mc_12(x, y, z, __restrict M, __restrict Ms);
+    M2Mc_12(x, y, z, M, Ms);
     break;
   }
 }
-void L2Lc(double x, double y, double z, double * __restrict L, double * __restrict Ls, int order) {
+void L2Lc(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls, int order) {
 switch (order) {
   case 2:
-    L2Lc_2(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_2(x, y, z, L, Ls);
     break;
   case 3:
-    L2Lc_3(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_3(x, y, z, L, Ls);
     break;
   case 4:
-    L2Lc_4(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_4(x, y, z, L, Ls);
     break;
   case 5:
-    L2Lc_5(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_5(x, y, z, L, Ls);
     break;
   case 6:
-    L2Lc_6(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_6(x, y, z, L, Ls);
     break;
   case 7:
-    L2Lc_7(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_7(x, y, z, L, Ls);
     break;
   case 8:
-    L2Lc_8(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_8(x, y, z, L, Ls);
     break;
   case 9:
-    L2Lc_9(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_9(x, y, z, L, Ls);
     break;
   case 10:
-    L2Lc_10(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_10(x, y, z, L, Ls);
     break;
   case 11:
-    L2Lc_11(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_11(x, y, z, L, Ls);
     break;
   case 12:
-    L2Lc_12(x, y, z, __restrict L, __restrict Ls);
+    L2Lc_12(x, y, z, L, Ls);
     break;
   }
 }
-void L2Pc(double x, double y, double z, double * __restrict L, double * __restrict F, int order) {
+void L2Pc(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F, int order) {
 switch (order) {
   case 2:
-    L2Pc_2(x, y, z, __restrict L, __restrict F);
+    L2Pc_2(x, y, z, L, F);
     break;
   case 3:
-    L2Pc_3(x, y, z, __restrict L, __restrict F);
+    L2Pc_3(x, y, z, L, F);
     break;
   case 4:
-    L2Pc_4(x, y, z, __restrict L, __restrict F);
+    L2Pc_4(x, y, z, L, F);
     break;
   case 5:
-    L2Pc_5(x, y, z, __restrict L, __restrict F);
+    L2Pc_5(x, y, z, L, F);
     break;
   case 6:
-    L2Pc_6(x, y, z, __restrict L, __restrict F);
+    L2Pc_6(x, y, z, L, F);
     break;
   case 7:
-    L2Pc_7(x, y, z, __restrict L, __restrict F);
+    L2Pc_7(x, y, z, L, F);
     break;
   case 8:
-    L2Pc_8(x, y, z, __restrict L, __restrict F);
+    L2Pc_8(x, y, z, L, F);
     break;
   case 9:
-    L2Pc_9(x, y, z, __restrict L, __restrict F);
+    L2Pc_9(x, y, z, L, F);
     break;
   case 10:
-    L2Pc_10(x, y, z, __restrict L, __restrict F);
+    L2Pc_10(x, y, z, L, F);
     break;
   case 11:
-    L2Pc_11(x, y, z, __restrict L, __restrict F);
+    L2Pc_11(x, y, z, L, F);
     break;
   case 12:
-    L2Pc_12(x, y, z, __restrict L, __restrict F);
+    L2Pc_12(x, y, z, L, F);
     break;
   }
 }
-void M2Pc(double x, double y, double z, double * __restrict M, double * __restrict F, int order) {
+void M2Pc(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F, int order) {
 switch (order) {
   case 2:
-    M2Pc_2(x, y, z, __restrict M, __restrict F);
+    M2Pc_2(x, y, z, M, F);
     break;
   case 3:
-    M2Pc_3(x, y, z, __restrict M, __restrict F);
+    M2Pc_3(x, y, z, M, F);
     break;
   case 4:
-    M2Pc_4(x, y, z, __restrict M, __restrict F);
+    M2Pc_4(x, y, z, M, F);
     break;
   case 5:
-    M2Pc_5(x, y, z, __restrict M, __restrict F);
+    M2Pc_5(x, y, z, M, F);
     break;
   case 6:
-    M2Pc_6(x, y, z, __restrict M, __restrict F);
+    M2Pc_6(x, y, z, M, F);
     break;
   case 7:
-    M2Pc_7(x, y, z, __restrict M, __restrict F);
+    M2Pc_7(x, y, z, M, F);
     break;
   case 8:
-    M2Pc_8(x, y, z, __restrict M, __restrict F);
+    M2Pc_8(x, y, z, M, F);
     break;
   case 9:
-    M2Pc_9(x, y, z, __restrict M, __restrict F);
+    M2Pc_9(x, y, z, M, F);
     break;
   case 10:
-    M2Pc_10(x, y, z, __restrict M, __restrict F);
+    M2Pc_10(x, y, z, M, F);
     break;
   case 11:
-    M2Pc_11(x, y, z, __restrict M, __restrict F);
+    M2Pc_11(x, y, z, M, F);
     break;
   case 12:
-    M2Pc_12(x, y, z, __restrict M, __restrict F);
+    M2Pc_12(x, y, z, M, F);
     break;
   }
 }
-void M2Lc(double x, double y, double z, double * __restrict M, double * __restrict L, int order) {
+void M2Lc(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L, int order) {
 switch (order) {
   case 2:
-    M2Lc_2(x, y, z, __restrict M, __restrict L);
+    M2Lc_2(x, y, z, M, L);
     break;
   case 3:
-    M2Lc_3(x, y, z, __restrict M, __restrict L);
+    M2Lc_3(x, y, z, M, L);
     break;
   case 4:
-    M2Lc_4(x, y, z, __restrict M, __restrict L);
+    M2Lc_4(x, y, z, M, L);
     break;
   case 5:
-    M2Lc_5(x, y, z, __restrict M, __restrict L);
+    M2Lc_5(x, y, z, M, L);
     break;
   case 6:
-    M2Lc_6(x, y, z, __restrict M, __restrict L);
+    M2Lc_6(x, y, z, M, L);
     break;
   case 7:
-    M2Lc_7(x, y, z, __restrict M, __restrict L);
+    M2Lc_7(x, y, z, M, L);
     break;
   case 8:
-    M2Lc_8(x, y, z, __restrict M, __restrict L);
+    M2Lc_8(x, y, z, M, L);
     break;
   case 9:
-    M2Lc_9(x, y, z, __restrict M, __restrict L);
+    M2Lc_9(x, y, z, M, L);
     break;
   case 10:
-    M2Lc_10(x, y, z, __restrict M, __restrict L);
+    M2Lc_10(x, y, z, M, L);
     break;
   case 11:
-    M2Lc_11(x, y, z, __restrict M, __restrict L);
+    M2Lc_11(x, y, z, M, L);
     break;
   case 12:
-    M2Lc_12(x, y, z, __restrict M, __restrict L);
+    M2Lc_12(x, y, z, M, L);
     break;
   }
 }
-void S2Mxy(double x, double y, double z, double * __restrict S, double * __restrict M, int order) {
+void S2Mxy(double x, double y, double z, double * FMMGEN_RESTRICT S, double * FMMGEN_RESTRICT M, int order) {
 switch (order) {
   case 2:
-    S2Mxy_2(x, y, z, __restrict S, __restrict M);
+    S2Mxy_2(x, y, z, S, M);
     break;
   case 3:
-    S2Mxy_3(x, y, z, __restrict S, __restrict M);
+    S2Mxy_3(x, y, z, S, M);
     break;
   case 4:
-    S2Mxy_4(x, y, z, __restrict S, __restrict M);
+    S2Mxy_4(x, y, z, S, M);
     break;
   case 5:
-    S2Mxy_5(x, y, z, __restrict S, __restrict M);
+    S2Mxy_5(x, y, z, S, M);
     break;
   case 6:
-    S2Mxy_6(x, y, z, __restrict S, __restrict M);
+    S2Mxy_6(x, y, z, S, M);
     break;
   case 7:
-    S2Mxy_7(x, y, z, __restrict S, __restrict M);
+    S2Mxy_7(x, y, z, S, M);
     break;
   case 8:
-    S2Mxy_8(x, y, z, __restrict S, __restrict M);
+    S2Mxy_8(x, y, z, S, M);
     break;
   case 9:
-    S2Mxy_9(x, y, z, __restrict S, __restrict M);
+    S2Mxy_9(x, y, z, S, M);
     break;
   case 10:
-    S2Mxy_10(x, y, z, __restrict S, __restrict M);
+    S2Mxy_10(x, y, z, S, M);
     break;
   case 11:
-    S2Mxy_11(x, y, z, __restrict S, __restrict M);
+    S2Mxy_11(x, y, z, S, M);
     break;
   case 12:
-    S2Mxy_12(x, y, z, __restrict S, __restrict M);
+    S2Mxy_12(x, y, z, S, M);
     break;
   }
 }
-void M2Mxy(double x, double y, double z, double * __restrict M, double * __restrict Ms, int order) {
+void M2Mxy(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT Ms, int order) {
 switch (order) {
   case 2:
-    M2Mxy_2(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_2(x, y, z, M, Ms);
     break;
   case 3:
-    M2Mxy_3(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_3(x, y, z, M, Ms);
     break;
   case 4:
-    M2Mxy_4(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_4(x, y, z, M, Ms);
     break;
   case 5:
-    M2Mxy_5(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_5(x, y, z, M, Ms);
     break;
   case 6:
-    M2Mxy_6(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_6(x, y, z, M, Ms);
     break;
   case 7:
-    M2Mxy_7(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_7(x, y, z, M, Ms);
     break;
   case 8:
-    M2Mxy_8(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_8(x, y, z, M, Ms);
     break;
   case 9:
-    M2Mxy_9(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_9(x, y, z, M, Ms);
     break;
   case 10:
-    M2Mxy_10(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_10(x, y, z, M, Ms);
     break;
   case 11:
-    M2Mxy_11(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_11(x, y, z, M, Ms);
     break;
   case 12:
-    M2Mxy_12(x, y, z, __restrict M, __restrict Ms);
+    M2Mxy_12(x, y, z, M, Ms);
     break;
   }
 }
-void L2Lxy(double x, double y, double z, double * __restrict L, double * __restrict Ls, int order) {
+void L2Lxy(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT Ls, int order) {
 switch (order) {
   case 2:
-    L2Lxy_2(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_2(x, y, z, L, Ls);
     break;
   case 3:
-    L2Lxy_3(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_3(x, y, z, L, Ls);
     break;
   case 4:
-    L2Lxy_4(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_4(x, y, z, L, Ls);
     break;
   case 5:
-    L2Lxy_5(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_5(x, y, z, L, Ls);
     break;
   case 6:
-    L2Lxy_6(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_6(x, y, z, L, Ls);
     break;
   case 7:
-    L2Lxy_7(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_7(x, y, z, L, Ls);
     break;
   case 8:
-    L2Lxy_8(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_8(x, y, z, L, Ls);
     break;
   case 9:
-    L2Lxy_9(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_9(x, y, z, L, Ls);
     break;
   case 10:
-    L2Lxy_10(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_10(x, y, z, L, Ls);
     break;
   case 11:
-    L2Lxy_11(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_11(x, y, z, L, Ls);
     break;
   case 12:
-    L2Lxy_12(x, y, z, __restrict L, __restrict Ls);
+    L2Lxy_12(x, y, z, L, Ls);
     break;
   }
 }
-void L2Pxy(double x, double y, double z, double * __restrict L, double * __restrict F, int order) {
+void L2Pxy(double x, double y, double z, double * FMMGEN_RESTRICT L, double * FMMGEN_RESTRICT F, int order) {
 switch (order) {
   case 2:
-    L2Pxy_2(x, y, z, __restrict L, __restrict F);
+    L2Pxy_2(x, y, z, L, F);
     break;
   case 3:
-    L2Pxy_3(x, y, z, __restrict L, __restrict F);
+    L2Pxy_3(x, y, z, L, F);
     break;
   case 4:
-    L2Pxy_4(x, y, z, __restrict L, __restrict F);
+    L2Pxy_4(x, y, z, L, F);
     break;
   case 5:
-    L2Pxy_5(x, y, z, __restrict L, __restrict F);
+    L2Pxy_5(x, y, z, L, F);
     break;
   case 6:
-    L2Pxy_6(x, y, z, __restrict L, __restrict F);
+    L2Pxy_6(x, y, z, L, F);
     break;
   case 7:
-    L2Pxy_7(x, y, z, __restrict L, __restrict F);
+    L2Pxy_7(x, y, z, L, F);
     break;
   case 8:
-    L2Pxy_8(x, y, z, __restrict L, __restrict F);
+    L2Pxy_8(x, y, z, L, F);
     break;
   case 9:
-    L2Pxy_9(x, y, z, __restrict L, __restrict F);
+    L2Pxy_9(x, y, z, L, F);
     break;
   case 10:
-    L2Pxy_10(x, y, z, __restrict L, __restrict F);
+    L2Pxy_10(x, y, z, L, F);
     break;
   case 11:
-    L2Pxy_11(x, y, z, __restrict L, __restrict F);
+    L2Pxy_11(x, y, z, L, F);
     break;
   case 12:
-    L2Pxy_12(x, y, z, __restrict L, __restrict F);
+    L2Pxy_12(x, y, z, L, F);
     break;
   }
 }
-void M2Pxy(double x, double y, double z, double * __restrict M, double * __restrict F, int order) {
+void M2Pxy(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT F, int order) {
 switch (order) {
   case 2:
-    M2Pxy_2(x, y, z, __restrict M, __restrict F);
+    M2Pxy_2(x, y, z, M, F);
     break;
   case 3:
-    M2Pxy_3(x, y, z, __restrict M, __restrict F);
+    M2Pxy_3(x, y, z, M, F);
     break;
   case 4:
-    M2Pxy_4(x, y, z, __restrict M, __restrict F);
+    M2Pxy_4(x, y, z, M, F);
     break;
   case 5:
-    M2Pxy_5(x, y, z, __restrict M, __restrict F);
+    M2Pxy_5(x, y, z, M, F);
     break;
   case 6:
-    M2Pxy_6(x, y, z, __restrict M, __restrict F);
+    M2Pxy_6(x, y, z, M, F);
     break;
   case 7:
-    M2Pxy_7(x, y, z, __restrict M, __restrict F);
+    M2Pxy_7(x, y, z, M, F);
     break;
   case 8:
-    M2Pxy_8(x, y, z, __restrict M, __restrict F);
+    M2Pxy_8(x, y, z, M, F);
     break;
   case 9:
-    M2Pxy_9(x, y, z, __restrict M, __restrict F);
+    M2Pxy_9(x, y, z, M, F);
     break;
   case 10:
-    M2Pxy_10(x, y, z, __restrict M, __restrict F);
+    M2Pxy_10(x, y, z, M, F);
     break;
   case 11:
-    M2Pxy_11(x, y, z, __restrict M, __restrict F);
+    M2Pxy_11(x, y, z, M, F);
     break;
   case 12:
-    M2Pxy_12(x, y, z, __restrict M, __restrict F);
+    M2Pxy_12(x, y, z, M, F);
     break;
   }
 }
-void M2Lxy(double x, double y, double z, double * __restrict M, double * __restrict L, int order) {
+void M2Lxy(double x, double y, double z, double * FMMGEN_RESTRICT M, double * FMMGEN_RESTRICT L, int order) {
 switch (order) {
   case 2:
-    M2Lxy_2(x, y, z, __restrict M, __restrict L);
+    M2Lxy_2(x, y, z, M, L);
     break;
   case 3:
-    M2Lxy_3(x, y, z, __restrict M, __restrict L);
+    M2Lxy_3(x, y, z, M, L);
     break;
   case 4:
-    M2Lxy_4(x, y, z, __restrict M, __restrict L);
+    M2Lxy_4(x, y, z, M, L);
     break;
   case 5:
-    M2Lxy_5(x, y, z, __restrict M, __restrict L);
+    M2Lxy_5(x, y, z, M, L);
     break;
   case 6:
-    M2Lxy_6(x, y, z, __restrict M, __restrict L);
+    M2Lxy_6(x, y, z, M, L);
     break;
   case 7:
-    M2Lxy_7(x, y, z, __restrict M, __restrict L);
+    M2Lxy_7(x, y, z, M, L);
     break;
   case 8:
-    M2Lxy_8(x, y, z, __restrict M, __restrict L);
+    M2Lxy_8(x, y, z, M, L);
     break;
   case 9:
-    M2Lxy_9(x, y, z, __restrict M, __restrict L);
+    M2Lxy_9(x, y, z, M, L);
     break;
   case 10:
-    M2Lxy_10(x, y, z, __restrict M, __restrict L);
+    M2Lxy_10(x, y, z, M, L);
     break;
   case 11:
-    M2Lxy_11(x, y, z, __restrict M, __restrict L);
+    M2Lxy_11(x, y, z, M, L);
     break;
   case 12:
-    M2Lxy_12(x, y, z, __restrict M, __restrict L);
+    M2Lxy_12(x, y, z, M, L);
     break;
   }
 }
