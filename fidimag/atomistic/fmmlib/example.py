@@ -1,5 +1,22 @@
 import fmmgen
 
+# Two fixups are needed on the operators.cpp this script writes, until both
+# are fixed upstream in fmmgen's writer:
+#
+#   1. The generated `#include` uses whatever path was passed as the output
+#      prefix, so running this outside fmmlib/ leaves an absolute path in
+#      line 1. It must read `#include "operators.h"` for the CMake build,
+#      which compiles the checked-in file in place.
+#
+#   2. The order-dispatch wrappers at the end of the file paste the
+#      declaration's `__restrict` into the *call*, e.g.
+#      `S2M_2(x, y, z, __restrict S, __restrict M);`, which is not valid
+#      C++. Strip `__restrict` from the call sites only (the parameter
+#      declarations it precedes a `*` in are correct and must stay):
+#
+#          perl -i -pe 's/(?<!\* )__restrict //g' operators.cpp
+#
+
 # generate_code's order argument is an EXCLUSIVE upper bound (FMMGEN_MAXORDER
 # in the generated operators.h): passing order=13 generates orders 2..12
 # inclusive, not order=12. The previous order=8 here (generating only 2..7)
