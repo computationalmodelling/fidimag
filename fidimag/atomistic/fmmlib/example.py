@@ -1,18 +1,21 @@
 import fmmgen
 
-# Two fixups are needed on the operators.cpp this script writes, until both
-# are fixed upstream in fmmgen's writer:
+# Always run this script from inside fmmlib/ (not a temp/build directory
+# copied back afterwards): the generated `#include` uses whatever path is
+# in front of "operators" below, so running it elsewhere leaves an absolute
+# path in line 1, and CMake compiles the checked-in file in place, expecting
+# `#include "operators.h"`.
 #
-#   1. The generated `#include` uses whatever path was passed as the output
-#      prefix, so running this outside fmmlib/ leaves an absolute path in
-#      line 1. It must read `#include "operators.h"` for the CMake build,
-#      which compiles the checked-in file in place.
-#
-#   2. The order-dispatch wrappers at the end of the file paste the
-#      declaration's `__restrict` into the *call*, e.g.
-#      `S2M_2(x, y, z, __restrict S, __restrict M);`, which is not valid
-#      C++. Strip `__restrict` from the call sites only (the parameter
-#      declarations it precedes a `*` in are correct and must stay):
+# The order-dispatch wrappers at the end of the file used to paste the
+# declaration's `__restrict` into the *call*, e.g.
+# `S2M_2(x, y, z, __restrict S, __restrict M);`, which is not valid C++.
+# This is fixed in fmmgen's writer (rebuilds each dispatch call from the
+# declaration's parameter names, and uses an `FMMGEN_RESTRICT` macro so the
+# same generated code is valid whether compiled as C or C++) -- but that fix
+# is, as of this regeneration, an uncommitted patch on the local `fmmgen`
+# checkout's `fidimag-2d-vendor` branch, not yet upstream. Regenerating
+# against a fmmgen checkout without that patch will reintroduce the bug; if
+# so, the call-site fixup below is the manual workaround used previously:
 #
 #          perl -i -pe 's/(?<!\* )__restrict //g' operators.cpp
 #
