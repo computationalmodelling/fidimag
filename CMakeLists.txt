@@ -21,7 +21,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 # C/C++ standards
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Position independent code (required for Python extensions)
@@ -104,7 +104,7 @@ set(C_COMPILE_FLAGS
 )
 
 # C++ compiler flags (for the FMM/BH extension); mirrors the old setup.py
-# com_args_cpp (-std=c++14 is handled via CMAKE_CXX_STANDARD above).
+# com_args_cpp (-std=c++17 is handled via CMAKE_CXX_STANDARD above).
 set(CXX_COMPILE_FLAGS
     -O3
     -Wall
