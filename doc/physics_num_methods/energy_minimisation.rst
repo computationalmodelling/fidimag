@@ -218,7 +218,7 @@ is that the energy decreases with respect to the largest of the last
 with :math:`\gamma` a small constant and :math:`w_{i}` the weights described
 below. If a trial step fails this test we
 backtrack, i.e. we shorten it and try again from the same configuration. This
-is the non-monotone line search of Grippo, Lampariello and Lucidi, and together
+is the non-monotone line search of Grippo, Lampariello and Lucidi [9]_, and together
 with the BB step lengths and the re-normalisation of the spins, which plays the
 role of the projection onto the constraint set, it is the spectral projected
 gradient method of Birgin, Martínez and Raydan [5]_. Setting ``nTrail = 1``
@@ -897,3 +897,6 @@ micromagnetic answer is compared with an analytical prediction.
 .. [8] Zhang, H. & Hager, W. W. *A nonmonotone line search technique and its
    application to unconstrained optimization*. SIAM J. Optim. 14, 1043–1056
    (2004)
+
+.. [9] Grippo, L., Lampariello, F. & Lucidi, S. *A nonmonotone line search
+   technique for Newton's method*. SIAM J. Numer. Anal. 23, 707–716 (1986)

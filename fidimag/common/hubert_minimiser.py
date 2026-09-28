@@ -58,7 +58,10 @@ class HubertMinimiser(MinimiserBase):
     tuned by hand. Because the BB quotients are invariant under a constant
     rescaling of the gradient, that variant needs no `eta_scale` argument at
     all, which is otherwise the parameter that has to be matched to the units
-    of the effective field. See `_minimise_BB` and reference [4].
+    of the effective field. Its steps are accepted with a non-monotone test,
+    against the weighted average of the accepted energies of Zhang and Hager
+    [6] by default, or the trailing maximum of Grippo, Lampariello and Lucidi
+    [5]. See `_minimise_BB` and reference [4].
 
     Notes
     -----
@@ -81,6 +84,14 @@ class HubertMinimiser(MinimiserBase):
     Optimization, 10(4), 1196–1211. The step lengths are those of Barzilai,
     J., & Borwein, J. M. (1988), Two-point step size gradient methods, IMA
     Journal of Numerical Analysis, 8(1), 141–148.
+
+    [5] Grippo, L., Lampariello, F., & Lucidi, S. (1986). A nonmonotone line
+    search technique for Newton's method. SIAM Journal on Numerical Analysis,
+    23(4), 707–716.
+
+    [6] Zhang, H., & Hager, W. W. (2004). A nonmonotone line search technique
+    and its application to unconstrained optimization. SIAM Journal on
+    Optimization, 14(4), 1043–1056.
     """
 
     def __init__(self, mesh, spin, magnetisation, magnetisation_inv, field,
@@ -488,20 +499,32 @@ class HubertMinimiser(MinimiserBase):
 
         BB steps are not monotone by construction, so a monotone accept/reject
         test would throw away exactly the behaviour that makes them fast.
-        Acceptance therefore uses the non-monotone Grippo-Lampariello-Lucidi
-        condition over the trailing energies already kept by this class::
+        A trial step is therefore accepted by a non-monotone test::
 
-            E(m_new) <= max(trailE) - γ λ Σ_i w_i ||g_i||^2
+            E(m_new) <= E_ref - γ λ Σ_i w_i ||g_i||^2
 
         with `w_i = mu_0 Ms_i V` (micromagnetic) or `mu_s_i` (atomistic),
         divided by `energyScale`, so that the last term is γ times the first
-        order decrease of the energy along the step. See `moment_factor`.
-        By default (`acceptance='ZH'`) the maximum is replaced by the
-        weighted average of all the accepted energies of Zhang and Hager
-        (SIAM J. Optim. 14, 1043, 2004). When the test fails the step backtracks to the minimiser of the
-        quadratic through E(0), E'(0) = -Σ w|g|^2 and the rejected trial,
-        kept within [0.1, 0.5] of the rejected λ. This is the SPG scheme of
-        Birgin, Martínez & Raydan, with the sphere as the constraint set and
+        order decrease of the energy along the step (see `moment_factor`).
+        The reference `E_ref` is chosen with `acceptance`:
+
+        `'ZH'` (default)
+            The weighted average of all the accepted energies of Zhang and
+            Hager [3], updated after every accepted step as::
+
+                C = (ZHeta Q C + E) / (ZHeta Q + 1),    Q = ZHeta Q + 1
+
+            from `C = E_0`, `Q = 1`.
+
+        `'GLL'`
+            The largest of the last `nTrail` accepted energies, the test of
+            Grippo, Lampariello and Lucidi [2].
+
+        When the test fails the step backtracks to the minimiser of the
+        quadratic through `E(0)`, `E'(0) = -Σ w|g|^2` and the rejected trial
+        [5], kept within [0.1, 0.5] of the rejected λ. Together with the BB
+        steps [1] this is the spectral projected gradient method of Birgin,
+        Martínez and Raydan [4], with the sphere as the constraint set and
         the re-normalisation of the spins as the projection onto it.
 
         Parameters
@@ -521,9 +544,10 @@ class HubertMinimiser(MinimiserBase):
             of the energy along it has no minimum, matching the rate at which
             `_minimise_hubert` shrinks η on a rejected step
         nTrail
-            Number of energy trailing steps. This is also the width of the
-            non-monotone acceptance window: `nTrail = 1` recovers a monotone
-            (Armijo) line search
+            Number of trailing accepted energies used by the `stopping_dE`
+            criterion. With `acceptance='GLL'` it is also the width of the
+            acceptance window, and `nTrail = 1` recovers a monotone (Armijo)
+            line search
         resetMax
             Maximum number of restarts, where a restart is a step that could
             not be accepted within `maxBacktrack` backtracks
@@ -552,6 +576,26 @@ class HubertMinimiser(MinimiserBase):
         ZHeta
             Decay of the Zhang and Hager average, in [0, 1]: 0 recovers a
             monotone test, 1 weights every accepted energy equally
+
+        References
+        ----------
+        [1] Barzilai, J. & Borwein, J. M. (1988). Two-point step size gradient
+        methods. IMA Journal of Numerical Analysis, 8(1), 141–148.
+
+        [2] Grippo, L., Lampariello, F. & Lucidi, S. (1986). A nonmonotone line
+        search technique for Newton's method. SIAM Journal on Numerical
+        Analysis, 23(4), 707–716.
+
+        [3] Zhang, H. & Hager, W. W. (2004). A nonmonotone line search
+        technique and its application to unconstrained optimization. SIAM
+        Journal on Optimization, 14(4), 1043–1056.
+
+        [4] Birgin, E. G., Martínez, J. M. & Raydan, M. (2000). Nonmonotone
+        spectral projected gradient methods on convex sets. SIAM Journal on
+        Optimization, 10(4), 1196–1211.
+
+        [5] Nocedal, J. & Wright, S. J. (2006). Numerical Optimization, 2nd
+        ed., section 3.5. Springer.
         """
 
         if acceptance not in ('GLL', 'ZH'):
