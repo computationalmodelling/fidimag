@@ -496,9 +496,11 @@ class HubertMinimiser(MinimiserBase):
         with `w_i = mu_0 Ms_i V` (micromagnetic) or `mu_s_i` (atomistic),
         divided by `energyScale`, so that the last term is γ times the first
         order decrease of the energy along the step. See `moment_factor`.
-        The step backtracks with `λ / dEta^2` when the test fails. This is the SPG scheme
-        of Birgin, Martínez & Raydan, with the sphere as the constraint set
-        and the re-normalisation of the spins as the projection onto it.
+        When the test fails the step backtracks to the minimiser of the
+        quadratic through E(0), E'(0) = -Σ w|g|^2 and the rejected trial,
+        kept within [0.1, 0.5] of the rejected λ. This is the SPG scheme of
+        Birgin, Martínez & Raydan, with the sphere as the constraint set and
+        the re-normalisation of the spins as the projection onto it.
 
         Parameters
         ----------
@@ -513,7 +515,8 @@ class HubertMinimiser(MinimiserBase):
             Mean energy difference with the trailing energy. Remember that the
             energy is scaled by the `self.energyScale` parameter
         dEta
-            The backtracking factor is `dEta ** 2`, matching the rate at which
+            A rejected step is divided by `dEta ** 2` when the quadratic model
+            of the energy along it has no minimum, matching the rate at which
             `_minimise_hubert` shrinks η on a rejected step
         nTrail
             Number of energy trailing steps. This is also the width of the
@@ -652,7 +655,14 @@ class HubertMinimiser(MinimiserBase):
                     break  # backtracking loop
 
                 nBacktrack += 1
-                lamb = lamb / (dEta * dEta)
+                # Minimiser of the quadratic E(0) - slope * l + c * l^2 through
+                # the rejected trial (Nocedal & Wright, sec. 3.5), kept within
+                # [0.1, 0.5] of the rejected step. c_lamb2 is c * lamb^2
+                c_lamb2 = Etrial - Erel + slope * lamb
+                if c_lamb2 > 0.0:
+                    lamb = min(max(0.5 * slope * lamb ** 2 / c_lamb2, 0.1 * lamb), 0.5 * lamb)
+                else:
+                    lamb = lamb / (dEta * dEta)
                 if nBacktrack > maxBacktrack or lamb < etaMin:
                     # No decrease along -g: drop the secant information and
                     # start over from the last accepted point
