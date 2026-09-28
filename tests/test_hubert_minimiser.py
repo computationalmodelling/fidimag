@@ -122,6 +122,26 @@ def test_hubert_minimiser_BB_unknown_step_control():
         sim.driver.minimise(stepControl='not-a-step-control')
 
 
+def test_hubert_minimiser_BB_zhang_hager_acceptance():
+    """
+    The Zhang and Hager weighted average, as the reference of the acceptance
+    test, relaxes the wall to the same minimum as the GLL trailing max
+    """
+    energies = {}
+    for acceptance in ('GLL', 'ZH'):
+        sim, A, Ku = _setup_1D_DW()
+        result = sim.driver.minimise(stepControl='BB', acceptance=acceptance,
+                                     stopping_dE=1e-14, mXgradE_tol=1e-3)
+        assert result.converged
+        assert _dw_MAE(sim, A, Ku) < 0.02
+        energies[acceptance] = result.total_energy
+    assert abs(energies['ZH'] - energies['GLL']) < 1e-6
+
+    sim, _, _ = _setup_1D_DW()
+    with pytest.raises(ValueError):
+        sim.driver.minimise(stepControl='BB', acceptance='not-a-test')
+
+
 if __name__ == "__main__":
     test_hubert_minimiser_1D_DW()
     test_hubert_minimiser_1D_DW_BB()

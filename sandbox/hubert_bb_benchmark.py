@@ -3,7 +3,7 @@
 Reproduces the numbers of doc/physics_num_methods/energy_minimisation.rst:
 the creep vs BB table and the standard problem 4 tables against OOMMF.
 
-    OMP_NUM_THREADS=4 python sandbox/hubert_bb_benchmark.py
+    OMP_NUM_THREADS=4 python sandbox/hubert_bb_benchmark.py [--acceptance=GLL|ZH] [names]
 """
 import sys
 import numpy as np
@@ -11,6 +11,8 @@ import fidimag
 import fidimag.common.constant as C
 
 NEVER = 10 ** 9  # no data files
+# Extra arguments of every BB minimise call, e.g. the acceptance test
+BB_OPTIONS = {}
 
 
 def record_torque(driver):
@@ -31,7 +33,7 @@ def dw_1d():
     sys.path.insert(0, 'tests')
     from test_hubert_minimiser import _setup_1D_DW, _dw_MAE
     sim, A, Ku = _setup_1D_DW()
-    r = sim.driver.minimise(stepControl='BB', stopping_dE=1e-14, mXgradE_tol=1e-3,
+    r = sim.driver.minimise(stepControl='BB', **BB_OPTIONS, stopping_dE=1e-14, mXgradE_tol=1e-3,
                             save_data_steps=NEVER)
     return r, f'MAE {_dw_MAE(sim, A, Ku):.2e}'
 
@@ -60,7 +62,7 @@ def skyrmion_demag(tol=1e-1):
     sim.add(fidimag.micro.DMI(D=D, dmi_type='interfacial'))
     sim.add(fidimag.micro.Demag())
     sim.driver.energyScale = C.mu_0 * Ms ** 2 * 0.5 * mesh.n * cell ** 3 * 1e-27
-    r = sim.driver.minimise(stepControl='BB', stopping_dE=1e-20, mXgradE_tol=tol,
+    r = sim.driver.minimise(stepControl='BB', **BB_OPTIONS, stopping_dE=1e-20, mXgradE_tol=tol,
                             max_steps=6000, save_data_steps=NEVER)
     return r, ''
 
@@ -81,7 +83,7 @@ def skyrmion_atomistic(tol=0.1):
     sim.add(fidimag.atomistic.Zeeman((0, 0, B)))
     sim.set_m(lambda r: (0, 0, -1) if (r[0] - cx) ** 2 + (r[1] - cx) ** 2 < 1 else (0, 0, 1))
     sim.driver.energyScale = J
-    r = sim.driver.minimise(stepControl='BB', stopping_dE=1e-10, mXgradE_tol=tol,
+    r = sim.driver.minimise(stepControl='BB', **BB_OPTIONS, stopping_dE=1e-10, mXgradE_tol=tol,
                             save_data_steps=NEVER)
     return r, ''
 
@@ -98,7 +100,7 @@ def sp4(cell, max_steps):
     sim.set_m((1, 1, 1))
     sim.driver.energyScale = C.mu_0 * Ms ** 2 * 0.5 * 500 * 125 * 3 * 1e-27
     history = record_torque(sim.driver)
-    r = sim.driver.minimise(stepControl='BB', stopping_dE=-1.0, mXgradE_tol=0.0,
+    r = sim.driver.minimise(stepControl='BB', **BB_OPTIONS, stopping_dE=-1.0, mXgradE_tol=0.0,
                             max_steps=max_steps, save_data_steps=NEVER)
     firsts = []
     for tol in (1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6):
@@ -117,7 +119,12 @@ if __name__ == '__main__':
             'atomistic skyrmion 1e-4': lambda: skyrmion_atomistic(1e-4),
             'SP4 2500 cells': lambda: sp4(5, 3000),
             'SP4 10000 cells': lambda: sp4(2.5, 3000)}
-    only = sys.argv[1:]
+    only = []
+    for arg in sys.argv[1:]:
+        if arg.startswith('--acceptance='):
+            BB_OPTIONS['acceptance'] = arg.split('=', 1)[1]
+        else:
+            only.append(arg)
     for name, run in runs.items():
         if only and not any(o in name for o in only):
             continue

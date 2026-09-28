@@ -464,7 +464,7 @@ class HubertMinimiser(MinimiserBase):
                      stopping_dE=1e-6, dEta=2,
                      nTrail=10, resetMax=20, mXgradE_tol=0.1,
                      maxDeltaM=0.1, gamma=1e-4, BBstep='alternate',
-                     maxBacktrack=15
+                     maxBacktrack=15, acceptance='ZH', ZHeta=0.85
                      ):
         """Spectral (Barzilai-Borwein) gradient descent on the unit sphere
 
@@ -496,7 +496,9 @@ class HubertMinimiser(MinimiserBase):
         with `w_i = mu_0 Ms_i V` (micromagnetic) or `mu_s_i` (atomistic),
         divided by `energyScale`, so that the last term is γ times the first
         order decrease of the energy along the step. See `moment_factor`.
-        When the test fails the step backtracks to the minimiser of the
+        By default (`acceptance='ZH'`) the maximum is replaced by the
+        weighted average of all the accepted energies of Zhang and Hager
+        (SIAM J. Optim. 14, 1043, 2004). When the test fails the step backtracks to the minimiser of the
         quadratic through E(0), E'(0) = -Σ w|g|^2 and the rejected trial,
         kept within [0.1, 0.5] of the rejected λ. This is the SPG scheme of
         Birgin, Martínez & Raydan, with the sphere as the constraint set and
@@ -542,7 +544,18 @@ class HubertMinimiser(MinimiserBase):
             and BB2 undershoots on opposite sides of the spectrum
         maxBacktrack
             Maximum number of backtracks before declaring a restart
+        acceptance
+            Reference energy of the acceptance test: `'ZH'` (default) for the
+            weighted average of all the accepted energies of Zhang and Hager,
+            decaying with `ZHeta`, or `'GLL'` for the largest of the last
+            `nTrail` accepted energies
+        ZHeta
+            Decay of the Zhang and Hager average, in [0, 1]: 0 recovers a
+            monotone test, 1 weights every accepted energy equally
         """
+
+        if acceptance not in ('GLL', 'ZH'):
+            raise ValueError(f'Unknown acceptance `{acceptance}`. Use `GLL` or `ZH`.')
 
         self.spin_last = np.zeros_like(self.spin)
         self.step = 0
@@ -590,6 +603,8 @@ class HubertMinimiser(MinimiserBase):
         # both counts
         cellE_ref = self.cellE.copy()
         Erel = 0.0
+        # Zhang and Hager reference, C = sum_j ZHeta^j E_(k-j) / Q
+        C_ZH, Q_ZH = Erel, 1.0
 
         # Fill the whole trailing window with E0, so that max(trailE) is a
         # valid (and initially tight) reference from the very first step
@@ -626,8 +641,8 @@ class HubertMinimiser(MinimiserBase):
             # Trust region: never displace a spin by more than maxDeltaM
             maxGrad = self.torque.max()
             lamb = min(eta, maxDeltaM / maxGrad)
-            # Non-monotone reference energy of the trailing window
-            Eref = self.trailE.max()
+            # Non-monotone reference energy
+            Eref = C_ZH if acceptance == 'ZH' else self.trailE.max()
 
             nBacktrack = 0
             accepted = False
@@ -699,6 +714,8 @@ class HubertMinimiser(MinimiserBase):
 
             Erel = Etrial
             cellE_ref[:] = self.cellE
+            C_ZH = (ZHeta * Q_ZH * C_ZH + Erel) / (ZHeta * Q_ZH + 1.0)
+            Q_ZH = ZHeta * Q_ZH + 1.0
 
             self.trailE[nStart] = Erel
             nStart = next(trailPool)
@@ -772,7 +789,7 @@ class HubertMinimiser(MinimiserBase):
                  maxCreep=5, eta_scale=1.0, etaMin=0.001,
                  # `BB` step control:
                  maxDeltaM=0.1, gamma=1e-4, BBstep='alternate',
-                 maxBacktrack=15
+                 maxBacktrack=15, acceptance='ZH', ZHeta=0.85
                  ):
         """Performs the minimisation
 
@@ -826,6 +843,6 @@ class HubertMinimiser(MinimiserBase):
                 stopping_dE=stopping_dE, dEta=dEta,
                 nTrail=nTrail, resetMax=resetMax, mXgradE_tol=mXgradE_tol,
                 maxDeltaM=maxDeltaM, gamma=gamma, BBstep=BBstep,
-                maxBacktrack=maxBacktrack)
+                maxBacktrack=maxBacktrack, acceptance=acceptance, ZHeta=ZHeta)
         else:
             raise ValueError(f'Unknown stepControl `{stepControl}`. Use `hubert` or `BB`.')
