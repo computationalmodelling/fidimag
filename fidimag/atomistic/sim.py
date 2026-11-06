@@ -194,15 +194,17 @@ class Sim(SimBase):
         # David Tue 19 Jun 2018
         # Since the scaling variables in the HexagonalDemag class depend on
         # mu_s, the safest way to avoid breaking the code is to update the
-        # variables here in case mu_s changes. Same for normal demag
-        if self.mesh.mesh_type == 'hexagonal':
-            for inter in self.interactions:
-                if isinstance(inter, fidimag.atomistic.DemagHexagonal):
-                    inter.mu_s_scale = self._mu_s * self.scale
-                    inter.scalar2cuboid(inter.mu_s_scale, inter.mu_s_scale_c)
+        # variables here in case mu_s changes. Same for normal demag, on any
+        # mesh: it was updated only on a hexagonal one, and with a scale that
+        # the simulation does not have, so that a mu_s set after the demag was
+        # added was not seen by it
+        for inter in self.interactions:
+            if isinstance(inter, fidimag.atomistic.DemagHexagonal):
+                inter.mu_s_scale = self._mu_s * inter.scale
+                inter.scalar2cuboid(inter.mu_s_scale, inter.mu_s_scale_c)
 
-                if isinstance(inter, fidimag.atomistic.Demag):
-                    inter.mu_s_scale = self._mu_s * self.scale
+            elif isinstance(inter, fidimag.atomistic.Demag):
+                inter.mu_s_scale = self._mu_s * inter.scale
 
     mu_s = property(get_mu_s, set_mu_s)
 
