@@ -97,6 +97,13 @@ cdef extern from "clib.h":
 
     void normalise(double *m, int *pins, int n)
 
+    # classical mean-field (cmf.c)
+    double cmf_residual(double *spin, double *field, double *mu_s, int *pins,
+                        double *resid, int n, double T, double k_B)
+    void cmf_mix(double *spin, double *resid, double alpha, int n3)
+    int cmf_anderson(double *spin, double *X, double *R, int nh, double alpha,
+                     double *mu_s, int *pins, int n)
+
     # used for sllg
     void llg_rhs_dw_c(double *m, double *h, double *dm, double *T, double *alpha,
                       double *mu_s_inv, int *pins, double *eta, int n,
@@ -350,3 +357,45 @@ cdef class monte_carlo:
         run_step_mc(self._c_state, &spin[0], &new_spin[0],
                     &ngbs[0,0], &nngbs[0,0], n_ngbs,
                     J, J1, D, D1, &h[0], Kc, n, T, hexagonal_mesh)
+
+
+# -----------------------------------------------------------------------------
+# Classical mean-field relaxation (see cmf.c)
+
+def compute_cmf_residual(double [:] spin,
+                         double [:] field,
+                         double [:] mu_s,
+                         int [:] pins,
+                         double [:] resid,
+                         double T,
+                         double k_B):
+    """
+    Fill `resid` with the mean-field spin moment that the field `field` (tesla)
+    gives at the temperature `T`, minus `spin`, and return the largest
+    absolute value of a component of it. Pinned spins and spins without a
+    moment have a zero residual.
+    """
+
+    return cmf_residual(&spin[0], &field[0], &mu_s[0], &pins[0], &resid[0],
+                        mu_s.shape[0], T, k_B)
+
+def cmf_mix_spins(double [:] spin, double [:] resid, double alpha):
+    """spin += alpha * resid, the linear mixing step"""
+
+    cmf_mix(&spin[0], &resid[0], alpha, spin.shape[0])
+
+def cmf_anderson_step(double [:] spin,
+                      double [:, ::1] X,
+                      double [:, ::1] R,
+                      int nh,
+                      double alpha,
+                      double [:] mu_s,
+                      int [:] pins):
+    """
+    The Anderson mixing step from the first `nh` rows of the spin arrays `X` and
+    their residuals `R` (the last of them the current one). Returns 0, 1 if it
+    fell back to the plain step, or -1 if there are too many rows.
+    """
+
+    return cmf_anderson(&spin[0], &X[0, 0], &R[0, 0], nh, alpha, &mu_s[0],
+                        &pins[0], mu_s.shape[0])

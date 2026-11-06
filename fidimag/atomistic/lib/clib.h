@@ -121,4 +121,18 @@ void run_step_mc(mt19937_state *state, double *spin, double *new_spin,
                  double D, double D1, double *h, double Kc, int n, double T,
                  int hexagonal_mesh);
 
+// ----------------------------------------------------------------------------
+// From cmf.c
+
+double cmf_residual(double *restrict spin, double *restrict field,
+                    double *restrict mu_s, int *restrict pins,
+                    double *restrict resid, int n, double T, double k_B);
+
+void cmf_mix(double *restrict spin, double *restrict resid, double alpha,
+             int n3);
+
+int cmf_anderson(double *restrict spin, double *restrict X, double *restrict R,
+                 int nh, double alpha, double *restrict mu_s,
+                 int *restrict pins, int n);
+
 #endif
