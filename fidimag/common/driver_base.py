@@ -346,8 +346,9 @@ class DriverBase:
     def compute_dmdt(self, dt):
         m0 = self.spin_last
         m1 = self.spin
-        dm = (m1 - m0).reshape((3, -1))
-        max_dm = np.max(np.sqrt(np.sum(dm ** 2, axis=0)))
+        # the change of each spin: its three components are next to each other in the array
+        dm = (m1 - m0).reshape((-1, 3))
+        max_dm = np.max(np.sqrt(np.sum(dm ** 2, axis=1)))
         max_dmdt = max_dm / dt
         return max_dmdt
 
