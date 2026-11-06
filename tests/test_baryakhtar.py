@@ -159,6 +159,93 @@ def test_precession_does_no_work():
     assert np.abs(np.sum(ydot.reshape(-1, 3) * h)) < 1e-9 * np.abs(ydot).max() * np.abs(h).max() * N
 
 
+# the physics of spin waves and of the length of m ---------------------------------------------------------------------
+# A chain of cells with free ends has the standing waves cos(pi n (i + 1/2) / N) with k^2 = (2 - 2 cos(pi n / N)) / dx^2, for the exchange
+# field and for the Laplacian alike. For a small wave on a state along z in the field H0 the linearised equations give
+#   omega_k = gamma (H0 + D k^2),  D = 2 A / (mu_0 Ms)
+# and, for the reduced equation (and the full one when the length of m relaxes much faster than the wave moves, gamma alpha Ms / chi >> omega),
+# the nonlocal damping of Baryakhtar,
+#   Gamma_k = gamma (alpha + beta k^2) (H0 + D k^2).
+# Without alpha the full equation has no such relaxation of the length, and only damps by Gamma_k = gamma beta D k^4.
+CHAIN = dict(N=40, dx=2e-9, A=1.3e-11, Ms=8e5, gamma=2.211e5, H0=5e5)
+
+
+def spin_wave(driver, n, alpha, beta, python, tmp_path, monkeypatch, chi=1e-3, T=1.2e-10, samples=24):
+    c = CHAIN
+    (tmp_path / ('%s_%d_%g_%g_%d' % (driver, n, alpha, beta, python))).mkdir()
+    monkeypatch.chdir(tmp_path / ('%s_%d_%g_%g_%d' % (driver, n, alpha, beta, python)))
+    monkeypatch.setenv('FIDIMAG_PYTHON_SIM', '1' if python else '0')
+    sim = Sim(CuboidMesh(nx=c['N'], ny=1, nz=1, dx=c['dx'] * 1e9, dy=c['dx'] * 1e9, dz=c['dx'] * 1e9, unit_length=1e-9), name='wave', driver=driver)
+    sim.set_Ms(c['Ms'])
+    sim.driver.gamma, sim.alpha, sim.driver.beta, sim.driver.default_c = c['gamma'], alpha, beta, 0.0
+    if driver == 'llbar_full':
+        sim.driver.chi = chi
+    mode = np.cos(np.pi * n * (np.arange(c['N']) + 0.5) / c['N'])
+    m = np.zeros((c['N'], 3))
+    m[:, 0], m[:, 2] = 1e-3 * mode, 1.0
+    sim.set_m(m.reshape(-1), normalise=False)
+    sim.add(UniformExchange(c['A']))
+    sim.add(Zeeman((0, 0, c['H0'])))
+    sim.driver.set_tols(rtol=1e-10, atol=1e-13)
+    ts, u = [], []
+    for t in np.linspace(0, T, samples + 1):
+        if t > 0:
+            sim.driver.run_until(t)
+        s = sim.spin.reshape(-1, 3)
+        ts.append(t)
+        u.append(np.sum(mode * (s[:, 0] + 1j * s[:, 1])) / np.sum(mode ** 2))
+    ts, u = np.array(ts), np.array(u)
+    decay = -np.polyfit(ts, np.log(np.abs(u)), 1)[0]
+    omega = abs(np.polyfit(ts, np.unwrap(np.angle(u)), 1)[0])
+    k2 = (2 - 2 * np.cos(np.pi * n / c['N'])) / c['dx'] ** 2
+    D = 2 * c['A'] / (4e-7 * np.pi * c['Ms'])
+    return decay, omega, k2, D
+
+
+@pytest.mark.parametrize('python', [True], ids=['python'])   # (master has the Python simulation only)
+@pytest.mark.parametrize('n, alpha, beta', [(0, 0.02, 0.0), (3, 0.02, 0.0), (3, 0.02, 3e-18), (6, 0.0, 3e-18)])
+def test_the_reduced_equation_has_the_nonlocal_damping_of_baryakhtar(n, alpha, beta, python, tmp_path, monkeypatch):
+    decay, omega, k2, D = spin_wave('llbar', n, alpha, beta, python, tmp_path, monkeypatch)
+    g, H0 = CHAIN['gamma'], CHAIN['H0']
+    assert omega == pytest.approx(g * (H0 + D * k2), rel=2e-3)
+    assert decay == pytest.approx(g * (alpha + beta * k2) * (H0 + D * k2), rel=5e-3)
+
+
+@pytest.mark.parametrize('python', [True], ids=['python'])   # (master has the Python simulation only)
+@pytest.mark.parametrize('n, alpha, beta', [(0, 0.02, 0.0), (3, 0.02, 3e-18), (6, 0.02, 3e-18)])
+def test_the_full_equation_agrees_when_the_length_relaxes_fast(n, alpha, beta, python, tmp_path, monkeypatch):
+    decay, omega, k2, D = spin_wave('llbar_full', n, alpha, beta, python, tmp_path, monkeypatch)
+    g, H0 = CHAIN['gamma'], CHAIN['H0']
+    assert omega == pytest.approx(g * (H0 + D * k2), rel=2e-3)
+    assert decay == pytest.approx(g * (alpha + beta * k2) * (H0 + D * k2), rel=5e-3)
+
+
+@pytest.mark.parametrize('python', [True], ids=['python'])   # (master has the Python simulation only)
+def test_the_full_equation_without_alpha_damps_only_through_the_laplacian(python, tmp_path, monkeypatch):
+    decay, omega, k2, D = spin_wave('llbar_full', 6, 0.0, 3e-18, python, tmp_path, monkeypatch)
+    assert decay == pytest.approx(CHAIN['gamma'] * 3e-18 * D * k2 ** 2, rel=2e-2)
+
+
+@pytest.mark.parametrize('python', [True], ids=['python'])   # (master has the Python simulation only)
+def test_the_longitudinal_susceptibility(python, tmp_path, monkeypatch):
+    """In a field the length of m settles where H + (Ms / 2 chi) (1 - L^2) L = 0, so that dM / dH = chi: L = 1 + chi H / Ms for a small field."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv('FIDIMAG_PYTHON_SIM', '1' if python else '0')
+    Ms, chi, H = 8e5, 1e-3, 1e5
+    sim = Sim(CuboidMesh(nx=2, ny=1, nz=1, dx=2, dy=2, dz=2, unit_length=1e-9), name='chi', driver='llbar_full')
+    sim.set_Ms(Ms)
+    sim.driver.gamma, sim.alpha, sim.driver.beta, sim.driver.chi = 2.211e5, 0.1, 0.0, chi
+    sim.set_m((0, 0, 1), normalise=False)
+    sim.add(Zeeman((0, 0, H)))
+    sim.driver.set_tols(rtol=1e-10, atol=1e-14)
+    sim.driver.run_until(2e-12)
+    length = sim.spin.reshape(-1, 3)[:, 2]
+    root = np.roots([-1, 0, 1, 2 * chi * H / Ms])                  # (1 - L^2) L = -2 chi H / Ms, i.e. -L^3 + L + 2 chi H / Ms = 0
+    expected = root[np.argmin(np.abs(root - 1))].real
+    assert np.allclose(length, expected, rtol=1e-8)
+    assert expected - 1 == pytest.approx(chi * H / Ms, rel=1e-2)
+
+
 # the drivers --------------------------------------------------------------------------------------------------------
 
 def run(driver, directory, monkeypatch, beta=1e-18, chi=1e-3, t=1e-13):
