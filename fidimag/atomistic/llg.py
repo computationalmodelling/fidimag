@@ -65,5 +65,22 @@ class LLG(AtomisticDriver):
 
         return 0
 
+    def step_rhs(self, t, y):
+        """dm/dt at the state y, for the fixed step integrators (euler and rk4)"""
+        self.spin[:] = y[:]
+        self.t = t
+        self.compute_effective_field(t)
+
+        clib.compute_llg_rhs(self.dm_dt,
+                             self.spin,
+                             self.field,
+                             self._alpha,
+                             self._pins,
+                             self.gamma,
+                             self.n,
+                             self.do_precession,
+                             self.default_c)
+        return self.dm_dt
+
 if __name__ == '__main__':
     pass
