@@ -67,8 +67,9 @@ def relaxed_pair(weighting, ratio=0.9):
     peak = int(np.argmax(weighted.energies))
     weighted.climbing_image = [peak]
     weighted.initialise_integrator(integrator='sundials')
+    # (an iteration of relax() goes one step of dt; it used to go twice as far, so these have twice the dt of before)
     weighted.relax(max_iterations=30, save_vtks_every=50000,
-                   save_npys_every=50000, stopping_dYdt=1e-6, dt=1e-6,
+                   save_npys_every=50000, stopping_dYdt=1e-6, dt=2e-6,
                    save_initial_state=False)
 
     del weighted.climbing_image
@@ -77,7 +78,7 @@ def relaxed_pair(weighting, ratio=0.9):
     weighted.initialise_integrator(integrator='verlet')
     weighted.relax(max_iterations=20000, save_vtks_every=50000,
                    save_npys_every=50000, stopping_dYdt=1e-8,
-                   stopping_max_force=1e-2, dt=1e-4,
+                   stopping_max_force=1e-2, dt=2e-4,
                    save_initial_state=False)
     return uniform, weighted
 
