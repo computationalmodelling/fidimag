@@ -192,7 +192,7 @@ void dmi_field_interfacial_atomistic(double *restrict spin, double *restrict fie
                 /* Now we add the field contribution of the j-th
                  * neighbour for the i-th spin: D_ij X S_j */
                 idnm = 3 * ngbs[idn + j];  // Magnetisation component index of the j-th NN
-                D = _D[idnm + j];
+                D = _D[idn + j];  // the strength of the bond, as in dmi_field_bulk
                 fx += D * cross_x(DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2],
                                   spin[idnm], spin[idnm + 1], spin[idnm + 2]);
                 fy += D * cross_y(DMI_vec[3 * j], DMI_vec[3 * j + 1], DMI_vec[3 * j + 2],
