@@ -258,8 +258,11 @@ class DriverBase:
             self.integrator = StepIntegrator(self.spin, self.step_rhs,
                                              step=integrator)
         elif integrator == "euler_openmp" or integrator == "rk4_openmp":
-            self.integrator = CvodeSolver_OpenMP(self.spin, self.step_rhs,
-                                                 integrator)
+            # The same stepper as the names without _openmp: its own arithmetic is too little to be worth
+            # threading, and the right hand side is parallel inside the kernels whichever name is used. (It was
+            # built on the CVODE class, which calls the right hand side as f(t, y, ydot) and so failed at once)
+            self.integrator = StepIntegrator(self.spin, self.step_rhs,
+                                             step=integrator[:-len("_openmp")])
         elif integrator == "scipy":
             self.integrator = ScipyIntegrator(self.spin, self.step_rhs)
         else:

@@ -2,6 +2,7 @@
 Implement the time integrators used in the simulation of magnetisation dynamics.
 
 """
+import numpy as np
 from scipy.integrate import ode
 from fidimag.extensions.cvode import CvodeSolver, CvodeSolver_OpenMP, \
     ErkSolver, ErkSolver_OpenMP
@@ -35,6 +36,9 @@ class StepIntegrator(BaseIntegrator):
     def __init__(self, spins, rhs_fun, step="euler", stepsize=1e-15):
         super().__init__(spins, rhs_fun)
 
+        # Its own copy of the state: the right hand side of a driver writes the state it is asked about into the
+        # spins of the simulation, so the stages of a step would overwrite the state they are all taken from
+        self.y = np.array(spins)
         self.set_step(step)
         self.stepsize = stepsize
 
@@ -46,6 +50,15 @@ class StepIntegrator(BaseIntegrator):
             if self.t > t:
                 break
         return 0
+
+    def set_initial_value(self, spins, t):
+        """Go on from the state `spins` at the time `t` (after a `Sim.set_m`, for instance)"""
+        self.y = np.array(spins)
+        self.t = t
+
+    def reset(self, spin, t):
+        self.y = np.array(spin)
+        self.t = t
 
     def set_options(self, rtol=1e-8, atol=1e-8):
         warnings.warn("Tolerances not available for StepIntegrator")
@@ -126,10 +139,12 @@ def runge_kutta_step(t, y, h, f):
         k_4 = f(t_n + h,   y_n + h   * k_3).
 
     """
-    k1 = f(t,           y)
-    k2 = f(t + h / 2.0, y + h * k1 / 2.0)
-    k3 = f(t + h / 2.0, y + h * k2 / 2.0)
-    k4 = f(t + h,       y + h * k3)
+    # (a copy of each: the right hand side of a driver returns the same array every time, so that the four
+    # stages would otherwise all be the last one)
+    k1 = np.array(f(t,           y))
+    k2 = np.array(f(t + h / 2.0, y + h * k1 / 2.0))
+    k3 = np.array(f(t + h / 2.0, y + h * k2 / 2.0))
+    k4 = np.array(f(t + h,       y + h * k3))
 
     tp = t + h
     yp = y + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
