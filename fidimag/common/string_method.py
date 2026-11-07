@@ -406,6 +406,9 @@ class StringMethod(ChainMethodBase):
 
         self.integrator.run_until(t)
 
+        # The distances are those of the band that was integrated. (CVODE leaves its last trial state in
+        # self.band, which is close to it but not the same, and the quick-min integrator works in self.band itself)
+        self.band[:] = self.integrator.y[:]
         band = self.integrator.y
         # Compute distances and SCALE
         self.compute_distances()
