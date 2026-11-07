@@ -114,12 +114,14 @@ def mid_m(pos):
         return (-0.5, 0, 0.2)
 
 
-def _relaxed_band(simname, interp=(3, 3), max_iterations=50):
+def _relaxed_band(simname, interp=(3, 3), max_iterations=100):
     """
     A small band, briefly relaxed, for the spring-length unit tests below.
     The weighting functions are pure functions of (path_distances, energies,
     negH, tangents), so they only need a band that is populated and
-    self-consistent, not one that is converged.
+    self-consistent, not one that is converged. (Each iteration of relax()
+    covers one time step, as it should; it used to cover two, so the 50
+    iterations that this was written with are 100.)
     """
     sim = Sim(mesh)
     sim.Ms = two_part
@@ -308,7 +310,7 @@ def test_energy_weighted_spring_force_clustering():
     neb_weighted.initialise_integrator(integrator='cvode_bdf')
     neb_weighted.relax(max_iterations=30, save_vtks_every=50000,
                        save_npys_every=50000, stopping_dYdt=1e-6,
-                       dt=1e-6, save_initial_state=False)
+                       dt=2e-6, save_initial_state=False)
 
     # Stage 3: turn on the energy-weighted spring force and switch to the
     # fixed-step VP integrator (see docstring for why)
@@ -317,7 +319,7 @@ def test_energy_weighted_spring_force_clustering():
     neb_weighted.initialise_integrator(integrator='verlet')
     neb_weighted.relax(max_iterations=20000, save_vtks_every=50000,
                        save_npys_every=50000, stopping_dYdt=1e-8,
-                       stopping_max_force=1e-2, dt=1e-4,
+                       stopping_max_force=1e-2, dt=2e-4,
                        save_initial_state=False)
 
     print('max|spring_force| (uniform) :', max_spring_force(neb_uniform))
@@ -405,7 +407,7 @@ def test_curvature_weighted_spring_force_clustering():
     neb_curv.initialise_integrator(integrator='cvode_bdf')
     neb_curv.relax(max_iterations=30, save_vtks_every=50000,
                    save_npys_every=50000, stopping_dYdt=1e-6,
-                   dt=1e-6, save_initial_state=False)
+                   dt=2e-6, save_initial_state=False)
 
     # Stage 3: turn on curvature weighting, switch to VP
     del neb_curv.climbing_image
@@ -414,7 +416,7 @@ def test_curvature_weighted_spring_force_clustering():
     neb_curv.initialise_integrator(integrator='verlet')
     neb_curv.relax(max_iterations=20000, save_vtks_every=50000,
                    save_npys_every=50000, stopping_dYdt=1e-8,
-                   stopping_max_force=1e-2, dt=1e-4,
+                   stopping_max_force=1e-2, dt=2e-4,
                    save_initial_state=False)
 
     print('max|spring_force| (uniform)  :', max_spring_force(neb_uniform))

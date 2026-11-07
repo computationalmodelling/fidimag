@@ -893,9 +893,8 @@ class ChainMethodBase:
             # This can be redefined according to the chosen chain method
             max_dYdt = self.run_until(self.t + increment_dt)
             # *****************************************************************
-
-            # Update the current step
-            self.t = self.t + increment_dt
+            # (run_until has set self.t to where the integrator arrived: adding the step again would make the
+            # next iteration go twice as far as it reports, and double max dY/dt)
 
             # Save data -------------------------------------------------------
 
