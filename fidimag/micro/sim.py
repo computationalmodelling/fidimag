@@ -172,8 +172,9 @@ class Sim(SimBase):
         self._Ms_inv[filterMs] = 1.0 / self._Ms[filterMs]
         nonzero = self._Ms[filterMs].size
 
-        # We moved this variable to the micro_driver class
+        # (the driver keeps the count too, and `compute_average` of the simulation divides by it)
         self.driver.n_nonzero = nonzero
+        self.n_nonzero = nonzero
 
         filterMs = (self._Ms == 0.0)
         self._pins[filterMs] = 1
