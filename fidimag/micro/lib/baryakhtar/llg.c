@@ -19,15 +19,16 @@ void llg_rhs_baryakhtar(double *dm_dt, double *m, double *h, double *delta_h,
 
 		double coeff = -gamma;
 
+        dm_dt[i] = dm_dt[j] = dm_dt[k] = 0;
         if (do_precession){
         	dm_dt[i] = coeff*cross_x(m[i],m[j],m[k],h[i],h[j],h[k]);
         	dm_dt[j] = coeff*cross_y(m[i],m[j],m[k],h[i],h[j],h[k]);
         	dm_dt[k] = coeff*cross_z(m[i],m[j],m[k],h[i],h[j],h[k]);
         }
 
-    	dm_dt[i] += gamma*(alpha[i]*h[i] - beta*delta_h[i]);
-    	dm_dt[j] += gamma*(alpha[i]*h[j] - beta*delta_h[j]);
-    	dm_dt[k] += gamma*(alpha[i]*h[k] - beta*delta_h[k]);
+    	dm_dt[i] += gamma*(alpha[id]*h[i] - beta*delta_h[i]);
+    	dm_dt[j] += gamma*(alpha[id]*h[j] - beta*delta_h[j]);
+    	dm_dt[k] += gamma*(alpha[id]*h[k] - beta*delta_h[k]);
 
 	}
 
@@ -52,15 +53,16 @@ void llg_rhs_baryakhtar_reduced(double *dm_dt, double *m, double *hp, double *de
 
 		double coeff = -gamma;
 
+        dm_dt[i] = dm_dt[j] = dm_dt[k] = 0;
         if (do_precession){
         	dm_dt[i] = coeff*cross_x(m[i],m[j],m[k],hp[i],hp[j],hp[k]);
         	dm_dt[j] = coeff*cross_y(m[i],m[j],m[k],hp[i],hp[j],hp[k]);
         	dm_dt[k] = coeff*cross_z(m[i],m[j],m[k],hp[i],hp[j],hp[k]);
         }
 
-        double hpx = alpha[i]*hp[i]-beta*delta_hp[i];
-        double hpy = alpha[i]*hp[j]-beta*delta_hp[j];
-        double hpz = alpha[i]*hp[k]-beta*delta_hp[k];
+        double hpx = alpha[id]*hp[i]-beta*delta_hp[i];
+        double hpy = alpha[id]*hp[j]-beta*delta_hp[j];
+        double hpz = alpha[id]*hp[k]-beta*delta_hp[k];
 
         double mm = m[i]*m[i] + m[j]*m[j] + m[k]*m[k];
         double mh = m[i]*hpx + m[j]*hpy + m[k]*hpz;

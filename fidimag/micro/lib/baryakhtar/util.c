@@ -1,89 +1,37 @@
 #include "baryakhtar_clib.h"
 
+/* Vector fields are x0, y0, z0, x1, y1, z1, ... and the cells are numbered with x running fastest, as everywhere else. */
 void compute_laplace_m(double *m, double *field, double *Ms, double dx,
 		double dy, double dz, int nx, int ny, int nz) {
-	int nyz = ny * nz;
-	int n1 = nx * nyz, n2 = 2 * n1;
-
-	double ax = 1.0 / (dx * dx), ay = 1.0 / (dy * dy), az = 1.0 / (dz * dz);
+	const int nxy = nx * ny;
+	const double ax = 1.0 / (dx * dx), ay = 1.0 / (dy * dy), az = 1.0 / (dz * dz);
 
 	#pragma omp parallel for
-	for (int i = 0; i < nx; i++) {
+	for (int k = 0; k < nz; k++) {
 		for (int j = 0; j < ny; j++) {
-			for (int k = 0; k < nz; k++) {
+			for (int i = 0; i < nx; i++) {
+				const int index = k * nxy + j * nx + i;
+				double f[3] = {0, 0, 0};
 
-				int id = 0;
-				int index = nyz * i + nz * j + k;
-
-				double fx = 0, fy = 0, fz = 0;
-
-				if (Ms[index] == 0.0) {
-					field[index] = 0;
-					field[index + n1] = 0;
-					field[index + n2] = 0;
-					continue;
-				}
-
-				if (k > 0) {
-					id = index - 1;
-					if (Ms[id] > 0) {
-						fx += az * (m[id] - m[index]);
-						fy += az * (m[id + n1] - m[index + n1]);
-						fz += az * (m[id + n2] - m[index + n2]);
+				if (Ms[index] > 0.0) {
+					// (a cell without material is not a neighbour of anything)
+					int ids[6], count = 0;
+					double a[6];
+					if (i > 0) { ids[count] = index - 1; a[count++] = ax; }
+					if (i < nx - 1) { ids[count] = index + 1; a[count++] = ax; }
+					if (j > 0) { ids[count] = index - nx; a[count++] = ay; }
+					if (j < ny - 1) { ids[count] = index + nx; a[count++] = ay; }
+					if (k > 0) { ids[count] = index - nxy; a[count++] = az; }
+					if (k < nz - 1) { ids[count] = index + nxy; a[count++] = az; }
+					for (int q = 0; q < count; q++) {
+						if (Ms[ids[q]] > 0.0)
+							for (int c = 0; c < 3; c++) f[c] += a[q] * (m[3 * ids[q] + c] - m[3 * index + c]);
 					}
 				}
 
-				if (j > 0) {
-					id = index - nz;
-					if (Ms[id] > 0) {
-						fx += ay * (m[id] - m[index]);
-						fy += ay * (m[id + n1] - m[index + n1]);
-						fz += ay * (m[id + n2] - m[index + n2]);
-					}
-				}
-
-				if (i > 0) {
-					id = index - nyz;
-					if (Ms[id] > 0) {
-						fx += ax * (m[id] - m[index]);
-						fy += ax * (m[id + n1] - m[index + n1]);
-						fz += ax * (m[id + n2] - m[index + n2]);
-					}
-				}
-
-				if (i < nx - 1) {
-					id = index + nyz;
-					if (Ms[id] > 0) {
-						fx += ax * (m[id] - m[index]);
-						fy += ax * (m[id + n1] - m[index + n1]);
-						fz += ax * (m[id + n2] - m[index + n2]);
-					}
-				}
-
-				if (j < ny - 1) {
-					id = index + nz;
-					if (Ms[id] > 0) {
-						fx += ay * (m[id] - m[index]);
-						fy += ay * (m[id + n1] - m[index + n1]);
-						fz += ay * (m[id + n2] - m[index + n2]);
-					}
-				}
-
-				if (k < nz - 1) {
-					id = index + 1;
-					if (Ms[id] > 0) {
-						fx += az * (m[id] - m[index]);
-						fy += az * (m[id + n1] - m[index + n1]);
-						fz += az * (m[id + n2] - m[index + n2]);
-					}
-				}
-
-				field[index] = fx;
-				field[index + n1] = fy;
-				field[index + n2] = fz;
+				for (int c = 0; c < 3; c++) field[3 * index + c] = f[c];
 			}
 		}
-
 	}
 }
 
@@ -91,33 +39,26 @@ void compute_relaxation_field_c(double *m, double *field, double *Ms,
 		double chi_inv, int n) {
 
 	#pragma omp parallel for
-	for (int i = 0; i < n; i++) {
-		int j = i + n;
-		int k = j + n;
+	for (int id = 0; id < n; id++) {
+		const double *s = m + 3 * id;
+		const double relax = Ms[id] * chi_inv / 2.0;
+		const double mm = s[0] * s[0] + s[1] * s[1] + s[2] * s[2];
 
-		double relax = Ms[i] * chi_inv / 2.0;
-		double mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-
-		field[i] = relax * (1 - mm) * m[i];
-		field[j] = relax * (1 - mm) * m[j];
-		field[k] = relax * (1 - mm) * m[k];
-
+		for (int c = 0; c < 3; c++) field[3 * id + c] = relax * (1 - mm) * s[c];
 	}
 }
 
 void compute_perp_field_c(double *m, double *field, double *field_p, int n) {
 
 	#pragma omp parallel for
-	for (int i = 0; i < n; i++) {
-		int j = i + n;
-		int k = j + n;
+	for (int id = 0; id < n; id++) {
+		const double *s = m + 3 * id;
+		const double *h = field + 3 * id;
 
-		double mm = m[i] * m[i] + m[j] * m[j] + m[k] * m[k];
-		double hm = field[i] * m[i] + field[j] * m[j] + field[k] * m[k];
+		const double mm = s[0] * s[0] + s[1] * s[1] + s[2] * s[2];
+		const double hm = h[0] * s[0] + h[1] * s[1] + h[2] * s[2];
 
-		field_p[i] = field[i] - hm * m[i] / mm;
-		field_p[j] = field[j] - hm * m[j] / mm;
-		field_p[k] = field[k] - hm * m[k] / mm;
-
+		// (a cell with no spin has no perpendicular field)
+		for (int c = 0; c < 3; c++) field_p[3 * id + c] = mm > 0.0 ? h[c] - hm * s[c] / mm : 0.0;
 	}
 }

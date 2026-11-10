@@ -11,6 +11,12 @@ class Relaxation:
     def __init__(self, chi, name='relax'):
         self.chi = chi
         self.name = name
+        self.jac = False
+
+    def set_chi(self, chi):
+        """Change the susceptibility (the field uses its inverse)"""
+        self.chi = chi
+        self.chi_inv = 0 if chi == 0.0 else 1.0 / chi
 
     def setup(self, mesh, m, Ms):
         self.mesh = mesh
@@ -24,10 +30,7 @@ class Relaxation:
         self.Ms = Ms
         self.field = np.zeros(3 * mesh.n)
 
-        if self.chi == 0.0:
-            self.chi_inv = 0
-        else:
-            self.chi_inv = 1.0 / self.chi
+        self.set_chi(self.chi)
 
     def compute_field(self, t=0):
 

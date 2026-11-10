@@ -42,9 +42,10 @@ class LLBarFull(MicroDriver):
     def set_chi(self, chi):
         """
         """
+        self._chi = chi
         for i in self.interactions:
             if i.name == 'chi_relax':
-                i.chi = chi
+                i.set_chi(chi)
 
     chi = property(get_chi, set_chi)
 
@@ -76,7 +77,7 @@ class LLBarFull(MicroDriver):
 
 class LLBar(MicroDriver):
 
-    def __init__(self, mesh, spin, Ms, field, pins,
+    def __init__(self, mesh, spin, Ms, Ms_inv, field, pins,
                  interactions,
                  name,
                  data_saver,
@@ -85,11 +86,11 @@ class LLBar(MicroDriver):
                  ):
 
         # Inherit from the driver class
-        super().__init__(mesh, spin, Ms, field,
+        super().__init__(mesh, spin, Ms, Ms_inv, field,
                                     pins, interactions, name,
                                     data_saver,
-                                    integrator='cvode_bdf',
-                                    use_jac=False
+                                    integrator=integrator,
+                                    use_jac=use_jac
                                     )
 
         self.lap = Laplace(mesh)
@@ -112,7 +113,7 @@ class LLBar(MicroDriver):
 
         clib.compute_llg_rhs_baryakhtar_reduced(ydot,
                                                 self.spin,
-                                                self.field,
+                                                self.field_perp,
                                                 delta_h,
                                                 self.alpha,
                                                 self.beta,
